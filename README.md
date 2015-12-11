@@ -15,7 +15,7 @@ If you already have an Azure account, start with [this tutorial](https://azure.m
 * [azure-mobile-apps-net-client](https://github.com/azure/azure-mobile-apps-net-client) - Client SDK for .NET platforms - Windows, Windows Phone, Xamarin.iOS, Xamarin.Android, .NET 4.5
 * [azure-mobile-apps-js-client](https://github.com/azure/azure-mobile-apps-js-client) - Client SDK for JavaScript platforms - Browser, Cordova, WinJS
 * [azure-mobile-apps-ios-client](https://github.com/azure/azure-mobile-apps-ios-client) - Client SDK for iOS
-* [azure-mobile-apps-android-client](https://github.com/azure/azure-mobile-apps-android-client) - Client SDK for Android *(coming very soon)*
+* [azure-mobile-apps-android-client](https://github.com/azure/azure-mobile-apps-android-client) - Client SDK for Android
 
 ### Server SDKs
 * [azure-mobile-apps-net-server](https://github.com/azure/azure-mobile-apps-net-server) - .NET based server SDK
