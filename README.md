@@ -21,7 +21,8 @@ If you already have an Azure account, start with [this tutorial](https://azure.m
 * [azure-mobile-apps-net-server](https://github.com/azure/azure-mobile-apps-net-server) - .NET based server SDK
 * [azure-mobile-apps-node](https://github.com/azure/azure-mobile-apps-node) - Node.JS based server SDK
 
-### Mobile Services
+### Misc
+* [azure-mobile-apps-quickstarts](https://github.com/Azure/azure-mobile-apps-quickstarts) - Client and server project templates used in the Azure Portal for getting started quickly with Mobile Apps
 * [azure-mobile-services](https://github.com/azure/azure-mobile-services) - Older version of the Client SDKs targeting Azure Mobile Services
 
 ## Contributing
