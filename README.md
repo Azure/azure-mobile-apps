@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/Azure/azure-mobile-apps.png?label=ready&title=Ready)](https://waffle.io/Azure/azure-mobile-apps)
 # Azure Mobile Apps
 
 Building a cloud backend for your mobile application is easy with Azure Mobile Apps. For more information see [What are Mobile Apps?](https://azure.microsoft.com/en-us/documentation/articles/app-service-mobile-value-prop-preview/) on MSDN.
