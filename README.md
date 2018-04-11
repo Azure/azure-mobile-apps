@@ -27,6 +27,10 @@ If you already have an Azure account, start with [this tutorial](https://azure.m
 * [azure-mobile-net-files-server](https://github.com/Azure/azure-mobile-apps-net-files-server) - File management support for the .NET server 
 * [azure-mobile-net-files-client](https://github.com/Azure/azure-mobile-apps-net-files-client) - File management support for the .NET client
 
+## Future of Azure Mobile Apps
+ 
+Microsoft is committed to fully supporting Azure Mobile Apps, including **support for the latest OS release, bug fixes, documentation improvements, and community PR reviews**. Please note that the product team is **not currently investing in any new feature work** for Azure Mobile Apps. We highly appreciate community contributions to all areas of Azure Mobile Apps. 
+
 ## Contributing
 
 If you would like to become an active contributor to this project please follow the instructions provided in [Microsoft Azure Projects Contribution Guidelines](http://azure.github.com/guidelines.html). 
