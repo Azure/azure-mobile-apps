@@ -2,8 +2,11 @@
 
 Building a cloud backend for your mobile application is easy with Azure Mobile Apps. For more information see [What are Mobile Apps?](https://azure.microsoft.com/en-us/documentation/articles/app-service-mobile-value-prop-preview/) on MSDN.
    
-
+# Visual Studio App Center as modern and integrated solution for mobile development
+ Visual Studio App Center supports end to end and integrated services central to mobile app development. Developers can use **Build**, **Test** and **Distribute** services to set up Continuous Integration and Delivery pipeline. Once the app is deployed, developers can monitor the status and usage of their app using the **Analytics** and **Diagnostics** services, and engage with users using the **Push** service. Developers can also leverage **Auth** to authenticate their users and **Data** service to persist and sync app data in the cloud.
  
+If you are looking to integrate cloud services in your mobile application, sign up with [App Center](https://appcenter.ms/signup?utm_source=zumo&utm_medium=Azure&utm_campaign=GitHub) today.
+
 ## Getting Started
 
 Getting started with Azure Mobile Apps couldn't be easier - you don't even need an Azure account - [try it out now](https://tryappservice.azure.com/?appServiceName=mobile)! 
