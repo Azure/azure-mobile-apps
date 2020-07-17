@@ -1,5 +1,6 @@
 ﻿using Azure.Mobile.Server.Entity;
 using System;
+using System.Linq;
 
 namespace Azure.Mobile.Common.Test
 {
@@ -41,6 +42,25 @@ namespace Azure.Mobile.Common.Test
                 BestPictureWinner = this.BestPictureWinner,
                 Year = this.Year
             };
+        }
+
+        public override bool Equals(object obj)
+        {
+            if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+            var c = obj as Movie;
+            return c.Id == Id
+                && c.UpdatedAt == UpdatedAt
+                && c.Deleted == Deleted
+                && c.Title == Title
+                && c.Duration == Duration
+                && c.MpaaRating == MpaaRating
+                && c.ReleaseDate == ReleaseDate
+                && c.BestPictureWinner == BestPictureWinner
+                && c.Year == Year
+                && c.Version.SequenceEqual(Version);
         }
     }
 }

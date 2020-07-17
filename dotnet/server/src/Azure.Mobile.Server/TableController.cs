@@ -190,7 +190,7 @@ namespace Azure.Mobile.Server
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
-        public virtual async Task<IActionResult> DeleteItemasync(string id)
+        public virtual async Task<IActionResult> DeleteItemAsync(string id)
         {
             var entity = await TableRepository.LookupAsync(id).ConfigureAwait(false);
             if (entity == null || entity.Deleted || !IsAuthorized(TableOperation.Delete, entity))
