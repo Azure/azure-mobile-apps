@@ -207,7 +207,7 @@ namespace Azure.Mobile.Server
             if (TableControllerOptions.SoftDeleteEnabled)
             {
                 entity.Deleted = true;
-                await TableRepository.ReplaceAsync(entity).ConfigureAwait(false);
+                await TableRepository.ReplaceAsync(PrepareItemForStore(entity)).ConfigureAwait(false);
             } 
             else
             {
