@@ -2,10 +2,12 @@
 using Azure.Mobile.Server.Entity;
 using Azure.Mobile.Server.Utils;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.VisualBasic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -678,6 +680,323 @@ namespace Azure.Mobile.Server.Test
 
             var actual = response as ObjectResult;
             Assert.AreEqual(412, actual.StatusCode);
+        }
+        #endregion
+
+        #region DeleteItemAsync
+        [TestMethod]
+        public async Task DeleteItem_Existing_SoftDeleteDisabled_Returns204()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var testItem = TestData.RandomMovie();
+            var originalItem = testItem.Clone();
+            controller.SetRequest(HttpMethod.Delete, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            var response = await controller.DeleteItemAsync(testItem.Id);
+            Assert.IsInstanceOfType(response, typeof(NoContentResult));
+
+            var actual = response as NoContentResult;
+            Assert.AreEqual(204, actual.StatusCode);
+
+            // Check the context for the existance of the Id
+            Assert.IsFalse(context.Movies.Any(m => m.Id == originalItem.Id));
+
+            // Calls IsAuthorized
+            Assert.AreEqual(1, controller.IsAuthorizedCallCount);
+            // Doesn't call PrepareItemForStore
+            Assert.AreEqual(0, controller.PrepareItemForStoreCallCount);
+        }
+
+        [TestMethod]
+        public async Task DeleteItem_Existing_SoftDeleteEnabled_Returns204()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var options = new TableControllerOptions<Movie>() { SoftDeleteEnabled = true };
+            var controller = new MoviesController(context) { TableControllerOptions = options };
+            var testItem = TestData.RandomMovie();
+            var originalItem = testItem.Clone();
+            controller.SetRequest(HttpMethod.Delete, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            var response = await controller.DeleteItemAsync(testItem.Id);
+            Assert.IsInstanceOfType(response, typeof(NoContentResult));
+
+            var actual = response as NoContentResult;
+            Assert.AreEqual(204, actual.StatusCode);
+
+            // Check the context for the existance of the Id with a Deleted = true flag
+            Assert.IsTrue(context.Movies.Any(m => m.Id == originalItem.Id && m.Deleted == true));
+
+            // TODO: Check that UpdatedAt is updated since originalItem
+            // TODO: Check that Version is updated since originalItem
+
+            // Calls IsAuthorized
+            Assert.AreEqual(1, controller.IsAuthorizedCallCount);
+            // Does call PrepareItemForStore
+            Assert.AreEqual(1, controller.PrepareItemForStoreCallCount);
+        }
+
+        [TestMethod]
+        public async Task DeleteItem_Missing_SoftDeleteDisabled_Returns404()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var testItem = new Movie();
+            controller.SetRequest(HttpMethod.Delete, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            var response = await controller.DeleteItemAsync(testItem.Id);
+            Assert.IsInstanceOfType(response, typeof(NotFoundResult));
+
+            var actual = response as NotFoundResult;
+            Assert.AreEqual(404, actual.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task DeleteItem_Missing_SoftDeleteEnabled_Returns404()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var options = new TableControllerOptions<Movie>() { SoftDeleteEnabled = true };
+            var controller = new MoviesController(context) { TableControllerOptions = options };
+            var testItem = new Movie();
+            controller.SetRequest(HttpMethod.Delete, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            var response = await controller.DeleteItemAsync(testItem.Id);
+            Assert.IsInstanceOfType(response, typeof(NotFoundResult));
+
+            var actual = response as NotFoundResult;
+            Assert.AreEqual(404, actual.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task DeleteItem_ExistingTwice_SoftDeleteEnabled_Returns404()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var options = new TableControllerOptions<Movie>() { SoftDeleteEnabled = true };
+            var controller = new MoviesController(context) { TableControllerOptions = options };
+            var testItem = TestData.RandomMovie();
+            var originalItem = testItem.Clone();
+            controller.SetRequest(HttpMethod.Delete, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            await controller.DeleteItemAsync(testItem.Id);
+            var response = await controller.DeleteItemAsync(originalItem.Id);
+            Assert.IsInstanceOfType(response, typeof(NotFoundResult));
+
+            var actual = response as NotFoundResult;
+            Assert.AreEqual(404, actual.StatusCode);
+
+            // Check the context for the existance of the Id with a Deleted = true flag
+            Assert.IsTrue(context.Movies.Any(m => m.Id == originalItem.Id && m.Deleted == true));
+        }
+
+        [TestMethod]
+        public async Task DeleteItem_Unauthorized_Returns404()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context) { IsAuthorizedResult = false };
+            var testItem = TestData.RandomMovie();
+            var originalItem = testItem.Clone();
+            controller.SetRequest(HttpMethod.Delete, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            var response = await controller.DeleteItemAsync(testItem.Id);
+            Assert.IsInstanceOfType(response, typeof(NotFoundResult));
+
+            var actual = response as NotFoundResult;
+            Assert.AreEqual(404, actual.StatusCode);
+
+            // Check the context for the existance of the Id
+            Assert.IsTrue(context.Movies.Any(m => m.Id == originalItem.Id));
+
+            // Calls IsAuthorized
+            Assert.AreEqual(1, controller.IsAuthorizedCallCount);
+            // Doesn't call PrepareItemForStore
+            Assert.AreEqual(0, controller.PrepareItemForStoreCallCount);
+        }
+
+        [TestMethod]
+        public async Task DeleteItem_PreconditionsFail_Returns412()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var testItem = TestData.RandomMovie();
+            var originalItem = testItem.Clone();
+            controller.SetRequest(HttpMethod.Delete, $"https://foo.com/tables/movies/{testItem.Id}", new Dictionary<string, string>()
+            {
+                { "If-None-Match", ETag.FromByteArray(testItem.Version) }
+            });
+
+            var response = await controller.DeleteItemAsync(testItem.Id);
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+
+            var actual = response as ObjectResult;
+            Assert.AreEqual(412, actual.StatusCode);
+
+            // Check the context for the existance of the Id - should still exist
+            Assert.IsTrue(context.Movies.Any(m => m.Id == originalItem.Id));
+        }
+
+        [TestMethod]
+        public async Task DeleteItem_Existing_PreconditionsSucceed_Returns204()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var testItem = TestData.RandomMovie();
+            var originalItem = testItem.Clone();
+            controller.SetRequest(HttpMethod.Delete, $"https://foo.com/tables/movies/{testItem.Id}", new Dictionary<string, string>()
+            {
+                { "If-Match", ETag.FromByteArray(testItem.Version) }
+            });
+
+            var response = await controller.DeleteItemAsync(testItem.Id);
+            Assert.IsInstanceOfType(response, typeof(NoContentResult));
+
+            var actual = response as NoContentResult;
+            Assert.AreEqual(204, actual.StatusCode);
+
+            // Check the context for the existance of the Id
+            Assert.IsFalse(context.Movies.Any(m => m.Id == originalItem.Id));
+        }
+        #endregion
+
+        #region ReplaceItemAsync
+        [TestMethod]
+        public async Task ReplaceItem_ExistingItem_Returns200()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var testItem = TestData.RandomMovie().Clone();
+            var originalItem = testItem.Clone();
+            testItem.Title = "Replaced";
+            controller.SetRequest(HttpMethod.Put, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            var response = await controller.ReplaceItemAsync(testItem.Id, testItem);
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+
+            var actual = response as ObjectResult;
+            Assert.AreEqual(200, actual.StatusCode);
+
+            var returnedItem = actual.Value as Movie;
+            Assert.AreEqual(originalItem.Id, returnedItem.Id);
+            Assert.AreEqual("Replaced", returnedItem.Title);
+            CollectionAssert.AreNotEqual(originalItem.Version, returnedItem.Version);
+            Assert.IsTrue(DateTimeOffset.UtcNow.Subtract(returnedItem.UpdatedAt).TotalMilliseconds < 500);
+
+            // Check the context for the existance of the Id with right Title.
+            Assert.IsTrue(context.Movies.Any(m => m.Id == originalItem.Id && m.Title == "Replaced"));
+
+            var responseHeaders = controller.Response.Headers;
+            Assert.AreEqual(ETag.FromByteArray(returnedItem.Version), responseHeaders["ETag"][0]);
+            Assert.AreEqual(returnedItem.UpdatedAt.ToString("r"), responseHeaders["Last-Modified"][0]);
+
+            // Calls IsAuthorized
+            Assert.AreEqual(1, controller.IsAuthorizedCallCount);
+            // Does call PrepareItemForStore
+            Assert.AreEqual(1, controller.PrepareItemForStoreCallCount);
+        }
+
+        [TestMethod]
+        public async Task ReplaceItem_MissingItem_Returns404()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var testItem = new Movie();
+            controller.SetRequest(HttpMethod.Put, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            var response = await controller.ReplaceItemAsync(testItem.Id, testItem);
+            Assert.IsInstanceOfType(response, typeof(NotFoundResult));
+
+            var actual = response as NotFoundResult;
+            Assert.AreEqual(404, actual.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task ReplaceItem_MismatchedId_Returns400()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var testItem = TestData.RandomMovie().Clone();
+            var originalItem = testItem.Clone();
+            testItem.Title = "Replaced";
+            controller.SetRequest(HttpMethod.Put, $"https://foo.com/tables/movies/{Guid.NewGuid()}");
+
+            var response = await controller.ReplaceItemAsync(Guid.NewGuid().ToString(), testItem);
+            Assert.IsInstanceOfType(response, typeof(BadRequestResult));
+
+            var actual = response as BadRequestResult;
+            Assert.AreEqual(400, actual.StatusCode);
+        }
+
+        public async Task ReplaceItem_DeletedItem_SoftDeleteEnabled_Returns404()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var options = new TableControllerOptions<Movie>() { SoftDeleteEnabled = true };
+            var controller = new MoviesController(context);
+            var testItem = TestData.RandomMovie().Clone();
+            controller.SetRequest(HttpMethod.Put, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            await controller.DeleteItemAsync(testItem.Id);
+            var response = await controller.ReplaceItemAsync(testItem.Id, testItem);
+            Assert.IsInstanceOfType(response, typeof(NotFoundResult));
+
+            var actual = response as ObjectResult;
+            Assert.AreEqual(404, actual.StatusCode);
+        }
+
+        public async Task ReplaceItem_Unauthorized_Returns404()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context) { IsAuthorizedResult = false };
+            var testItem = TestData.RandomMovie();
+            controller.SetRequest(HttpMethod.Put, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            var response = await controller.ReplaceItemAsync(testItem.Id, testItem);
+            Assert.IsInstanceOfType(response, typeof(NotFoundResult));
+
+            var actual = response as NotFoundResult;
+            Assert.AreEqual(404, actual.StatusCode);
+        }
+
+        public async Task ReplaceItem_PreconditionsFail_Returns412()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var testItem = TestData.RandomMovie().Clone();
+            var originalItem = testItem.Clone();
+            testItem.Title = "Replaced";
+            controller.SetRequest(HttpMethod.Put, $"https://foo.com/tables/movies/{testItem.Id}", new Dictionary<string, string>()
+            {
+                { "If-None-Match", ETag.FromByteArray(testItem.Version) }
+            });
+
+            var response = await controller.ReplaceItemAsync(testItem.Id, testItem);
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+
+            var actual = response as ObjectResult;
+            Assert.AreEqual(412, actual.StatusCode);
+        }
+
+        public async Task ReplaceItem_PreconditionSucceed_Returns200()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var testItem = TestData.RandomMovie().Clone();
+            var originalItem = testItem.Clone();
+            testItem.Title = "Replaced";
+            controller.SetRequest(HttpMethod.Put, $"https://foo.com/tables/movies/{testItem.Id}", new Dictionary<string, string>()
+            {
+                { "If-Match", ETag.FromByteArray(testItem.Version) }
+            });
+
+            var response = await controller.ReplaceItemAsync(testItem.Id, testItem);
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+
+            var actual = response as ObjectResult;
+            Assert.AreEqual(200, actual.StatusCode);
+
+            var returnedItem = actual.Value as Movie;
+            Assert.AreEqual(originalItem.Id, returnedItem.Id);
+            Assert.AreEqual("Replaced", returnedItem.Id);
+            CollectionAssert.AreNotEqual(originalItem.Version, returnedItem.Version);
+            Assert.IsTrue(DateTimeOffset.UtcNow.Subtract(returnedItem.UpdatedAt).TotalMilliseconds < 500);
         }
         #endregion
     }
