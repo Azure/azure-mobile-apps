@@ -2,8 +2,6 @@
 using Azure.Mobile.Server.Entity;
 using Azure.Mobile.Server.Utils;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.VisualBasic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -28,6 +26,14 @@ namespace Azure.Mobile.Server.Test
         private string laterTestDate = "Thu, 31 Jan 2019 13:30:15 GMT";
         private string matchingETag = "\"AQBCIkeP\"";
         private string nonMatchingETag = "\"Foo\"";
+        
+        // Test controller for testing null check.
+        class TestTableController : TableController<Movie>
+        {
+            public TestTableController(): base(null)
+            {
+            }
+        }
 
         #region CTOR
         [TestMethod]
@@ -36,6 +42,14 @@ namespace Azure.Mobile.Server.Test
             var context = MovieDbContext.InMemoryContext();
             var controller = new MoviesController(context);
             Assert.IsNotNull(controller.TableRepository);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void CtorWithRepository_NullThrows()
+        {
+            var controller = new TestTableController();
+            Assert.Fail("ArgumentNullException expected");
         }
         #endregion
 
@@ -88,6 +102,7 @@ namespace Azure.Mobile.Server.Test
             Assert.IsTrue(controller.BaseIsAuthorized(TableOperation.None, null));
         }
 
+        [TestMethod]
         public void PrepareItemForStore_ReturnsSelf()
         {
             var context = MovieDbContext.InMemoryContext();
@@ -924,7 +939,7 @@ namespace Azure.Mobile.Server.Test
             var actual = response as BadRequestResult;
             Assert.AreEqual(400, actual.StatusCode);
         }
-
+        [TestMethod]
         public async Task ReplaceItem_DeletedItem_SoftDeleteEnabled_Returns404()
         {
             var context = MovieDbContext.InMemoryContext();
@@ -937,10 +952,11 @@ namespace Azure.Mobile.Server.Test
             var response = await controller.ReplaceItemAsync(testItem.Id, testItem);
             Assert.IsInstanceOfType(response, typeof(NotFoundResult));
 
-            var actual = response as ObjectResult;
+            var actual = response as NotFoundResult;
             Assert.AreEqual(404, actual.StatusCode);
         }
 
+        [TestMethod]
         public async Task ReplaceItem_Unauthorized_Returns404()
         {
             var context = MovieDbContext.InMemoryContext();
@@ -955,6 +971,7 @@ namespace Azure.Mobile.Server.Test
             Assert.AreEqual(404, actual.StatusCode);
         }
 
+        [TestMethod]
         public async Task ReplaceItem_PreconditionsFail_Returns412()
         {
             var context = MovieDbContext.InMemoryContext();
@@ -972,8 +989,16 @@ namespace Azure.Mobile.Server.Test
 
             var actual = response as ObjectResult;
             Assert.AreEqual(412, actual.StatusCode);
+
+            var returnedItem = actual.Value as Movie;
+            Assert.AreEqual(originalItem, returnedItem);
+
+            var responseHeaders = controller.Response.Headers;
+            Assert.AreEqual(ETag.FromByteArray(returnedItem.Version), responseHeaders["ETag"][0]);
+            Assert.AreEqual(returnedItem.UpdatedAt.ToString("r"), responseHeaders["Last-Modified"][0]);
         }
 
+        [TestMethod]
         public async Task ReplaceItem_PreconditionSucceed_Returns200()
         {
             var context = MovieDbContext.InMemoryContext();
@@ -994,7 +1019,7 @@ namespace Azure.Mobile.Server.Test
 
             var returnedItem = actual.Value as Movie;
             Assert.AreEqual(originalItem.Id, returnedItem.Id);
-            Assert.AreEqual("Replaced", returnedItem.Id);
+            Assert.AreEqual("Replaced", returnedItem.Title);
             CollectionAssert.AreNotEqual(originalItem.Version, returnedItem.Version);
             Assert.IsTrue(DateTimeOffset.UtcNow.Subtract(returnedItem.UpdatedAt).TotalMilliseconds < 500);
         }

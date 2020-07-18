@@ -275,6 +275,7 @@ namespace Azure.Mobile.Server
             var preconditionStatusCode = EvaluatePreconditions(entity);
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
+                AddHeadersToResponse(entity);
                 return StatusCode(preconditionStatusCode, entity);
             }
 
