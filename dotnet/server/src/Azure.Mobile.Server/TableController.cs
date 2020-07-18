@@ -261,15 +261,15 @@ namespace Azure.Mobile.Server
         [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
         public virtual async Task<IActionResult> ReplaceItemAsync(string id, [FromBody] TEntity item)
         {
+            if (item.Id != id)
+            {
+                return BadRequest();
+            }
+
             var entity = await TableRepository.LookupAsync(id).ConfigureAwait(false);
             if (entity == null || entity.Deleted || !IsAuthorized(TableOperation.Replace, entity))
             {
                 return NotFound();
-            }
-
-            if (item.Id != id)
-            {
-                return BadRequest();
             }
 
             var preconditionStatusCode = EvaluatePreconditions(entity);
