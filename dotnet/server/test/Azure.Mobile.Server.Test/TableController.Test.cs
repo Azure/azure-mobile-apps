@@ -1,6 +1,7 @@
 ﻿using Azure.Mobile.Common.Test;
 using Azure.Mobile.Server.Entity;
 using Azure.Mobile.Server.Utils;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -944,7 +945,7 @@ namespace Azure.Mobile.Server.Test
         {
             var context = MovieDbContext.InMemoryContext();
             var options = new TableControllerOptions<Movie>() { SoftDeleteEnabled = true };
-            var controller = new MoviesController(context);
+            var controller = new MoviesController(context) { TableControllerOptions = options };
             var testItem = TestData.RandomMovie().Clone();
             controller.SetRequest(HttpMethod.Put, $"https://foo.com/tables/movies/{testItem.Id}");
 
@@ -1021,6 +1022,195 @@ namespace Azure.Mobile.Server.Test
             Assert.AreEqual(originalItem.Id, returnedItem.Id);
             Assert.AreEqual("Replaced", returnedItem.Title);
             CollectionAssert.AreNotEqual(originalItem.Version, returnedItem.Version);
+            Assert.IsTrue(DateTimeOffset.UtcNow.Subtract(returnedItem.UpdatedAt).TotalMilliseconds < 500);
+        }
+        #endregion
+
+        #region PatchItemAsync
+        [TestMethod]
+        public async Task PatchItem_ExistingItem_Returns200()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var testItem = TestData.RandomMovie().Clone();
+            JsonPatchDocument<Movie> patchDoc = new JsonPatchDocument<Movie>();
+            patchDoc.Replace(e => e.Title, "Replaced");
+            controller.SetRequest(HttpMethod.Patch, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            var response = await controller.PatchItemAsync(testItem.Id, patchDoc);
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+
+            var actual = response as ObjectResult;
+            Assert.AreEqual(200, actual.StatusCode);
+
+            var returnedItem = actual.Value as Movie;
+            Assert.AreEqual(testItem.Id, returnedItem.Id);
+            Assert.AreEqual("Replaced", returnedItem.Title);
+            CollectionAssert.AreNotEqual(testItem.Version, returnedItem.Version);
+            Assert.IsTrue(DateTimeOffset.UtcNow.Subtract(returnedItem.UpdatedAt).TotalMilliseconds < 500);
+
+            // Check the context for the existance of the Id with right Title.
+            Assert.IsTrue(context.Movies.Any(m => m.Id == testItem.Id && m.Title == "Replaced"));
+
+            var responseHeaders = controller.Response.Headers;
+            Assert.AreEqual(ETag.FromByteArray(returnedItem.Version), responseHeaders["ETag"][0]);
+            Assert.AreEqual(returnedItem.UpdatedAt.ToString("r"), responseHeaders["Last-Modified"][0]);
+
+            // Calls IsAuthorized
+            Assert.AreEqual(1, controller.IsAuthorizedCallCount);
+            // Does call PrepareItemForStore
+            Assert.AreEqual(1, controller.PrepareItemForStoreCallCount);
+        }
+
+        [TestMethod]
+        public async Task PatchItem_MissingItem_Returns404()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var testItem = new Movie();
+            JsonPatchDocument<Movie> patchDoc = new JsonPatchDocument<Movie>();
+            patchDoc.Replace(e => e.Title, "Replaced");
+            controller.SetRequest(HttpMethod.Patch, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            var response = await controller.PatchItemAsync(testItem.Id, patchDoc);
+            Assert.IsInstanceOfType(response, typeof(NotFoundResult));
+
+            var actual = response as NotFoundResult;
+            Assert.AreEqual(404, actual.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task PatchItem_MismatchedId_Returns400()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var testItem = TestData.RandomMovie().Clone();
+            JsonPatchDocument<Movie> patchDoc = new JsonPatchDocument<Movie>();
+            patchDoc.Replace(e => e.Title, "Replaced");
+            patchDoc.Replace(e => e.Id, "Replaced");
+            controller.SetRequest(HttpMethod.Patch, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            var response = await controller.PatchItemAsync(testItem.Id, patchDoc);
+            Assert.IsInstanceOfType(response, typeof(BadRequestResult));
+
+            var actual = response as BadRequestResult;
+            Assert.AreEqual(400, actual.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task PatchItem_DeletedItem_SoftDeleteEnabled_Returns404()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var options = new TableControllerOptions<Movie>() { SoftDeleteEnabled = true };
+            var controller = new MoviesController(context) { TableControllerOptions = options };
+            var testItem = TestData.RandomMovie().Clone();
+            JsonPatchDocument<Movie> patchDoc = new JsonPatchDocument<Movie>();
+            patchDoc.Replace(e => e.Title, "Replaced");
+            controller.SetRequest(HttpMethod.Patch, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            await controller.DeleteItemAsync(testItem.Id);
+            var response = await controller.PatchItemAsync(testItem.Id, patchDoc);
+            Assert.IsInstanceOfType(response, typeof(NotFoundResult));
+
+            var actual = response as NotFoundResult;
+            Assert.AreEqual(404, actual.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task PatchItem_DeletedItem_SoftDeleteEnabled_CanUndeleteItem()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var options = new TableControllerOptions<Movie>() { SoftDeleteEnabled = true };
+            var controller = new MoviesController(context) { TableControllerOptions = options };
+            var testItem = TestData.RandomMovie().Clone();
+            JsonPatchDocument<Movie> patchDoc = new JsonPatchDocument<Movie>();
+            patchDoc.Replace(e => e.Title, "Replaced");
+            patchDoc.Replace(e => e.Deleted, false);
+            controller.SetRequest(HttpMethod.Patch, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            await controller.DeleteItemAsync(testItem.Id);
+            Assert.IsTrue(context.Movies.Any(m => m.Id == testItem.Id));
+            var response = await controller.PatchItemAsync(testItem.Id, patchDoc);
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+
+            var actual = response as ObjectResult;
+            Assert.AreEqual(200, actual.StatusCode);
+
+            var returnedItem = actual.Value as Movie;
+            Assert.AreEqual(testItem.Id, returnedItem.Id);
+            Assert.AreEqual("Replaced", returnedItem.Title);
+            CollectionAssert.AreNotEqual(testItem.Version, returnedItem.Version);
+            Assert.IsTrue(DateTimeOffset.UtcNow.Subtract(returnedItem.UpdatedAt).TotalMilliseconds < 500);
+        }
+
+        [TestMethod]
+        public async Task PatchItem_Unauthorized_Returns404()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context) { IsAuthorizedResult = false };
+            var testItem = TestData.RandomMovie();
+            JsonPatchDocument<Movie> patchDoc = new JsonPatchDocument<Movie>();
+            patchDoc.Replace(e => e.Title, "Replaced");
+            controller.SetRequest(HttpMethod.Put, $"https://foo.com/tables/movies/{testItem.Id}");
+
+            var response = await controller.PatchItemAsync(testItem.Id, patchDoc);
+            Assert.IsInstanceOfType(response, typeof(NotFoundResult));
+
+            var actual = response as NotFoundResult;
+            Assert.AreEqual(404, actual.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task PatchItem_PreconditionsFail_Returns412()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var testItem = TestData.RandomMovie().Clone();
+            var originalItem = testItem.Clone();
+            JsonPatchDocument<Movie> patchDoc = new JsonPatchDocument<Movie>();
+            patchDoc.Replace(e => e.Title, "Replaced");
+            controller.SetRequest(HttpMethod.Put, $"https://foo.com/tables/movies/{testItem.Id}", new Dictionary<string, string>()
+            {
+                { "If-None-Match", ETag.FromByteArray(testItem.Version) }
+            });
+
+            var response = await controller.PatchItemAsync(testItem.Id, patchDoc);
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+
+            var actual = response as ObjectResult;
+            Assert.AreEqual(412, actual.StatusCode);
+
+            var returnedItem = actual.Value as Movie;
+            Assert.AreEqual(originalItem, returnedItem);
+
+            var responseHeaders = controller.Response.Headers;
+            Assert.AreEqual(ETag.FromByteArray(returnedItem.Version), responseHeaders["ETag"][0]);
+            Assert.AreEqual(returnedItem.UpdatedAt.ToString("r"), responseHeaders["Last-Modified"][0]);
+        }
+
+        [TestMethod]
+        public async Task PatchItem_PreconditionSucceed_Returns200()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var testItem = TestData.RandomMovie().Clone();
+            JsonPatchDocument<Movie> patchDoc = new JsonPatchDocument<Movie>();
+            patchDoc.Replace(e => e.Title, "Replaced");
+            controller.SetRequest(HttpMethod.Put, $"https://foo.com/tables/movies/{testItem.Id}", new Dictionary<string, string>()
+            {
+                { "If-Match", ETag.FromByteArray(testItem.Version) }
+            });
+
+            var response = await controller.PatchItemAsync(testItem.Id, patchDoc);
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+
+            var actual = response as ObjectResult;
+            Assert.AreEqual(200, actual.StatusCode);
+
+            var returnedItem = actual.Value as Movie;
+            Assert.AreEqual(testItem.Id, returnedItem.Id);
+            Assert.AreEqual("Replaced", returnedItem.Title);
+            CollectionAssert.AreNotEqual(testItem.Version, returnedItem.Version);
             Assert.IsTrue(DateTimeOffset.UtcNow.Subtract(returnedItem.UpdatedAt).TotalMilliseconds < 500);
         }
         #endregion

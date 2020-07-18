@@ -286,6 +286,9 @@ namespace Azure.Mobile.Server
 
         /// <summary>
         /// Patch operation: PATCH {path}/{id}
+        /// 
+        /// Note that unlike most of the other operations, this one works all the time on soft-deleted records, as long
+        /// as you are undeleting the record..
         /// </summary>
         /// <param name="id">The ID of the entity to be patched</param>
         /// <param name="patchDocument">A patch operation document (see RFC 6901, RFC 6902)</param>
@@ -298,14 +301,16 @@ namespace Azure.Mobile.Server
         public virtual async Task<IActionResult> PatchItemAsync(string id, [FromBody] JsonPatchDocument<TEntity> patchDocument)
         {
             var entity = await TableRepository.LookupAsync(id).ConfigureAwait(false);
-            if (entity == null || entity.Deleted || !IsAuthorized(TableOperation.Patch, entity))
+            if (entity == null || !IsAuthorized(TableOperation.Patch, entity))
             {
                 return NotFound();
             }
+            var entityIsDeleted = (TableControllerOptions.SoftDeleteEnabled && entity.Deleted);
 
             var preconditionStatusCode = EvaluatePreconditions(entity);
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
+                AddHeadersToResponse(entity);
                 return StatusCode(preconditionStatusCode, entity);
             }
 
@@ -313,6 +318,14 @@ namespace Azure.Mobile.Server
             if (entity.Id != id)
             {
                 return BadRequest();
+            }
+
+            // Special Case:
+            //  If SoftDelete is enabled, and the original record is DELETED, then you can
+            //  continue as long as one of the operations is an undelete operation.
+            if (entityIsDeleted && entity.Deleted)
+            {
+                return NotFound();
             }
 
             var replacement = await TableRepository.ReplaceAsync(PrepareItemForStore(entity)).ConfigureAwait(false);
