@@ -12,6 +12,8 @@ namespace Azure.Mobile.Common.Test
     {
         public MovieDbContext(DbContextOptions<MovieDbContext> options) : base(options)
         {
+            Movies.AddRange(TestData.AsList());
+            SaveChanges();
         }
 
         public DbSet<Movie> Movies { get; set; }
@@ -22,10 +24,7 @@ namespace Azure.Mobile.Common.Test
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .EnableSensitiveDataLogging()
                 .Options;
-            var context = new MovieDbContext(options);
-            context.AddRange(TestData.AsList());
-            context.SaveChanges();
-            return context;
+            return new MovieDbContext(options);
         }
     }
 }

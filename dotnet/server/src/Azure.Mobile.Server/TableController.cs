@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OData.Edm;
 using System;
+using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -118,15 +119,14 @@ namespace Azure.Mobile.Server
         /// <returns>200 OK with the results of the list (paged)</returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public virtual IActionResult GetItems()
         {
             if (!IsAuthorized(TableOperation.List, null))
             {
-                return Unauthorized();
+                return NotFound();
             }
 
-            // Construct the data view that this query uses.
             var dataView = TableRepository.AsQueryable()
                 .ApplyDeletedFilter(TableControllerOptions, Request)
                 .Where(TableControllerOptions.DataView);
@@ -134,7 +134,9 @@ namespace Azure.Mobile.Server
             // Construct the OData context and parse the query
             var queryContext = new ODataQueryContext(EdmModel, typeof(TEntity), new ODataPath());
             var odataOptions = new ODataQueryOptions<TEntity>(queryContext, Request);
-            odataOptions.Validate(new ODataValidationSettings { MaxTop = TableControllerOptions.MaxTop });
+            odataOptions.Validate(new ODataValidationSettings { 
+                MaxTop = TableControllerOptions.MaxTop
+            });
             var odataSettings = new ODataQuerySettings { PageSize = TableControllerOptions.PageSize };
             var odataQuery = odataOptions.ApplyTo(dataView.AsQueryable(), odataSettings);
 
@@ -190,7 +192,7 @@ namespace Azure.Mobile.Server
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
-        public virtual async Task<IActionResult> DeleteItemasync(string id)
+        public virtual async Task<IActionResult> DeleteItemAsync(string id)
         {
             var entity = await TableRepository.LookupAsync(id).ConfigureAwait(false);
             if (entity == null || entity.Deleted || !IsAuthorized(TableOperation.Delete, entity))
@@ -207,7 +209,7 @@ namespace Azure.Mobile.Server
             if (TableControllerOptions.SoftDeleteEnabled)
             {
                 entity.Deleted = true;
-                await TableRepository.ReplaceAsync(entity).ConfigureAwait(false);
+                await TableRepository.ReplaceAsync(PrepareItemForStore(entity)).ConfigureAwait(false);
             } 
             else
             {
@@ -261,20 +263,21 @@ namespace Azure.Mobile.Server
         [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
         public virtual async Task<IActionResult> ReplaceItemAsync(string id, [FromBody] TEntity item)
         {
+            if (item.Id != id)
+            {
+                return BadRequest();
+            }
+
             var entity = await TableRepository.LookupAsync(id).ConfigureAwait(false);
             if (entity == null || entity.Deleted || !IsAuthorized(TableOperation.Replace, entity))
             {
                 return NotFound();
             }
 
-            if (item.Id != id)
-            {
-                return BadRequest();
-            }
-
             var preconditionStatusCode = EvaluatePreconditions(entity);
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
+                AddHeadersToResponse(entity);
                 return StatusCode(preconditionStatusCode, entity);
             }
 
@@ -285,6 +288,9 @@ namespace Azure.Mobile.Server
 
         /// <summary>
         /// Patch operation: PATCH {path}/{id}
+        /// 
+        /// Note that unlike most of the other operations, this one works all the time on soft-deleted records, as long
+        /// as you are undeleting the record..
         /// </summary>
         /// <param name="id">The ID of the entity to be patched</param>
         /// <param name="patchDocument">A patch operation document (see RFC 6901, RFC 6902)</param>
@@ -297,14 +303,16 @@ namespace Azure.Mobile.Server
         public virtual async Task<IActionResult> PatchItemAsync(string id, [FromBody] JsonPatchDocument<TEntity> patchDocument)
         {
             var entity = await TableRepository.LookupAsync(id).ConfigureAwait(false);
-            if (entity == null || entity.Deleted || !IsAuthorized(TableOperation.Patch, entity))
+            if (entity == null || !IsAuthorized(TableOperation.Patch, entity))
             {
                 return NotFound();
             }
+            var entityIsDeleted = (TableControllerOptions.SoftDeleteEnabled && entity.Deleted);
 
             var preconditionStatusCode = EvaluatePreconditions(entity);
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
+                AddHeadersToResponse(entity);
                 return StatusCode(preconditionStatusCode, entity);
             }
 
@@ -312,6 +320,14 @@ namespace Azure.Mobile.Server
             if (entity.Id != id)
             {
                 return BadRequest();
+            }
+
+            // Special Case:
+            //  If SoftDelete is enabled, and the original record is DELETED, then you can
+            //  continue as long as one of the operations is an undelete operation.
+            if (entityIsDeleted && entity.Deleted)
+            {
+                return NotFound();
             }
 
             var replacement = await TableRepository.ReplaceAsync(PrepareItemForStore(entity)).ConfigureAwait(false);
