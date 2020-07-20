@@ -3,11 +3,15 @@ using Azure.Mobile.Server.Entity;
 using Azure.Mobile.Server.Utils;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Azure.Mobile.Server.Test
@@ -1212,6 +1216,104 @@ namespace Azure.Mobile.Server.Test
             Assert.AreEqual("Replaced", returnedItem.Title);
             CollectionAssert.AreNotEqual(testItem.Version, returnedItem.Version);
             Assert.IsTrue(DateTimeOffset.UtcNow.Subtract(returnedItem.UpdatedAt).TotalMilliseconds < 500);
+        }
+        #endregion
+
+        #region GetItems
+        [TestMethod]
+        public async Task GetItems_ReturnsSomeItems()
+        {
+            var testServer = TestHost.GetTestServer();
+            var client = testServer.CreateClient();
+
+            var response = await client.GetAsync("/tables/movies");
+
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            // The contents are an array of Movies, converted to JSON
+            var content = await response.Content.ReadAsStringAsync();
+            Movie[] data = JsonSerializer.Deserialize<Movie[]>(content);
+            CollectionAssert.AllItemsAreNotNull(data);
+            CollectionAssert.AllItemsAreUnique(data);
+            Assert.AreEqual(248, data.Length);
+        }
+
+        [TestMethod]
+        public async Task GetItems_SoftDeleteEnabled_DoesNotIncludeDeletedItems()
+        {
+            var testServer = TestHost.GetTestServer();
+            var client = testServer.CreateClient();
+
+            var dbContext = testServer.Services.GetService(typeof(MovieDbContext)) as MovieDbContext;
+            // Mark everything but R movies as deleted.
+            await dbContext.Movies.Where(c => c.MpaaRating == "R").ForEachAsync(c => c.Deleted = true);
+            await dbContext.SaveChangesAsync();
+
+            var response = await client.GetAsync("/tables/movies");
+
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            // The contents are an array of Movies, converted to JSON
+            var content = await response.Content.ReadAsStringAsync();
+            Movie[] data = JsonSerializer.Deserialize<Movie[]>(content);
+            CollectionAssert.AllItemsAreNotNull(data);
+            CollectionAssert.AllItemsAreUnique(data);
+            Assert.IsTrue(data.Length > 0);
+            Assert.IsFalse(data.Any(m => m.MpaaRating == "R"));
+        }
+
+        [TestMethod]
+        public async Task GetItems_SoftDeleteEnabled_CanIncludeDeletedItems()
+        {
+            var testServer = TestHost.GetTestServer();
+            var client = testServer.CreateClient();
+
+            var dbContext = testServer.Services.GetService(typeof(MovieDbContext)) as MovieDbContext;
+            // Mark everything but R movies as deleted.
+            await dbContext.Movies.Where(c => c.MpaaRating == "R").ForEachAsync(c => c.Deleted = true);
+            await dbContext.SaveChangesAsync();
+
+            var response = await client.GetAsync("/tables/movies?__includedeleted=true");
+
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            // The contents are an array of Movies, converted to JSON
+            var content = await response.Content.ReadAsStringAsync();
+            Movie[] data = JsonSerializer.Deserialize<Movie[]>(content);
+            CollectionAssert.AllItemsAreNotNull(data);
+            CollectionAssert.AllItemsAreUnique(data);
+            // There are 50 R-rated movies in the data set.
+            // But there are 248 items in the list.
+            Assert.AreEqual(248, data.Length); 
+        }
+
+        [TestMethod]
+        public async Task GetItems_Unauthorized_Returns404()
+        {
+            var testServer = TestHost.GetTestServer();
+            var client = testServer.CreateClient();
+
+            var response = await client.GetAsync("/tables/unauthorized");
+
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task GetItems_MaxTop_ReturnsNItems()
+        {
+            var testServer = TestHost.GetTestServer();
+            var client = testServer.CreateClient();
+
+            var response = await client.GetAsync("/tables/movies?$top=10");
+
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            // The contents are an array of Movies, converted to JSON
+            var content = await response.Content.ReadAsStringAsync();
+            Movie[] data = JsonSerializer.Deserialize<Movie[]>(content);
+            CollectionAssert.AllItemsAreNotNull(data);
+            CollectionAssert.AllItemsAreUnique(data);
+            Assert.AreEqual(10, data.Length);
         }
         #endregion
     }

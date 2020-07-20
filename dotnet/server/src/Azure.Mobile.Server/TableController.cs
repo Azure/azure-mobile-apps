@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OData.Edm;
 using System;
+using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -118,15 +119,14 @@ namespace Azure.Mobile.Server
         /// <returns>200 OK with the results of the list (paged)</returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public virtual IActionResult GetItems()
         {
             if (!IsAuthorized(TableOperation.List, null))
             {
-                return Unauthorized();
+                return NotFound();
             }
 
-            // Construct the data view that this query uses.
             var dataView = TableRepository.AsQueryable()
                 .ApplyDeletedFilter(TableControllerOptions, Request)
                 .Where(TableControllerOptions.DataView);
@@ -134,7 +134,9 @@ namespace Azure.Mobile.Server
             // Construct the OData context and parse the query
             var queryContext = new ODataQueryContext(EdmModel, typeof(TEntity), new ODataPath());
             var odataOptions = new ODataQueryOptions<TEntity>(queryContext, Request);
-            odataOptions.Validate(new ODataValidationSettings { MaxTop = TableControllerOptions.MaxTop });
+            odataOptions.Validate(new ODataValidationSettings { 
+                MaxTop = TableControllerOptions.MaxTop
+            });
             var odataSettings = new ODataQuerySettings { PageSize = TableControllerOptions.PageSize };
             var odataQuery = odataOptions.ApplyTo(dataView.AsQueryable(), odataSettings);
 
