@@ -1,6 +1,7 @@
 ﻿using Azure.Mobile.Common.Test;
+using Azure.Mobile.Common.Test.Models;
 using Azure.Mobile.Server.Exceptions;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
@@ -8,26 +9,57 @@ using System.Threading.Tasks;
 
 namespace Azure.Mobile.Server.Entity.Test
 {
+    #region Test DbContext
+    public class InMemoryContext : DbContext
+    {
+        public InMemoryContext(DbContextOptions<InMemoryContext> options): base(options)
+        {
+        }
+
+        public DbSet<Movie> Movies { get; set; }
+
+        public static InMemoryContext GetDbContext()
+        {
+            var options = new DbContextOptionsBuilder<InMemoryContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+                .Options;
+            var context = new InMemoryContext(options);
+
+            foreach (var movie in TestData.Movies)
+            {
+                context.Movies.Add(movie);
+            }
+            context.SaveChanges();
+
+            return context;
+        }
+    }
+    #endregion
+
     [TestClass]
     public class EntityTableRepository_Tests
     {
+        #region Helper Methods
+        private Movie RandomMovie() => TestData.Movies[(new Random()).Next(TestData.Movies.Length)].Clone();
+        #endregion
+
         [TestMethod]
         public void AsQueryable_CanCountItems()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var repository = new EntityTableRepository<Movie>(dbcontext);
 
             var actual = repository.AsQueryable().Count();
 
-            Assert.AreEqual(TestData.TestMovies.Length, actual);
+            Assert.AreEqual(TestData.Movies.Length, actual);
         }
 
         [TestMethod]
         public async Task LookupAsync_ReturnsValidData()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var repository = new EntityTableRepository<Movie>(dbcontext);
-            var testItem = TestData.RandomMovie();
+            var testItem = RandomMovie();
 
             var actual = await repository.LookupAsync(testItem.Id);
             Assert.IsNotNull(actual);
@@ -37,7 +69,7 @@ namespace Azure.Mobile.Server.Entity.Test
         [TestMethod]
         public async Task LookupAsync_ReturnsNullOnMissingData()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var repository = new EntityTableRepository<Movie>(dbcontext);
             var testId = "random-invalid-id";
 
@@ -49,7 +81,7 @@ namespace Azure.Mobile.Server.Entity.Test
         [ExpectedException(typeof(ArgumentNullException))]
         public async Task LookupAsync_ThrowsOnNullId()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var repository = new EntityTableRepository<Movie>(dbcontext);
 
             var actual = await repository.LookupAsync(null);
@@ -59,20 +91,20 @@ namespace Azure.Mobile.Server.Entity.Test
         [TestMethod]
         public async Task DeleteAsync_DeletesValidData()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var repository = new EntityTableRepository<Movie>(dbcontext);
-            var testItem = TestData.RandomMovie();
+            var testItem = RandomMovie();
 
             await repository.DeleteAsync(testItem.Id);
             var actual = repository.AsQueryable().Count();
-            Assert.AreEqual(TestData.TestMovies.Length - 1, actual);
+            Assert.AreEqual(TestData.Movies.Length - 1, actual);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public async Task DeleteAsync_ThrowsOnNullId()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var repository = new EntityTableRepository<Movie>(dbcontext);
 
             await repository.DeleteAsync(null);
@@ -83,7 +115,7 @@ namespace Azure.Mobile.Server.Entity.Test
         [ExpectedException(typeof(EntityDoesNotExistException))]
         public async Task DeleteAsync_ThrowsOnMissingData()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var repository = new EntityTableRepository<Movie>(dbcontext);
             var testId = "random-invalid-id";
 
@@ -94,7 +126,7 @@ namespace Azure.Mobile.Server.Entity.Test
         [TestMethod]
         public async Task CreateAsync_CreatesNewItem()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var dataset = dbcontext.Set<Movie>();
             var repository = new EntityTableRepository<Movie>(dbcontext);
             var newItem = new Movie()
@@ -115,9 +147,9 @@ namespace Azure.Mobile.Server.Entity.Test
         [ExpectedException(typeof(EntityExistsException))]
         public async Task CreateAsync_Duplicate_Throws()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var repository = new EntityTableRepository<Movie>(dbcontext);
-            var testItem = TestData.RandomMovie();
+            var testItem = RandomMovie();
 
             var actual = await repository.CreateAsync(testItem);
             Assert.Fail("EntityExistsException expected");
@@ -127,7 +159,7 @@ namespace Azure.Mobile.Server.Entity.Test
         [ExpectedException(typeof(ArgumentNullException))]
         public async Task CreateAsync_ThrowsOnNull()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var repository = new EntityTableRepository<Movie>(dbcontext);
 
             await repository.CreateAsync(null);
@@ -138,7 +170,7 @@ namespace Azure.Mobile.Server.Entity.Test
         [ExpectedException(typeof(ArgumentNullException))]
         public async Task CreateAsync_ThrowsOnNullId()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var repository = new EntityTableRepository<Movie>(dbcontext);
             var testItem = new Movie() { Id = null };
 
@@ -149,9 +181,9 @@ namespace Azure.Mobile.Server.Entity.Test
         [TestMethod]
         public async Task ReplaceAsync_ReplacesExistingItem()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var repository = new EntityTableRepository<Movie>(dbcontext);
-            var original = TestData.RandomMovie();
+            var original = RandomMovie();
             original.Title = "Test Data";
 
             var actual = await repository.ReplaceAsync(original);
@@ -167,7 +199,7 @@ namespace Azure.Mobile.Server.Entity.Test
         [ExpectedException(typeof(ArgumentNullException))]
         public async Task ReplaceAsync_ThrowsOnNull()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var repository = new EntityTableRepository<Movie>(dbcontext);
 
             await repository.ReplaceAsync(null);
@@ -178,7 +210,7 @@ namespace Azure.Mobile.Server.Entity.Test
         [ExpectedException(typeof(ArgumentNullException))]
         public async Task ReplaceAsync_ThrowsOnNullId()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var repository = new EntityTableRepository<Movie>(dbcontext);
             var item = new Movie() { Id = null };
 
@@ -190,7 +222,7 @@ namespace Azure.Mobile.Server.Entity.Test
         [ExpectedException(typeof(EntityDoesNotExistException))]
         public async Task ReplaceAsync_ThrowsOnMissingEntity()
         {
-            var dbcontext = MovieDbContext.InMemoryContext();
+            var dbcontext = InMemoryContext.GetDbContext();
             var repository = new EntityTableRepository<Movie>(dbcontext);
             var item = new Movie();
 
