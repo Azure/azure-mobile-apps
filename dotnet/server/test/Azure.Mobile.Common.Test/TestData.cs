@@ -1,25 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Azure.Mobile.Common.Test.Models;
+using System;
 
 namespace Azure.Mobile.Common.Test
 {
     public static class TestData
     {
-        /// <summary>
-        /// Converts the movie list to a List.
-        /// </summary>
-        /// <returns></returns>
-        public static List<Movie> AsList()
-            => new List<Movie>(TestMovies);
-
-        /// <summary>
-        /// Picksa a random movie from the list.
-        /// </summary>
-        /// <returns></returns>
-        public static Movie RandomMovie()
-            => TestMovies[(new Random()).Next(TestMovies.Length)].Clone();
-
-        public static Movie[] TestMovies = new Movie[]
+        public static readonly Movie[] Movies = new Movie[]
         {
             new Movie
             {

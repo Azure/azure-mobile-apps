@@ -5,9 +5,9 @@ using Microsoft.AspNet.OData.Builder;
 using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Net.Http.Headers;
 using Microsoft.OData.Edm;
 using System;
 using System.Data;
@@ -166,7 +166,7 @@ namespace Azure.Mobile.Server
             }
 
             var entity = await TableRepository.LookupAsync(item.Id).ConfigureAwait(false);
-            var preconditionStatusCode = EvaluatePreconditions(entity);
+            var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders());
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
                 return StatusCode(preconditionStatusCode, entity);
@@ -180,7 +180,8 @@ namespace Azure.Mobile.Server
 
             var createdEntity = await TableRepository.CreateAsync(PrepareItemForStore(item)).ConfigureAwait(false);
             AddHeadersToResponse(createdEntity);
-            return CreatedAtAction(nameof(ReadItemAsync), new { id = createdEntity.Id }, createdEntity);
+            var uri = $"{Request.GetEncodedUrl()}/{createdEntity.Id}";
+            return Created(uri, createdEntity);
         }
 
         /// <summary>
@@ -200,7 +201,7 @@ namespace Azure.Mobile.Server
                 return NotFound();
             }
 
-            var preconditionStatusCode = EvaluatePreconditions(entity);
+            var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders());
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
                 return StatusCode(preconditionStatusCode, entity);
@@ -236,7 +237,7 @@ namespace Azure.Mobile.Server
                 return NotFound();
             }
 
-            var preconditionStatusCode = EvaluatePreconditions(entity);
+            var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders(), true);
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
                 if (preconditionStatusCode == StatusCodes.Status304NotModified)
@@ -274,7 +275,7 @@ namespace Azure.Mobile.Server
                 return NotFound();
             }
 
-            var preconditionStatusCode = EvaluatePreconditions(entity);
+            var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders());
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
                 AddHeadersToResponse(entity);
@@ -309,7 +310,7 @@ namespace Azure.Mobile.Server
             }
             var entityIsDeleted = (TableControllerOptions.SoftDeleteEnabled && entity.Deleted);
 
-            var preconditionStatusCode = EvaluatePreconditions(entity);
+            var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders());
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
                 AddHeadersToResponse(entity);
@@ -333,63 +334,6 @@ namespace Azure.Mobile.Server
             var replacement = await TableRepository.ReplaceAsync(PrepareItemForStore(entity)).ConfigureAwait(false);
             AddHeadersToResponse(replacement);
             return Ok(replacement);
-        }
-
-        /// <summary>
-        /// Evaluate the pre-condition headers (If-Match, If-None-Match, etc.) according
-        /// to RFC7232 section 6.
-        /// </summary>
-        /// <seealso cref="https://tools.ietf.org/html/rfc7232"/>
-        /// <param name="item">The item within the check</param>
-        /// <returns>A HTTP Status Code indicating success or expected response.</returns>
-        internal int EvaluatePreconditions(TEntity item)
-        {
-            var methods = new string[] { "get", "head" };
-            var headers = Request.GetTypedHeaders();
-            var isFetch = methods.Any(m => Request.Method.ToLowerInvariant() == m);
-            var eTagVersion = item == null ? null : new EntityTagHeaderValue(ETag.FromByteArray(item.Version));
-
-            // Step 1: If If-Match is present, evaluate it
-            if (headers.IfMatch.Count > 0)
-            {
-                if (!headers.IfMatch.Any(e => ETag.Matches(e, eTagVersion)))
-                {
-                    return StatusCodes.Status412PreconditionFailed;
-                }
-            }
-            // Step 2: If If-Match is not present, and If-Modified-Since is present, 
-            //  evaluate the If-Modified-Since precondition
-            if (headers.IfMatch.Count == 0 && headers.IfUnmodifiedSince.HasValue)
-            {
-                if (!(item != null && item.UpdatedAt <= headers.IfUnmodifiedSince.Value))
-                {
-                    return StatusCodes.Status412PreconditionFailed;
-                }
-            }
-
-            // Step 3: If If-None-Match is present, evaluate it.
-            if (headers.IfNoneMatch.Count > 0)
-            {
-                if (!headers.IfNoneMatch.All(e => !ETag.Matches(e, eTagVersion)))
-                {
-                    return isFetch ? StatusCodes.Status304NotModified : StatusCodes.Status412PreconditionFailed;
-                }
-            }
-
-            // Step 4: If isFetchOperation, and If-None-Match is not present, and If-Modified-Since is present,
-            //  evaluate the If-Modified-Since precondition
-            if (isFetch && headers.IfNoneMatch.Count == 0 && headers.IfModifiedSince.HasValue)
-            {
-                if (!(item != null && item.UpdatedAt > headers.IfModifiedSince.Value))
-                {
-                    return StatusCodes.Status304NotModified;
-                }
-            }
-
-            // Step 5 is about Range and If-Range requests, which we don't support.
-
-            // Otherwise, do the operation as normal.
-            return StatusCodes.Status200OK;
         }
 
         /// <summary>
