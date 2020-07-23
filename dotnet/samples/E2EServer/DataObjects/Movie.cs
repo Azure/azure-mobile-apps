@@ -15,4 +15,9 @@ namespace E2EServer.DataObjects
         public bool BestPictureWinner { get; set; }
         public int Year { get; set; }
     }
+
+    public class RMovie : Movie
+    {
+
+    }
 }

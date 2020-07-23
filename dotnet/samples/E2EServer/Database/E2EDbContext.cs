@@ -12,5 +12,6 @@ namespace E2EServer.Database
         public DbSet<BlogPost> BlogPosts { get; set; }
         public DbSet<BlogComment> BlogComments { get; set; }
         public DbSet<Movie> Movies { get; set; }
+        public DbSet<RMovie> RMovies { get; set; }
     }
 }
