@@ -1,7 +1,5 @@
-﻿using Azure.Mobile.Common.Test;
-using Azure.Mobile.Common.Test.Models;
+﻿using Azure.Mobile.Server.Entity.Test.Helpers;
 using Azure.Mobile.Server.Exceptions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
@@ -9,33 +7,6 @@ using System.Threading.Tasks;
 
 namespace Azure.Mobile.Server.Entity.Test
 {
-    #region Test DbContext
-    public class InMemoryContext : DbContext
-    {
-        public InMemoryContext(DbContextOptions<InMemoryContext> options): base(options)
-        {
-        }
-
-        public DbSet<Movie> Movies { get; set; }
-
-        public static InMemoryContext GetDbContext()
-        {
-            var options = new DbContextOptionsBuilder<InMemoryContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
-                .Options;
-            var context = new InMemoryContext(options);
-
-            foreach (var movie in TestData.Movies)
-            {
-                context.Movies.Add(movie);
-            }
-            context.SaveChanges();
-
-            return context;
-        }
-    }
-    #endregion
-
     [TestClass]
     public class EntityTableRepository_Tests
     {

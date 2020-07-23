@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Azure.Mobile.Server.Entity.Test.Helpers
+namespace Azure.Mobile.Server.Test.Helpers
 {
     public class Movie : EntityTableData, IEquatable<Movie>
     {
@@ -51,9 +51,6 @@ namespace Azure.Mobile.Server.Entity.Test.Helpers
         {
             return other != null &&
                    Id == other.Id &&
-                   UpdatedAt.Equals(other.UpdatedAt) &&
-                   EqualityComparer<byte[]>.Default.Equals(Version, other.Version) &&
-                   Deleted == other.Deleted &&
                    Title == other.Title &&
                    Duration == other.Duration &&
                    MpaaRating == other.MpaaRating &&
