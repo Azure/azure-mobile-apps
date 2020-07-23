@@ -11,7 +11,12 @@ namespace E2EServer.Database
 
         public DbSet<BlogPost> BlogPosts { get; set; }
         public DbSet<BlogComment> BlogComments { get; set; }
+
+        // Datasets for List and Get unit tests
         public DbSet<Movie> Movies { get; set; }
         public DbSet<RMovie> RMovies { get; set; }
+
+        // Datasets for Create, Delete, Replace unit tests
+        public DbSet<Unit> Units { get; set; }
     }
 }
