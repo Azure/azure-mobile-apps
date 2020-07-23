@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Azure.Mobile.Server.Entity\Azure.Mobile.Server.Entity.csproj" />
-    <ProjectReference Include="..\Azure.Mobile.Common.Test\Azure.Mobile.Common.Test.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿using Azure.Mobile.Common.Test.Models;
+﻿using Azure.Mobile.Server.Test.Helpers;
 using Azure.Mobile.Server.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;

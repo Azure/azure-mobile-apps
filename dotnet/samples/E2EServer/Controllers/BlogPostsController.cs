@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace E2EServer.Controllers
 {
-    [Route("tables/blog_psots")]
+    [Route("tables/blog_posts")]
     [ApiController]
     public class BlogPostsController : TableController<BlogPost>
     {

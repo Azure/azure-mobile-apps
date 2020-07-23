@@ -17,11 +17,9 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\samples\E2EServer\E2EServer.csproj" />
+    <ProjectReference Include="..\..\src\Azure.Mobile.Server.Entity\Azure.Mobile.Server.Entity.csproj" />
     <ProjectReference Include="..\..\src\Azure.Mobile.Server\Azure.Mobile.Server.csproj" />
-    <ProjectReference Include="..\Azure.Mobile.Common.Test\Azure.Mobile.Common.Test.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="TableController\" />
   </ItemGroup>
 
 </Project>
