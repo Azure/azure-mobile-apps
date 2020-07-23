@@ -20,20 +20,6 @@ namespace E2EServer
                 .ConfigureWebHostDefaults(builder => builder.UseStartup<Startup>())
                 .Build();
 
-            using (var scope = host.Services.CreateScope())
-            {
-                try
-                {
-                    DbInitializer.Initialize(scope.ServiceProvider.GetRequiredService<E2EDbContext>());
-                }
-                catch (Exception ex)
-                {
-                    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "An error occurred while seeding the database");
-                    throw;
-                }
-            }
-
             host.Run();
         }
 
@@ -48,20 +34,6 @@ namespace E2EServer
                 .UseStartup<Startup>();
 
             var server = new TestServer(builder);
-
-            using (var scope = server.Services.CreateScope())
-            {
-                try
-                {
-                    DbInitializer.Initialize(scope.ServiceProvider.GetRequiredService<E2EDbContext>());
-                }
-                catch (Exception ex)
-                {
-                    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "An error occurred while seeding the database");
-                    throw;
-                }
-            }
 
             return server;
         }

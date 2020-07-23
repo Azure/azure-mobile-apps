@@ -34,8 +34,6 @@ namespace Azure.Mobile.Server.Test.TableController
             HttpAssert.AreEqual(actual.Version, response.Headers.ETag);
             HttpAssert.Match(actual.UpdatedAt, response.Content.Headers.LastModified);
             Assert.IsTrue(TestMovie.Equals(actual));
-
-            Assert.Fail("not written");
         }
     }
 }

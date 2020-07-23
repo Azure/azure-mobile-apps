@@ -1,7 +1,5 @@
 ﻿using E2EServer.DataObjects;
 using System;
-using System.Data;
-using System.Linq;
 
 namespace E2EServer.Database
 {
@@ -11,11 +9,8 @@ namespace E2EServer.Database
         {
             context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
-            
-            if (context.Movies.Any())
-            {
-                SeedMovies(context);
-            }
+
+            SeedMovies(context);
 
             context.SaveChanges();
         }
