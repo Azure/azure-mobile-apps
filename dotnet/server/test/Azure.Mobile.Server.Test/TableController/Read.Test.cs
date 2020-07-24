@@ -1,6 +1,5 @@
 ﻿using Azure.Mobile.Server.Test.Helpers;
 using Azure.Mobile.Server.Utils;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -35,12 +34,10 @@ namespace Azure.Mobile.Server.Test.TableController
             Year = 2008
         };
 
-        private readonly TestServer server = E2EServer.Program.GetTestServer();
-
         [TestMethod]
         public async Task ReadItemAsync_WithValidId_Returns200()
         {
-            var response = await SendRequestToServer<Movie>(server, HttpMethod.Get, $"/tables/movies/{Movie4.Id}", null);
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/movies/{Movie4.Id}", null);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
@@ -54,7 +51,7 @@ namespace Azure.Mobile.Server.Test.TableController
         [TestMethod]
         public async Task ReadItemAsync_NotAuthorized_Returns404()
         {
-            var response = await SendRequestToServer<Movie>(server, HttpMethod.Get, $"/tables/unauthorized/{Movie4.Id}", null);
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/unauthorized/{Movie4.Id}", null);
 
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -62,7 +59,7 @@ namespace Azure.Mobile.Server.Test.TableController
         [TestMethod]
         public async Task ReadItemAsync_WithInvalidId_Returns404()
         {
-            var response = await SendRequestToServer<Movie>(server, HttpMethod.Get, $"/tables/movies/missing", null);
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/movies/missing", null);
 
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -70,7 +67,7 @@ namespace Azure.Mobile.Server.Test.TableController
         [TestMethod]
         public async Task ReadItemAsync_SoftDelete_DeletedItem_Returns404()
         {
-            var response = await SendRequestToServer<Movie>(server, HttpMethod.Get, $"/tables/rmovies/rmovie-0", null);
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/rmovies/rmovie-0", null);
 
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -78,7 +75,7 @@ namespace Azure.Mobile.Server.Test.TableController
         [TestMethod]
         public async Task ReadItemAsync_SoftDelete_ValidItem_Returns200()
         {
-            var response = await SendRequestToServer<Movie>(server, HttpMethod.Get, $"/tables/rmovies/rmovie-6", null);
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/rmovies/rmovie-6", null);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
@@ -92,11 +89,11 @@ namespace Azure.Mobile.Server.Test.TableController
         [TestMethod]
         public async Task ReadItemAsync_PreconditionsFailed_Returns304()
         {
-            var firstResponse = await SendRequestToServer<Movie>(server, HttpMethod.Get, $"/tables/movies/{Movie4.Id}", null);
+            var firstResponse = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/movies/{Movie4.Id}", null);
             Assert.AreEqual(HttpStatusCode.OK, firstResponse.StatusCode);
             var firstActual = await GetValueFromResponse<Movie>(firstResponse);
 
-            var response = await SendRequestToServer<Movie>(server, HttpMethod.Get, $"/tables/movies/{Movie4.Id}", null, new Dictionary<string, string>
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/movies/{Movie4.Id}", null, new Dictionary<string, string>
             {
                 { "If-None-Match", ETag.FromByteArray(firstActual.Version) }
             });
@@ -107,11 +104,11 @@ namespace Azure.Mobile.Server.Test.TableController
         [TestMethod]
         public async Task ReadItemAsync_PreconditionsSucceed_Returns200()
         {
-            var firstResponse = await SendRequestToServer<Movie>(server, HttpMethod.Get, $"/tables/movies/{Movie4.Id}", null);
+            var firstResponse = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/movies/{Movie4.Id}", null);
             Assert.AreEqual(HttpStatusCode.OK, firstResponse.StatusCode);
             var firstActual = await GetValueFromResponse<Movie>(firstResponse);
 
-            var response = await SendRequestToServer<Movie>(server, HttpMethod.Get, $"/tables/movies/{Movie4.Id}", null, new Dictionary<string, string>
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/movies/{Movie4.Id}", null, new Dictionary<string, string>
             {
                 { "If-Match", ETag.FromByteArray(firstActual.Version) }
             });

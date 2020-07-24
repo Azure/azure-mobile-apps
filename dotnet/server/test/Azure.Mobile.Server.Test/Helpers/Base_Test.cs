@@ -1,6 +1,11 @@
-﻿using Microsoft.AspNetCore.TestHost;
+﻿using E2EServer.Database;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -13,6 +18,8 @@ namespace Azure.Mobile.Server.Test.Helpers
     /// </summary>
     public abstract class Base_Test
     {
+        protected readonly TestServer server = E2EServer.Program.GetTestServer();
+
         /// <summary>
         /// The base URI for the request
         /// </summary>
@@ -34,7 +41,6 @@ namespace Azure.Mobile.Server.Test.Helpers
         /// <param name="additionalHeaders">Any additional headers</param>
         /// <returns></returns>
         public Task<HttpResponseMessage> SendRequestToServer<T>(
-            TestServer server, 
             HttpMethod method,
             string relativePath,
             T content,
@@ -70,6 +76,13 @@ namespace Azure.Mobile.Server.Test.Helpers
             var json = await response.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<T>(json, JsonOptions);
             return result;
+        }
+
+        public async Task<T> GetItemFromDb<T>(string id) where T : class, ITableData
+        {
+            var context = server.Services.GetRequiredService<E2EDbContext>();
+            var item = context.Set<T>().Where(t => t.Id == id).AsNoTracking().FirstOrDefault();
+            return item;
         }
     }
 }

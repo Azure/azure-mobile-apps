@@ -16,7 +16,11 @@ namespace E2EServer.Database
         public DbSet<Movie> Movies { get; set; }
         public DbSet<RMovie> RMovies { get; set; }
 
-        // Datasets for Create, Delete, Replace unit tests
+        // Datasets for unit tests
         public DbSet<Unit> Units { get; set; }
+
+        // Datasets for Create, Patch, Replace & Delete unit tests
+        public DbSet<SUnit> SUnits { get; set; }
+        public DbSet<HUnit> HUnits { get; set; }
     }
 }

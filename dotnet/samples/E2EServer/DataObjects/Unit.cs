@@ -6,4 +6,12 @@ namespace E2EServer.DataObjects
     {
         public string Data { get; set; }
     }
+
+    public class SUnit : Unit
+    {
+    }
+
+    public class HUnit : Unit
+    {
+    }
 }
