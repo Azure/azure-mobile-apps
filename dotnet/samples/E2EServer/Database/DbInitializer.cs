@@ -66,7 +66,7 @@ namespace E2EServer.Database
         // SUnits for soft-delete, HUnits for hard-delete
         public static void SeedSUnits(E2EDbContext context)
         {
-            for (var i = 0; i < 10; i++)
+            for (var i = 0; i < 20; i++)
             {
                 var offset = 180 + (new Random()).Next(180);
                 var sunit = new SUnit
@@ -83,7 +83,7 @@ namespace E2EServer.Database
 
         public static void SeedHUnits(E2EDbContext context)
         {
-            for (var i = 0; i < 50; i++)
+            for (var i = 0; i < 20; i++)
             {
                 var offset = 180 + (new Random()).Next(180);
                 var hunit = new HUnit
