@@ -224,6 +224,13 @@ namespace Azure.Mobile.Server.Test.Utils
         }
 
         [TestMethod]
+        public void EvaluatePreconditions_IfModifiedSinceEarlier_GET_NullItem_200()
+        {
+            var actual = ETag.EvaluatePreconditions<Movie>(null, GetRequestHeaders("If-Modified-Since", earlierTestDate), true);
+            Assert.AreEqual(304, actual);
+        }
+
+        [TestMethod]
         public void EvaluatePreconditions_IfModifiedSinceEarlier_GET_TestItem_200()
         {
             var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-Modified-Since", earlierTestDate), true);
