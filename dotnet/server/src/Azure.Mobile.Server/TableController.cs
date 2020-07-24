@@ -6,7 +6,6 @@ using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OData.Edm;
 using System;
@@ -287,12 +286,16 @@ namespace Azure.Mobile.Server
             return Ok(replacement);
         }
 
+#if SUPPORTS_PATCH
         /// <summary>
         /// Patch operation: PATCH {path}/{id}
         /// 
         /// Note that unlike most of the other operations, this one works all the time on soft-deleted records, as long
         /// as you are undeleting the record..
         /// </summary>
+        /// <remarks>
+        /// Disabling JSON Patch Support until Microsoft.AspNetCore.JsonPatch support System.Text.Json
+        /// </remarks>
         /// <param name="id">The ID of the entity to be patched</param>
         /// <param name="patchDocument">A patch operation document (see RFC 6901, RFC 6902)</param>
         /// <returns>200 OK with the new entity in the body</returns>
@@ -335,6 +338,7 @@ namespace Azure.Mobile.Server
             AddHeadersToResponse(replacement);
             return Ok(replacement);
         }
+#endif
 
         /// <summary>
         /// Adds any necessary response headers, such as ETag and Last-Modified

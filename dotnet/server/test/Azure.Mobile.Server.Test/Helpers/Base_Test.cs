@@ -1,7 +1,6 @@
 ﻿using E2EServer.Database;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -56,8 +55,15 @@ namespace Azure.Mobile.Server.Test.Helpers
 
             if (content != null)
             {
-                var json = JsonSerializer.Serialize<T>(content, JsonOptions);
-                request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+                if (typeof(T) == typeof(String))
+                {
+                    request.Content = new StringContent(content as string, Encoding.UTF8, "application/json-patch+json");
+                }
+                else
+                {
+                    var json = JsonSerializer.Serialize<T>(content, JsonOptions);
+                    request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+                }
             }
 
             if (additionalHeaders != null)

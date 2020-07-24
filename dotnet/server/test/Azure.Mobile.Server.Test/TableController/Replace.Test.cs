@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Azure.Mobile.Server.Test.TableController
 {
     [TestClass]
-    class Replace_Tests : Base_Test
+    public class Replace_Tests : Base_Test
     {
         [TestMethod]
         public async Task ReplaceItem_ValidId_Returns200()
@@ -34,6 +34,7 @@ namespace Azure.Mobile.Server.Test.TableController
             Assert.AreEqual(item.Data, dbItem.Data);
         }
 
+        [TestMethod]
         public async Task ReplaceItem_MissingItem_Returns404()
         {
             var item = new HUnit() { Id = "missing-item", Data = "Replaced" };
@@ -41,6 +42,7 @@ namespace Azure.Mobile.Server.Test.TableController
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
+        [TestMethod]
         public async Task ReplaceItem_MismatchedId_Returns400()
         {
             var item = new HUnit() { Id = "hunit-6", Data = "Replaced" };
@@ -48,6 +50,7 @@ namespace Azure.Mobile.Server.Test.TableController
             Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
+        [TestMethod]
         public async Task ReplaceItem_SoftDelete_DeletedItem_Returns404()
         {
             var item = new SUnit() { Id = "sunit-7", Data = "Replaced" };
@@ -58,6 +61,7 @@ namespace Azure.Mobile.Server.Test.TableController
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
+        [TestMethod]
         public async Task ReplaceItem_Unauthorized_Returns404()
         {
             var item = await GetItemFromDb<E2EServer.DataObjects.Movie>("movie-8");
@@ -65,6 +69,7 @@ namespace Azure.Mobile.Server.Test.TableController
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
+        [TestMethod]
         public async Task ReplaceItem_PreconditionsFail_Returns412()
         {
             var item = await GetItemFromDb<HUnit>("hunit-8");
@@ -87,6 +92,7 @@ namespace Azure.Mobile.Server.Test.TableController
             Assert.AreEqual(originalData, dbItem.Data);
         }
 
+        [TestMethod]
         public async Task ReplaceItem_PreconditionsSucceed_Returns200()
         {
             var item = await GetItemFromDb<HUnit>("hunit-8");
