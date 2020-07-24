@@ -47,10 +47,14 @@ namespace Azure.Mobile.Server.Test.Helpers
             return Equals(obj as Movie);
         }
 
+        public static string GetLast(string source, int nChars)
+            => (nChars >= source.Length) ? source : source.Substring(source.Length - nChars);
+
         public bool Equals(Movie other)
         {
+            // Note, this matches movie-X and rmovie-X
             return other != null &&
-                   Id == other.Id &&
+                   GetLast(Id, 5) == GetLast(other.Id, 5) &&
                    Title == other.Title &&
                    Duration == other.Duration &&
                    MpaaRating == other.MpaaRating &&

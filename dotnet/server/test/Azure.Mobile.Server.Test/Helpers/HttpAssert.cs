@@ -20,5 +20,13 @@ namespace Azure.Mobile.Server.Test.Helpers
             Assert.IsNotNull(actual);
             Assert.AreEqual(expected.ToString("r"), (actual ?? DateTimeOffset.MinValue).ToString("r"));
         }
+
+        public static void IsWithin(DateTimeOffset expected, DateTimeOffset actual, long timeDiff)
+        {
+            Assert.IsNotNull(expected);
+            Assert.IsNotNull(actual);
+            var actualDiff = expected.Subtract(actual).TotalMilliseconds;
+            Assert.IsTrue(Math.Abs(actualDiff) < timeDiff);
+        }
     }
 }

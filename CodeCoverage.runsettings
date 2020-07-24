@@ -50,6 +50,7 @@
                 <Source>.*\\microsoft sdks\\.*</Source>
                 <Source>.*\\vc\\include\\.*</Source>
                 <Source>.*\\test\\.*</Source>
+                <Source>.*\\samples\\.*</Source>
               </Exclude>
             </Sources>
 
