@@ -84,7 +84,7 @@ namespace Azure.Mobile.Server.Test.Helpers
             return result;
         }
 
-        public async Task<T> GetItemFromDb<T>(string id) where T : class, ITableData
+        public T GetItemFromDb<T>(string id) where T : class, ITableData
         {
             var context = server.Services.GetRequiredService<E2EDbContext>();
             var item = context.Set<T>().Where(t => t.Id == id).AsNoTracking().FirstOrDefault();

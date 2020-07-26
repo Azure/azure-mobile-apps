@@ -29,7 +29,7 @@ namespace Azure.Mobile.Server.Test.TableController
             HttpAssert.AreEqual(actual.Version, response.Headers.ETag);
             HttpAssert.Match(actual.UpdatedAt, response.Content.Headers.LastModified);
 
-            var dbItem = await GetItemFromDb<HUnit>(item.Id);
+            var dbItem = GetItemFromDb<HUnit>(item.Id);
             Assert.IsNotNull(dbItem);
             Assert.AreEqual(item.Data, dbItem.Data);
         }
@@ -64,7 +64,7 @@ namespace Azure.Mobile.Server.Test.TableController
         [TestMethod]
         public async Task ReplaceItem_Unauthorized_Returns404()
         {
-            var item = await GetItemFromDb<E2EServer.DataObjects.Movie>("movie-8");
+            var item = GetItemFromDb<E2EServer.DataObjects.Movie>("movie-8");
             var response = await SendRequestToServer<E2EServer.DataObjects.Movie>(HttpMethod.Put, $"/tables/unauthorized/{item.Id}", item);
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -72,7 +72,7 @@ namespace Azure.Mobile.Server.Test.TableController
         [TestMethod]
         public async Task ReplaceItem_PreconditionsFail_Returns412()
         {
-            var item = await GetItemFromDb<HUnit>("hunit-8");
+            var item = GetItemFromDb<HUnit>("hunit-8");
             var originalData = item.Data; item.Data = "Replaced";
             var response = await SendRequestToServer<HUnit>(HttpMethod.Put, $"/tables/hunits/{item.Id}", item, new Dictionary<string, string>
             {
@@ -87,7 +87,7 @@ namespace Azure.Mobile.Server.Test.TableController
             HttpAssert.AreEqual(actual.Version, response.Headers.ETag);
             HttpAssert.Match(actual.UpdatedAt, response.Content.Headers.LastModified);
 
-            var dbItem = await GetItemFromDb<HUnit>(item.Id);
+            var dbItem = GetItemFromDb<HUnit>(item.Id);
             Assert.IsNotNull(dbItem);
             Assert.AreEqual(originalData, dbItem.Data);
         }
@@ -95,7 +95,7 @@ namespace Azure.Mobile.Server.Test.TableController
         [TestMethod]
         public async Task ReplaceItem_PreconditionsSucceed_Returns200()
         {
-            var item = await GetItemFromDb<HUnit>("hunit-8");
+            var item = GetItemFromDb<HUnit>("hunit-8");
             var originalData = item.Data; item.Data = "Replaced";
             var response = await SendRequestToServer<HUnit>(HttpMethod.Put, $"/tables/hunits/{item.Id}", item, new Dictionary<string, string>
             {
@@ -113,7 +113,7 @@ namespace Azure.Mobile.Server.Test.TableController
             HttpAssert.AreEqual(actual.Version, response.Headers.ETag);
             HttpAssert.Match(actual.UpdatedAt, response.Content.Headers.LastModified);
 
-            var dbItem = await GetItemFromDb<HUnit>(item.Id);
+            var dbItem = GetItemFromDb<HUnit>(item.Id);
             Assert.IsNotNull(dbItem);
             Assert.AreEqual(item.Data, dbItem.Data);
         }

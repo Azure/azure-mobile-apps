@@ -18,7 +18,7 @@ namespace Azure.Mobile.Server.Test.TableController
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
 
             // Check that the database has set the record to Deleted = true
-            var item = await GetItemFromDb<SUnit>("sunit-1");
+            var item = GetItemFromDb<SUnit>("sunit-1");
             Assert.IsNotNull(item);
             Assert.IsTrue(item.Deleted);
         }
@@ -30,7 +30,7 @@ namespace Azure.Mobile.Server.Test.TableController
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
 
             // Check that the database has deleted the record
-            var item = await GetItemFromDb<HUnit>("hunit-1");
+            var item = GetItemFromDb<HUnit>("hunit-1");
             Assert.IsNull(item);
         }
 
@@ -58,7 +58,7 @@ namespace Azure.Mobile.Server.Test.TableController
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
 
             // Check that the database has set the record to Deleted = true
-            var item = await GetItemFromDb<SUnit>("sunit-2");
+            var item = GetItemFromDb<SUnit>("sunit-2");
             Assert.IsNotNull(item);
             Assert.IsTrue(item.Deleted);
         }
@@ -73,7 +73,7 @@ namespace Azure.Mobile.Server.Test.TableController
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
 
             // Check that the database has deleted the record
-            var item = await GetItemFromDb<HUnit>("hunit-2");
+            var item = GetItemFromDb<HUnit>("hunit-2");
             Assert.IsNull(item);
         }
 
@@ -94,7 +94,7 @@ namespace Azure.Mobile.Server.Test.TableController
             Assert.AreEqual(HttpStatusCode.PreconditionFailed, response.StatusCode);
 
             // Check that the database has set the record to Deleted = false
-            var item = await GetItemFromDb<SUnit>("sunit-3");
+            var item = GetItemFromDb<SUnit>("sunit-3");
             Assert.IsNotNull(item);
             Assert.IsFalse(item.Deleted);
         }
@@ -109,7 +109,7 @@ namespace Azure.Mobile.Server.Test.TableController
             Assert.AreEqual(HttpStatusCode.PreconditionFailed, response.StatusCode);
 
             // Check that the database has set the record to Deleted = false
-            var item = await GetItemFromDb<HUnit>("hunit-3");
+            var item = GetItemFromDb<HUnit>("hunit-3");
             Assert.IsNotNull(item);
             Assert.IsFalse(item.Deleted);
         }
@@ -124,7 +124,7 @@ namespace Azure.Mobile.Server.Test.TableController
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
 
             // Check that the database has set the record to Deleted = false
-            var item = await GetItemFromDb<SUnit>("sunit-4");
+            var item = GetItemFromDb<SUnit>("sunit-4");
             Assert.IsNotNull(item);
             Assert.IsTrue(item.Deleted);
         }
@@ -139,7 +139,7 @@ namespace Azure.Mobile.Server.Test.TableController
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
 
             // Check that the database has set the record to Deleted = false
-            var item = await GetItemFromDb<HUnit>("hunit-4");
+            var item = GetItemFromDb<HUnit>("hunit-4");
             Assert.IsNull(item);
         }
     }
