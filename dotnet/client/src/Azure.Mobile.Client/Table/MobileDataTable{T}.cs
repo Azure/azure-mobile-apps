@@ -174,7 +174,7 @@ namespace Azure.Mobile.Client.Table
         /// <param name="id">The ID of the record to retrieve</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>The item as it appears in the backend service</returns>
-        public async Task<Response<T>> GetItemAsync(string id, CancellationToken cancellationToken = default)
+        public virtual async Task<Response<T>> GetItemAsync(string id, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNullOrEmpty(id, nameof(id));
 
@@ -194,7 +194,7 @@ namespace Azure.Mobile.Client.Table
         /// <param name="id">The ID of the record to retrieve</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>The item as it appears in the backend service</returns>
-        public Response<T> GetItem(string id, CancellationToken cancellationToken = default)
+        public virtual Response<T> GetItem(string id, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNullOrEmpty(id, nameof(id));
 
@@ -213,7 +213,7 @@ namespace Azure.Mobile.Client.Table
         /// </summary>
         /// <param name="id">The ID of the entity to retrieve</param>
         /// <param name="requestOptions">The <see cref="MatchConditions"/> for this request, if any</param>
-        /// <returns></returns>
+        /// <returns>A pageable list of items</returns>
         private Request CreateGetRequest(string id, MatchConditions requestOptions)
         {
             Request request = _pipeline.CreateRequest();
@@ -226,6 +226,46 @@ namespace Azure.Mobile.Client.Table
         }
         #endregion
 
+        #region GetItems
+        /// <summary>
+        /// Retrieves the list of items in the table from the service.
+        /// </summary>
+        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
+        /// <returns>A pageable list of items</returns>
+        public virtual AsyncPageable<T> GetItemsAsync(CancellationToken cancellationToken = default)
+            => GetItemsAsync(default, cancellationToken);
+
+        /// <summary>
+        /// Retrieves a list of items from the service.
+        /// </summary>
+        /// <param name="query">The query to send to the remote server</param>
+        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
+        /// <returns>A pageable list of items</returns>
+        public virtual AsyncPageable<T> GetItemsAsync(MobileTableQuery query, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Retrieves the list of items in the table from the service.
+        /// </summary>
+        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
+        /// <returns>A pagable list of items</returns>
+        public virtual Pageable<T> GetItems(CancellationToken cancellationToken = default)
+            => GetItems(default, cancellationToken);
+
+        /// <summary>
+        /// Retrieves a list of items from the service.
+        /// </summary>
+        /// <param name="query">The query to send to the remote server</param>
+        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
+        /// <returns>A pageable list of items</returns>
+        public virtual Pageable<T> GetItems(MobileTableQuery query, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
         #region InsertItem
         /// <summary>
         /// Inserts a new item into the backend table.  The item must not already exist.  If an Id
@@ -234,7 +274,7 @@ namespace Azure.Mobile.Client.Table
         /// <param name="item"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>The item that was stored in the backend service</returns>
-        public async Task<Response<T>> InsertItemAsync(T item, CancellationToken cancellationToken = default)
+        public virtual async Task<Response<T>> InsertItemAsync(T item, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(item, nameof(item));
 
@@ -255,7 +295,7 @@ namespace Azure.Mobile.Client.Table
         /// <param name="item"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>The item that was stored in the backend service</returns>
-        public Response<T> InsertItem(T item, CancellationToken cancellationToken = default)
+        public virtual Response<T> InsertItem(T item, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(item, nameof(item));
 
@@ -296,7 +336,7 @@ namespace Azure.Mobile.Client.Table
         /// <param name="item">The item to update</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>The updated item, as it appears in the backend service.</returns>
-        public Task<Response<T>> ReplaceItemAsync(T item, CancellationToken cancellationToken = default)
+        public virtual Task<Response<T>> ReplaceItemAsync(T item, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(item, nameof(item));
             Arguments.IsNotNullOrEmpty(item.Id, nameof(item.Id));
@@ -313,7 +353,7 @@ namespace Azure.Mobile.Client.Table
         /// <param name="requestOptions">The <see cref="MatchConditions"/> to be met</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>The updated item, as it appears in the backend service.</returns>
-        public async Task<Response<T>> ReplaceItemAsync(T item, MatchConditions requestOptions, CancellationToken cancellationToken = default)
+        public virtual async Task<Response<T>> ReplaceItemAsync(T item, MatchConditions requestOptions, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(item, nameof(item));
 
@@ -323,6 +363,7 @@ namespace Azure.Mobile.Client.Table
             return response.Status switch
             {
                 200 => await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false),
+                409 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
                 412 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
                 _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
             };
@@ -335,7 +376,7 @@ namespace Azure.Mobile.Client.Table
         /// <param name="item">The item to update</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>The updated item, as it appears in the backend service.</returns>
-        public Response<T> ReplaceItem(T item, CancellationToken cancellationToken = default)
+        public virtual Response<T> ReplaceItem(T item, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(item, nameof(item));
             Arguments.IsNotNullOrEmpty(item.Id, nameof(item.Id));
@@ -352,7 +393,7 @@ namespace Azure.Mobile.Client.Table
         /// <param name="requestOptions">The <see cref="MatchConditions"/> to be met</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>The updated item, as it appears in the backend service.</returns>
-        public Response<T> ReplaceItem(T item, MatchConditions requestOptions, CancellationToken cancellationToken = default)
+        public virtual Response<T> ReplaceItem(T item, MatchConditions requestOptions, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(item, nameof(item));
 
@@ -362,6 +403,7 @@ namespace Azure.Mobile.Client.Table
             return response.Status switch
             {
                 200 => CreateResponse(response, cancellationToken),
+                409 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
                 412 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
                 _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
             };

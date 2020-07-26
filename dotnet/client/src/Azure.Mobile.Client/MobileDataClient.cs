@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using Azure.Mobile.Client.Table;
 using Azure.Mobile.Server.Utils;
 using System;
 
