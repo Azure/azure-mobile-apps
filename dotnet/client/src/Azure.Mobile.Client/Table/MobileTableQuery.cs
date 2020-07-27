@@ -39,6 +39,13 @@
         /// <summary>
         /// The OData <c>$count</c> query param.  Is not sent if false.
         /// </summary>
-        public bool Count { get; set; } = false;
+        public bool IncludeCount { get; set; } = false;
+
+        /// <summary>
+        /// Set on a table controller with soft-delete enabled, this returns the
+        /// deleted records as well.
+        /// 
+        /// </summary>
+        public bool IncludeDeleted { get; set; } = false;
     }
 }

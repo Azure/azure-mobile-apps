@@ -156,10 +156,17 @@ namespace Azure.Mobile.Server
             odataOptions.Validate(odataValidationSettings);
             var odataQuery = odataOptions.ApplyTo(dataView.AsQueryable(), odataQuerySettings);
 
-            var result = new PagedListResult<TEntity> {
-                Values = odataQuery as IEnumerable<TEntity>,
-                NextLink = Request.GetNextPageLink(TableControllerOptions.PageSize)
+            // BUG: NextLink is always produced, resulting in a infinite loop in the client
+            // Fix right now - if Values[].Count == 0, then don't set the NextLink
+            var items = odataQuery as IEnumerable<TEntity>;
+            var result = new PagedListResult<TEntity>
+            {
+                Values = odataQuery as IEnumerable<TEntity>
             };
+            if (items.Count() > 0)
+            {
+                result.NextLink = Request.GetNextPageLink(TableControllerOptions.PageSize);
+            }
 
             // TODO: THIS DOES NOT WORK
             //if (odataOptions.Count != null)
