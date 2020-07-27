@@ -1,7 +1,6 @@
 ﻿using Azure.Core;
 using Azure.Core.Pipeline;
 using Azure.Mobile.Client.Utils;
-using Azure.Mobile.Server.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -328,10 +327,6 @@ namespace Azure.Mobile.Client.Table
                 if (query.Filter != null)
                 {
                     builder.AppendQuery("$filter", query.Filter);
-                }
-                if (query.Search != null)
-                {
-                    builder.AppendQuery("$search", query.Search);
                 }
                 if (query.OrderBy != null)
                 {

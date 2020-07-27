@@ -1,5 +1,7 @@
 ﻿using Azure.Core.Pipeline;
+using E2EServer.Database;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Azure.Mobile.Client.Test.Helpers
@@ -22,6 +24,14 @@ namespace Azure.Mobile.Client.Test.Helpers
             };
 
             return new MobileDataClient(new Uri("https://localhost:5001"), clientOptions);
+        }
+
+        internal E2EDbContext DbContext
+        {
+            get
+            {
+                return server.Services.GetRequiredService<E2EDbContext>();
+            }
         }
     }
 }
