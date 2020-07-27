@@ -33,7 +33,7 @@ namespace Azure.Mobile.Server.Test.TableController
             HttpAssert.AreEqual(actual.Version, response.Headers.ETag);
             HttpAssert.Match(actual.UpdatedAt, response.Content.Headers.LastModified);
 
-            var dbItem = await GetItemFromDb<HUnit>(item.Id);
+            var dbItem = GetItemFromDb<HUnit>(item.Id);
             Assert.IsNotNull(dbItem);
             Assert.AreEqual(item.Data, dbItem.Data);
         }
@@ -50,7 +50,7 @@ namespace Azure.Mobile.Server.Test.TableController
 
             Assert.AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
 
-            var dbItem = await GetItemFromDb<HUnit>(item.Id);
+            var dbItem = GetItemFromDb<HUnit>(item.Id);
             Assert.IsNull(dbItem);
         }
 
@@ -91,7 +91,7 @@ namespace Azure.Mobile.Server.Test.TableController
             HttpAssert.AreEqual(actual.Version, response.Headers.ETag);
             HttpAssert.Match(actual.UpdatedAt, response.Content.Headers.LastModified);
 
-            var dbItem = await GetItemFromDb<HUnit>(actual.Id);
+            var dbItem = GetItemFromDb<HUnit>(actual.Id);
             Assert.IsNotNull(dbItem);
             Assert.AreEqual(item.Data, dbItem.Data);
         }
@@ -138,7 +138,7 @@ namespace Azure.Mobile.Server.Test.TableController
             HttpAssert.AreEqual(actual.Version, response.Headers.ETag);
             HttpAssert.Match(actual.UpdatedAt, response.Content.Headers.LastModified);
 
-            var dbItem = await GetItemFromDb<HUnit>(item.Id);
+            var dbItem = GetItemFromDb<HUnit>(item.Id);
             Assert.IsNotNull(dbItem);
             Assert.AreEqual(item.Data, dbItem.Data);
         }
