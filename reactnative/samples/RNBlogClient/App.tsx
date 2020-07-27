@@ -7,8 +7,8 @@
  *
  * @format
  */
-
-import React from 'react';
+import 'react-native-gesture-handler';
+import * as React from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -16,103 +16,128 @@ import {
   View,
   Text,
   StatusBar,
+  Image,
 } from 'react-native';
 
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createAppContainer } from 'react-navigation';
 
-declare const global: {HermesInternal: null | {}};
+function HomeScreen() {
 
-const App = () => {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const monthNames = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  var d = new Date();
+  var dayName = days[d.getDay()];
+  var date = d.getDate(); //Current Date
+  var month = monthNames[d.getMonth()]; //Current Month
+
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.tsx</Text> to change
-                this screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+    <View style={styles.body}>
+    <View
+      style={{
+        flexDirection: "row",
+        height: 100
+
+      }}
+    >
+      <View style={styles.container}>
+        <View style={{ flex: 0.5 }} >
+          <Text style={styles.dateTitle}>
+            {dayName} {date} {month}
+          </Text>
+        </View>
+        <View style={{ flex: 0.5 }} >
+          <Text style={styles.sectionTitle}>
+            Blog
+          </Text>
+        </View>
+      </View>
+
+      <View style={{ flex: 0.4 }} />
+      <View style={{flex: 0.3 }} >
+        <Image source={{ uri: 'https://reactjs.org/logo-og.png' }}
+          style={{ width: 50, height: 50, justifyContent:"center", marginTop:15 }} />
+      </View>
+
+    </View>
+  </View>
+     </SafeAreaView>
+     </>
+  );
+}
+
+function EditPost() {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Edit!</Text>
+    </View>
+  );
+}
+
+function Bookmarks() {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>BookMarks!</Text>
+    </View>
+  );
+}
+
+function Profile() {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Profile!</Text>
+    </View>
+  );
+}
+
+const Tab = createBottomTabNavigator();
+
+
+
+const App = () => {
+  return (
+    
+        <NavigationContainer>
+      <Tab.Navigator>
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Edit" component={EditPost} />
+        <Tab.Screen name="Bookmark" component={Bookmarks} />
+        <Tab.Screen name="Profile" component={Profile} />
+      </Tab.Navigator>
+    </NavigationContainer>
+ 
   );
 };
 
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
-  },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
   body: {
-    backgroundColor: Colors.white,
+    backgroundColor: '#ffffff',
+    padding: 30
   },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  dateTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffa500',
+    marginTop: 10
   },
   sectionTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: Colors.black,
+    color: '#000000',
+    justifyContent: "center",
+    marginTop: -10
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
+  container: {
+    flex: 1,
+    flexDirection: 'column'
+  }
 });
 
 export default App;
