@@ -1,5 +1,6 @@
 ﻿using Azure.Mobile.Client.Table;
 using Azure.Mobile.Client.Test.Helpers;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -22,16 +23,12 @@ namespace Azure.Mobile.Client.Test.Table
     }
 
     /// <summary>
-    /// This is the client-side of the Movie DTO from E2EServer
+    /// This is the client-side of the Unit DTO fro E2EServer, serving
+    /// as the basis for HUnit and SUnit.
     /// </summary>
-    public class RMovie : TableData
+    public class Unit : TableData
     {
-        public string Title { get; set; }
-        public int Duration { get; set; }
-        public string MpaaRating { get; set; }
-        public DateTime ReleaseDate { get; set; }
-        public bool BestPictureWinner { get; set; }
-        public int Year { get; set; }
+        public string Data { get; set; }
     }
 
     [TestClass]
@@ -91,7 +88,7 @@ namespace Azure.Mobile.Client.Test.Table
         public async Task GetItemAsync_SoftDelete_DeletedItem_Returns404()
         {
             var client = GetTestClient();
-            var table = client.GetTable<RMovie>();
+            var table = client.GetTable<Movie>("tables/rmovies");
             try
             {
                 var actual = await table.GetItemAsync("rmovie-0");
@@ -108,7 +105,7 @@ namespace Azure.Mobile.Client.Test.Table
         public async Task GetItemAsync_SoftDelete_ValidItem_Returns200()
         {
             var client = GetTestClient();
-            var table = client.GetTable<RMovie>();
+            var table = client.GetTable<Movie>("tables/rmovies");
             var actual = await table.GetItemAsync("rmovie-6");
             var response = actual.GetRawResponse();
             var item = actual.Value;
@@ -172,7 +169,7 @@ namespace Azure.Mobile.Client.Test.Table
         public void GetItem_SoftDelete_DeletedItem_Returns404()
         {
             var client = GetTestClient();
-            var table = client.GetTable<RMovie>();
+            var table = client.GetTable<Movie>("tables/rmovies");
             try
             {
                 var actual = table.GetItem("rmovie-0");
@@ -189,7 +186,7 @@ namespace Azure.Mobile.Client.Test.Table
         public void GetItem_SoftDelete_ValidItem_Returns200()
         {
             var client = GetTestClient();
-            var table = client.GetTable<RMovie>();
+            var table = client.GetTable<Movie>("tables/rmovies");
             var actual = table.GetItem("rmovie-6");
             var response = actual.GetRawResponse();
             var item = actual.Value;
@@ -285,14 +282,14 @@ namespace Azure.Mobile.Client.Test.Table
         public async Task GetItemsAsync_IncludeDeleted_ReturnsItems()
         {
             var client = GetTestClient();
-            var table = client.GetTable<RMovie>();
+            var table = client.GetTable<Movie>("tables/rmovies");
             var query = new MobileTableQuery
             {
                 IncludeDeleted = true
             };
             var actual = table.GetItemsAsync(query);
 
-            var items = new List<RMovie>();
+            var items = new List<Movie>();
             await foreach (var item in actual)
             {
                 items.Add(item);
@@ -306,10 +303,10 @@ namespace Azure.Mobile.Client.Test.Table
         public async Task GetItemsAsync_NotIncludeDeleted_ReturnsItems()
         {
             var client = GetTestClient();
-            var table = client.GetTable<RMovie>();
+            var table = client.GetTable<Movie>("tables/rmovies");
             var actual = table.GetItemsAsync();
 
-            var items = new List<RMovie>();
+            var items = new List<Movie>();
             await foreach (var item in actual)
             {
                 items.Add(item);
@@ -442,14 +439,14 @@ namespace Azure.Mobile.Client.Test.Table
         public void GetItems_IncludeDeleted_ReturnsItems()
         {
             var client = GetTestClient();
-            var table = client.GetTable<RMovie>();
+            var table = client.GetTable<Movie>("tables/rmovies");
             var query = new MobileTableQuery
             {
                 IncludeDeleted = true
             };
             var actual = table.GetItems(query);
 
-            var items = new List<RMovie>();
+            var items = new List<Movie>();
             foreach (var item in actual)
             {
                 items.Add(item);
@@ -463,10 +460,10 @@ namespace Azure.Mobile.Client.Test.Table
         public void GetItems_NotIncludeDeleted_ReturnsItems()
         {
             var client = GetTestClient();
-            var table = client.GetTable<RMovie>();
+            var table = client.GetTable<Movie>("tables/rmovies");
             var actual = table.GetItems();
 
-            var items = new List<RMovie>();
+            var items = new List<Movie>();
             foreach (var item in actual)
             {
                 items.Add(item);
@@ -508,6 +505,252 @@ namespace Azure.Mobile.Client.Test.Table
             {
                 Assert.AreEqual(404, ex.Status);
             }
+        }
+        #endregion
+
+        #region CreateItemAsync
+        [TestMethod]
+        public async Task CreateItemAsync_MissingItem_IsCreated()
+        {
+            var item = new Unit
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                Data = "create-item-missing-item-returns-201"
+            };
+
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            var actual = await table.InsertItemAsync(item);
+            var response = actual.GetRawResponse();
+            var storedItem = actual.Value;
+
+            Assert.AreEqual(201, response.Status);
+
+            Assert.AreEqual(item.Id, storedItem.Id);
+            Assert.AreEqual(item.Data, storedItem.Data);
+            Assert.IsNotNull(response.Headers.ETag);
+
+            var dbItem = DbContext.HUnits.Where(m => m.Id == item.Id);
+            Assert.AreEqual(1, dbItem.Count());
+            Assert.AreEqual(item.Data, dbItem.First().Data);
+        }
+
+        [TestMethod]
+        public async Task CreateItemAsync_NotAuthorized_Returns401()
+        {
+            var item = new Unit
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                Data = "create-item-missing-item-returns-201"
+            };
+
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/unauthorized");
+
+            try
+            {
+                var actual = await table.InsertItemAsync(item);
+                var response = actual.GetRawResponse();
+                var storedItem = actual.Value;
+
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(401, ex.Status);
+            }
+
+            var dbItem = DbContext.HUnits.Where(m => m.Id == item.Id);
+            Assert.AreEqual(0, dbItem.Count());
+        }
+
+        [TestMethod]
+        public async Task CreateItemAsync_DoubleCreate_Returns409()
+        {
+            var item = new Unit
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                Data = "create-item-double-create-returns-409"
+            };
+
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            var actual = await table.InsertItemAsync(item);
+            var response = actual.GetRawResponse();
+            var storedItem = actual.Value;
+
+            Assert.AreEqual(201, response.Status);
+
+            Assert.AreEqual(item.Id, storedItem.Id);
+            Assert.AreEqual(item.Data, storedItem.Data);
+            Assert.IsNotNull(response.Headers.ETag);
+
+            var dbItem = DbContext.HUnits.Where(m => m.Id == item.Id).FirstOrDefault();
+            Assert.AreEqual(item.Data, dbItem.Data);
+
+            try
+            {
+                actual = await table.InsertItemAsync(item);
+                response = actual.GetRawResponse();
+                storedItem = actual.Value;
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (ConflictException<Unit> ex)
+            {
+                Assert.IsTrue(ex.Status == 409 || ex.Status == 412);
+                Assert.IsNotNull(ex.Value);
+                Assert.IsNotNull(ex.ETag);
+                Assert.IsNotNull(ex.LastModified);
+            }
+        }
+
+        [TestMethod]
+        public async Task CreateItemAsync_MissingId_Returns201_AndCreatesId()
+        {
+            var item = new Unit
+            {
+                Data = "create-item-missing-id-returns-201"
+            };
+
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            var actual = await table.InsertItemAsync(item);
+            var response = actual.GetRawResponse();
+            var storedItem = actual.Value;
+
+            Assert.AreEqual(201, response.Status);
+
+            Assert.IsNotNull(storedItem.Id);
+            Assert.IsTrue(storedItem.Id.Length > 0);
+            Assert.AreEqual(item.Data, storedItem.Data);
+            Assert.IsNotNull(response.Headers.ETag);
+
+            var dbItem = DbContext.HUnits.Where(m => m.Id == storedItem.Id);
+            Assert.AreEqual(1, dbItem.Count());
+            Assert.AreEqual(item.Data, dbItem.First().Data);
+        }
+        #endregion
+
+        #region CreateItem
+        [TestMethod]
+        public void CreateItem_MissingItem_IsCreated()
+        {
+            var item = new Unit
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                Data = "create-item-missing-item-returns-201"
+            };
+
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            var actual = table.InsertItem(item);
+            var response = actual.GetRawResponse();
+            var storedItem = actual.Value;
+
+            Assert.AreEqual(201, response.Status);
+
+            Assert.AreEqual(item.Id, storedItem.Id);
+            Assert.AreEqual(item.Data, storedItem.Data);
+            Assert.IsNotNull(response.Headers.ETag);
+
+            var dbItem = DbContext.HUnits.Where(m => m.Id == item.Id);
+            Assert.AreEqual(1, dbItem.Count());
+            Assert.AreEqual(item.Data, dbItem.First().Data);
+        }
+
+        [TestMethod]
+        public void CreateItem_NotAuthorized_Returns401()
+        {
+            var item = new Unit
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                Data = "create-item-missing-item-returns-201"
+            };
+
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/unauthorized");
+
+            try
+            {
+                var actual = table.InsertItem(item);
+                var response = actual.GetRawResponse();
+                var storedItem = actual.Value;
+
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(401, ex.Status);
+            }
+
+            var dbItem = DbContext.HUnits.Where(m => m.Id == item.Id);
+            Assert.AreEqual(0, dbItem.Count());
+        }
+
+        [TestMethod]
+        public void CreateItem_DoubleCreate_Returns409()
+        {
+            var item = new Unit
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                Data = "create-item-double-create-returns-409"
+            };
+
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            var actual = table.InsertItem(item);
+            var response = actual.GetRawResponse();
+            var storedItem = actual.Value;
+
+            Assert.AreEqual(201, response.Status);
+
+            Assert.AreEqual(item.Id, storedItem.Id);
+            Assert.AreEqual(item.Data, storedItem.Data);
+            Assert.IsNotNull(response.Headers.ETag);
+
+            var dbItem = DbContext.HUnits.Where(m => m.Id == item.Id).FirstOrDefault();
+            Assert.AreEqual(item.Data, dbItem.Data);
+
+            try
+            {
+                actual = table.InsertItem(item);
+                response = actual.GetRawResponse();
+                storedItem = actual.Value;
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (ConflictException<Unit> ex)
+            {
+                Assert.IsTrue(ex.Status == 409 || ex.Status == 412);
+                Assert.IsNotNull(ex.Value);
+                Assert.IsNotNull(ex.ETag);
+                Assert.IsNotNull(ex.LastModified);
+            }
+        }
+
+        [TestMethod]
+        public void CreateItem_MissingId_Returns201_AndCreatesId()
+        {
+            var item = new Unit
+            {
+                Data = "create-item-missing-id-returns-201"
+            };
+
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            var actual = table.InsertItem(item);
+            var response = actual.GetRawResponse();
+            var storedItem = actual.Value;
+
+            Assert.AreEqual(201, response.Status);
+
+            Assert.IsNotNull(storedItem.Id);
+            Assert.IsTrue(storedItem.Id.Length > 0);
+            Assert.AreEqual(item.Data, storedItem.Data);
+            Assert.IsNotNull(response.Headers.ETag);
+
+            var dbItem = DbContext.HUnits.Where(m => m.Id == storedItem.Id);
+            Assert.AreEqual(1, dbItem.Count());
+            Assert.AreEqual(item.Data, dbItem.First().Data);
         }
         #endregion
     }

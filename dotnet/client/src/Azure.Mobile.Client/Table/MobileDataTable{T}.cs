@@ -371,6 +371,8 @@ namespace Azure.Mobile.Client.Table
             return response.Status switch
             {
                 201 => await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false),
+                409 => throw new ConflictException<T>(await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false)),
+                412 => throw new ConflictException<T>(await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false)),
                 _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
             };
         }
@@ -392,6 +394,8 @@ namespace Azure.Mobile.Client.Table
             return response.Status switch
             {
                 201 => CreateResponse(response, cancellationToken),
+                409 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
+                412 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
                 _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
             };
         }

@@ -203,6 +203,7 @@ namespace Azure.Mobile.Server
             var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders());
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
+                AddHeadersToResponse(entity);
                 return StatusCode(preconditionStatusCode, entity);
             }
 
