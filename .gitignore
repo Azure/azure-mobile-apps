@@ -370,3 +370,4 @@ MigrationBackup/
 .ionide/
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,visualstudiocode
+reactnative/client/azure-mobile-client/package-lock.json
