@@ -10,7 +10,7 @@
   "keywords": [
     "microsoft",
     "mobile",
-    "Azure"
+    "azure"
   ],
   "bugs": {
     "url": "https://github.com/Azure/azure-mobile-apps/issues"
@@ -25,25 +25,28 @@
       ]
     }
   },
-  "browser": {
-    "./dist-esm/src/util/runtimeInfo.js": "./dist-esm/src/util/runtimeInfo.browser.js"
-  },
   "engine": {
     "node": ">=8.0.0"
   },
   "files": [
     "dist/",
     "dist-esm/src/",
-    "types/latest/",
-    "types/3.1/"
+    "typings/azure-mobile-apps.d.ts"
   ],
   "scripts": {
     "build": "tsc -p . && rollup -c 2>&1 && npm run extract-api && npm run build:types",
+    "build:node": "tsc -p . && cross-env ONLY_NODE=true rollup -c 2>&1 && npm run extract-api",
+    "build:browser": "tsc -p . && cross-env ONLY_BROWSER=true rollup -c 2>&1",
+    "build:test": "npm run build:test:node && npm run build:test:browser",
+    "build:test:node": "tsc -p . && cross-env ONLY_NODE=true rollup -c rollup.test.config.js 2>&1",
+    "build:test:browser": "tsc -p . && cross-env ONLY_BROWSER=true rollup -c rollup.test.config.js 2>&1",
+    "check-format": "prettier --list-different --config ../../.prettierrc.json --ignore-path ../../.prettierignore \"src/**/*.ts\" \"test/**/*.ts\" \"*.{js,json}\"",
     "clean": "rimraf dist dist-esm test-dist types *.tgz *.log",
+    "extract-api": "tsc -p . && api-extractor run --local",
+    "format": "prettier --write --config ../../.prettierrc.json --ignore-path ../../.prettierignore \"src/**/*.ts\" \"test/**/*.ts\" \"*.{js,json}\"",
     "pack": "npm pack 2>&1",
     "prebuild": "npm run clean",
-    "test": "npm run build:test && npm run unit-test && npm run integration-test",
-    "unit-test": "npm run unit-test:node && npm run unit-test:browser"
+    "test": "npm run clean && npm run build:test && npm run unit-test"
   },
   "dependencies": {
     "@azure/abort-controller": "^1.0.0",

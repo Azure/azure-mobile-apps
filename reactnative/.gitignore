@@ -61,3 +61,17 @@ buck-out/
 
 # CocoaPods
 /ios/Pods/
+
+# build artifacts
+dist
+dist-*
+test-dist
+test-dist*
+test-browser
+typings
+typedoc
+types
+es
+*.test.js
+*.test.js.map
+*lintReport.html

@@ -1,8 +1,8 @@
 export interface EntityTableData {
-    id: string,
-    updatedAt: Date,
-    version: string,
-    isDeleted: boolean,
+    id?: string,
+    updatedAt?: Date,
+    version?: string,
+    deleted?: boolean,
 }
 
 export interface BlogComment extends EntityTableData {
