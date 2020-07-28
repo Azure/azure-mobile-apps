@@ -48,6 +48,7 @@
   "dependencies": {
     "@azure/abort-controller": "^1.0.0",
     "@azure/core-asynciterator-polyfill": "^1.0.0",
+    "@azure/core-http":"^1.1.4",
     "azure-odata-sql": "^0.2.0",
     "azure-query-js": "^0.1.0",
     "buffer": "^5.2.1",
