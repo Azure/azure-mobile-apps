@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OData.Edm;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -93,6 +92,7 @@ namespace Azure.Mobile.Server
         /// <param name="operation">The <see cref="TableOperation"/> that is being performed</param>
         /// <param name="item">The item that is being accessed (or null for a list operation).</param>
         /// <returns>true if the user is allowed to perform the operation.</returns>
+        [NonAction]
         public virtual bool IsAuthorized(TableOperation operation, TEntity item) => true;
 
         /// <summary>
@@ -102,6 +102,7 @@ namespace Azure.Mobile.Server
         /// </summary>
         /// <param name="item">The item to be prepared</param>
         /// <returns>The prepared item</returns>
+        [NonAction]
         public virtual TEntity PrepareItemForStore(TEntity item) => item;
 
         /// <summary>
@@ -111,6 +112,7 @@ namespace Azure.Mobile.Server
         /// </summary>
         /// <param name="item">The item to be prepared</param>
         /// <returns>The prepared item</returns>
+        [NonAction]
         public virtual Task<TEntity> PrepareItemForStoreAsync(TEntity item)
             => Task.Run(() => PrepareItemForStore(item));
 

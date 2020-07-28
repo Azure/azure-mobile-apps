@@ -16,6 +16,14 @@ namespace Azure.Mobile.Server.Test.TableController
         // Patch is disabled until Microsoft.AspNetCore.JsonPatch supports System.Text.Json
 
         [TestMethod]
+        public async Task PATCH_onTable_Returns405()
+        {
+            var patchDoc = @"[{ ""op"": ""replace"", ""path"": ""/data"", ""value"": ""Replaced"" }]";
+            var response = await SendRequestToServer(HttpMethod.Put, "/tables/hunits", patchDoc);
+            Assert.AreEqual(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        }
+
+        [TestMethod]
         public async Task PatchItem_ValidId_Returns200()
         {
             var patchDoc = @"[{ ""op"": ""replace"", ""path"": ""/data"", ""value"": ""Replaced"" }]";

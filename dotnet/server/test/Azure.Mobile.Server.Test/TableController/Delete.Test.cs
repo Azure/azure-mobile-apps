@@ -12,6 +12,13 @@ namespace Azure.Mobile.Server.Test.TableController
     public class Delete_Tests : Base_Test
     {
         [TestMethod]
+        public async Task DELETE_onTable_Returns405()
+        {
+            var response = await SendRequestToServer<HUnit>(HttpMethod.Put, "/tables/hunits", null);
+            Assert.AreEqual(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        }
+
+        [TestMethod]
         public async Task DeleteItem_SoftDelete_Existing_Returns204()
         {
             var response = await SendRequestToServer<SUnit>(HttpMethod.Delete, "/tables/sunits/sunit-1", null);
