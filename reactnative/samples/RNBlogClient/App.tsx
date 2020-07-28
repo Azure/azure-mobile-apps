@@ -17,13 +17,17 @@ import {
   Text,
   StatusBar,
   Image,
+  Dimensions,
+  Button,
+  Alert
 } from 'react-native';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createAppContainer } from 'react-navigation';
-// import Icons from 'react-native-vector-icons/FontAwesome';
+import Icons from 'react-native-vector-icons/FontAwesome';
 
+const { width } = Dimensions.get('window');
 
 function HomeScreen() {
 
@@ -46,9 +50,7 @@ function HomeScreen() {
             style={{
               flexDirection: "row",
               height: 100
-
-            }}
-          >
+            }}>
             <View style={styles.container}>
               <View style={{ flex: 0.5 }} >
                 <Text style={styles.dateTitle}>
@@ -56,9 +58,9 @@ function HomeScreen() {
                 </Text>
               </View>
               <View style={{ flex: 0.5 }} >
-                <Text style={styles.sectionTitle}>
+                <Text style={styles.mainTitle}>
                   Blog
-          </Text>
+                </Text>
               </View>
             </View>
 
@@ -68,6 +70,41 @@ function HomeScreen() {
                 style={{ width: 50, height: 50, justifyContent: "center", marginTop: 15 }} />
             </View>
 
+          </View>
+
+          <ScrollView
+            horizontal={true}
+            decelerationRate={0}
+            snapToInterval={width - 60}
+            snapToAlignment={"center"}
+            contentInset={{
+              top: 0,
+              left: 30,
+              bottom: 0,
+              right: 30,
+            }}>
+            <View style={styles.view} />
+            <View style={styles.view2} />
+            <View style={styles.view} />
+            <View style={styles.view2} />
+          </ScrollView>
+
+
+          <View
+            style={{
+              flexDirection: "row",
+              height: 100
+            }}>
+            <Text style={styles.sectionTitle}>
+              Popular
+              </Text>
+            <View style={{ flex: 1 }} />
+            <View style={styles.buttonMargin}>
+            <Button
+              color="#ffa500"
+              title="Show all"
+              onPress={() => Alert.alert('Simple Button pressed')} />
+              </View>
           </View>
         </View>
       </SafeAreaView>
@@ -107,7 +144,32 @@ const App = () => {
   return (
 
     <NavigationContainer>
-      <Tab.Navigator>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+
+            if (route.name === 'Home') {
+              iconName = focused
+                ? 'home'
+                : 'home';
+            } else if (route.name === 'Edit') {
+              iconName = focused ? 'pencil-square' : 'pencil-square';
+            } else if (route.name === 'Bookmark') {
+              iconName = focused ? 'bookmark' : 'bookmark';
+            } else if (route.name === 'Profile') {
+              iconName = focused ? 'user-circle' : 'user-circle';
+            }
+
+            // You can return any component that you like here!
+            return <Icons name={iconName} size={size} color={color} />;
+          },
+        })}
+        tabBarOptions={{
+          activeTintColor: 'black',
+          inactiveTintColor: 'gray',
+        }}
+      >
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Edit" component={EditPost} />
         <Tab.Screen name="Bookmark" component={Bookmarks} />
@@ -129,16 +191,44 @@ const styles = StyleSheet.create({
     color: '#ffa500',
     marginTop: 10
   },
-  sectionTitle: {
-    fontSize: 24,
+  mainTitle: {
+    fontSize: 36,
     fontWeight: '600',
     color: '#000000',
     justifyContent: "center",
     marginTop: -10
   },
+  sectionTitle: {
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#000000',
+    justifyContent: "center",
+    marginTop: 10
+  },
+  buttonMargin: {
+    marginTop: 10
+  },
   container: {
     flex: 1,
     flexDirection: 'column'
+  },
+  view: {
+    marginTop: 30,
+    backgroundColor: 'blue',
+    width: width - 130,
+    margin: 10,
+    height: 250,
+    borderRadius: 10,
+    //paddingHorizontal : 30
+  },
+  view2: {
+    marginTop: 30,
+    backgroundColor: 'red',
+    width: width - 130,
+    margin: 10,
+    height: 250,
+    borderRadius: 10,
+    //paddingHorizontal : 30
   }
 });
 
