@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="3.1.6" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.1.0" />
     <PackageReference Include="MSTest.TestFramework" Version="2.1.0" />
@@ -14,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\samples\E2EServer\E2EServer.csproj" />
+    <ProjectReference Include="..\..\..\server\test\Azure.Mobile.Server.Test.E2EServer\Azure.Mobile.Server.Test.E2EServer.csproj" />
     <ProjectReference Include="..\..\src\Azure.Mobile.Client\Azure.Mobile.Client.csproj" />
   </ItemGroup>
 
