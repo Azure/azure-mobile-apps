@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Azure.Mobile.Client.Test.Table
@@ -214,6 +215,24 @@ namespace Azure.Mobile.Client.Test.Table
             Assert.AreEqual(248, items.Count);
             CollectionAssert.AllItemsAreNotNull(items);
             CollectionAssert.AllItemsAreUnique(items);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_IncludeCount_ReturnsItems()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>();
+            var query = new MobileTableQuery { IncludeCount = true };
+            var actual = table.GetItemsAsync(query);
+
+            var items = new List<Movie>();
+            await foreach (var item in actual)
+            {
+                items.Add(item);
+            }
+
+            Assert.AreEqual(248, items.Count());
+            // TODO: Need to see how we can include the Count response.
         }
 
         [TestMethod]
@@ -1173,6 +1192,314 @@ namespace Azure.Mobile.Client.Test.Table
 
             var dbItems = DbContext.SUnits.Where(e => e.Id == item.Id);
             Assert.AreEqual(0, dbItems.Count());
+        }
+        #endregion
+
+        #region ReplaceItemAsync
+        [TestMethod]
+        public async Task ReplaceItemAsync_ValidId_Returns200()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = table.GetItem("hunit-6");
+            item.Data = "Replaced";
+
+            var actual = await table.ReplaceItemAsync(item);
+            var response = actual.GetRawResponse();
+            var serverItem = actual.Value;
+
+            Assert.AreEqual(200, response.Status);
+            Assert.AreEqual(item.Id, serverItem.Id);
+            Assert.AreEqual(item.Data, serverItem.Data);
+
+            var dbItem = DbContext.HUnits.Where(t => t.Id == item.Id);
+            Assert.AreEqual(1, dbItem.Count());
+            Assert.AreEqual("Replaced", dbItem.First().Data);
+        }
+
+        [TestMethod]
+        public async Task ReplaceItemAsync_MismatchedVersion_Returns412()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = table.GetItem("hunit-6");
+            item.Data = "Replaced";
+            var version = item.Version;
+            item.Version = Convert.ToBase64String(Encoding.UTF8.GetBytes("also-replaced"));
+
+            try
+            {
+                var actual = await table.ReplaceItemAsync(item);
+                var response = actual.GetRawResponse();
+                var serverItem = actual.Value;
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (ConflictException<Unit> ex)
+            {
+                Assert.AreEqual(412, ex.Status);
+                Assert.AreEqual(version, ex.ETag.ToString());
+            }
+        }
+
+        [TestMethod]
+        public async Task ReplaceItemAsync_MissingItem_Returns404()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = new Unit { Id = "missing", Data = "Replaced" };
+
+            try
+            {
+                var actual = await table.ReplaceItemAsync(item);
+                var response = actual.GetRawResponse();
+                var serverItem = actual.Value;
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public async Task ReplaceItemAsync_SoftDelete_DeletedItem_Returns404()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/sunits");
+            Unit item = table.GetItem("sunit-7");
+            table.DeleteItem(item);
+
+            item.Data = "Replaced";
+            try
+            {
+                var actual = await table.ReplaceItemAsync(item);
+                var response = actual.GetRawResponse();
+                var serverItem = actual.Value;
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public async Task ReplaceItemAsync_Unauthorized_Returns404()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>("tables/unauthorized");
+            var item = new Movie { Id = "movie-8", Title = "Foo" };
+
+            try
+            {
+                var actual = await table.ReplaceItemAsync(item);
+                var response = actual.GetRawResponse();
+                var serverItem = actual.Value;
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public async Task ReplaceItemAsync_PreconditionsFail_Returns412()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = table.GetItem("hunit-6");
+            item.Data = "Replaced";
+
+            var options = new MatchConditions { IfNoneMatch = new ETag(item.Version) };
+            try
+            {
+                var actual = await table.ReplaceItemAsync(item, options);
+                var response = actual.GetRawResponse();
+                var serverItem = actual.Value;
+            }
+            catch (ConflictException<Unit> ex)
+            {
+                Assert.AreEqual(412, ex.Status);
+                Assert.AreEqual(item.Version, ex.ETag.ToString());
+                Assert.IsNotNull(ex.Value);
+            }
+        }
+
+        [TestMethod]
+        public async Task ReplaceItemAsync_PreconditionsSucceed_Returns200()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = await table.GetItemAsync("hunit-6");
+            item.Data = "Replaced";
+            var options = new MatchConditions { IfMatch = new ETag(item.Version) };
+
+            var actual = await table.ReplaceItemAsync(item, options);
+            var response = actual.GetRawResponse();
+            var serverItem = actual.Value;
+
+            Assert.AreEqual(200, response.Status);
+            Assert.AreEqual(item.Id, serverItem.Id);
+            Assert.AreEqual(item.Data, serverItem.Data);
+
+            var dbItem = DbContext.HUnits.Where(t => t.Id == item.Id);
+            Assert.AreEqual(1, dbItem.Count());
+            Assert.AreEqual("Replaced", dbItem.First().Data);
+        }
+        #endregion
+
+        #region ReplaceItem
+        [TestMethod]
+        public void ReplaceItem_ValidId_Returns200()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = table.GetItem("hunit-6");
+            item.Data = "Replaced";
+
+            var actual = table.ReplaceItem(item);
+            var response = actual.GetRawResponse();
+            var serverItem = actual.Value;
+
+            Assert.AreEqual(200, response.Status);
+            Assert.AreEqual(item.Id, serverItem.Id);
+            Assert.AreEqual(item.Data, serverItem.Data);
+
+            var dbItem = DbContext.HUnits.Where(t => t.Id == item.Id);
+            Assert.AreEqual(1, dbItem.Count());
+            Assert.AreEqual("Replaced", dbItem.First().Data);
+        }
+
+        [TestMethod]
+        public void ReplaceItem_MismatchedVersion_Returns412()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = table.GetItem("hunit-6");
+            item.Data = "Replaced";
+            var version = item.Version;
+            item.Version = Convert.ToBase64String(Encoding.UTF8.GetBytes("also-replaced"));
+
+            try
+            {
+                var actual = table.ReplaceItem(item);
+                var response = actual.GetRawResponse();
+                var serverItem = actual.Value;
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (ConflictException<Unit> ex)
+            {
+                Assert.AreEqual(412, ex.Status);
+                Assert.AreEqual(version, ex.ETag.ToString());
+            }
+        }
+
+        [TestMethod]
+        public void ReplaceItem_MissingItem_Returns404()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = new Unit { Id = "missing", Data = "Replaced" };
+
+            try
+            {
+                var actual = table.ReplaceItem(item);
+                var response = actual.GetRawResponse();
+                var serverItem = actual.Value;
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public void ReplaceItem_SoftDelete_DeletedItem_Returns404()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/sunits");
+            Unit item = table.GetItem("sunit-7");
+            table.DeleteItem(item);
+
+            item.Data = "Replaced";
+            try
+            {
+                var actual = table.ReplaceItem(item);
+                var response = actual.GetRawResponse();
+                var serverItem = actual.Value;
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public void ReplaceItem_Unauthorized_Returns404()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>("tables/unauthorized");
+            var item = new Movie { Id = "movie-8", Title = "Foo" };
+
+            try
+            {
+                var actual = table.ReplaceItem(item);
+                var response = actual.GetRawResponse();
+                var serverItem = actual.Value;
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public void ReplaceItem_PreconditionsFail_Returns412()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = table.GetItem("hunit-6");
+            item.Data = "Replaced";
+
+            var options = new MatchConditions { IfNoneMatch = new ETag(item.Version) };
+            try
+            {
+                var actual = table.ReplaceItem(item, options);
+                var response = actual.GetRawResponse();
+                var serverItem = actual.Value;
+            }
+            catch (ConflictException<Unit> ex)
+            {
+                Assert.AreEqual(412, ex.Status);
+                Assert.AreEqual(item.Version, ex.ETag.ToString());
+                Assert.IsNotNull(ex.Value);
+            }
+        }
+
+        [TestMethod]
+        public void ReplaceItem_PreconditionsSucceed_Returns200()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = table.GetItem("hunit-6");
+            item.Data = "Replaced";
+            var options = new MatchConditions { IfMatch = new ETag(item.Version) };
+
+            var actual = table.ReplaceItem(item, options);
+            var response = actual.GetRawResponse();
+            var serverItem = actual.Value;
+
+            Assert.AreEqual(200, response.Status);
+            Assert.AreEqual(item.Id, serverItem.Id);
+            Assert.AreEqual(item.Data, serverItem.Data);
+
+            var dbItem = DbContext.HUnits.Where(t => t.Id == item.Id);
+            Assert.AreEqual(1, dbItem.Count());
+            Assert.AreEqual("Replaced", dbItem.First().Data);
         }
         #endregion
     }

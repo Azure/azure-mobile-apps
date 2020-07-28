@@ -182,11 +182,14 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateGetRequest(id, default);
             Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                200 => await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 200:
+                    return await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false);
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
+
         }
 
         /// <summary>
@@ -202,11 +205,13 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateGetRequest(id, default);
             Response response = _pipeline.SendRequest(request, cancellationToken);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                200 => CreateResponse(response, cancellationToken),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 200:
+                    return CreateResponse(response, cancellationToken);
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>
@@ -374,13 +379,16 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateInsertRequest(item);
             Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                201 => await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false),
-                409 => throw new ConflictException<T>(await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false)),
-                412 => throw new ConflictException<T>(await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false)),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 201:
+                    return await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false);
+                case 409:
+                case 412:
+                    throw new ConflictException<T>(await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false));
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>
@@ -397,13 +405,16 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateInsertRequest(item);
             Response response = _pipeline.SendRequest(request, cancellationToken);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                201 => CreateResponse(response, cancellationToken),
-                409 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
-                412 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 201:
+                    return CreateResponse(response, cancellationToken);
+                case 409:
+                case 412:
+                    throw new ConflictException<T>(CreateResponse(response, cancellationToken));
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>
@@ -457,13 +468,16 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateReplaceRequest(item, requestOptions);
             Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                200 => await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false),
-                409 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
-                412 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 200:
+                    return await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false);
+                case 409:
+                case 412:
+                    throw new ConflictException<T>(await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false));
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>
@@ -497,13 +511,16 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateReplaceRequest(item, requestOptions);
             Response response = _pipeline.SendRequest(request, cancellationToken);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                200 => CreateResponse(response, cancellationToken),
-                409 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
-                412 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 200:
+                    return CreateResponse(response, cancellationToken);
+                case 409:
+                case 412:
+                    throw new ConflictException<T>(CreateResponse(response, cancellationToken));
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>
