@@ -1,6 +1,7 @@
 ﻿using Azure.Mobile.Server.Entity;
 using Azure.Mobile.Server.Test.E2EServer.Database;
 using Azure.Mobile.Server.Test.E2EServer.DataObjects;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Azure.Mobile.Server.Test.E2EServer.Controllers
@@ -16,7 +17,7 @@ namespace Azure.Mobile.Server.Test.E2EServer.Controllers
 
         public override bool IsAuthorized(TableOperation operation, Movie item)
         {
-            return false;
+            return HttpContext.User.Identity.IsAuthenticated;
         }
     }
 }
