@@ -1,8 +1,5 @@
 ﻿using Azure.Mobile.Server.Entity;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace E2EServer.DataObjects
 {
@@ -16,8 +13,13 @@ namespace E2EServer.DataObjects
         public int Year { get; set; }
     }
 
-    public class RMovie : Movie
+    public class RMovie : EntityTableData
     {
-
+        public string Title { get; set; }
+        public int Duration { get; set; }
+        public string MpaaRating { get; set; }
+        public DateTime ReleaseDate { get; set; }
+        public bool BestPictureWinner { get; set; }
+        public int Year { get; set; }
     }
 }

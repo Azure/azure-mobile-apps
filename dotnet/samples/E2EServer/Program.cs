@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
 
 namespace E2EServer
 {
@@ -20,6 +18,12 @@ namespace E2EServer
                 .ConfigureWebHostDefaults(builder => builder.UseStartup<Startup>())
                 .Build();
 
+            using (var scope = host.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<E2EDbContext>();
+                DbInitializer.Initialize(context);
+            }
+
             host.Run();
         }
 
@@ -34,6 +38,12 @@ namespace E2EServer
                 .UseStartup<Startup>();
 
             var server = new TestServer(builder);
+
+            using (var scope = server.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<E2EDbContext>();
+                DbInitializer.Initialize(context);
+            }
 
             return server;
         }

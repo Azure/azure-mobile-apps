@@ -30,7 +30,8 @@ namespace Azure.Mobile.Server
                 .AddTransient<TopQueryValidator>()
                 .AddTransient<FilterQueryValidator>()
                 .AddTransient<SkipQueryValidator>()
-                .AddTransient<OrderByQueryValidator>();
+                .AddTransient<OrderByQueryValidator>()
+                .AddTransient<SkipTokenQueryValidator>();
 
             return collection;
         }
