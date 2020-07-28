@@ -39,7 +39,7 @@ namespace Azure.Mobile.Server.Entity
         /// Builds an <see cref="IQueryable{T}"/> to be executed against a store supporting LINQ for querying data.
         /// </summary>
         /// <returns>An <see cref="IQueryable{T}"/> that has not yet been executed.</returns>
-        public IQueryable<TEntity> AsQueryable()
+        public virtual IQueryable<TEntity> AsQueryable()
             => DataSet.AsQueryable();
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Azure.Mobile.Server.Entity
         /// <param name="item">The new form of the entity</param>
         /// <returns>The new entity</returns>
         /// <exception cref="EntityExistsException">if the entity exists</exception>
-        public async Task<TEntity> CreateAsync(TEntity item, CancellationToken cancellationToken = default)
+        public virtual async Task<TEntity> CreateAsync(TEntity item, CancellationToken cancellationToken = default)
         {
             if (item == null)
             {
@@ -73,7 +73,7 @@ namespace Azure.Mobile.Server.Entity
         /// </summary>
         /// <param name="id">The id of the entity</param>
         /// <exception cref="EntityDoesNotExistException">if the entity to be deleted does not exist</exception>
-        public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
+        public virtual async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
         {
             if (id == null)
             {
@@ -97,7 +97,7 @@ namespace Azure.Mobile.Server.Entity
         /// </summary>
         /// <param name="id">The id of the entity to be returned</param>
         /// <returns>The entity, or null if no entity is available.</returns>
-        public ValueTask<TEntity> LookupAsync(string id, CancellationToken cancellationToken = default)
+        public virtual ValueTask<TEntity> LookupAsync(string id, CancellationToken cancellationToken = default)
         {
             if (id == null)
             {
@@ -112,7 +112,7 @@ namespace Azure.Mobile.Server.Entity
         /// <param name="item">The new form of the entity</param>
         /// <returns>The new entity</returns>
         /// <exception cref="EntityDoesNotExistException">if the entity to be replaced does not exist</exception>
-        public async Task<TEntity> ReplaceAsync(TEntity item, CancellationToken cancellationToken = default)
+        public virtual async Task<TEntity> ReplaceAsync(TEntity item, CancellationToken cancellationToken = default)
         {
             if (item == null)
             {
