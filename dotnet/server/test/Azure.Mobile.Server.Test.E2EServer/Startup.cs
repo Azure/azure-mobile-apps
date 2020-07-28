@@ -1,10 +1,13 @@
 using Azure.Mobile.Server.Test.E2EServer.Database;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace Azure.Mobile.Server.Test.E2EServer
 {
@@ -23,6 +26,37 @@ namespace Azure.Mobile.Server.Test.E2EServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            string _secret, _expDate;
+
+            if (WebHostEnvironment.IsEnvironment("Test"))
+            {
+                _secret = "PDv7DrqznYL6nv7DrqzjnQYO9JxIsWdcjnQYL6nu0f";
+                _expDate = "1440";
+            } 
+            else
+            {
+                _secret = Configuration.GetSection("JwtConfig").GetSection("Secret").Value;
+                _expDate = Configuration.GetSection("JwtConfig").GetSection("ExpirationInMinutes").Value;
+            }
+
+            services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_secret)),
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidIssuer = "localhost",
+                        ValidAudience = "localhost"
+                    };
+                });
+
             services.AddDbContext<E2EDbContext>(options =>
             {
                 // TestServer does not read appsettings natively.
@@ -50,6 +84,7 @@ namespace Azure.Mobile.Server.Test.E2EServer
         {
             app.UseHttpsRedirection();
             app.UseRouting();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {

@@ -1,4 +1,5 @@
-﻿using Azure.Mobile.Client.Table;
+﻿using Azure.Mobile.Client.Auth;
+using Azure.Mobile.Client.Table;
 using Azure.Mobile.Client.Test.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -146,6 +147,22 @@ namespace Azure.Mobile.Client.Test.Table
             {
                 Assert.AreEqual(404, ex.Status);
             }
+        }
+
+        [TestMethod]
+        public void GetItem_Authorized_Returns200()
+        {
+            var token = GenerateSecurityToken("client-test", "client-test@localhost.com");
+            var credential = new PreauthorizedTokenCredential { AccessToken = token };
+            var client = GetTestClient(credential);
+            var table = client.GetTable<Movie>("tables/unauthorized");
+            var actual = table.GetItem("movie-4");
+            var response = actual.GetRawResponse();
+            var item = actual.Value;
+
+            Assert.AreEqual(200, response.Status);
+            Assert.IsNotNull(item);
+            Assert.AreEqual("The Good, the Bad and the Ugly", item.Title);
         }
 
         [TestMethod]
