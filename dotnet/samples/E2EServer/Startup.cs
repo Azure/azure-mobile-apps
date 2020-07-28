@@ -34,7 +34,8 @@ namespace E2EServer
                 } 
                 else
                 {
-                    options.UseSqlServer(Configuration.GetConnectionString("MS_TableConnectionString"));
+                    var connectionString = Configuration.GetConnectionString("MS_TableConnectionString");
+                    options.UseSqlServer(connectionString);
                 }
             });
 
@@ -57,9 +58,6 @@ namespace E2EServer
                 endpoints.MapControllers();
                 endpoints.EnableAzureMobileApps();
             });
-
-            var dbContext = app.ApplicationServices.GetRequiredService<E2EDbContext>();
-            DbInitializer.Initialize(dbContext);
         }
     }
 }

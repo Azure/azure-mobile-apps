@@ -2,6 +2,7 @@
 using Azure.Mobile.Server.Utils;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Builder;
+using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Http;
@@ -9,6 +10,8 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OData.Edm;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Linq;
@@ -130,16 +133,48 @@ namespace Azure.Mobile.Server
                 .ApplyDeletedFilter(TableControllerOptions, Request)
                 .Where(TableControllerOptions.DataView);
 
+            var odataValidationSettings = new ODataValidationSettings
+            {
+                MaxTop = TableControllerOptions.MaxTop
+            };
+
+            var odataQuerySettings = new ODataQuerySettings
+            {
+                PageSize = TableControllerOptions.PageSize,
+                EnsureStableOrdering = true
+            };
+            
+            new ODataQuerySettings
+            {
+                PageSize = TableControllerOptions.PageSize,
+                EnsureStableOrdering = true
+            };
+
             // Construct the OData context and parse the query
             var queryContext = new ODataQueryContext(EdmModel, typeof(TEntity), new ODataPath());
             var odataOptions = new ODataQueryOptions<TEntity>(queryContext, Request);
-            odataOptions.Validate(new ODataValidationSettings { 
-                MaxTop = TableControllerOptions.MaxTop
-            });
-            var odataSettings = new ODataQuerySettings { PageSize = TableControllerOptions.PageSize };
-            var odataQuery = odataOptions.ApplyTo(dataView.AsQueryable(), odataSettings);
+            odataOptions.Validate(odataValidationSettings);
+            var odataQuery = odataOptions.ApplyTo(dataView.AsQueryable(), odataQuerySettings);
 
-            return Ok(odataQuery); 
+            // BUG: NextLink is always produced, resulting in a infinite loop in the client
+            // Fix right now - if Values[].Count == 0, then don't set the NextLink
+            var items = odataQuery as IEnumerable<TEntity>;
+            var result = new PagedListResult<TEntity>
+            {
+                Values = odataQuery as IEnumerable<TEntity>
+            };
+            if (items.Count() > 0)
+            {
+                result.NextLink = Request.GetNextPageLink(TableControllerOptions.PageSize);
+            }
+
+            // TODO: THIS DOES NOT WORK
+            //if (odataOptions.Count != null)
+            //{
+            //    result.Count = odataOptions.Count.GetEntityCount(odataQuery);
+            //};
+
+            return Ok(result); 
         }
 
         /// <summary>
