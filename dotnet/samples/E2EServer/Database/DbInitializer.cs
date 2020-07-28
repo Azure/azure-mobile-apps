@@ -1,7 +1,7 @@
-﻿using Azure.Mobile.Server.Test.E2EServer.DataObjects;
+﻿using E2EServer.DataObjects;
 using System;
 
-namespace Azure.Mobile.Server.Test.E2EServer.Database
+namespace E2EServer.Database
 {
     public static class DbInitializer
     {

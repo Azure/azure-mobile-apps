@@ -1,5 +1,4 @@
-﻿using Azure.Mobile.Server.Test.E2EServer;
-using Azure.Mobile.Server.Test.E2EServer.Database;
+﻿using E2EServer.Database;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +17,7 @@ namespace Azure.Mobile.Server.Test.Helpers
     /// </summary>
     public abstract class Base_Test
     {
-        protected readonly TestServer server = Program.GetTestServer();
+        protected readonly TestServer server = E2EServer.Program.GetTestServer();
 
         /// <summary>
         /// The base URI for the request

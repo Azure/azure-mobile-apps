@@ -1,10 +1,10 @@
-using Azure.Mobile.Server.Test.E2EServer.Database;
+using E2EServer.Database;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Azure.Mobile.Server.Test.E2EServer
+namespace E2EServer
 {
     public class Program
     {
@@ -20,7 +20,8 @@ namespace Azure.Mobile.Server.Test.E2EServer
 
             using (var scope = host.Services.CreateScope())
             {
-                InitializeDatabase(scope);
+                var context = scope.ServiceProvider.GetRequiredService<E2EDbContext>();
+                DbInitializer.Initialize(context);
             }
 
             host.Run();
@@ -40,20 +41,11 @@ namespace Azure.Mobile.Server.Test.E2EServer
 
             using (var scope = server.Services.CreateScope())
             {
-                InitializeDatabase(scope);
+                var context = scope.ServiceProvider.GetRequiredService<E2EDbContext>();
+                DbInitializer.Initialize(context);
             }
 
             return server;
-        }
-
-        /// <summary>
-        /// Initializes the database based on a provided service scope.
-        /// </summary>
-        /// <param name="scope"></param>
-        private static void InitializeDatabase(IServiceScope scope)
-        {
-            var context = scope.ServiceProvider.GetRequiredService<E2EDbContext>();
-            DbInitializer.Initialize(context);
         }
     }
 }

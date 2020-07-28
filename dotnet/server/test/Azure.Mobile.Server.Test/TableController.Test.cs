@@ -1,5 +1,6 @@
 ﻿using Azure.Mobile.Server.Entity;
 using Azure.Mobile.Server.Test.Helpers;
+using E2EServer.Database;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
