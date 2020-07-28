@@ -1,6 +1,5 @@
 ﻿using Azure.Mobile.Client.Table;
 using Azure.Mobile.Client.Test.Helpers;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
