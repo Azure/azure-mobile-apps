@@ -14,6 +14,14 @@ namespace Azure.Mobile.Server.Test.TableController
     public class Replace_Tests : Base_Test
     {
         [TestMethod]
+        public async Task PUT_onTable_Returns405()
+        {
+            var item = new HUnit() { Id = "hunit-8", Data = "Replaced" };
+            var response = await SendRequestToServer<HUnit>(HttpMethod.Put, "/tables/hunits", item);
+            Assert.AreEqual(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        }
+
+        [TestMethod]
         public async Task ReplaceItem_ValidId_Returns200()
         {
             var item = new HUnit() { Id = "hunit-6", Data = "Replaced" };
