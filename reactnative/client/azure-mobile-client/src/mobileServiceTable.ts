@@ -1,4 +1,4 @@
-class MobileServiceTable {
+export class MobileServiceTable {
     /**
      * @classdesc Represents a table in the Azure Mobile Apps backend.
      *

@@ -1,4 +1,4 @@
 
-class MobileDataClient {
+export class MobileDataClient {
 
 }

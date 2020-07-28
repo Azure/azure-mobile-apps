@@ -1,4 +1,3 @@
-
-class MobileClientOptions {
+export interface MobileClientOptions {
 
 }
