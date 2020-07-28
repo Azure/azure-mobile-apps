@@ -13,6 +13,24 @@ namespace Azure.Mobile.Client.Auth
     public class PreauthorizedTokenCredential : TokenCredential
     {
         /// <summary>
+        /// Create a new instance of a <see cref="PreauthorizedTokenCredential"/>
+        /// without specifying an AccessToken immediately.
+        /// </summary>
+        public PreauthorizedTokenCredential()
+        {
+        }
+
+        /// <summary>
+        /// Create a new instance of a <see cref="PreauthorizedTokenCredential"/>
+        /// and specify the initial value of the AccessToken.
+        /// </summary>
+        /// <param name="accessToken">Th initial value of the <see cref="AccessToken"/></param>
+        public PreauthorizedTokenCredential(string accessToken)
+        {
+            AccessToken = accessToken;
+        }
+
+        /// <summary>
         /// The access token to provide back to the service.  This can be updated as needed.
         /// </summary>
         public string AccessToken { get; set; }
