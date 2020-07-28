@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-#nullable enable
-
 namespace Azure.Mobile.Client.Utils
 {
     /// <summary>

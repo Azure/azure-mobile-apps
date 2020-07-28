@@ -1,6 +1,6 @@
 ﻿using Azure.Mobile.Server.Entity;
 
-namespace Azure.Mobile.Server.Test.E2EServer.DataObjects
+namespace E2EServer.DataObjects
 {
     public class Unit : EntityTableData
     {

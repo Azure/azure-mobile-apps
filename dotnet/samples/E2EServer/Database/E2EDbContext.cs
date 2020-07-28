@@ -1,11 +1,11 @@
-﻿using Azure.Mobile.Server.Test.E2EServer.DataObjects;
+﻿using E2EServer.DataObjects;
 using Microsoft.EntityFrameworkCore;
 
-namespace Azure.Mobile.Server.Test.E2EServer.Database
+namespace E2EServer.Database
 {
     public class E2EDbContext : DbContext
     {
-        public E2EDbContext(DbContextOptions<E2EDbContext> options) : base(options)
+        public E2EDbContext(DbContextOptions<E2EDbContext> options): base(options)
         {
         }
 

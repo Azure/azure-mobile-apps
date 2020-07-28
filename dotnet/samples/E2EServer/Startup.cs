@@ -1,12 +1,14 @@
-using Azure.Mobile.Server.Test.E2EServer.Database;
+using Azure.Mobile.Server;
+using E2EServer.Database;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 
-namespace Azure.Mobile.Server.Test.E2EServer
+namespace E2EServer
 {
     public class Startup
     {
@@ -29,7 +31,7 @@ namespace Azure.Mobile.Server.Test.E2EServer
                 if (WebHostEnvironment.IsEnvironment("Test"))
                 {
                     options.UseSqlServer("Data Source=(localdb)\\mssqllocaldb;Database=UnitTests;Trusted_Connection=True;");
-                }
+                } 
                 else
                 {
                     var connectionString = Configuration.GetConnectionString("MS_TableConnectionString");
