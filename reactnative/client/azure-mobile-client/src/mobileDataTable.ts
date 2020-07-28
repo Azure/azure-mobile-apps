@@ -1,42 +1,37 @@
-import { MobileDataClient } from "./mobileDataClient";
-import { MobileDataClientOptions } from "./mobileDataClientOptions";
-import { TokenCredential } from '@azure/identity';
-import { EntityTableData } from './models';
+import { DataTable } from "./dataTable";
+import { MobileDataClient } from './mobileDataClient';
+import { BlogPost, BlogComment } from "./models";
 
-/**
- * Represents a table in the Azure Mobile Apps backend.
- */
-abstract class MobileDataTable<T extends EntityTableData> {
-    private readonly _client: MobileDataClient;
-    private readonly _clientOptions: MobileDataClientOptions;
-    private readonly _credential: TokenCredential;
-    private readonly _url: string;
-
-    /**
-     * Represents a table in the Azure Mobile Apps backend.
-     * @param connectionString Name of the table.
-     * @param client Client for the table.
-     */
+export class BlogPostMobileDataTable extends DataTable<BlogPost> {
     constructor(client: MobileDataClient, tableName: string) {
-        this._url = `tables/` + tableName;
-        this._client = client;
-        this._credential = client.credentials;
-        this._clientOptions = client.options;
+        super(client, tableName);
     }
 
-    get url(): string {
-        return this._url;
+    create(bodyAsText: string): BlogPost {
+        return {
+            title: "blog-post-title",
+            commentCount: 0,
+            showComments: false,
+            data: bodyAsText,
+            id: "foo",
+            updatedAt: undefined,
+            version: undefined,
+            deleted: false,
+        };
+    }
+}
+
+export class BlogCommentMobileDataTable extends DataTable<BlogComment> {
+    constructor(client: MobileDataClient, tableName: string) {
+        super(client, tableName);
     }
 
-    abstract create<T extends EntityTableData>(): T;
-
-    async getItem<T extends EntityTableData>(id: string): Promise<T> {
-        const local: T = this.create();
-        local.deleted = true;
-        local.id = id;
-        local.updatedAt = new Date();
-        local.version = "foo";
-
-        return local;
+    create(bodyAsText: string): BlogComment {
+        return {
+            postId: "foo-id",
+            commentText: bodyAsText,
+            name: "post-" + bodyAsText,
+            test: 0
+        }
     }
 }

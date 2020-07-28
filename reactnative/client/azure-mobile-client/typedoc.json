@@ -1,0 +1,10 @@
+{
+  "includeDeclarations": true,
+  "excludePrivate": true,
+  "excludeNotExported": true,
+  "exclude": ["node_modules/**/*"],
+  "ignoreCompilerErrors": true,
+  "mode": "file",
+  "out": "./docs",
+  "name": "@azure/mobile-client"
+}
