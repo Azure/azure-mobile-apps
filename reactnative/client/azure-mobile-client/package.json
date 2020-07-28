@@ -48,7 +48,8 @@
   "dependencies": {
     "@azure/abort-controller": "^1.0.0",
     "@azure/core-asynciterator-polyfill": "^1.0.0",
-    "@azure/core-http":"^1.1.4",
+    "@azure/core-http": "^1.1.4",
+    "@azure/core-paging": "^1.1.1",
     "azure-odata-sql": "^0.2.0",
     "azure-query-js": "^0.1.0",
     "buffer": "^5.2.1",
@@ -58,6 +59,7 @@
     "uuid": "^8.1.0"
   },
   "devDependencies": {
+    "@azure/identity": "^1.0.3",
     "@microsoft/api-extractor": "7.7.11",
     "@rollup/plugin-commonjs": "11.0.2",
     "@rollup/plugin-inject": "^4.0.0",
