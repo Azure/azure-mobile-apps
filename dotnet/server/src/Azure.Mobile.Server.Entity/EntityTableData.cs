@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNet.OData.Query;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Azure.Mobile.Server.Entity
@@ -16,6 +17,8 @@ namespace Azure.Mobile.Server.Entity
         /// <summary>
         /// The date/time that the entity was updated.
         /// </summary>
+        [OrderBy]
+        [Filter]
         public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
         /// <summary>
@@ -27,6 +30,7 @@ namespace Azure.Mobile.Server.Entity
         /// <summary>
         /// True if the entity is marked as deleted.
         /// </summary>
+        [Filter]
         public bool Deleted { get; set; }
     }
 }
