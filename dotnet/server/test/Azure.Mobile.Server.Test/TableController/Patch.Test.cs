@@ -1,6 +1,5 @@
 ﻿using Azure.Mobile.Server.Test.Helpers;
 using Azure.Mobile.Server.Utils;
-using E2EServer.DataObjects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;

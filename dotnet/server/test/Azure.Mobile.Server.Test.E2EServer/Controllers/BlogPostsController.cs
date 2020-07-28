@@ -1,10 +1,9 @@
-﻿using Azure.Mobile.Server;
-using Azure.Mobile.Server.Entity;
-using E2EServer.Database;
-using E2EServer.DataObjects;
+﻿using Azure.Mobile.Server.Entity;
+using Azure.Mobile.Server.Test.E2EServer.Database;
+using Azure.Mobile.Server.Test.E2EServer.DataObjects;
 using Microsoft.AspNetCore.Mvc;
 
-namespace E2EServer.Controllers
+namespace Azure.Mobile.Server.Test.E2EServer.Controllers
 {
     [Route("tables/blog_posts")]
     [ApiController]

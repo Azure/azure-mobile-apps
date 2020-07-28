@@ -2,10 +2,10 @@
 using Microsoft.AspNet.OData.Query;
 using System;
 
-namespace E2EServer.DataObjects
+namespace Azure.Mobile.Server.Test.E2EServer.DataObjects
 {
-    [OrderBy]
     [Filter]
+    [OrderBy]
     public class Movie : EntityTableData
     {
         public string Title { get; set; }
@@ -16,8 +16,8 @@ namespace E2EServer.DataObjects
         public int Year { get; set; }
     }
 
-    [OrderBy]
     [Filter]
+    [OrderBy]
     public class RMovie : EntityTableData
     {
         public string Title { get; set; }
