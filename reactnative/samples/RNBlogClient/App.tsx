@@ -22,6 +22,8 @@ import {
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createAppContainer } from 'react-navigation';
+// import Icons from 'react-native-vector-icons/FontAwesome';
+
 
 function HomeScreen() {
 
@@ -39,37 +41,37 @@ function HomeScreen() {
     <>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
-    <View style={styles.body}>
-    <View
-      style={{
-        flexDirection: "row",
-        height: 100
+        <View style={styles.body}>
+          <View
+            style={{
+              flexDirection: "row",
+              height: 100
 
-      }}
-    >
-      <View style={styles.container}>
-        <View style={{ flex: 0.5 }} >
-          <Text style={styles.dateTitle}>
-            {dayName} {date} {month}
+            }}
+          >
+            <View style={styles.container}>
+              <View style={{ flex: 0.5 }} >
+                <Text style={styles.dateTitle}>
+                  {dayName} {date} {month}
+                </Text>
+              </View>
+              <View style={{ flex: 0.5 }} >
+                <Text style={styles.sectionTitle}>
+                  Blog
           </Text>
-        </View>
-        <View style={{ flex: 0.5 }} >
-          <Text style={styles.sectionTitle}>
-            Blog
-          </Text>
-        </View>
-      </View>
+              </View>
+            </View>
 
-      <View style={{ flex: 0.4 }} />
-      <View style={{flex: 0.3 }} >
-        <Image source={{ uri: 'https://reactjs.org/logo-og.png' }}
-          style={{ width: 50, height: 50, justifyContent:"center", marginTop:15 }} />
-      </View>
+            <View style={{ flex: 0.4 }} />
+            <View style={{ flex: 0.3 }} >
+              <Image source={{ uri: 'https://reactjs.org/logo-og.png' }}
+                style={{ width: 50, height: 50, justifyContent: "center", marginTop: 15 }} />
+            </View>
 
-    </View>
-  </View>
-     </SafeAreaView>
-     </>
+          </View>
+        </View>
+      </SafeAreaView>
+    </>
   );
 }
 
@@ -103,8 +105,8 @@ const Tab = createBottomTabNavigator();
 
 const App = () => {
   return (
-    
-        <NavigationContainer>
+
+    <NavigationContainer>
       <Tab.Navigator>
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Edit" component={EditPost} />
@@ -112,7 +114,7 @@ const App = () => {
         <Tab.Screen name="Profile" component={Profile} />
       </Tab.Navigator>
     </NavigationContainer>
- 
+
   );
 };
 
