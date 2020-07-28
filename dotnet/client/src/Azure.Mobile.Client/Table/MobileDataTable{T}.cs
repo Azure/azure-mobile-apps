@@ -95,13 +95,16 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateDeleteRequest(item, requestOptions);
             Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                200 => response,
-                204 => response,
-                412 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 200:
+                case 204:
+                    return response;
+                case 412:
+                    throw new ConflictException<T>(CreateResponse(response, cancellationToken));
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>
@@ -135,13 +138,16 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateDeleteRequest(item, requestOptions);
             Response response = _pipeline.SendRequest(request, cancellationToken);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                200 => response,
-                204 => response,
-                412 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 200:
+                case 204:
+                    return response;
+                case 412:
+                    throw new ConflictException<T>(CreateResponse(response, cancellationToken));
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>

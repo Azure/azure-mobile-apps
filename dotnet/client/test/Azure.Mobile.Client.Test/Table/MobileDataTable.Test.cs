@@ -753,5 +753,427 @@ namespace Azure.Mobile.Client.Test.Table
             Assert.AreEqual(item.Data, dbItem.First().Data);
         }
         #endregion
+
+        #region DeleteItemAsync
+        [TestMethod]
+        public async Task DeleteItemAsync_SoftDelete_Existing_Returns204()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/sunits");
+            Unit item = table.GetItem("sunit-1");
+            Assert.IsNotNull(item);
+
+            var actual = await table.DeleteItemAsync(item);
+            Assert.AreEqual(204, actual.Status);
+
+            var dbItems = DbContext.SUnits.Where(e => e.Id == item.Id && e.Deleted);
+            Assert.IsNotNull(dbItems.First());
+            Assert.AreEqual(1, dbItems.Count());
+        }
+
+        [TestMethod]
+        public async Task DeleteItemAsync_HardDelete_Existing_Returns204()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = table.GetItem("hunit-1");
+            Assert.IsNotNull(item);
+
+            var actual = await table.DeleteItemAsync(item);
+            Assert.AreEqual(204, actual.Status);
+
+            var dbItems = DbContext.SUnits.Where(e => e.Id == item.Id);
+            Assert.AreEqual(0, dbItems.Count());
+        }
+
+        [TestMethod]
+        public async Task DeleteItemAsync_SoftDelete_Missing_Returns404()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/sunits");
+            var item = new Unit { Id = "missing" };
+
+            try
+            {
+                var actual = await table.DeleteItemAsync(item);
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public async Task DeleteItemAsync_HardDelete_Missing_Returns404()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            var item = new Unit { Id = "missing" };
+
+            try
+            {
+                var actual = await table.DeleteItemAsync(item);
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public async Task DeleteItemAsync_SoftDelete_Twice_Returns404()
+        {
+            var item = new Unit { Id = "sunit-2" };
+
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/sunits");
+            var actual = await table.DeleteItemAsync(item);
+            Assert.AreEqual(204, actual.Status);
+
+            try
+            {
+                actual = await table.DeleteItemAsync(item);
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+
+            var dbItems = DbContext.SUnits.Where(e => e.Id == item.Id && e.Deleted);
+            Assert.IsNotNull(dbItems.First());
+            Assert.AreEqual(1, dbItems.Count());
+        }
+
+        [TestMethod]
+        public async Task DeleteItemAsync_HardDelete_Twice_Returns404()
+        {
+            var item = new Unit { Id = "hunit-2" };
+            var options = new MatchConditions();
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            var actual = await table.DeleteItemAsync(item, options);
+            Assert.AreEqual(204, actual.Status);
+
+            try
+            {
+                actual = await table.DeleteItemAsync(item);
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public async Task DeleteItemAsync_Unauthorized_Returns404()
+        {
+            var item = new Movie { Id = "movie-3" };
+
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>("tables/unauthorized");
+
+            try
+            {
+                await table.DeleteItemAsync(item);
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public async Task DeleteItemAsync_SoftDelete_PreconditionsFail_Returns412()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/sunits");
+            Unit item = table.GetItem("sunit-3");
+            MatchConditions options = new MatchConditions { IfNoneMatch = ETag.All };
+            Assert.IsNotNull(item);
+
+            try
+            {
+                await table.DeleteItemAsync(item, options);
+            }
+            catch (ConflictException<Unit> ex)
+            {
+                Assert.AreEqual(412, ex.Status);
+                Assert.IsNotNull(ex.Value);
+                Assert.IsNotNull(ex.ETag);
+                Assert.IsNotNull(ex.LastModified);
+            }
+        }
+
+        [TestMethod]
+        public async Task DeleteItemAsync_HardDelete_PreconditionsFail_Returns412()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = table.GetItem("hunit-3");
+            MatchConditions options = new MatchConditions { IfNoneMatch = ETag.All };
+            Assert.IsNotNull(item);
+
+            try
+            {
+                await table.DeleteItemAsync(item, options);
+            }
+            catch (ConflictException<Unit> ex)
+            {
+                Assert.AreEqual(412, ex.Status);
+                Assert.IsNotNull(ex.Value);
+                Assert.IsNotNull(ex.ETag);
+                Assert.IsNotNull(ex.LastModified);
+            }
+        }
+
+        [TestMethod]
+        public async Task DeleteItemAsync_SoftDelete_PreconditionsSucceed_Returns204()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/sunits");
+            Unit item = table.GetItem("sunit-4");
+            MatchConditions options = new MatchConditions { IfMatch = ETag.All };
+            Assert.IsNotNull(item);
+
+            var actual = await table.DeleteItemAsync(item);
+            Assert.AreEqual(204, actual.Status);
+
+            var dbItems = DbContext.SUnits.Where(e => e.Id == item.Id && e.Deleted);
+            Assert.IsNotNull(dbItems.First());
+            Assert.AreEqual(1, dbItems.Count());
+        }
+
+        [TestMethod]
+        public async Task DeleteItemAsync_HardDelete_PreconditionsSucceed_Returns204()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = table.GetItem("hunit-4");
+            MatchConditions options = new MatchConditions { IfMatch = ETag.All };
+            Assert.IsNotNull(item);
+
+            var actual = await table.DeleteItemAsync(item);
+            Assert.AreEqual(204, actual.Status);
+
+            var dbItems = DbContext.SUnits.Where(e => e.Id == item.Id);
+            Assert.AreEqual(0, dbItems.Count());
+        }
+        #endregion
+
+        #region DeleteItem
+        [TestMethod]
+        public void DeleteItem_SoftDelete_Existing_Returns204()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/sunits");
+            Unit item = table.GetItem("sunit-1");
+            Assert.IsNotNull(item);
+
+            var actual = table.DeleteItem(item);
+            Assert.AreEqual(204, actual.Status);
+
+            var dbItems = DbContext.SUnits.Where(e => e.Id == item.Id && e.Deleted);
+            Assert.IsNotNull(dbItems.First());
+            Assert.AreEqual(1, dbItems.Count());
+        }
+
+        [TestMethod]
+        public void DeleteItem_HardDelete_Existing_Returns204()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = table.GetItem("hunit-1");
+            Assert.IsNotNull(item);
+
+            var actual = table.DeleteItem(item);
+            Assert.AreEqual(204, actual.Status);
+
+            var dbItems = DbContext.SUnits.Where(e => e.Id == item.Id);
+            Assert.AreEqual(0, dbItems.Count());
+        }
+
+        [TestMethod]
+        public void DeleteItem_SoftDelete_Missing_Returns404()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/sunits");
+            var item = new Unit { Id = "missing" };
+
+            try
+            {
+                var actual = table.DeleteItem(item);
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public void DeleteItem_HardDelete_Missing_Returns404()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            var item = new Unit { Id = "missing" };
+
+            try
+            {
+                var actual = table.DeleteItem(item);
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public void DeleteItem_SoftDelete_Twice_Returns404()
+        {
+            var item = new Unit { Id = "sunit-2" };
+
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/sunits");
+            var actual = table.DeleteItem(item);
+            Assert.AreEqual(204, actual.Status);
+
+            try
+            {
+                actual = table.DeleteItem(item);
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+
+            var count = DbContext.SUnits.Count(e => e.Id == item.Id && e.Deleted);
+            Assert.AreEqual(1, count);
+        }
+
+        [TestMethod]
+        public void DeleteItem_HardDelete_Twice_Returns404()
+        {
+            var item = new Unit { Id = "hunit-2" };
+            var options = new MatchConditions();
+
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            var actual = table.DeleteItem(item, options);
+            Assert.AreEqual(204, actual.Status);
+
+            try
+            {
+                actual = table.DeleteItem(item);
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public void DeleteItem_Unauthorized_Returns404()
+        {
+            var item = new Movie { Id = "movie-3" };
+
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>("tables/unauthorized");
+
+            try
+            {
+                table.DeleteItem(item);
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public void DeleteItem_SoftDelete_PreconditionsFail_Returns412()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/sunits");
+            Unit item = table.GetItem("sunit-3");
+            MatchConditions options = new MatchConditions { IfNoneMatch = ETag.All };
+            Assert.IsNotNull(item);
+
+            try
+            {
+                table.DeleteItem(item, options);
+            }
+            catch (ConflictException<Unit> ex)
+            {
+                Assert.AreEqual(412, ex.Status);
+                Assert.IsNotNull(ex.Value);
+                Assert.IsNotNull(ex.ETag);
+                Assert.IsNotNull(ex.LastModified);
+            }
+        }
+
+        [TestMethod]
+        public void DeleteItem_HardDelete_PreconditionsFail_Returns412()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = table.GetItem("hunit-3");
+            MatchConditions options = new MatchConditions { IfNoneMatch = ETag.All };
+            Assert.IsNotNull(item);
+
+            try
+            {
+                table.DeleteItem(item, options);
+            }
+            catch (ConflictException<Unit> ex)
+            {
+                Assert.AreEqual(412, ex.Status);
+                Assert.IsNotNull(ex.Value);
+                Assert.IsNotNull(ex.ETag);
+                Assert.IsNotNull(ex.LastModified);
+            }
+        }
+
+        [TestMethod]
+        public void DeleteItem_SoftDelete_PreconditionsSucceed_Returns204()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/sunits");
+            Unit item = table.GetItem("sunit-4");
+            MatchConditions options = new MatchConditions { IfMatch = ETag.All };
+            Assert.IsNotNull(item);
+
+            var actual = table.DeleteItem(item);
+            Assert.AreEqual(204, actual.Status);
+
+            var dbItems = DbContext.SUnits.Where(e => e.Id == item.Id && e.Deleted);
+            Assert.IsNotNull(dbItems.First());
+            Assert.AreEqual(1, dbItems.Count());
+        }
+
+        [TestMethod]
+        public void DeleteItem_HardDelete_PreconditionsSucceed_Returns204()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Unit>("tables/hunits");
+            Unit item = table.GetItem("hunit-4");
+            MatchConditions options = new MatchConditions { IfMatch = ETag.All };
+            Assert.IsNotNull(item);
+
+            var actual = table.DeleteItem(item);
+            Assert.AreEqual(204, actual.Status);
+
+            var dbItems = DbContext.SUnits.Where(e => e.Id == item.Id);
+            Assert.AreEqual(0, dbItems.Count());
+        }
+        #endregion
     }
 }
