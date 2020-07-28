@@ -1,5 +1,6 @@
 ﻿using Azure.Core.Pipeline;
-using E2EServer.Database;
+using Azure.Mobile.Server.Test.E2EServer;
+using Azure.Mobile.Server.Test.E2EServer.Database;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -8,7 +9,7 @@ namespace Azure.Mobile.Client.Test.Helpers
 {
     public abstract class BaseTest
     {
-        private TestServer server = E2EServer.Program.GetTestServer();
+        private TestServer server = Program.GetTestServer();
 
         /// <summary>
         /// Returns a MobileDataClient that hits the test server.

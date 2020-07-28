@@ -1,4 +1,4 @@
-﻿using E2EServer.Database;
+﻿using Azure.Mobile.Server.Test.E2EServer.Database;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
