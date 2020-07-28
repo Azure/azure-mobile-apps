@@ -19,12 +19,6 @@
         public string OrderBy { get; set; } = null;
 
         /// <summary>
-        /// The OData <c>$search</c> query param.  If null, does not
-        /// send the parameter.
-        /// </summary>
-        public string Search { get; set; } = null;
-
-        /// <summary>
         /// The OData <c>$skip</c> query param.  If negative, does not send
         /// the parameter.
         /// </summary>
@@ -39,6 +33,13 @@
         /// <summary>
         /// The OData <c>$count</c> query param.  Is not sent if false.
         /// </summary>
-        public bool Count { get; set; } = false;
+        public bool IncludeCount { get; set; } = false;
+
+        /// <summary>
+        /// Set on a table controller with soft-delete enabled, this returns the
+        /// deleted records as well.
+        /// 
+        /// </summary>
+        public bool IncludeDeleted { get; set; } = false;
     }
 }

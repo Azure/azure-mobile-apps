@@ -1,8 +1,8 @@
 ﻿using Azure.Core;
 using Azure.Core.Pipeline;
 using Azure.Mobile.Client.Utils;
-using Azure.Mobile.Server.Utils;
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,28 +30,23 @@ namespace Azure.Mobile.Client.Table
             ClientOptions = client.ClientOptions;
             Endpoint = endpoint;
 
-            _pipeline = CreatePipeline(ClientOptions, new BearerTokenAuthenticationPolicy(Credential, GetDefaultScope(Endpoint)));
-        }
+            var perCallPolicies = new List<HttpPipelinePolicy>();
+            var perRetryPolicies = new List<HttpPipelinePolicy>();
 
-        /// <summary>
-        /// Creates a 
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="authenticationPolicy"></param>
-        /// <returns></returns>
-        private static HttpPipeline CreatePipeline(MobileDataClientOptions options, HttpPipelinePolicy authenticationPolicy)
-            => HttpPipelineBuilder.Build(options,
-                new HttpPipelinePolicy[] { /* per-call policies */ },
-                new HttpPipelinePolicy[] { authenticationPolicy },
+            // Add the authentication policy only if supplied a credential.
+            if (Credential != null)
+            {
+                var scope = $"{Endpoint.GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped)}/.default";
+                perRetryPolicies.Add(new BearerTokenAuthenticationPolicy(Credential, scope));
+            }
+
+            // Builds the pipeline based on the policies provided.
+            _pipeline = HttpPipelineBuilder.Build(
+                ClientOptions, 
+                perCallPolicies.ToArray(), 
+                perRetryPolicies.ToArray(), 
                 new ResponseClassifier());
-
-        /// <summary>
-        /// Obtains the default authentication scope.
-        /// </summary>
-        /// <param name="uri">The uri that we are connecting to</param>
-        /// <returns>The scope string</returns>
-        private static string GetDefaultScope(Uri uri)
-            => $"{uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.SafeUnescaped)}/.default";
+        }
 
         /// <summary>
         /// The base <see cref="Uri"/> for the backend table controller.
@@ -100,13 +95,16 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateDeleteRequest(item, requestOptions);
             Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                200 => response,
-                204 => response,
-                412 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 200:
+                case 204:
+                    return response;
+                case 412:
+                    throw new ConflictException<T>(CreateResponse(response, cancellationToken));
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>
@@ -140,13 +138,16 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateDeleteRequest(item, requestOptions);
             Response response = _pipeline.SendRequest(request, cancellationToken);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                200 => response,
-                204 => response,
-                412 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 200:
+                case 204:
+                    return response;
+                case 412:
+                    throw new ConflictException<T>(CreateResponse(response, cancellationToken));
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>
@@ -181,11 +182,14 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateGetRequest(id, default);
             Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                200 => await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 200:
+                    return await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false);
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
+
         }
 
         /// <summary>
@@ -201,11 +205,13 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateGetRequest(id, default);
             Response response = _pipeline.SendRequest(request, cancellationToken);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                200 => CreateResponse(response, cancellationToken),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 200:
+                    return CreateResponse(response, cancellationToken);
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>
@@ -233,7 +239,7 @@ namespace Azure.Mobile.Client.Table
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>A pageable list of items</returns>
         public virtual AsyncPageable<T> GetItemsAsync(CancellationToken cancellationToken = default)
-            => GetItemsAsync(default, cancellationToken);
+            => GetItemsAsync(new MobileTableQuery(), cancellationToken);
 
         /// <summary>
         /// Retrieves a list of items from the service.
@@ -243,7 +249,8 @@ namespace Azure.Mobile.Client.Table
         /// <returns>A pageable list of items</returns>
         public virtual AsyncPageable<T> GetItemsAsync(MobileTableQuery query, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Arguments.IsNotNull(query, nameof(query));
+            return PageResponseEnumerator.CreateAsyncEnumerable(nextLink => GetItemsPageAsync(query, nextLink, cancellationToken));
         }
 
         /// <summary>
@@ -252,7 +259,7 @@ namespace Azure.Mobile.Client.Table
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>A pagable list of items</returns>
         public virtual Pageable<T> GetItems(CancellationToken cancellationToken = default)
-            => GetItems(default, cancellationToken);
+            => GetItems(new MobileTableQuery(), cancellationToken);
 
         /// <summary>
         /// Retrieves a list of items from the service.
@@ -262,7 +269,98 @@ namespace Azure.Mobile.Client.Table
         /// <returns>A pageable list of items</returns>
         public virtual Pageable<T> GetItems(MobileTableQuery query, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Arguments.IsNotNull(query, nameof(query));
+            return PageResponseEnumerator.CreateEnumerable(nextLink => GetItemsPage(query, nextLink, cancellationToken));
+        }
+
+        /// <summary>
+        /// Fetches a single page in the server-side paging result of a list operation.
+        /// </summary>
+        /// <param name="query">The query to send to the service</param>
+        /// <param name="pageLink">The link to the page</param>
+        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
+        /// <returns>A single page of results</returns>
+        private async Task<Page<T>> GetItemsPageAsync(MobileTableQuery query, string pageLink, CancellationToken cancellationToken = default)
+        {
+            using Request request = CreateListRequest(query, pageLink);
+            Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+
+            switch (response.Status)
+            {
+                case 200:
+                    PagedResult<T> data = await CreatePagedResultAsync(response, cancellationToken).ConfigureAwait(false);
+                    return Page<T>.FromValues(data.Values, data.NextLink, response);
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
+        }
+
+        /// <summary>
+        /// Fetches a single page in the server-side paging result of a list operation.
+        /// </summary>
+        /// <param name="query">The query to send to the service</param>
+        /// <param name="pageLink">The link to the page</param>
+        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
+        /// <returns>A single page of results</returns>
+        private Page<T> GetItemsPage(MobileTableQuery query, string pageLink, CancellationToken cancellationToken = default)
+        {
+            using Request request = CreateListRequest(query, pageLink);
+            Response response = _pipeline.SendRequest(request, cancellationToken);
+
+            switch (response.Status)
+            {
+                case 200:
+                    PagedResult<T> data = CreatePagedResult(response, cancellationToken);
+                    return Page<T>.FromValues(data.Values, data.NextLink, response);
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
+        }
+
+        /// <summary>
+        /// Creates a request object for a paged response.
+        /// </summary>
+        /// <param name="query">The query to send</param>
+        /// <param name="pageLink">The link to the next page</param>
+        /// <returns>The <see cref="Request"/> object corresponding to the request</returns>
+        private Request CreateListRequest(MobileTableQuery query, string pageLink)
+        {
+            Request request = _pipeline.CreateRequest();
+            request.Method = RequestMethod.Get;
+            if (pageLink != null)
+            {
+                request.Uri.Reset(new Uri(pageLink));
+            } 
+            else
+            {
+                var builder = request.Uri;
+                builder.Reset(Endpoint);
+                if (query.Filter != null)
+                {
+                    builder.AppendQuery("$filter", query.Filter);
+                }
+                if (query.OrderBy != null)
+                {
+                    builder.AppendQuery("$orderBy", query.OrderBy);
+                }
+                if (query.Skip >= 0)
+                {
+                    builder.AppendQuery("$skip", $"{query.Skip}");
+                }
+                if (query.Top >= 0)
+                {
+                    builder.AppendQuery("$top", $"{query.Top}");
+                }
+                if (query.IncludeDeleted)
+                {
+                    builder.AppendQuery("__includedeleted", "true");
+                }
+                if (query.IncludeCount)
+                {
+                    builder.AppendQuery("$count", "true");
+                }
+            }
+            return request;
         }
         #endregion
 
@@ -281,11 +379,16 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateInsertRequest(item);
             Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                201 => await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 201:
+                    return await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false);
+                case 409:
+                case 412:
+                    throw new ConflictException<T>(await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false));
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>
@@ -302,11 +405,16 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateInsertRequest(item);
             Response response = _pipeline.SendRequest(request, cancellationToken);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                201 => CreateResponse(response, cancellationToken),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 201:
+                    return CreateResponse(response, cancellationToken);
+                case 409:
+                case 412:
+                    throw new ConflictException<T>(CreateResponse(response, cancellationToken));
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>
@@ -360,13 +468,16 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateReplaceRequest(item, requestOptions);
             Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                200 => await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false),
-                409 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
-                412 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 200:
+                    return await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false);
+                case 409:
+                case 412:
+                    throw new ConflictException<T>(await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false));
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>
@@ -400,13 +511,16 @@ namespace Azure.Mobile.Client.Table
             using Request request = CreateReplaceRequest(item, requestOptions);
             Response response = _pipeline.SendRequest(request, cancellationToken);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                200 => CreateResponse(response, cancellationToken),
-                409 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
-                412 => throw new ConflictException<T>(CreateResponse(response, cancellationToken)),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase)
-            };
+                case 200:
+                    return CreateResponse(response, cancellationToken);
+                case 409:
+                case 412:
+                    throw new ConflictException<T>(CreateResponse(response, cancellationToken));
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>
@@ -451,9 +565,21 @@ namespace Azure.Mobile.Client.Table
         private Response<T> CreateResponse(Response response, CancellationToken cancellationToken)
         {
             // TODO: There is probably a better way to do this; however, none of the System.Text.Json non-async methods take a stream.
-            ValueTask<T> result = JsonSerializer.DeserializeAsync<T>(response.ContentStream, ClientOptions.JsonSerializerOptions, cancellationToken);
+            var result = JsonSerializer.DeserializeAsync<T>(response.ContentStream, ClientOptions.JsonSerializerOptions, cancellationToken);
             return Response.FromValue(result.Result, response);
         }
+
+        private ValueTask<PagedResult<T>> CreatePagedResultAsync(Response response, CancellationToken cancellationToken)
+           => JsonSerializer.DeserializeAsync<PagedResult<T>>(response.ContentStream, ClientOptions.JsonSerializerOptions, cancellationToken);
+
+        /// <summary>
+        /// Deserializes the content of the response into a <see cref="PagedResult{T}"/> object.
+        /// </summary>
+        /// <param name="response">The response to process</param>
+        /// <param name="cancellationToken">A lifecycle cancellation token</param>
+        /// <returns></returns>
+        private PagedResult<T> CreatePagedResult(Response response, CancellationToken cancellationToken)
+            => JsonSerializer.DeserializeAsync<PagedResult<T>>(response.ContentStream, ClientOptions.JsonSerializerOptions, cancellationToken).Result;
 
         /// <summary>
         /// Serializes an item into it's JSON form, ready for transmission.

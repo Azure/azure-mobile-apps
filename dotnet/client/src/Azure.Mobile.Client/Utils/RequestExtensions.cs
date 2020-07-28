@@ -18,7 +18,7 @@ namespace Azure.Mobile.Client.Utils
             builder.Reset(endpoint);
             if (relativePath != null)
             {
-                builder.AppendPath(relativePath, escape: false);
+                builder.AppendPath($"/{relativePath}", escape: false);
             }
         }
 

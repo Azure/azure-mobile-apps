@@ -7,11 +7,13 @@ namespace E2EServer.DataObjects
         public string Data { get; set; }
     }
 
-    public class SUnit : Unit
+    public class SUnit : EntityTableData
     {
+        public string Data { get; set; }
     }
 
-    public class HUnit : Unit
+    public class HUnit : EntityTableData
     {
+        public string Data { get; set; }
     }
 }

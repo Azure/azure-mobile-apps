@@ -1,11 +1,11 @@
 ﻿using Azure.Mobile.Server.Entity;
+using Microsoft.AspNet.OData.Query;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace E2EServer.DataObjects
 {
+    [OrderBy]
+    [Filter]
     public class Movie : EntityTableData
     {
         public string Title { get; set; }
@@ -16,8 +16,15 @@ namespace E2EServer.DataObjects
         public int Year { get; set; }
     }
 
-    public class RMovie : Movie
+    [OrderBy]
+    [Filter]
+    public class RMovie : EntityTableData
     {
-
+        public string Title { get; set; }
+        public int Duration { get; set; }
+        public string MpaaRating { get; set; }
+        public DateTime ReleaseDate { get; set; }
+        public bool BestPictureWinner { get; set; }
+        public int Year { get; set; }
     }
 }
