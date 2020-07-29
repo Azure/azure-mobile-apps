@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:timeago/timeago.dart';
 
 void main() {
   runApp(MyApp());
@@ -13,7 +14,7 @@ class ProfilePic extends StatelessWidget {
         child: Container(
             width: 50,
             height: 50,
-            child: Image.network('https://www.fillmurray.com/100/100')));
+            child: Image.network('https://www.fillmurray.com/100/101')));
   }
 }
 
@@ -72,7 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 padding: const EdgeInsets.fromLTRB(30, 40, 0, 0),
                 child: Text("SUNDAY 4 AUGUST",
                     style: GoogleFonts.josefinSans(
-                        fontSize: 10, color: Colors.orange)),
+                        fontSize: 15, color: Color(0xFFFE7447))),
               ),
               Padding(
                 padding: const EdgeInsets.all(30.0),
@@ -88,7 +89,13 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(30.0, 0, 0, 0),
-                child: FeaturedBlog(),
+                child: FeaturedBlog(
+                  author: "Bill Murray",
+                  title: "My Best Bits",
+                  profilePic: "https://www.fillmurray.com/50/50",
+                  backgroundPic: "https://www.fillmurray.com/331/331",
+                  createdDate: DateTime.now(),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.all(30.0),
@@ -103,6 +110,21 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class FeaturedBlog extends StatelessWidget {
+  final String title;
+  final String author;
+  final String profilePic;
+  final String backgroundPic;
+  final DateTime createdDate;
+
+  const FeaturedBlog({
+    Key key,
+    this.title,
+    this.author,
+    this.createdDate,
+    this.profilePic,
+    this.backgroundPic,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -113,8 +135,11 @@ class FeaturedBlog extends StatelessWidget {
         child: Stack(
           children: <Widget>[
             Image.network(
-              'https://www.fillmurray.com/331/331',
+              backgroundPic,
               fit: BoxFit.fill,
+            ),
+            Container(
+              color: Color(0x66666666),
             ),
             Padding(
               padding: const EdgeInsets.all(20.0),
@@ -134,16 +159,17 @@ class FeaturedBlog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    "Blog Title",
+                    title,
                     style: TextStyle(color: Colors.white, fontSize: 30),
                   ),
                   Row(
                     children: <Widget>[
                       ProfilePic(),
                       Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text(
-                            "Blog Author",
+                            author,
                             style: TextStyle(color: Colors.white, fontSize: 20),
                           ),
                           Row(
@@ -153,7 +179,7 @@ class FeaturedBlog extends StatelessWidget {
                                 color: Colors.white,
                               ),
                               Text(
-                                "Last Updated",
+                                createdDate.toString(),
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 12),
                               ),

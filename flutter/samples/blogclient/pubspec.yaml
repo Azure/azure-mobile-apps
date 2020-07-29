@@ -21,6 +21,7 @@ environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
+  timeago: ^2.0.26
   google_fonts: ^1.1.0
   flutter:
     sdk: flutter    
