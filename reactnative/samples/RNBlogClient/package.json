@@ -1,26 +1,50 @@
 {
-  "name": "RNBlogClient",
+  "name": "react-native-azure-blog-client",
+  "sdk-type": "client",
   "version": "0.0.1",
-  "private": true,
+  "description": "Azure Blog Client for React Native.",
+  "author": "Microsoft Corporation",
+  "license": "MIT",
+  "homepage": "https://github.com/Azure/azure-mobile-apps/",
+  "repository": "github:Azure/azure-mobile-apps",
+  "sideEffects": false,
+  "keywords": [
+    "microsoft",
+    "mobile",
+    "azure",
+    "react-native"
+  ],
+  "bugs": {
+    "url": "https://github.com/Azure/azure-mobile-apps/issues"
+  },
   "scripts": {
+    "build": "echo skipped",
     "android": "react-native run-android",
-    "ios": "react-native run-ios",
+    "ios": "npm run ios:prepare && react-native run-ios",
+    "ios:prepare": "pod install",
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+  },
+  "engine": {
+    "node": ">=8.0.0"
   },
   "dependencies": {
     "@react-native-community/masked-view": "^0.1.10",
     "@react-navigation/bottom-tabs": "^5.7.2",
     "@react-navigation/native": "^5.7.1",
     "react": "16.13.1",
-    "react-native": "0.63.0",
+    "react-native": "0.63.2",
     "react-native-gesture-handler": "^1.7.0",
     "react-native-reanimated": "^1.10.1",
     "react-native-safe-area-context": "^3.1.1",
     "react-native-screens": "^2.9.0",
     "react-native-vector-icons": "^7.0.0",
-    "react-navigation": "^4.4.0"
+    "react-navigation": "^4.4.0",
+    "@azure/mobile-client": "~1.0.0-beta.1",
+    "@types/react": "~16.9.43",
+    "@azure/identity": "^1.0.3",
+    "@react-native-community/cli-platform-android": "~4.10.1"
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",
@@ -38,7 +62,7 @@
     "metro-react-native-babel-preset": "^0.59.0",
     "prettier": "^2.0.4",
     "react-test-renderer": "16.13.1",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.3"
   },
   "jest": {
     "preset": "react-native",
