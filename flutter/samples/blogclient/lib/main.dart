@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   runApp(MyApp());
@@ -62,17 +63,40 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: ListView(
-        children: <Widget>[
-          ProfilePic(),
-          FeaturedBlog(),
-        ],
+    return SafeArea(
+      child: Scaffold(
+        body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(30, 40, 0, 0),
+                child: Text("SUNDAY 4 AUGUST",
+                    style: GoogleFonts.josefinSans(
+                        fontSize: 10, color: Colors.orange)),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(30.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text("Blog",
+                        style: GoogleFonts.josefinSans(
+                            fontSize: 50, fontWeight: FontWeight.bold)),
+                    ProfilePic(),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(30.0, 0, 0, 0),
+                child: FeaturedBlog(),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(30.0),
+                child: Text("Blog",
+                    style: GoogleFonts.josefinSans(
+                        fontSize: 30, fontWeight: FontWeight.bold)),
+              ),
+            ]),
       ),
     );
   }
@@ -81,42 +105,69 @@ class _MyHomePageState extends State<MyHomePage> {
 class FeaturedBlog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20.0),
-      child: Stack(
-        children: <Widget>[
-          Image.network(
-            'https://www.fillmurray.com/301/301',
-            fit: BoxFit.fill,
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                "Blog Title",
-                style: TextStyle(color: Colors.white, fontSize: 30),
+    return Container(
+      width: 332,
+      height: 332,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20.0),
+        child: Stack(
+          children: <Widget>[
+            Image.network(
+              'https://www.fillmurray.com/331/331',
+              fit: BoxFit.fill,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Align(
+                child: Icon(
+                  Icons.bookmark_border,
+                  color: Colors.white,
+                  size: 30,
+                ),
+                alignment: Alignment.topRight,
               ),
-              Row(
+            ),
+            Padding(
+              padding: EdgeInsets.all(10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  ProfilePic(),
-                  Column(
+                  Text(
+                    "Blog Title",
+                    style: TextStyle(color: Colors.white, fontSize: 30),
+                  ),
+                  Row(
                     children: <Widget>[
-                      Text(
-                        "Blog Author",
-                        style: TextStyle(color: Colors.white, fontSize: 20),
-                      ),
-                      Text(
-                        "Last Updated",
-                        style: TextStyle(color: Colors.white, fontSize: 12),
+                      ProfilePic(),
+                      Column(
+                        children: <Widget>[
+                          Text(
+                            "Blog Author",
+                            style: TextStyle(color: Colors.white, fontSize: 20),
+                          ),
+                          Row(
+                            children: <Widget>[
+                              Icon(
+                                Icons.timer,
+                                color: Colors.white,
+                              ),
+                              Text(
+                                "Last Updated",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
