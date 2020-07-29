@@ -84,6 +84,7 @@ dependencies:
   react: 16.13.1
   react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
   react-native-gesture-handler: 1.7.0
+  react-native-msal: 2.0.2_4d60644ad3bf180c7f540fd2466a5e1a
   react-native-reanimated: 1.10.1_4d60644ad3bf180c7f540fd2466a5e1a
   react-native-safe-area-context: 3.1.1_4d60644ad3bf180c7f540fd2466a5e1a
   react-native-screens: 2.9.0_4d60644ad3bf180c7f540fd2466a5e1a
@@ -8248,6 +8249,16 @@ packages:
       react-native: '>=0.42.0'
     resolution:
       integrity: sha512-/VbpIEp8tSNNHIvstuA3Swx610whci1Zpc9mqNkqn14DkMbw+ORviln2u0XyHG1kPvvwTNGZY6QpeFwxYaSdbQ==
+  /react-native-msal/2.0.2_4d60644ad3bf180c7f540fd2466a5e1a:
+    dependencies:
+      react: 16.13.1
+      react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
+    dev: false
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+    resolution:
+      integrity: sha512-U9rhV9tPk9RPEernEyHYeWhecZR09PmYGjHMfIaqk2UMtJ82I3eS5yM5cle2/gd/FwliJ2GcJVUCVXCJh8QL8Q==
   /react-native-reanimated/1.10.1_4d60644ad3bf180c7f540fd2466a5e1a:
     dependencies:
       fbjs: 1.0.0
@@ -10725,6 +10736,7 @@ packages:
       react: 16.13.1
       react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
       react-native-gesture-handler: 1.7.0
+      react-native-msal: 2.0.2_4d60644ad3bf180c7f540fd2466a5e1a
       react-native-reanimated: 1.10.1_4d60644ad3bf180c7f540fd2466a5e1a
       react-native-safe-area-context: 3.1.1_4d60644ad3bf180c7f540fd2466a5e1a
       react-native-screens: 2.9.0_4d60644ad3bf180c7f540fd2466a5e1a
@@ -10735,7 +10747,7 @@ packages:
     dev: false
     name: '@rush-temp/react-native-azure-blog-client'
     resolution:
-      integrity: sha512-jbiWUFCXt75DrOVl7X8RspHafLZOlT2t/yNFjC/9c7+skFNTaOqPHC46UkoNyKzEa4x+j1NHtGJPn+8ZQmmbDg==
+      integrity: sha512-daKDYsdVKjzm0StR37HdO2n4FuWzOCONJ+GBWSbuR5u6TqiNc5/rP/gYfH0tl/sTHT1vE1awvsT7gpDcpsjeVQ==
       tarball: 'file:projects/react-native-azure-blog-client.tgz'
     version: 0.0.0
 registry: ''
@@ -10825,6 +10837,7 @@ specifiers:
   react: 16.13.1
   react-native: 0.63.2
   react-native-gesture-handler: ^1.7.0
+  react-native-msal: ^2.0.2
   react-native-reanimated: ^1.10.1
   react-native-safe-area-context: ^3.1.1
   react-native-screens: ^2.9.0
