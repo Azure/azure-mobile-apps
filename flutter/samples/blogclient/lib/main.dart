@@ -1,21 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:timeago/timeago.dart';
+import 'featured_blog.dart';
+import 'profile_pic.dart';
 
 void main() {
   runApp(MyApp());
-}
-
-class ProfilePic extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-        borderRadius: BorderRadius.circular(10.0),
-        child: Container(
-            width: 50,
-            height: 50,
-            child: Image.network('https://www.fillmurray.com/100/101')));
-  }
 }
 
 class MyApp extends StatelessWidget {
@@ -73,7 +62,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 padding: const EdgeInsets.fromLTRB(30, 40, 0, 0),
                 child: Text("SUNDAY 4 AUGUST",
                     style: GoogleFonts.josefinSans(
-                        fontSize: 15, color: Color(0xFFFE7447))),
+                        fontSize: 15,
+                        color: Color(0xFFFE7447),
+                        fontWeight: FontWeight.bold)),
               ),
               Padding(
                 padding: const EdgeInsets.all(30.0),
@@ -104,96 +95,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         fontSize: 30, fontWeight: FontWeight.bold)),
               ),
             ]),
-      ),
-    );
-  }
-}
-
-class FeaturedBlog extends StatelessWidget {
-  final String title;
-  final String author;
-  final String profilePic;
-  final String backgroundPic;
-  final DateTime createdDate;
-
-  const FeaturedBlog({
-    Key key,
-    this.title,
-    this.author,
-    this.createdDate,
-    this.profilePic,
-    this.backgroundPic,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 332,
-      height: 332,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20.0),
-        child: Stack(
-          children: <Widget>[
-            Image.network(
-              backgroundPic,
-              fit: BoxFit.fill,
-            ),
-            Container(
-              color: Color(0x66666666),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Align(
-                child: Icon(
-                  Icons.bookmark_border,
-                  color: Colors.white,
-                  size: 30,
-                ),
-                alignment: Alignment.topRight,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(10),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    title,
-                    style: TextStyle(color: Colors.white, fontSize: 30),
-                  ),
-                  Row(
-                    children: <Widget>[
-                      ProfilePic(),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            author,
-                            style: TextStyle(color: Colors.white, fontSize: 20),
-                          ),
-                          Row(
-                            children: <Widget>[
-                              Icon(
-                                Icons.timer,
-                                color: Colors.white,
-                              ),
-                              Text(
-                                createdDate.toString(),
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
