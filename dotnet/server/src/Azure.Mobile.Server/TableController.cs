@@ -288,6 +288,10 @@ namespace Azure.Mobile.Server
         public virtual async Task<IActionResult> DeleteItemAsync(string id)
         {
             var entity = await TableRepository.LookupAsync(id).ConfigureAwait(false);
+            if (entity == null || entity.Deleted)
+            {
+                return NotFound();
+            }
 
             var operationValidation = await ValidateOperationAsync(TableOperation.Delete, entity);
             if (operationValidation != StatusCodes.Status200OK)
@@ -295,7 +299,7 @@ namespace Azure.Mobile.Server
                 return StatusCode(operationValidation);
             }
 
-            if (entity == null || entity.Deleted || !IsAuthorized(TableOperation.Delete, entity))
+            if (!IsAuthorized(TableOperation.Delete, entity))
             {
                 return NotFound();
             }
@@ -332,6 +336,10 @@ namespace Azure.Mobile.Server
         public virtual async Task<IActionResult> ReadItemAsync(string id)
         {
             var entity = await TableRepository.LookupAsync(id).ConfigureAwait(false);
+            if (entity == null || entity.Deleted)
+            {
+                return NotFound();
+            }
 
             var operationValidation = await ValidateOperationAsync(TableOperation.Read, entity);
             if (operationValidation != StatusCodes.Status200OK)
@@ -339,7 +347,7 @@ namespace Azure.Mobile.Server
                 return StatusCode(operationValidation);
             }
 
-            if (entity == null || entity.Deleted || !IsAuthorized(TableOperation.Read, entity))
+            if (!IsAuthorized(TableOperation.Read, entity))
             {
                 return NotFound();
             }
@@ -377,14 +385,18 @@ namespace Azure.Mobile.Server
             }
 
             var entity = await TableRepository.LookupAsync(id).ConfigureAwait(false);
+            if (entity == null || entity.Deleted)
+            {
+                return NotFound();
+            }
 
-            var operationValidation = await ValidateOperationAsync(TableOperation.Replace, entity);
+            var operationValidation = await ValidateOperationAsync(TableOperation.Replace, item);
             if (operationValidation != StatusCodes.Status200OK)
             {
                 return StatusCode(operationValidation);
             }
 
-            if (entity == null || entity.Deleted || !IsAuthorized(TableOperation.Replace, entity))
+            if (!IsAuthorized(TableOperation.Replace, item))
             {
                 return NotFound();
             }
@@ -424,13 +436,17 @@ namespace Azure.Mobile.Server
         {
             var entity = await TableRepository.LookupAsync(id).ConfigureAwait(false);
 
+            if (entity == null)
+            {
+                return NotFound();
+            }
             var operationValidation = await ValidateOperationAsync(TableOperation.Patch, entity);
             if (operationValidation != StatusCodes.Status200OK)
             {
                 return StatusCode(operationValidation);
             }
 
-            if (entity == null || !IsAuthorized(TableOperation.Patch, entity))
+            if (!IsAuthorized(TableOperation.Patch, entity))
             {
                 return NotFound();
             }
