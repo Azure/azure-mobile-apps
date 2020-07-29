@@ -41,7 +41,8 @@
     "react-native-vector-icons": "^7.0.0",
     "react-navigation": "^4.4.0",
     "@azure/mobile-client": "~1.0.0-beta.1",
-    "@types/react": "~16.9.43"
+    "@types/react": "~16.9.43",
+    "@azure/identity": "^1.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",
