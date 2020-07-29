@@ -28,6 +28,7 @@ dependencies:
   '@types/long': 4.0.1
   '@types/mocha': 7.0.2
   '@types/node': 8.10.62
+  '@types/react': 16.9.43
   '@types/react-native': 0.63.2
   '@types/react-native-vector-icons': 6.4.5
   '@types/react-test-renderer': 16.9.2
@@ -10695,6 +10696,7 @@ packages:
       '@react-navigation/bottom-tabs': 5.7.3_bd3954c3f1e0cd031e9d8f2b517ea27c
       '@react-navigation/native': 5.7.2_4d60644ad3bf180c7f540fd2466a5e1a
       '@types/jest': 25.2.3
+      '@types/react': 16.9.43
       '@types/react-native': 0.63.2
       '@types/react-native-vector-icons': 6.4.5
       '@types/react-test-renderer': 16.9.2
@@ -10718,9 +10720,10 @@ packages:
     dev: false
     name: '@rush-temp/react-native-azure-blog-client'
     resolution:
-      integrity: sha512-tMiXfOLGmLy4YQVnsgs5hoalDBSHjG/FSN2GYQhnc0Cm6cHdC9fIJHL5B/MSt+Xnm5/vJuTb2suta7+Kcyjb7w==
+      integrity: sha512-xHkY+LwPbvYkeyzVaochOhWFW0s2kbpg6bALXxLaH3A6vtpQwWVSJT9dwEupyDv8D/m5/4vHUxn3/Oz0avQRiA==
       tarball: 'file:projects/react-native-azure-blog-client.tgz'
     version: 0.0.0
+registry: ''
 specifiers:
   '@azure/abort-controller': ^1.0.0
   '@azure/core-asynciterator-polyfill': ^1.0.0
@@ -10751,6 +10754,7 @@ specifiers:
   '@types/long': ^4.0.0
   '@types/mocha': ^7.0.2
   '@types/node': ^8.0.0
+  '@types/react': ~16.9.43
   '@types/react-native': ^0.63.1
   '@types/react-native-vector-icons': ^6.4.5
   '@types/react-test-renderer': ^16.9.2
