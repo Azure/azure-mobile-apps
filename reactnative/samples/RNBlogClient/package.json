@@ -44,7 +44,13 @@
     "@azure/mobile-client": "~1.0.0-beta.1",
     "@types/react": "~16.9.43",
     "@azure/identity": "^1.0.3",
-    "@react-native-community/cli-platform-android": "~4.10.1"
+    "@react-native-community/cli-platform-android": "~4.10.1",
+    "@react-native-community/cli-platform-ios": "~4.10.1",
+    "@react-native-community/cli-debugger-ui": "~4.9.0",
+    "@react-native-community/cli-server-api": "~4.10.1",
+    "@react-native-community/cli-tools": "~4.10.1",
+    "@react-native-community/cli-types": "~4.10.1",
+    "@react-native-community/eslint-plugin": "~1.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",
