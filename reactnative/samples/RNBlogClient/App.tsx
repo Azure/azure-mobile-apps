@@ -26,8 +26,78 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createAppContainer } from 'react-navigation';
 import Icons from 'react-native-vector-icons/FontAwesome';
+import CustomList from './listComponents/CustomList'
 
 const { width } = Dimensions.get('window');
+
+function getData() {
+  return [
+    {
+      key: 1, 
+      title: 'Sachin Tendulkar',
+      time: "2 months ago",
+      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore',
+      image_url: 'https://th.bing.com/th/id/OIP.8bJLT7pglSdcG1VLnnwTzgHaJh?pid=Api&rs=1'
+    },
+    {
+      key: 2,
+      title: 'Isaac newton',
+      time: "2 months ago",
+      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore',
+      image_url: 'http://4.bp.blogspot.com/-WzJ6SRiUceY/Tl_sSyI33xI/AAAAAAAAAvk/T9qZV5kDedU/s1600/108439.jpg'
+    },
+    {
+      key: 3,
+      title: 'Albert Einstein',
+      time: "2 months ago",
+      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore',
+      image_url: 'https://th.bing.com/th/id/OIP.8bJLT7pglSdcG1VLnnwTzgHaJh?pid=Api&rs=1'
+    },
+    {
+      key: 4,
+      title: 'Isaac newton',
+      time: "2 months ago",
+      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore',
+      image_url: 'http://4.bp.blogspot.com/-WzJ6SRiUceY/Tl_sSyI33xI/AAAAAAAAAvk/T9qZV5kDedU/s1600/108439.jpg'
+    },
+    {
+      key: 5,
+      title: 'Albert Einstein',
+      time: "2 months ago",
+      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore',
+      image_url: 'https://th.bing.com/th/id/OIP.8bJLT7pglSdcG1VLnnwTzgHaJh?pid=Api&rs=1'
+    },
+    {
+      key: 6,
+      title: 'Isaac newton',
+      time: "2 months ago",
+      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore',
+      image_url: 'http://4.bp.blogspot.com/-WzJ6SRiUceY/Tl_sSyI33xI/AAAAAAAAAvk/T9qZV5kDedU/s1600/108439.jpg'
+    },
+    {
+      key: 7,
+      title: 'Albert Einstein',
+      time: "2 months ago",
+      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore',
+      image_url: 'https://th.bing.com/th/id/OIP.8bJLT7pglSdcG1VLnnwTzgHaJh?pid=Api&rs=1'
+    },
+    {
+      key: 8,
+      title: 'Isaac newton',
+      time: "2 months ago",
+      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore',
+      image_url: 'http://4.bp.blogspot.com/-WzJ6SRiUceY/Tl_sSyI33xI/AAAAAAAAAvk/T9qZV5kDedU/s1600/108439.jpg'
+    },
+    {
+      key: 9,
+      title: 'Albert Einstein',
+      time: "2 months ago",
+      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore',
+      image_url: 'https://th.bing.com/th/id/OIP.8bJLT7pglSdcG1VLnnwTzgHaJh?pid=Api&rs=1'
+    }
+
+  ]
+}
 
 function HomeScreen() {
 
@@ -40,9 +110,8 @@ function HomeScreen() {
   var date = d.getDate(); //Current Date
   var month = monthNames[d.getMonth()]; //Current Month
 
-
   return (
-    <>
+    <View style={styles.MainContainer}>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
         <View style={styles.body}>
@@ -100,38 +169,82 @@ function HomeScreen() {
               </Text>
             <View style={{ flex: 1 }} />
             <View style={styles.buttonMargin}>
-            <Button
-              color="#ffa500"
-              title="Show all"
-              onPress={() => Alert.alert('Simple Button pressed')} />
-              </View>
+              <Button
+                color="#ffa500"
+                title="Show all"
+                onPress={() => Alert.alert('Simple Button pressed')} />
+            </View>
+          </View>
+          <View style={styles.listMargin}>
+            <CustomList
+              itemList={getData()}
+            />
           </View>
         </View>
       </SafeAreaView>
-    </>
+    </View>
   );
 }
 
 function EditPost() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Edit!</Text>
+    <View style={styles.MainContainer}>
+      <StatusBar barStyle="dark-content" />
+      <SafeAreaView>
+        <View style={styles.otherPage}>
+          <Text style={styles.otherMainTitle}>
+            Edit Post
+                </Text>
+
+          <View style={styles.bookmarkMargin}>
+            <Text>
+              Edit Post Here
+            </Text>
+          </View>
+        </View>
+      </SafeAreaView>
     </View>
   );
 }
 
 function Bookmarks() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>BookMarks!</Text>
+    <View style={styles.MainContainer}>
+      <StatusBar barStyle="dark-content" />
+      <SafeAreaView>
+        <View style={styles.otherPage}>
+          <Text style={styles.otherMainTitle}>
+            Bookmarks
+                </Text>
+
+          <View style={styles.bookmarkMargin}>
+            <CustomList
+              itemList={getData()}
+            />
+          </View>
+        </View>
+      </SafeAreaView>
     </View>
   );
 }
 
 function Profile() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Profile!</Text>
+    <View style={styles.MainContainer}>
+      <StatusBar barStyle="dark-content" />
+      <SafeAreaView>
+        <View style={styles.otherPage}>
+          <Text style={styles.otherMainTitle}>
+            Profile
+                </Text>
+
+          <View style={styles.bookmarkMargin}>
+            <Text>
+              Profile Here
+            </Text>
+          </View>
+        </View>
+      </SafeAreaView>
     </View>
   );
 }
@@ -181,9 +294,14 @@ const App = () => {
 };
 
 const styles = StyleSheet.create({
+  MainContainer:{
+backgroundColor: '#FFFFFF'
+  },
   body: {
-    backgroundColor: '#ffffff',
     padding: 30
+  },
+  otherPage: {
+    padding: 10
   },
   dateTitle: {
     fontSize: 16,
@@ -198,6 +316,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: -10
   },
+  otherMainTitle: {
+    fontSize: 36,
+    fontWeight: '600',
+    color: '#000000',
+    justifyContent: "center",
+    marginTop: 10,
+    marginLeft:10
+  },
   sectionTitle: {
     fontSize: 28,
     fontWeight: '600',
@@ -210,7 +336,13 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    flexDirection: 'column'
+    flexDirection: 'column',
+  },
+  listMargin: {
+    marginTop: -40
+  },
+  bookmarkMargin: {
+    marginTop: 10
   },
   view: {
     marginTop: 30,
