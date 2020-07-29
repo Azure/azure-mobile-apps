@@ -57,6 +57,24 @@ namespace Azure.Mobile.Server.Test.TableController
         }
 
         [TestMethod]
+        public async Task ReadItemAsync_Authorized_Returns200()
+        {
+            var token = GenerateSecurityToken("server-test", "server-test@localhost.com");
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/unauthorized/{Movie4.Id}", null, new Dictionary<string, string>
+            {
+                { "Authorization", $"Bearer {token}" }
+            });
+
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = await GetValueFromResponse<Movie>(response);
+
+            HttpAssert.AreEqual(actual.Version, response.Headers.ETag);
+            HttpAssert.Match(actual.UpdatedAt, response.Content.Headers.LastModified);
+            Assert.IsTrue(Movie4.Equals(actual));
+        }
+
+        [TestMethod]
         public async Task ReadItemAsync_WithInvalidId_Returns404()
         {
             var response = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/movies/missing", null);

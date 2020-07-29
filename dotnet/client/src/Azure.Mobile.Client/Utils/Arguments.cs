@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Azure.Mobile.Server.Utils
+namespace Azure.Mobile.Client.Utils
 {
     /// <summary>
     /// Parameter validation utility methods.

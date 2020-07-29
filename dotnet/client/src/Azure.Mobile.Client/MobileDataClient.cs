@@ -1,7 +1,8 @@
 ﻿using Azure.Core;
 using Azure.Mobile.Client.Table;
-using Azure.Mobile.Server.Utils;
+using Azure.Mobile.Client.Utils;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Azure.Mobile.Client
 {
@@ -14,12 +15,7 @@ namespace Azure.Mobile.Client
         /// <summary>
         /// Initialize a new instance of <see cref="MobileDataClient"/> for mocking.
         /// </summary>
-        /// <example>
-        /// var client = new MobileDataClient(new Uri("https://localhost:5001"));
-        /// var table = client.GetTable<BlogPost>();
-        /// var post = new BlogPost { Title = "New Post" };
-        /// var response = await table.InsertItemAsync(post);
-        /// </example>
+        [ExcludeFromCodeCoverage]
         protected MobileDataClient()
         {
         }

@@ -1,6 +1,5 @@
 ﻿using Azure.Mobile.Server.Test.Helpers;
 using Azure.Mobile.Server.Utils;
-using E2EServer.DataObjects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -15,6 +14,14 @@ namespace Azure.Mobile.Server.Test.TableController
     public class Patch_Tests : Base_Test
     {
         // Patch is disabled until Microsoft.AspNetCore.JsonPatch supports System.Text.Json
+
+        [TestMethod]
+        public async Task PATCH_onTable_Returns405()
+        {
+            var patchDoc = @"[{ ""op"": ""replace"", ""path"": ""/data"", ""value"": ""Replaced"" }]";
+            var response = await SendRequestToServer(HttpMethod.Put, "/tables/hunits", patchDoc);
+            Assert.AreEqual(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        }
 
         [TestMethod]
         public async Task PatchItem_ValidId_Returns200()

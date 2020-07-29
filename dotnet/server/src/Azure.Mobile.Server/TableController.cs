@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OData.Edm;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -93,6 +92,7 @@ namespace Azure.Mobile.Server
         /// <param name="operation">The <see cref="TableOperation"/> that is being performed</param>
         /// <param name="item">The item that is being accessed (or null for a list operation).</param>
         /// <returns>true if the user is allowed to perform the operation.</returns>
+        [NonAction]
         public virtual bool IsAuthorized(TableOperation operation, TEntity item) => true;
 
         /// <summary>
@@ -102,8 +102,19 @@ namespace Azure.Mobile.Server
         /// </summary>
         /// <param name="item">The item to be prepared</param>
         /// <returns>The prepared item</returns>
+        [NonAction]
         public virtual TEntity PrepareItemForStore(TEntity item) => item;
 
+        /// <summary>
+        /// Prepares the item for storing into the backend store.  This is a opportunity for the application
+        /// to add additional meta-data that is not passed back to the client (such as the user ID in a 
+        /// personal data store).
+        /// </summary>
+        /// <param name="item">The item to be prepared</param>
+        /// <returns>The prepared item</returns>
+        [NonAction]
+        public virtual Task<TEntity> PrepareItemForStoreAsync(TEntity item)
+            => Task.Run(() => PrepareItemForStore(item));
 
         /// <summary>
         /// The <see cref="TableControllerOptions{T}"/> for this controller.  This is used to specify
@@ -203,6 +214,7 @@ namespace Azure.Mobile.Server
             var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders());
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
+                AddHeadersToResponse(entity);
                 return StatusCode(preconditionStatusCode, entity);
             }
 
@@ -212,7 +224,8 @@ namespace Azure.Mobile.Server
                 return Conflict(entity);
             }
 
-            var createdEntity = await TableRepository.CreateAsync(PrepareItemForStore(item)).ConfigureAwait(false);
+            var preparedItem = await PrepareItemForStoreAsync(item).ConfigureAwait(false);
+            var createdEntity = await TableRepository.CreateAsync(preparedItem).ConfigureAwait(false);
             AddHeadersToResponse(createdEntity);
             var uri = $"{Request.GetEncodedUrl()}/{createdEntity.Id}";
             return Created(uri, createdEntity);
@@ -244,7 +257,8 @@ namespace Azure.Mobile.Server
             if (TableControllerOptions.SoftDeleteEnabled)
             {
                 entity.Deleted = true;
-                await TableRepository.ReplaceAsync(PrepareItemForStore(entity)).ConfigureAwait(false);
+                var preparedItem = await PrepareItemForStoreAsync(entity).ConfigureAwait(false);
+                await TableRepository.ReplaceAsync(preparedItem).ConfigureAwait(false);
             } 
             else
             {
@@ -316,7 +330,8 @@ namespace Azure.Mobile.Server
                 return StatusCode(preconditionStatusCode, entity);
             }
 
-            var replacement = await TableRepository.ReplaceAsync(PrepareItemForStore(item)).ConfigureAwait(false);
+            var preparedItem = await PrepareItemForStoreAsync(item).ConfigureAwait(false);
+            var replacement = await TableRepository.ReplaceAsync(preparedItem).ConfigureAwait(false);
             AddHeadersToResponse(replacement);
             return Ok(replacement);
         }
@@ -369,7 +384,8 @@ namespace Azure.Mobile.Server
                 return NotFound();
             }
 
-            var replacement = await TableRepository.ReplaceAsync(PrepareItemForStore(entity)).ConfigureAwait(false);
+            var preparedItem = await PrepareItemForStoreAsync(entity).ConfigureAwait(false);
+            var replacement = await TableRepository.ReplaceAsync(preparedItem).ConfigureAwait(false);
             AddHeadersToResponse(replacement);
             return Ok(replacement);
         }

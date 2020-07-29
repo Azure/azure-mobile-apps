@@ -1,6 +1,6 @@
-﻿using Azure.Mobile.Server.Test.Helpers;
+﻿using Azure.Mobile.Server.Test.E2EServer.DataObjects;
+using Azure.Mobile.Server.Test.Helpers;
 using Azure.Mobile.Server.Utils;
-using E2EServer.DataObjects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -13,6 +13,14 @@ namespace Azure.Mobile.Server.Test.TableController
     [TestClass]
     public class Replace_Tests : Base_Test
     {
+        [TestMethod]
+        public async Task PUT_onTable_Returns405()
+        {
+            var item = new HUnit() { Id = "hunit-8", Data = "Replaced" };
+            var response = await SendRequestToServer<HUnit>(HttpMethod.Put, "/tables/hunits", item);
+            Assert.AreEqual(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        }
+
         [TestMethod]
         public async Task ReplaceItem_ValidId_Returns200()
         {
