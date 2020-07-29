@@ -63,6 +63,98 @@ namespace Azure.Mobile.Client.Table
         /// </summary>
         internal MobileDataClientOptions ClientOptions { get; }
 
+        #region GetMetadata
+        /// <summary>
+        /// Obtains the table metadata.
+        /// </summary>
+        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
+        /// <returns>The table metadata</returns>
+        public virtual Task<Response<TableMetadata>> GetMetadataAsync(CancellationToken cancellationToken = default)
+            => GetMetadataAsync(new MobileTableQuery(), cancellationToken);
+
+        /// <summary>
+        /// Obtains the table metadata.  The count returned is contstrained by the query provided.
+        /// </summary>
+        /// <param name="query">The <see cref="MobileTableQuery"/> describing the query</param>
+        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
+        /// <returns>The table metadata</returns>
+        public virtual async Task<Response<TableMetadata>> GetMetadataAsync(MobileTableQuery query, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(query, nameof(query));
+
+            using Request request = CreateGetMetadataRequest(query);
+            Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+
+            switch (response.Status)
+            {
+                case 200:
+                    return await CreateResponseAsync<TableMetadata>(response, cancellationToken).ConfigureAwait(false);
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
+        }
+
+        /// <summary>
+        /// Obtains the table metadata.
+        /// </summary>
+        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
+        /// <returns>The table metadata</returns>
+        public virtual Response<TableMetadata> GetMetadata(CancellationToken cancellationToken = default)
+            => GetMetadata(new MobileTableQuery(), cancellationToken);
+
+        /// <summary>
+        /// Obtains the table metadata.  The count returned is contstrained by the query provided.
+        /// </summary>
+        /// <param name="query">The <see cref="MobileTableQuery"/> describing the query</param>
+        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
+        /// <returns>The table metadata</returns>
+        public virtual Response<TableMetadata> GetMetadata(MobileTableQuery query, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(query, nameof(query));
+
+            using Request request = CreateGetMetadataRequest(query);
+            Response response = _pipeline.SendRequest(request, cancellationToken);
+
+            switch (response.Status)
+            {
+                case 200:
+                    return CreateResponse<TableMetadata>(response, cancellationToken);
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
+        }
+
+        /// <summary>
+        /// Creates a request object for a paged response.
+        /// </summary>
+        /// <param name="query">The query to send</param>
+        /// <param name="pageLink">The link to the next page</param>
+        /// <returns>The <see cref="Request"/> object corresponding to the request</returns>
+        private Request CreateGetMetadataRequest(MobileTableQuery query)
+        {
+            Request request = _pipeline.CreateRequest();
+            request.Method = RequestMethod.Get;
+            var builder = request.Uri;
+            builder.Reset(Endpoint);
+            if (query.Filter != null)
+            {
+                builder.AppendQuery("$filter", query.Filter);
+            }
+            if (query.OrderBy != null)
+            {
+                builder.AppendQuery("$orderBy", query.OrderBy);
+            }
+            if (query.IncludeDeleted)
+            {
+                builder.AppendQuery("__includedeleted", "true");
+            }
+            builder.AppendQuery("$count", "true");
+            builder.AppendQuery("__excludeitems", "true");
+
+            return request;
+        }
+        #endregion
+
         #region DeleteItem
         /// <summary>
         /// Deletes an item from the backend table, but only if the version matches. 
@@ -189,7 +281,6 @@ namespace Azure.Mobile.Client.Table
                 default:
                     throw new RequestFailedException(response.Status, response.ReasonPhrase);
             }
-
         }
 
         /// <summary>
@@ -549,11 +640,20 @@ namespace Azure.Mobile.Client.Table
         /// <param name="response">The response to process</param>
         /// <param name="cancellationToken">A lifecycle cancellation token</param>
         /// <returns>The typed response</returns>
-        private async Task<Response<T>> CreateResponseAsync(Response response, CancellationToken cancellationToken)
-        {
-            T result = await JsonSerializer.DeserializeAsync<T>(response.ContentStream, ClientOptions.JsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-            return Response.FromValue(result, response);
+        private Task<Response<T>> CreateResponseAsync(Response response, CancellationToken cancellationToken)
+            => CreateResponseAsync<T>(response, cancellationToken);
 
+        /// <summary>
+        /// Creates a typed response from an untyped response with an IO Stream
+        /// </summary>
+        /// <typeparam name="U">The type of the model</typeparam>
+        /// <param name="response">The response to process</param>
+        /// <param name="cancellationToken">A lifecycle cancellation token</param>
+        /// <returns>The typed response</returns>
+        private async Task<Response<U>> CreateResponseAsync<U>(Response response, CancellationToken cancellationToken) where U : class
+        {
+            U result = await JsonSerializer.DeserializeAsync<U>(response.ContentStream, ClientOptions.JsonSerializerOptions, cancellationToken).ConfigureAwait(false);
+            return Response.FromValue(result, response);
         }
 
         /// <summary>
@@ -563,9 +663,18 @@ namespace Azure.Mobile.Client.Table
         /// <param name="cancellationToken">A lifecycle cancellation token</param>
         /// <returns>The typed response</returns>
         private Response<T> CreateResponse(Response response, CancellationToken cancellationToken)
+            => CreateResponse<T>(response, cancellationToken);
+
+        /// <summary>
+        /// Creates a typed response from an untyped response with an IO Stream
+        /// </summary>
+        /// <typeparam name="U">The type of the model</typeparam>
+        /// <param name="response">The response to process</param>
+        /// <param name="cancellationToken">A lifecycle cancellation token</param>
+        /// <returns>The typed response</returns>
+        private Response<U> CreateResponse<U>(Response response, CancellationToken cancellationToken) where U : class
         {
-            // TODO: There is probably a better way to do this; however, none of the System.Text.Json non-async methods take a stream.
-            var result = JsonSerializer.DeserializeAsync<T>(response.ContentStream, ClientOptions.JsonSerializerOptions, cancellationToken);
+            var result = JsonSerializer.DeserializeAsync<U>(response.ContentStream, ClientOptions.JsonSerializerOptions, cancellationToken);
             return Response.FromValue(result.Result, response);
         }
 
