@@ -25,9 +25,22 @@ import {
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Icons from "react-native-vector-icons/FontAwesome";
-import CustomList from "./listComponents/CustomList"
+import CustomList from "./listComponents/CustomList";
+import { TokenCredential, GetTokenOptions, AccessToken } from '@azure/identity';
+import { MobileDataClient } from "@azure/mobile-client";
 
 const { width } = Dimensions.get("window");
+
+function getTestClient() {
+    const tokenCredential : TokenCredential = {
+        getToken(_: string | string[], __?: GetTokenOptions): Promise<AccessToken | null> {
+            return Promise.resolve(null);
+        }
+    };
+    const url = "foo://url.com";
+    const client = new MobileDataClient(url, tokenCredential, undefined);
+    return client;
+}
 
 function getData() {
     return [
