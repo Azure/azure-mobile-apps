@@ -29,6 +29,7 @@ build/
 local.properties
 *.iml
 
+
 # Visual Studio Code
 #
 .vscode/
@@ -87,3 +88,7 @@ package-deps.json
 
 # Tarball
 *.tgz
+
+# CocoaPods
+samples/RNBlogClient/ios/Pods/
+samples/RNBlogClient/ios/Podfile.lock

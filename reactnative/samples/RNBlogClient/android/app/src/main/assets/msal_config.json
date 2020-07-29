@@ -1,0 +1,6 @@
+{
+    "client_id" : "9b4331c9-5eec-4a7c-aff6-0716ee61ac96",
+    "redirect_uri" : "msal9b4331c9-5eec-4a7c-aff6-0716ee61ac96://auth",
+    "broker_redirect_uri_registered": true,
+    "account_mode": "MULTIPLE"
+  }

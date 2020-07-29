@@ -60,6 +60,7 @@
 		920AE01196CF291853BA329C /* Pods-RNBlogClient-RNBlogClientTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNBlogClient-RNBlogClientTests.release.xcconfig"; path = "Target Support Files/Pods-RNBlogClient-RNBlogClientTests/Pods-RNBlogClient-RNBlogClientTests.release.xcconfig"; sourceTree = "<group>"; };
 		A73D6623F5213E78782B8867 /* Pods-RNBlogClient.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNBlogClient.release.xcconfig"; path = "Target Support Files/Pods-RNBlogClient/Pods-RNBlogClient.release.xcconfig"; sourceTree = "<group>"; };
 		A940777F24CFC5FC00A253D1 /* FontAwesome.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = FontAwesome.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
+		A9469BE024D128FB00EF69EF /* RNBlogClient.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = RNBlogClient.entitlements; path = RNBlogClient/RNBlogClient.entitlements; sourceTree = "<group>"; };
 		D5B2C53165757B8DB1E88994 /* Pods-RNBlogClient-RNBlogClientTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNBlogClient-RNBlogClientTests.debug.xcconfig"; path = "Target Support Files/Pods-RNBlogClient-RNBlogClientTests/Pods-RNBlogClient-RNBlogClientTests.debug.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
@@ -120,6 +121,7 @@
 		13B07FAE1A68108700A75B9A /* RNBlogClient */ = {
 			isa = PBXGroup;
 			children = (
+				A9469BE024D128FB00EF69EF /* RNBlogClient.entitlements */,
 				A940777F24CFC5FC00A253D1 /* FontAwesome.ttf */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
@@ -289,6 +291,7 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
+						DevelopmentTeam = K3Y5TRTVEX;
 						LastSwiftMigration = 1120;
 					};
 					2D02E47A1E0B4A5D006451C7 = {
@@ -477,8 +480,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "
-";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-RNBlogClient/Pods-RNBlogClient-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		99B57772D4E3BBB71ECEB08D /* [CP] Check Pods Manifest.lock */ = {
@@ -645,7 +647,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = RNBlogClient/RNBlogClient.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = K3Y5TRTVEX;
 				ENABLE_BITCODE = NO;
 				HEADER_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = RNBlogClient/Info.plist;
@@ -669,7 +673,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = RNBlogClient/RNBlogClient.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = K3Y5TRTVEX;
 				HEADER_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = RNBlogClient/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
