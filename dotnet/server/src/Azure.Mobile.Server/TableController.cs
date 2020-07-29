@@ -440,7 +440,6 @@ namespace Azure.Mobile.Server
             {
                 return NotFound();
             }
-
             var operationValidation = await ValidateOperationAsync(TableOperation.Patch, entity);
             if (operationValidation != StatusCodes.Status200OK)
             {
