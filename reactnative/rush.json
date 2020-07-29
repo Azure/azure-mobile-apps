@@ -41,7 +41,7 @@
      * The default value is false to avoid legacy compatibility issues.
      * It is strongly recommended to set strictPeerDependencies=true.
      */
-    "strictPeerDependencies": true,
+    "strictPeerDependencies": false,
     /**
      * Configures the strategy used to select versions during installation.
      *
@@ -328,7 +328,7 @@
       "versionPolicyName": "client"
     },
     {
-      "packageName": "@azure/app-configuration",
+      "packageName": "react-native-azure-blog-client",
       "projectFolder": "samples/RNBlogClient/",
       "versionPolicyName": "client"
     }

@@ -81,5 +81,9 @@ package-lock.json
 # Common toolchain intermediate files
 temp/
 
+# Rush files
+common/temp/**
+package-deps.json
+
 # Tarball
 *.tgz
