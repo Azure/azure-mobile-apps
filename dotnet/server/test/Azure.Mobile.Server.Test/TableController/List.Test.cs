@@ -31,6 +31,13 @@ namespace Azure.Mobile.Server.Test.TableController
         }
 
         [TestMethod]
+        public async Task GetItems_InvalidOData_Returns400()
+        {
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$filter=invalid", null);
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [TestMethod]
         public async Task GetItems_SoftDelete_DoesNotIncludeDeletedItems()
         {
             var deleteResponse = await SendRequestToServer<SUnit>(HttpMethod.Delete, "/tables/sunits/sunit-14", null);
