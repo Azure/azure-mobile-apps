@@ -80,3 +80,6 @@ package-lock.json
 
 # Common toolchain intermediate files
 temp/
+
+# Tarball
+*.tgz

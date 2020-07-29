@@ -1,13 +1,31 @@
 {
-  "name": "RNBlogClient",
+  "name": "react-native-azure-blog-client",
+  "sdk-type": "client",
   "version": "0.0.1",
-  "private": true,
+  "description": "Azure Blog Client for React Native.",
+  "author": "Microsoft Corporation",
+  "license": "MIT",
+  "homepage": "https://github.com/Azure/azure-mobile-apps/",
+  "repository": "github:Azure/azure-mobile-apps",
+  "sideEffects": false,
+  "keywords": [
+    "microsoft",
+    "mobile",
+    "azure",
+    "react-native"
+  ],
+  "bugs": {
+    "url": "https://github.com/Azure/azure-mobile-apps/issues"
+  },
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+  },
+  "engine": {
+    "node": ">=8.0.0"
   },
   "dependencies": {
     "@react-native-community/masked-view": "^0.1.10",
