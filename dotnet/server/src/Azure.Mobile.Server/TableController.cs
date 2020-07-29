@@ -8,6 +8,7 @@ using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OData;
 using Microsoft.OData.Edm;
 using System;
 using System.Collections.Generic;
@@ -164,7 +165,14 @@ namespace Azure.Mobile.Server
             // Construct the OData context and parse the query
             var queryContext = new ODataQueryContext(EdmModel, typeof(TEntity), new ODataPath());
             var odataOptions = new ODataQueryOptions<TEntity>(queryContext, Request);
-            odataOptions.Validate(odataValidationSettings);
+            try
+            {
+                odataOptions.Validate(odataValidationSettings);
+            }
+            catch (ODataException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             var odataQuery = odataOptions.ApplyTo(dataView.AsQueryable(), odataQuerySettings);
 
             // BUG: NextLink is always produced, resulting in a infinite loop in the client

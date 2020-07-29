@@ -41,7 +41,7 @@ namespace Azure.Mobile.Client.Auth
         /// <param name="requestContext"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
+        public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken = default)
         {
             // Use this token for the next minute - then ask me again
             var expiresOn = DateTimeOffset.UtcNow.AddSeconds(60);
@@ -54,7 +54,7 @@ namespace Azure.Mobile.Client.Auth
         /// <param name="requestContext"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public override async ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
+        public override async ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken = default)
         {
             var token = await Task.Run(() => GetToken(requestContext, cancellationToken)).ConfigureAwait(false);
             return token;
