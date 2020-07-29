@@ -15,9 +15,9 @@ dependencies:
   '@react-native-community/cli-types': 4.10.1
   '@react-native-community/eslint-config': 1.1.0_eslint@6.8.0+typescript@3.9.7
   '@react-native-community/eslint-plugin': 1.1.0
-  '@react-native-community/masked-view': 0.1.10_4d60644ad3bf180c7f540fd2466a5e1a
-  '@react-navigation/bottom-tabs': 5.7.3_bd3954c3f1e0cd031e9d8f2b517ea27c
-  '@react-navigation/native': 5.7.2_4d60644ad3bf180c7f540fd2466a5e1a
+  '@react-native-community/masked-view': 0.1.10_a973cb6c7b00800b436c5a332b90c297
+  '@react-navigation/bottom-tabs': 5.7.3_265ec48aed9ee73088b531f64ff1bbfd
+  '@react-navigation/native': 5.7.2_a973cb6c7b00800b436c5a332b90c297
   '@rollup/plugin-commonjs': 11.0.2_rollup@1.32.1
   '@rollup/plugin-inject': 4.0.2_rollup@1.32.1
   '@rollup/plugin-json': 4.1.0_rollup@1.32.1
@@ -82,14 +82,14 @@ dependencies:
   process: 0.11.10
   puppeteer: 3.3.0
   react: 16.13.1
-  react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
+  react-native: 0.63.0_a973cb6c7b00800b436c5a332b90c297
   react-native-gesture-handler: 1.7.0
-  react-native-msal: 2.0.2_4d60644ad3bf180c7f540fd2466a5e1a
-  react-native-reanimated: 1.10.1_4d60644ad3bf180c7f540fd2466a5e1a
-  react-native-safe-area-context: 3.1.1_4d60644ad3bf180c7f540fd2466a5e1a
-  react-native-screens: 2.9.0_4d60644ad3bf180c7f540fd2466a5e1a
+  react-native-msal: 2.0.2_a973cb6c7b00800b436c5a332b90c297
+  react-native-reanimated: 1.10.1_a973cb6c7b00800b436c5a332b90c297
+  react-native-safe-area-context: 3.1.1_a973cb6c7b00800b436c5a332b90c297
+  react-native-screens: 2.9.0_a973cb6c7b00800b436c5a332b90c297
   react-native-vector-icons: 7.0.0
-  react-navigation: 4.4.0_4d60644ad3bf180c7f540fd2466a5e1a
+  react-navigation: 4.4.0_a973cb6c7b00800b436c5a332b90c297
   react-test-renderer: 16.13.1_react@16.13.1
   rimraf: 3.0.2
   rollup: 1.32.1
@@ -1403,7 +1403,7 @@ packages:
     dev: false
     resolution:
       integrity: sha512-ael2f1onoPF3vF7YqHGWy7NnafzGu+yp88BbFbP0ydoCP2xGSUzmZVw0zakPTC040Id+JQ9WeFczujMkDy6jYQ==
-  /@react-native-community/cli/4.10.1_react-native@0.63.2:
+  /@react-native-community/cli/4.10.1_react-native@0.63.0:
     dependencies:
       '@hapi/joi': 15.1.1
       '@react-native-community/cli-debugger-ui': 4.9.0
@@ -1434,7 +1434,7 @@ packages:
       node-stream-zip: 1.11.2
       ora: 3.4.0
       pretty-format: 25.5.0
-      react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native: 0.63.0_a973cb6c7b00800b436c5a332b90c297
       semver: 6.3.0
       serve-static: 1.14.1
       strip-ansi: 5.2.0
@@ -1474,25 +1474,25 @@ packages:
     dev: false
     resolution:
       integrity: sha512-W/J0fNYVO01tioHjvYWQ9m6RgndVtbElzYozBq1ZPrHO/iCzlqoySHl4gO/fpCl9QEFjvJfjPgtPMTMlsoq5DQ==
-  /@react-native-community/masked-view/0.1.10_4d60644ad3bf180c7f540fd2466a5e1a:
+  /@react-native-community/masked-view/0.1.10_a973cb6c7b00800b436c5a332b90c297:
     dependencies:
       react: 16.13.1
-      react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native: 0.63.0_a973cb6c7b00800b436c5a332b90c297
     dev: false
     peerDependencies:
       react: ^16.0
       react-native: '>=0.57'
     resolution:
       integrity: sha512-rk4sWFsmtOw8oyx8SD3KSvawwaK7gRBSEIy2TAwURyGt+3TizssXP1r8nx3zY+R7v2vYYHXZ+k2/GULAT/bcaQ==
-  /@react-navigation/bottom-tabs/5.7.3_bd3954c3f1e0cd031e9d8f2b517ea27c:
+  /@react-navigation/bottom-tabs/5.7.3_265ec48aed9ee73088b531f64ff1bbfd:
     dependencies:
-      '@react-navigation/native': 5.7.2_4d60644ad3bf180c7f540fd2466a5e1a
+      '@react-navigation/native': 5.7.2_a973cb6c7b00800b436c5a332b90c297
       color: 3.1.2
       react: 16.13.1
-      react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
-      react-native-iphone-x-helper: 1.2.1_react-native@0.63.2
-      react-native-safe-area-context: 3.1.1_4d60644ad3bf180c7f540fd2466a5e1a
-      react-native-screens: 2.9.0_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native: 0.63.0_a973cb6c7b00800b436c5a332b90c297
+      react-native-iphone-x-helper: 1.2.1_react-native@0.63.0
+      react-native-safe-area-context: 3.1.1_a973cb6c7b00800b436c5a332b90c297
+      react-native-screens: 2.9.0_a973cb6c7b00800b436c5a332b90c297
     dev: false
     peerDependencies:
       '@react-navigation/native': ^5.0.5
@@ -1528,22 +1528,22 @@ packages:
       react: '*'
     resolution:
       integrity: sha512-ybsnttbYpyCVN7jGHEIfOKg6Bdyr0seXvxUMtSJNt3mI33KWMRJrqyYU2ILoxAaDdRcBItvBlOYWxMRrBJyZkQ==
-  /@react-navigation/native/3.8.0_4d60644ad3bf180c7f540fd2466a5e1a:
+  /@react-navigation/native/3.8.0_a973cb6c7b00800b436c5a332b90c297:
     dependencies:
       hoist-non-react-statics: 3.3.2
-      react-native-safe-area-view: 0.14.9_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native-safe-area-view: 0.14.9_a973cb6c7b00800b436c5a332b90c297
     dev: false
     peerDependencies:
       react: '*'
       react-native: '*'
     resolution:
       integrity: sha512-Uym5XdNOTpTR6XC4IVa/Shfn12DUF3DUIqch+cpiLNfvauQukVmWoz+Rfxd2faGOzxT12EhrWGFsMJ/8nuTfcw==
-  /@react-navigation/native/5.7.2_4d60644ad3bf180c7f540fd2466a5e1a:
+  /@react-navigation/native/5.7.2_a973cb6c7b00800b436c5a332b90c297:
     dependencies:
       '@react-navigation/core': 5.12.2_react@16.13.1
       nanoid: 3.1.11
       react: 16.13.1
-      react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native: 0.63.0_a973cb6c7b00800b436c5a332b90c297
     dev: false
     peerDependencies:
       react: '*'
@@ -8241,60 +8241,60 @@ packages:
     dev: false
     resolution:
       integrity: sha512-1CrjJf8Z6Iz2XWzfZknYtsm2sud5Lu/pLhhokkgBIKttxqGDtetDEVFDJOTJWJyKCrUPk0X5tnWi/diSF4q++w==
-  /react-native-iphone-x-helper/1.2.1_react-native@0.63.2:
+  /react-native-iphone-x-helper/1.2.1_react-native@0.63.0:
     dependencies:
-      react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native: 0.63.0_a973cb6c7b00800b436c5a332b90c297
     dev: false
     peerDependencies:
       react-native: '>=0.42.0'
     resolution:
       integrity: sha512-/VbpIEp8tSNNHIvstuA3Swx610whci1Zpc9mqNkqn14DkMbw+ORviln2u0XyHG1kPvvwTNGZY6QpeFwxYaSdbQ==
-  /react-native-msal/2.0.2_4d60644ad3bf180c7f540fd2466a5e1a:
+  /react-native-msal/2.0.2_a973cb6c7b00800b436c5a332b90c297:
     dependencies:
       react: 16.13.1
-      react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native: 0.63.0_a973cb6c7b00800b436c5a332b90c297
     dev: false
     peerDependencies:
       react: '*'
       react-native: '*'
     resolution:
       integrity: sha512-U9rhV9tPk9RPEernEyHYeWhecZR09PmYGjHMfIaqk2UMtJ82I3eS5yM5cle2/gd/FwliJ2GcJVUCVXCJh8QL8Q==
-  /react-native-reanimated/1.10.1_4d60644ad3bf180c7f540fd2466a5e1a:
+  /react-native-reanimated/1.10.1_a973cb6c7b00800b436c5a332b90c297:
     dependencies:
       fbjs: 1.0.0
       react: 16.13.1
-      react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native: 0.63.0_a973cb6c7b00800b436c5a332b90c297
     dev: false
     peerDependencies:
       react: '*'
       react-native: '*'
     resolution:
       integrity: sha512-j9+GOEmLLEzFpxpYOA9dSBusUHGaTJAHSJ9tIXU4IgklN7hIB5CA6ONMnm6iQ5lC/nhNFdLKag/jOgzVa+mHBQ==
-  /react-native-safe-area-context/3.1.1_4d60644ad3bf180c7f540fd2466a5e1a:
+  /react-native-safe-area-context/3.1.1_a973cb6c7b00800b436c5a332b90c297:
     dependencies:
       react: 16.13.1
-      react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native: 0.63.0_a973cb6c7b00800b436c5a332b90c297
     dev: false
     peerDependencies:
       react: '*'
       react-native: '*'
     resolution:
       integrity: sha512-Iqb41OT5+QxFn0tpTbbHgz8+3VU/F9OH2fTeeoU7oZCzojOXQbC6sp6mN7BlsAoTKhngWoJLMcSosL58uRaLWQ==
-  /react-native-safe-area-view/0.14.9_4d60644ad3bf180c7f540fd2466a5e1a:
+  /react-native-safe-area-view/0.14.9_a973cb6c7b00800b436c5a332b90c297:
     dependencies:
       hoist-non-react-statics: 2.5.5
       react: 16.13.1
-      react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native: 0.63.0_a973cb6c7b00800b436c5a332b90c297
     dev: false
     peerDependencies:
       react: '*'
       react-native: '*'
     resolution:
       integrity: sha512-WII/ulhpVyL/qbYb7vydq7dJAfZRBcEhg4/UWt6F6nAKpLa3gAceMOxBxI914ppwSP/TdUsandFy6lkJQE0z4A==
-  /react-native-screens/2.9.0_4d60644ad3bf180c7f540fd2466a5e1a:
+  /react-native-screens/2.9.0_a973cb6c7b00800b436c5a332b90c297:
     dependencies:
       react: 16.13.1
-      react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native: 0.63.0_a973cb6c7b00800b436c5a332b90c297
     dev: false
     peerDependencies:
       react: '*'
@@ -8310,10 +8310,10 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-Ku8+dTUAnR9pexRPQqsUcQEZlxEpFZsIy8iOFqVL/3mrUyncZJHtqJyx2cUOmltZIC6W2GI4IkD3EYzPerXV5g==
-  /react-native/0.63.2_4d60644ad3bf180c7f540fd2466a5e1a:
+  /react-native/0.63.0_a973cb6c7b00800b436c5a332b90c297:
     dependencies:
       '@babel/runtime': 7.10.5
-      '@react-native-community/cli': 4.10.1_react-native@0.63.2
+      '@react-native-community/cli': 4.10.1_react-native@0.63.0
       '@react-native-community/cli-platform-android': 4.10.1
       '@react-native-community/cli-platform-ios': 4.10.1
       abort-controller: 3.0.0
@@ -8334,7 +8334,7 @@ packages:
       prop-types: 15.7.2
       react: 16.13.1
       react-devtools-core: 4.8.2
-      react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native: 0.63.0_a973cb6c7b00800b436c5a332b90c297
       react-refresh: 0.4.3
       regenerator-runtime: 0.13.7
       scheduler: 0.19.1
@@ -8349,13 +8349,13 @@ packages:
       react: 16.13.1
       react-native: '*'
     resolution:
-      integrity: sha512-MkxHeJorUDzmQwKJrTfrFYMDRLyu9GSBpsFFMDX7X+HglVnaZi3CTzW2mRv1eIcazoseBOP2eJe+bnkyLl8Y2A==
-  /react-navigation/4.4.0_4d60644ad3bf180c7f540fd2466a5e1a:
+      integrity: sha512-486RaRKKw35+DgZwdbCUQJsjSRflG5JC4w5T9ZfKqUjlyDDQHgew2berQanYAFbgO4Qh/2mAvAMJe6EhUESufQ==
+  /react-navigation/4.4.0_a973cb6c7b00800b436c5a332b90c297:
     dependencies:
       '@react-navigation/core': 3.7.6_react@16.13.1
-      '@react-navigation/native': 3.8.0_4d60644ad3bf180c7f540fd2466a5e1a
+      '@react-navigation/native': 3.8.0_a973cb6c7b00800b436c5a332b90c297
       react: 16.13.1
-      react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native: 0.63.0_a973cb6c7b00800b436c5a332b90c297
     dev: false
     peerDependencies:
       react: '*'
@@ -10718,9 +10718,9 @@ packages:
       '@react-native-community/cli-types': 4.10.1
       '@react-native-community/eslint-config': 1.1.0_eslint@6.8.0+typescript@3.9.7
       '@react-native-community/eslint-plugin': 1.1.0
-      '@react-native-community/masked-view': 0.1.10_4d60644ad3bf180c7f540fd2466a5e1a
-      '@react-navigation/bottom-tabs': 5.7.3_bd3954c3f1e0cd031e9d8f2b517ea27c
-      '@react-navigation/native': 5.7.2_4d60644ad3bf180c7f540fd2466a5e1a
+      '@react-native-community/masked-view': 0.1.10_a973cb6c7b00800b436c5a332b90c297
+      '@react-navigation/bottom-tabs': 5.7.3_265ec48aed9ee73088b531f64ff1bbfd
+      '@react-navigation/native': 5.7.2_a973cb6c7b00800b436c5a332b90c297
       '@types/jest': 25.2.3
       '@types/react': 16.9.43
       '@types/react-native': 0.63.2
@@ -10734,20 +10734,20 @@ packages:
       metro-react-native-babel-preset: 0.59.0_@babel+core@7.10.5
       prettier: 2.0.5
       react: 16.13.1
-      react-native: 0.63.2_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native: 0.63.0_a973cb6c7b00800b436c5a332b90c297
       react-native-gesture-handler: 1.7.0
-      react-native-msal: 2.0.2_4d60644ad3bf180c7f540fd2466a5e1a
-      react-native-reanimated: 1.10.1_4d60644ad3bf180c7f540fd2466a5e1a
-      react-native-safe-area-context: 3.1.1_4d60644ad3bf180c7f540fd2466a5e1a
-      react-native-screens: 2.9.0_4d60644ad3bf180c7f540fd2466a5e1a
+      react-native-msal: 2.0.2_a973cb6c7b00800b436c5a332b90c297
+      react-native-reanimated: 1.10.1_a973cb6c7b00800b436c5a332b90c297
+      react-native-safe-area-context: 3.1.1_a973cb6c7b00800b436c5a332b90c297
+      react-native-screens: 2.9.0_a973cb6c7b00800b436c5a332b90c297
       react-native-vector-icons: 7.0.0
-      react-navigation: 4.4.0_4d60644ad3bf180c7f540fd2466a5e1a
+      react-navigation: 4.4.0_a973cb6c7b00800b436c5a332b90c297
       react-test-renderer: 16.13.1_react@16.13.1
       typescript: 3.9.7
     dev: false
     name: '@rush-temp/react-native-azure-blog-client'
     resolution:
-      integrity: sha512-daKDYsdVKjzm0StR37HdO2n4FuWzOCONJ+GBWSbuR5u6TqiNc5/rP/gYfH0tl/sTHT1vE1awvsT7gpDcpsjeVQ==
+      integrity: sha512-0IQP34spdkrxBbig5PY8hEF/lriHYFLr4vv49cfKWwbDHP5UT3/9EKgDiQidHmBv3bvKxBdHfUik3F9TCLrTTw==
       tarball: 'file:projects/react-native-azure-blog-client.tgz'
     version: 0.0.0
 registry: ''
@@ -10835,7 +10835,7 @@ specifiers:
   process: ^0.11.10
   puppeteer: ^3.3.0
   react: 16.13.1
-  react-native: 0.63.2
+  react-native: 0.63.0
   react-native-gesture-handler: ^1.7.0
   react-native-msal: ^2.0.2
   react-native-reanimated: ^1.10.1
