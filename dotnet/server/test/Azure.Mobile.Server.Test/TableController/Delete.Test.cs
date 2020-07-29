@@ -1,5 +1,5 @@
-﻿using Azure.Mobile.Server.Test.Helpers;
-using E2EServer.DataObjects;
+﻿using Azure.Mobile.Server.Test.E2EServer.DataObjects;
+using Azure.Mobile.Server.Test.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Net;
@@ -11,6 +11,13 @@ namespace Azure.Mobile.Server.Test.TableController
     [TestClass]
     public class Delete_Tests : Base_Test
     {
+        [TestMethod]
+        public async Task DELETE_onTable_Returns405()
+        {
+            var response = await SendRequestToServer<HUnit>(HttpMethod.Put, "/tables/hunits", null);
+            Assert.AreEqual(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        }
+
         [TestMethod]
         public async Task DeleteItem_SoftDelete_Existing_Returns204()
         {

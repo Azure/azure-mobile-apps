@@ -1,10 +1,11 @@
-﻿using Azure.Mobile.Server.Test.Helpers;
-using E2EServer.DataObjects;
+﻿using Azure.Mobile.Server.Test.E2EServer.DataObjects;
+using Azure.Mobile.Server.Test.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Movie = Azure.Mobile.Server.Test.E2EServer.DataObjects.Movie;
 
 namespace Azure.Mobile.Server.Test.TableController
 {
@@ -14,10 +15,10 @@ namespace Azure.Mobile.Server.Test.TableController
         [TestMethod]
         public async Task GetItems_ReturnsSomeItems()
         {
-            var response = await SendRequestToServer<E2EServer.DataObjects.Movie>(HttpMethod.Get, "/tables/movies?$count=true", null);
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$count=true", null);
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
-            var actual = await GetValueFromResponse<PagedList<E2EServer.DataObjects.Movie>>(response);
+            var actual = await GetValueFromResponse<PagedList<Movie>>(response);
             Assert.IsNotNull(actual);
             CollectionAssert.AllItemsAreNotNull(actual.Values);
             CollectionAssert.AllItemsAreUnique(actual.Values);
@@ -61,17 +62,17 @@ namespace Azure.Mobile.Server.Test.TableController
         [TestMethod]
         public async Task GetItems_Unauthorzed_Returns404()
         {
-            var response = await SendRequestToServer<E2EServer.DataObjects.Movie>(HttpMethod.Get, "/tables/unauthorized", null);
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/unauthorized", null);
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
         public async Task GetItems_MaxTop_ReturnsNItems()
         {
-            var response = await SendRequestToServer<E2EServer.DataObjects.Movie>(HttpMethod.Get, "/tables/movies?$top=5", null);
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$top=5", null);
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
-            var actual = await GetValueFromResponse<PagedList<E2EServer.DataObjects.Movie>>(response);
+            var actual = await GetValueFromResponse<PagedList<Movie>>(response);
             Assert.IsNotNull(actual);
             CollectionAssert.AllItemsAreNotNull(actual.Values);
             CollectionAssert.AllItemsAreUnique(actual.Values);

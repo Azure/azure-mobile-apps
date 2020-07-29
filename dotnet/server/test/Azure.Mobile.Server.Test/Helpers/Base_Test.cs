@@ -1,11 +1,17 @@
-﻿using E2EServer.Database;
+﻿using Azure.Mobile.Server.Test.E2EServer;
+using Azure.Mobile.Server.Test.E2EServer.Database;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OData.Edm;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -17,12 +23,17 @@ namespace Azure.Mobile.Server.Test.Helpers
     /// </summary>
     public abstract class Base_Test
     {
-        protected readonly TestServer server = E2EServer.Program.GetTestServer();
+        protected readonly TestServer server = Program.GetTestServer();
 
         /// <summary>
         /// The base URI for the request
         /// </summary>
         private Uri BaseUri = new Uri("https://localhost");
+
+        /// <summary>
+        /// The secret to use for generating an auth token
+        /// </summary>
+        private string secret = "PDv7DrqznYL6nv7DrqzjnQYO9JxIsWdcjnQYL6nu0f";
 
         /// <summary>
         /// The JSON Serializer options to use
@@ -89,6 +100,27 @@ namespace Azure.Mobile.Server.Test.Helpers
             var context = server.Services.GetRequiredService<E2EDbContext>();
             var item = context.Set<T>().Where(t => t.Id == id).AsNoTracking().FirstOrDefault();
             return item;
+        }
+
+        public string GenerateSecurityToken(string userId, string email)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(secret);
+            var credentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Audience = "localhost",
+                Issuer = "localhost",
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, userId),
+                    new Claim(ClaimTypes.Email, email)
+                }),
+                Expires = DateTime.UtcNow.AddMinutes(1440),
+                SigningCredentials = credentials
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
     }
 }

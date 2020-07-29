@@ -19,12 +19,6 @@
         public string OrderBy { get; set; } = null;
 
         /// <summary>
-        /// The OData <c>$search</c> query param.  If null, does not
-        /// send the parameter.
-        /// </summary>
-        public string Search { get; set; } = null;
-
-        /// <summary>
         /// The OData <c>$skip</c> query param.  If negative, does not send
         /// the parameter.
         /// </summary>
