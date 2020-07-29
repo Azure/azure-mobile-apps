@@ -2,6 +2,7 @@
 using Azure.Mobile.Server.Test.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Threading.Tasks;
 
 namespace Azure.Mobile.Server.Test
 {
@@ -89,6 +90,24 @@ namespace Azure.Mobile.Server.Test
             var controller = new MoviesController(context);
             var testItem = new Movie() { Title = "foo" };
             Assert.AreEqual(testItem, controller.BasePrepareItemForStore(testItem));
+        }
+
+        [TestMethod]
+        public void ValidateOperations_Returns200()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var actual = controller.ValidateOperation(TableOperation.None, null);
+            Assert.AreEqual(200, actual);
+        }
+
+        [TestMethod]
+        public async Task ValidateOperationsAsync_Returns200()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new MoviesController(context);
+            var actual = await controller.ValidateOperationAsync(TableOperation.None, null);
+            Assert.AreEqual(200, actual);
         }
     }
 }
