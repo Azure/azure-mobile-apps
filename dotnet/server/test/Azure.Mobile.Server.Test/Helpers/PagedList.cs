@@ -23,5 +23,15 @@ namespace Azure.Mobile.Server.Test.Helpers
         /// The count of items in the list without paging.
         /// </summary>
         public long? Count { get; set; }
+
+        /// <summary>
+        /// The maximum value of $top that the user can provide
+        /// </summary>
+        public long? MaxTop { get; set; }
+
+        /// <summary>
+        /// The maximum number of items that the service will return.
+        /// </summary>
+        public long? PageSize { get; set; }
     }
 }

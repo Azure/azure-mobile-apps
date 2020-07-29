@@ -174,24 +174,17 @@ namespace Azure.Mobile.Server
                 return BadRequest(ex.Message);
             }
             var odataQuery = odataOptions.ApplyTo(dataView.AsQueryable(), odataQuerySettings);
+            var items = (odataQuery as IEnumerable<TEntity>).ToList();
+            var excludeItems = Request.Query.ContainsKey("__excludeitems") && Request.Query["__excludeitems"].First().ToLower() == "true";
 
-            // BUG: NextLink is always produced, resulting in a infinite loop in the client
-            // Fix right now - if Values[].Count == 0, then don't set the NextLink
-            var items = odataQuery as IEnumerable<TEntity>;
             var result = new PagedListResult<TEntity>
             {
-                Values = odataQuery as IEnumerable<TEntity>
+                Values = !excludeItems ? items : null,
+                NextLink = (!excludeItems && items.Count() > 0) ? Request.GetNextPageLink(TableControllerOptions.PageSize) : null,
+                Count = odataOptions.Count?.GetEntityCount(odataOptions.Filter?.ApplyTo(dataView.AsQueryable(), new ODataQuerySettings()) ?? dataView.AsQueryable()),
+                MaxTop = TableControllerOptions.MaxTop,
+                PageSize = TableControllerOptions.PageSize
             };
-            if (items.Count() > 0)
-            {
-                result.NextLink = Request.GetNextPageLink(TableControllerOptions.PageSize);
-            }
-
-            // TODO: THIS DOES NOT WORK
-            //if (odataOptions.Count != null)
-            //{
-            //    result.Count = odataOptions.Count.GetEntityCount(odataQuery);
-            //};
 
             return Ok(result); 
         }

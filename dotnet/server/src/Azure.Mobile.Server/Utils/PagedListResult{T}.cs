@@ -12,7 +12,7 @@ namespace Azure.Mobile.Server.Utils
         /// <summary>
         /// The list of entities in this result set.
         /// </summary>
-        public IEnumerable<T> Values { get; set; }
+        public IList<T> Values { get; set; }
 
         /// <summary>
         /// An opaque Uri for requesting the next page - null if no more pages.
@@ -23,5 +23,15 @@ namespace Azure.Mobile.Server.Utils
         /// The count of items in the list without paging.
         /// </summary>
         public long? Count { get; set; }
+
+        /// <summary>
+        /// The maximum value of the $top query parameter
+        /// </summary>
+        public long? MaxTop { get; set; }
+
+        /// <summary>
+        /// The size for server-side paging.
+        /// </summary>
+        public long? PageSize { get; set; }
     }
 }

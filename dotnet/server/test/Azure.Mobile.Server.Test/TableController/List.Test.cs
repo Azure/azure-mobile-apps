@@ -24,10 +24,44 @@ namespace Azure.Mobile.Server.Test.TableController
             CollectionAssert.AllItemsAreUnique(actual.Values);
             Assert.AreEqual(50, actual.Values.Count);
             Assert.IsNotNull(actual.NextLink);
+            Assert.IsNotNull(actual.Count);
+            Assert.AreEqual(248, actual.Count);
+        }
 
-            // TODO: This does not work right now because GetEntityCount() information in GetItems() . 
-            //Assert.IsNotNull(actual.Count);
-            //Assert.AreEqual(248, actual.Count);
+        [TestMethod]
+        public async Task GetItems_WithFilter_ReturnsSomeItems()
+        {
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$filter=mpaaRating eq 'R'&$count=true", null);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = await GetValueFromResponse<PagedList<Movie>>(response);
+            Assert.IsNotNull(actual);
+            CollectionAssert.AllItemsAreNotNull(actual.Values);
+            CollectionAssert.AllItemsAreUnique(actual.Values);
+            Assert.AreEqual(50, actual.Values.Count);
+            Assert.IsNotNull(actual.NextLink);
+            Assert.IsNotNull(actual.Count);
+            Assert.AreEqual(94, actual.Count);
+            Assert.IsNotNull(actual.MaxTop);
+            Assert.IsNotNull(actual.PageSize);
+        }
+
+        [TestMethod]
+        public async Task GetItems_ExcludingItems_ReturnsSomeItems()
+        {
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$filter=mpaaRating eq 'R'&$count=true&__excludeitems=true", null);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = await GetValueFromResponse<PagedList<Movie>>(response);
+            Assert.IsNotNull(actual);
+            Assert.IsNull(actual.Values);
+            Assert.IsNull(actual.NextLink);
+            Assert.IsNotNull(actual.Count);
+            Assert.AreEqual(94, actual.Count);
+            Assert.IsNotNull(actual.MaxTop);
+            Assert.IsTrue(actual.MaxTop > 0);
+            Assert.IsNotNull(actual.PageSize);
+            Assert.IsTrue(actual.PageSize > 0);
         }
 
         [TestMethod]
