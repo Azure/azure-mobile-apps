@@ -35,6 +35,198 @@ namespace Azure.Mobile.Client.Test.Table
     [TestClass]
     public class MobileDataTable_Tests : BaseTest
     {
+        #region GetMetadataAsync
+        [TestMethod]
+        public async Task GetMetadataAsync_Returns200()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>();
+            var actual = await table.GetMetadataAsync();
+
+            Assert.AreEqual(200, actual.GetRawResponse().Status);
+            Assert.IsNotNull(actual.Value);
+            Assert.AreEqual(248, actual.Value.Count);
+            Assert.IsTrue(actual.Value.MaxTop > 0);
+            Assert.IsTrue(actual.Value.PageSize > 0);
+        }
+
+        [TestMethod]
+        public async Task GetMetadataAsync_WithFilter_Returns200()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>();
+            var query = new MobileTableQuery { Filter = "mpaaRating eq 'R'" };
+            var actual = await table.GetMetadataAsync(query);
+
+            Assert.AreEqual(200, actual.GetRawResponse().Status);
+            Assert.IsNotNull(actual.Value);
+            Assert.AreEqual(94, actual.Value.Count);
+            Assert.IsTrue(actual.Value.MaxTop > 0);
+            Assert.IsTrue(actual.Value.PageSize > 0);
+        }
+
+        [TestMethod]
+        public async Task GetMetadataAsync_IncludeDeleted_Returns200()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>("tables/rmovies");
+            var query = new MobileTableQuery
+            {
+                IncludeDeleted = true
+            };
+            var actual = await table.GetMetadataAsync(query);
+
+            Assert.AreEqual(200, actual.GetRawResponse().Status);
+            Assert.IsNotNull(actual.Value);
+            Assert.AreEqual(248, actual.Value.Count);
+            Assert.IsTrue(actual.Value.MaxTop > 0);
+            Assert.IsTrue(actual.Value.PageSize > 0);
+        }
+
+        [TestMethod]
+        public async Task GetMetadataAsync_NotIncludeDeleted_Returns200()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>("tables/rmovies");
+            var actual = await table.GetMetadataAsync();
+
+            Assert.AreEqual(200, actual.GetRawResponse().Status);
+            Assert.IsNotNull(actual.Value);
+            Assert.AreEqual(154, actual.Value.Count);
+            Assert.IsTrue(actual.Value.MaxTop > 0);
+            Assert.IsTrue(actual.Value.PageSize > 0);
+        }
+
+        [TestMethod]
+        public async Task GetMetadataAsync_NotAuthorized_Returns404()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>("tables/unauthorized");
+            
+            try
+            {
+                var actual = await table.GetMetadataAsync();
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public async Task GetMetadataAsync_MissingTable_Returns404()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>("tables/missing_table");
+            try
+            {
+                var actual = await table.GetMetadataAsync();
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+        #endregion
+
+        #region GetMetadata
+        [TestMethod]
+        public void GetMetadata_Returns200()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>();
+            var actual = table.GetMetadata();
+
+            Assert.AreEqual(200, actual.GetRawResponse().Status);
+            Assert.IsNotNull(actual.Value);
+            Assert.AreEqual(248, actual.Value.Count);
+            Assert.IsTrue(actual.Value.MaxTop > 0);
+            Assert.IsTrue(actual.Value.PageSize > 0);
+        }
+
+        [TestMethod]
+        public void GetMetadata_WithFilter_Returns200()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>();
+            var query = new MobileTableQuery { Filter = "mpaaRating eq 'R'" };
+            var actual = table.GetMetadata(query);
+
+            Assert.AreEqual(200, actual.GetRawResponse().Status);
+            Assert.IsNotNull(actual.Value);
+            Assert.AreEqual(94, actual.Value.Count);
+            Assert.IsTrue(actual.Value.MaxTop > 0);
+            Assert.IsTrue(actual.Value.PageSize > 0);
+        }
+
+        [TestMethod]
+        public void GetMetadata_IncludeDeleted_Returns200()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>("tables/rmovies");
+            var query = new MobileTableQuery
+            {
+                IncludeDeleted = true
+            };
+            var actual = table.GetMetadata(query);
+
+            Assert.AreEqual(200, actual.GetRawResponse().Status);
+            Assert.IsNotNull(actual.Value);
+            Assert.AreEqual(248, actual.Value.Count);
+            Assert.IsTrue(actual.Value.MaxTop > 0);
+            Assert.IsTrue(actual.Value.PageSize > 0);
+        }
+
+        [TestMethod]
+        public void GetMetadata_NotIncludeDeleted_Returns200()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>("tables/rmovies");
+            var actual = table.GetMetadata();
+
+            Assert.AreEqual(200, actual.GetRawResponse().Status);
+            Assert.IsNotNull(actual.Value);
+            Assert.AreEqual(154, actual.Value.Count);
+            Assert.IsTrue(actual.Value.MaxTop > 0);
+            Assert.IsTrue(actual.Value.PageSize > 0);
+        }
+
+        [TestMethod]
+        public void GetMetadata_NotAuthorized_Returns404()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>("tables/unauthorized");
+
+            try
+            {
+                var actual = table.GetMetadata();
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public void GetMetadata_MissingTable_Returns404()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>("tables/missing_table");
+            try
+            {
+                var actual = table.GetMetadata();
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(404, ex.Status);
+            }
+        }
+        #endregion
+
         #region GetItemAsync
         [TestMethod]
         public async Task GetItemAsync_WithValidId_Returns200()
