@@ -84,6 +84,24 @@ namespace Azure.Mobile.Client.Test.Table
         }
 
         [TestMethod]
+        public async Task GetMetadataAsync_OrderBy_Returns200()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>("tables/movies");
+            var query = new MobileTableQuery
+            {
+                OrderBy = "mpaaRating"
+            };
+            var actual = await table.GetMetadataAsync(query);
+
+            Assert.AreEqual(200, actual.GetRawResponse().Status);
+            Assert.IsNotNull(actual.Value);
+            Assert.AreEqual(248, actual.Value.Count);
+            Assert.IsTrue(actual.Value.MaxTop > 0);
+            Assert.IsTrue(actual.Value.PageSize > 0);
+        }
+
+        [TestMethod]
         public async Task GetMetadataAsync_NotIncludeDeleted_Returns200()
         {
             var client = GetTestClient();
@@ -169,6 +187,24 @@ namespace Azure.Mobile.Client.Test.Table
             var query = new MobileTableQuery
             {
                 IncludeDeleted = true
+            };
+            var actual = table.GetMetadata(query);
+
+            Assert.AreEqual(200, actual.GetRawResponse().Status);
+            Assert.IsNotNull(actual.Value);
+            Assert.AreEqual(248, actual.Value.Count);
+            Assert.IsTrue(actual.Value.MaxTop > 0);
+            Assert.IsTrue(actual.Value.PageSize > 0);
+        }
+
+        [TestMethod]
+        public void GetMetadata_OrderBy_Returns200()
+        {
+            var client = GetTestClient();
+            var table = client.GetTable<Movie>("tables/movies");
+            var query = new MobileTableQuery
+            {
+                OrderBy = "mpaaRating"
             };
             var actual = table.GetMetadata(query);
 

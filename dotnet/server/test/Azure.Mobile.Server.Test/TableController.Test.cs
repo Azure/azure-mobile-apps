@@ -1,7 +1,9 @@
 ﻿using Azure.Mobile.Server.Entity;
 using Azure.Mobile.Server.Test.Helpers;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Azure.Mobile.Server.Test
@@ -108,6 +110,75 @@ namespace Azure.Mobile.Server.Test
             var controller = new MoviesController(context);
             var actual = await controller.ValidateOperationAsync(TableOperation.None, null);
             Assert.AreEqual(200, actual);
+        }
+        
+        [TestMethod]
+        public async Task CreateItemAsync_ReturnsValidateOperationsResult()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new ValidationController(context);
+            var movie = new Movie() { Title = "foo" };
+            var actual = await controller.CreateItemAsync(movie);
+            Assert.IsInstanceOfType(actual, typeof(StatusCodeResult));
+            var result = actual as StatusCodeResult;
+            Assert.AreEqual(418, result.StatusCode);
+            Assert.AreEqual(TableOperation.Create, controller.LastValidationOperation);
+            Assert.AreEqual("foo", controller.LastValidationItem.Title);
+        }
+
+        [TestMethod]
+        public async Task DeleteItemAsync_ReturnsValidateOperationsResult()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new ValidationController(context);
+            var movie = context.Movies.First().Clone();
+            var actual = await controller.DeleteItemAsync(movie.Id);
+            Assert.IsInstanceOfType(actual, typeof(StatusCodeResult));
+            var result = actual as StatusCodeResult;
+            Assert.AreEqual(418, result.StatusCode);
+            Assert.AreEqual(TableOperation.Delete, controller.LastValidationOperation);
+            Assert.AreEqual(movie.Title, controller.LastValidationItem.Title);
+        }
+
+        [TestMethod]
+        public async Task GetItemAsync_ReturnsValidateOperationsResult()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new ValidationController(context);
+            var movie = context.Movies.First().Clone();
+            var actual = await controller.ReadItemAsync(movie.Id);
+            Assert.IsInstanceOfType(actual, typeof(StatusCodeResult));
+            var result = actual as StatusCodeResult;
+            Assert.AreEqual(418, result.StatusCode);
+            Assert.AreEqual(TableOperation.Read, controller.LastValidationOperation);
+            Assert.AreEqual(movie.Title, controller.LastValidationItem.Title);
+        }
+
+        [TestMethod]
+        public async Task ListItemAsync_ReturnsValidateOperationsResult()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new ValidationController(context);
+            var actual = await controller.GetItems();
+            Assert.IsInstanceOfType(actual, typeof(StatusCodeResult));
+            var result = actual as StatusCodeResult;
+            Assert.AreEqual(418, result.StatusCode);
+            Assert.AreEqual(TableOperation.List, controller.LastValidationOperation);
+        }
+
+        [TestMethod]
+        public async Task ReplaceItemAsync_ReturnsValidateOperationsResult()
+        {
+            var context = MovieDbContext.InMemoryContext();
+            var controller = new ValidationController(context);
+            var movie = context.Movies.First().Clone();
+            var replacement = movie.Clone(); replacement.Title = "foo";
+            var actual = await controller.ReplaceItemAsync(replacement.Id, replacement);
+            Assert.IsInstanceOfType(actual, typeof(StatusCodeResult));
+            var result = actual as StatusCodeResult;
+            Assert.AreEqual(418, result.StatusCode);
+            Assert.AreEqual(TableOperation.Replace, controller.LastValidationOperation);
+            Assert.AreEqual("foo", controller.LastValidationItem.Title);
         }
     }
 }
