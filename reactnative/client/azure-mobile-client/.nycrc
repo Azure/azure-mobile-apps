@@ -1,17 +1,17 @@
 {
     "include": [
-      "dist-esm/src/**/*.js"
+        "dist-esm/src/**/*.js"
     ],
     "exclude": [
-      "**/*.d.ts"
+        "**/*.d.ts"
     ],
     "reporter": [
-      "text-summary",
-      "html",
-      "cobertura"
+        "text-summary",
+        "html",
+        "cobertura"
     ],
     "exclude-after-remap":false,
     "sourceMap": true,
     "instrument": true,
     "all": true
-  }
+}

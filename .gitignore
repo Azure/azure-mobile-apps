@@ -368,9 +368,3 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
-
-# End of https://www.toptal.com/developers/gitignore/api/visualstudio,visualstudiocode
-reactnative/client/azure-mobile-client/package-lock.json
-
-# Common toolchain intermediate files
-temp/
