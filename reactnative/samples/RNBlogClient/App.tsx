@@ -27,19 +27,23 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Icons from "react-native-vector-icons/FontAwesome";
 import CustomList from "./listComponents/CustomList";
 import { TokenCredential, GetTokenOptions, AccessToken } from '@azure/identity';
-import { MobileDataClient } from "@azure/mobile-client";
+import { MobileDataClient, MobileDataTable } from "@azure/mobile-client";
 
 const { width } = Dimensions.get("window");
 
 function getTestClient() {
     const tokenCredential : TokenCredential = {
-        getToken(_: string | string[], __?: GetTokenOptions): Promise<AccessToken | null> {
-            return Promise.resolve(null);
+        getToken(scope: string | string[], _?: GetTokenOptions): Promise<AccessToken | null> {
+            return Promise.resolve({
+                token: "some-test-access-credential: " + scope,
+                expiresOnTimestamp: 3600
+            });
         }
     };
-    const url = "foo://url.com";
-    const client = new MobileDataClient(url, tokenCredential, undefined);
-    return client;
+    const client = new MobileDataClient("foo://url.com", tokenCredential, undefined);
+    const dataTable = new MobileDataTable(client, "test-table");
+
+    return dataTable;
 }
 
 function getData() {
