@@ -424,7 +424,7 @@ namespace Azure.Mobile.Server
         {
             var entity = await TableRepository.LookupAsync(id).ConfigureAwait(false);
 
-            var operationValidation = await ValidateOperationAsync(TableOperation.Create, entity);
+            var operationValidation = await ValidateOperationAsync(TableOperation.Patch, entity);
             if (operationValidation != StatusCodes.Status200OK)
             {
                 return StatusCode(operationValidation);
