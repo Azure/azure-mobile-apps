@@ -26,18 +26,8 @@ namespace Azure.Mobile.Server.Test.E2EServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string _secret, _expDate;
-
-            if (WebHostEnvironment.IsEnvironment("Test"))
-            {
-                _secret = "PDv7DrqznYL6nv7DrqzjnQYO9JxIsWdcjnQYL6nu0f";
-                _expDate = "1440";
-            } 
-            else
-            {
-                _secret = Configuration.GetSection("JwtConfig").GetSection("Secret").Value;
-                _expDate = Configuration.GetSection("JwtConfig").GetSection("ExpirationInMinutes").Value;
-            }
+            var _secret = Configuration.GetSection("JwtConfig").GetSection("Secret").Value;
+            var _expDate = Configuration.GetSection("JwtConfig").GetSection("ExpirationInMinutes").Value;
 
             services
                 .AddAuthentication(options =>
@@ -59,16 +49,8 @@ namespace Azure.Mobile.Server.Test.E2EServer
 
             services.AddDbContext<E2EDbContext>(options =>
             {
-                // TestServer does not read appsettings natively.
-                if (WebHostEnvironment.IsEnvironment("Test"))
-                {
-                    options.UseSqlServer("Data Source=(localdb)\\mssqllocaldb;Database=UnitTests;Trusted_Connection=True;");
-                }
-                else
-                {
-                    var connectionString = Configuration.GetConnectionString("MS_TableConnectionString");
-                    options.UseSqlServer(connectionString);
-                }
+                var connectionString = Configuration.GetConnectionString("MS_TableConnectionString");
+                options.UseSqlServer(connectionString);
             });
 
             services.AddControllers().AddJsonOptions(options =>

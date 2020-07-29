@@ -1,8 +1,11 @@
 using Azure.Mobile.Server.Test.E2EServer.Database;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.IO;
+using System.Reflection;
 
 namespace Azure.Mobile.Server.Test.E2EServer
 {
@@ -32,8 +35,15 @@ namespace Azure.Mobile.Server.Test.E2EServer
         /// <returns>A test server</returns>
         public static TestServer GetTestServer()
         {
+            var applicationBasePath = System.AppContext.BaseDirectory;
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(applicationBasePath)
+                .AddJsonFile("appsettings.Test.json")
+                .Build();
             var builder = new WebHostBuilder()
                 .UseEnvironment("Test")
+                .UseContentRoot(applicationBasePath)
+                .UseConfiguration(configuration)
                 .UseStartup<Startup>();
 
             var server = new TestServer(builder);

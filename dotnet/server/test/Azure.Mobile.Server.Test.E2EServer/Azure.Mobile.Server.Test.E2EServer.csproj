@@ -15,5 +15,11 @@
     <ProjectReference Include="..\..\src\Azure.Mobile.Server\Azure.Mobile.Server.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="appsettings.Test.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 
 </Project>
