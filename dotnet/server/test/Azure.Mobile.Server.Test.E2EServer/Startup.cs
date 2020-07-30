@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -50,7 +49,15 @@ namespace Azure.Mobile.Server.Test.E2EServer
             services.AddDbContext<E2EDbContext>(options =>
             {
                 var connectionString = Configuration.GetConnectionString("MS_TableConnectionString");
-                options.UseSqlServer(connectionString);
+                if (connectionString.Contains(":memory:"))
+                {
+                    options.UseSqlite(SQLiteHelper.GetConnection(connectionString));
+                }
+                else
+                {
+                    options.UseSqlServer(connectionString);
+                }
+                
             });
 
             services.AddControllers().AddJsonOptions(options =>

@@ -142,7 +142,6 @@ namespace Azure.Mobile.Server.Entity
         private void UpdateVersionFields(TEntity item)
         {
             item.UpdatedAt = DateTimeOffset.UtcNow;
-            item.Version = Guid.NewGuid().ToByteArray();
         }
     }
 }

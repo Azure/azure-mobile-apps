@@ -1,5 +1,6 @@
 ﻿using Azure.Mobile.Server.Test.E2EServer.DataObjects;
 using System;
+using System.Linq;
 
 namespace Azure.Mobile.Server.Test.E2EServer.Database
 {
@@ -7,14 +8,18 @@ namespace Azure.Mobile.Server.Test.E2EServer.Database
     {
         public static void Initialize(E2EDbContext context)
         {
-            context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
+
+            context.Movies.RemoveRange(context.Movies.ToList());
+            context.RMovies.RemoveRange(context.RMovies.ToList());
+            context.HUnits.RemoveRange(context.HUnits.ToList());
+            context.SUnits.RemoveRange(context.SUnits.ToList());
+            context.SaveChanges();
 
             SeedMovies(context);
             SeedRMovies(context);
             SeedSUnits(context);
             SeedHUnits(context);
-
             context.SaveChanges();
         }
 
