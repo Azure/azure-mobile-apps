@@ -15,8 +15,6 @@ namespace Azure.Mobile.Client.Table
     /// <typeparam name="T">The type of the entity stored in the table.</typeparam>
     public class MobileDataTable<T> where T : TableData
     {
-        private readonly HttpPipeline _pipeline;
-
         /// <summary>
         /// Initializes a <see cref="MobileDataTable{T}"/> instance.
         /// </summary>
@@ -41,7 +39,7 @@ namespace Azure.Mobile.Client.Table
             }
 
             // Builds the pipeline based on the policies provided.
-            _pipeline = HttpPipelineBuilder.Build(
+            Pipeline = HttpPipelineBuilder.Build(
                 ClientOptions, 
                 perCallPolicies.ToArray(), 
                 perRetryPolicies.ToArray(), 
@@ -63,6 +61,11 @@ namespace Azure.Mobile.Client.Table
         /// </summary>
         internal MobileDataClientOptions ClientOptions { get; }
 
+        /// <summary>
+        /// The Azure.Core Pipeline used for communicating with to the service
+        /// </summary>
+        internal HttpPipeline Pipeline { get; }
+
         #region GetMetadata
         /// <summary>
         /// Obtains the table metadata.
@@ -83,7 +86,7 @@ namespace Azure.Mobile.Client.Table
             Arguments.IsNotNull(query, nameof(query));
 
             using Request request = CreateGetMetadataRequest(query);
-            Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+            Response response = await Pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
             switch (response.Status)
             {
@@ -113,7 +116,7 @@ namespace Azure.Mobile.Client.Table
             Arguments.IsNotNull(query, nameof(query));
 
             using Request request = CreateGetMetadataRequest(query);
-            Response response = _pipeline.SendRequest(request, cancellationToken);
+            Response response = Pipeline.SendRequest(request, cancellationToken);
 
             switch (response.Status)
             {
@@ -132,7 +135,7 @@ namespace Azure.Mobile.Client.Table
         /// <returns>The <see cref="Request"/> object corresponding to the request</returns>
         private Request CreateGetMetadataRequest(MobileTableQuery query)
         {
-            Request request = _pipeline.CreateRequest();
+            Request request = Pipeline.CreateRequest();
             request.Method = RequestMethod.Get;
             var builder = request.Uri;
             builder.Reset(Endpoint);
@@ -185,7 +188,7 @@ namespace Azure.Mobile.Client.Table
             Arguments.IsNotNullOrEmpty(item.Id, nameof(item.Id));
 
             using Request request = CreateDeleteRequest(item, requestOptions);
-            Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+            Response response = await Pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
             switch (response.Status)
             {
@@ -228,7 +231,7 @@ namespace Azure.Mobile.Client.Table
             Arguments.IsNotNullOrEmpty(item.Id, nameof(item.Id));
 
             using Request request = CreateDeleteRequest(item, requestOptions);
-            Response response = _pipeline.SendRequest(request, cancellationToken);
+            Response response = Pipeline.SendRequest(request, cancellationToken);
 
             switch (response.Status)
             {
@@ -250,7 +253,7 @@ namespace Azure.Mobile.Client.Table
         /// <returns></returns>
         private Request CreateDeleteRequest(T item, MatchConditions requestOptions)
         {
-            Request request = _pipeline.CreateRequest();
+            Request request = Pipeline.CreateRequest();
 
             request.Method = RequestMethod.Delete;
             request.BuildUri(Endpoint, item.Id);
@@ -272,7 +275,7 @@ namespace Azure.Mobile.Client.Table
             Arguments.IsNotNullOrEmpty(id, nameof(id));
 
             using Request request = CreateGetRequest(id, default);
-            Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+            Response response = await Pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
             switch (response.Status)
             {
@@ -294,7 +297,7 @@ namespace Azure.Mobile.Client.Table
             Arguments.IsNotNullOrEmpty(id, nameof(id));
 
             using Request request = CreateGetRequest(id, default);
-            Response response = _pipeline.SendRequest(request, cancellationToken);
+            Response response = Pipeline.SendRequest(request, cancellationToken);
 
             switch (response.Status)
             {
@@ -313,7 +316,7 @@ namespace Azure.Mobile.Client.Table
         /// <returns>A pageable list of items</returns>
         private Request CreateGetRequest(string id, MatchConditions requestOptions)
         {
-            Request request = _pipeline.CreateRequest();
+            Request request = Pipeline.CreateRequest();
 
             request.Method = RequestMethod.Get;
             request.BuildUri(Endpoint, id);
@@ -374,7 +377,7 @@ namespace Azure.Mobile.Client.Table
         private async Task<Page<T>> GetItemsPageAsync(MobileTableQuery query, string pageLink, CancellationToken cancellationToken = default)
         {
             using Request request = CreateListRequest(query, pageLink);
-            Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+            Response response = await Pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
             switch (response.Status)
             {
@@ -396,7 +399,7 @@ namespace Azure.Mobile.Client.Table
         private Page<T> GetItemsPage(MobileTableQuery query, string pageLink, CancellationToken cancellationToken = default)
         {
             using Request request = CreateListRequest(query, pageLink);
-            Response response = _pipeline.SendRequest(request, cancellationToken);
+            Response response = Pipeline.SendRequest(request, cancellationToken);
 
             switch (response.Status)
             {
@@ -416,7 +419,7 @@ namespace Azure.Mobile.Client.Table
         /// <returns>The <see cref="Request"/> object corresponding to the request</returns>
         private Request CreateListRequest(MobileTableQuery query, string pageLink)
         {
-            Request request = _pipeline.CreateRequest();
+            Request request = Pipeline.CreateRequest();
             request.Method = RequestMethod.Get;
             if (pageLink != null)
             {
@@ -468,7 +471,7 @@ namespace Azure.Mobile.Client.Table
             Arguments.IsNotNull(item, nameof(item));
 
             using Request request = CreateInsertRequest(item);
-            Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+            Response response = await Pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
             switch (response.Status)
             {
@@ -494,7 +497,7 @@ namespace Azure.Mobile.Client.Table
             Arguments.IsNotNull(item, nameof(item));
 
             using Request request = CreateInsertRequest(item);
-            Response response = _pipeline.SendRequest(request, cancellationToken);
+            Response response = Pipeline.SendRequest(request, cancellationToken);
 
             switch (response.Status)
             {
@@ -515,7 +518,7 @@ namespace Azure.Mobile.Client.Table
         /// <returns>A <see cref="Request"/> object ready for transmission</returns>
         private Request CreateInsertRequest(T item)
         {
-            Request request = _pipeline.CreateRequest();
+            Request request = Pipeline.CreateRequest();
 
             request.Method = RequestMethod.Post;
             request.BuildUri(Endpoint, null);
@@ -557,7 +560,7 @@ namespace Azure.Mobile.Client.Table
             Arguments.IsNotNull(item, nameof(item));
 
             using Request request = CreateReplaceRequest(item, requestOptions);
-            Response response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+            Response response = await Pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
             switch (response.Status)
             {
@@ -600,7 +603,7 @@ namespace Azure.Mobile.Client.Table
             Arguments.IsNotNull(item, nameof(item));
 
             using Request request = CreateReplaceRequest(item, requestOptions);
-            Response response = _pipeline.SendRequest(request, cancellationToken);
+            Response response = Pipeline.SendRequest(request, cancellationToken);
 
             switch (response.Status)
             {
@@ -621,7 +624,7 @@ namespace Azure.Mobile.Client.Table
         /// <returns>A <see cref="Request"/> object ready for transmission</returns>
         private Request CreateReplaceRequest(T item, MatchConditions requestOptions)
         {
-            Request request = _pipeline.CreateRequest();
+            Request request = Pipeline.CreateRequest();
 
             request.Method = RequestMethod.Put;
             request.BuildUri(Endpoint, item.Id);
