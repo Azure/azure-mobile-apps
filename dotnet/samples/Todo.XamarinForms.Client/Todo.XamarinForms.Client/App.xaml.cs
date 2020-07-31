@@ -1,12 +1,16 @@
-﻿using Xamarin.Forms;
+﻿using Todo.XamarinForms.Client.Views;
+using Xamarin.Forms;
+using Xamarin.Forms.Xaml;
 
 namespace Todo.XamarinForms.Client
 {
-    public class App : Application
+    [XamlCompilation(XamlCompilationOptions.Compile)]
+    public partial class App : Application
     {
         public App()
         {
-            MainPage = new TodoList();
+            InitializeComponent();
+            MainPage = new NavigationPage(Resolver.Resolve<MainView>());
         }
 
         protected override void OnStart()

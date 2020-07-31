@@ -1,4 +1,5 @@
 ﻿using Azure.Mobile.Client;
+using System;
 
 namespace Todo.NetStandard.Common
 {
@@ -10,11 +11,16 @@ namespace Todo.NetStandard.Common
         /// <summary>
         /// The text or title of the TodoItem
         /// </summary>
-        public string Text { get; set; }
+        public string Title { get; set; }
 
         /// <summary>
         /// True if the TodoItem is completed.
         /// </summary>
-        public bool Complete { get; set; }
+        public bool Completed { get; set; }
+
+        /// <summary>
+        /// The time the task is due
+        /// </summary>
+        public DateTime Due { get; set; }
     }
 }

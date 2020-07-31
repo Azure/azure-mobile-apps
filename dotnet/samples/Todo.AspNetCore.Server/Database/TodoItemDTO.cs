@@ -1,4 +1,5 @@
 ﻿using Azure.Mobile.Server.Entity;
+using System;
 using System.Text.Json.Serialization;
 
 namespace Todo.AspNetCore.Server.Database
@@ -17,11 +18,16 @@ namespace Todo.AspNetCore.Server.Database
         /// <summary>
         /// The text or title of the TodoItem
         /// </summary>
-        public string Text { get; set; }
+        public string Title { get; set; }
 
         /// <summary>
         /// True if the TodoItem is completed.
         /// </summary>
-        public bool Complete { get; set; }
+        public bool Completed { get; set; }
+
+        /// <summary>
+        /// The date/time that the task is due.
+        /// </summary>
+        public DateTime Due { get; set; }
     }
 }

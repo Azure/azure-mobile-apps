@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="Todo.XamarinForms.Client.Views.ItemView"
+             Title="New todo Item">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Save" Command="{Binding Save}" />
+    </ContentPage.ToolbarItems>
+    <StackLayout Padding="14">
+        <Label Text="Title"/>
+        <Entry Text="{Binding Item.Title}"/>
+        <Label Text="Due"/>
+        <DatePicker Date="{Binding Item.Due}"/>
+        <StackLayout Orientation="Horizontal">
+            <Switch IsToggled="{Binding Item.Completed}"/>
+            <Label Text="Completed"/>
+        </StackLayout>
+    </StackLayout>
+</ContentPage>
