@@ -1,6 +1,7 @@
 ﻿using Azure.Mobile.Server;
 using Azure.Mobile.Server.Entity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Web;
 using Todo.AspNetCore.Server.Database;
 
 namespace Todo.AspNetCore.Server.Controllers
@@ -17,7 +18,7 @@ namespace Todo.AspNetCore.Server.Controllers
         {
             TableControllerOptions = new TableControllerOptions<TodoItemDTO>
             {
-                DataView = item => item.OwnerId == HttpContext.User.Identity.Name,
+                DataView = item => item.OwnerId == CurrentUserId,
                 MaxTop = 1000,
                 SoftDeleteEnabled = false
             };
@@ -32,7 +33,7 @@ namespace Todo.AspNetCore.Server.Controllers
         /// <param name="item">The item being resolved</param>
         /// <returns></returns>
         public override bool IsAuthorized(TableOperation operation, TodoItemDTO item)
-            => operation == TableOperation.List || operation == TableOperation.Create || item.OwnerId == HttpContext.User.Identity.Name;
+            => operation == TableOperation.List || operation == TableOperation.Create || item.OwnerId == CurrentUserId;
 
         /// <summary>
         /// When we store data, we always tag the record with the users ownerId
@@ -41,8 +42,19 @@ namespace Todo.AspNetCore.Server.Controllers
         /// <returns>The item to be stored</returns>
         public override TodoItemDTO PrepareItemForStore(TodoItemDTO item)
         {
-            item.OwnerId = HttpContext.User.Identity.Name;
+            item.OwnerId = CurrentUserId;
             return base.PrepareItemForStore(item);
+        }
+
+        /// <summary>
+        /// Returns the UserId.  We use ObjectId for this, since the ObjectId is stable and unique to the user
+        /// across multiple applications.  Two different applications signing in as the same user will receive
+        /// the same ObjectId.  The .Identity.Name (NameIdentifierId) returns the sub claim that is unique to
+        /// a particular application ID.
+        /// </summary>
+        private string CurrentUserId
+        {
+            get => HttpContext.User.GetObjectId();
         }
     }
 }

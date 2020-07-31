@@ -3,24 +3,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30309.148
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F497B335-304D-4B5D-B5E2-A49989E39B77}"
+	ProjectSection(SolutionItems) = preProject
+		CodeCoverage.runsettings = CodeCoverage.runsettings
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "server", "server", "{817F35E1-FA09-4A13-821A-28DE2B903F46}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{DC683A50-7B8A-464A-911B-117C1CB5A2E9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{718DA6E8-04DD-42A3-8892-9EF59D98F79D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Server", "server\src\Azure.Mobile.Server\Azure.Mobile.Server.csproj", "{C5A2D48A-0DBB-429E-AAF6-CC4EEAD53C72}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Server.Entity", "server\src\Azure.Mobile.Server.Entity\Azure.Mobile.Server.Entity.csproj", "{4DD1F067-822E-4CDE-B322-B659A194DD29}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Server.Entity.Test", "server\test\Azure.Mobile.Server.Entity.Test\Azure.Mobile.Server.Entity.Test.csproj", "{4D4530F7-84F4-4B13-A6FE-A18C50705606}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Server.Test", "server\test\Azure.Mobile.Server.Test\Azure.Mobile.Server.Test.csproj", "{9CD5590B-3C3C-4C0F-9C13-F80B22935100}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F497B335-304D-4B5D-B5E2-A49989E39B77}"
-	ProjectSection(SolutionItems) = preProject
-		CodeCoverage.runsettings = CodeCoverage.runsettings
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{A6A816F1-EB1C-4C9A-8AB0-6119E7A79302}"
 EndProject
@@ -30,13 +22,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{FEF7CEEF-50E
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{055F0DAA-62AD-403D-8288-B60D02A0ABC1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Server", "server\src\Azure.Mobile.Server\Azure.Mobile.Server.csproj", "{C5A2D48A-0DBB-429E-AAF6-CC4EEAD53C72}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Server.Entity", "server\src\Azure.Mobile.Server.Entity\Azure.Mobile.Server.Entity.csproj", "{4DD1F067-822E-4CDE-B322-B659A194DD29}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Server.Entity.Test", "server\test\Azure.Mobile.Server.Entity.Test\Azure.Mobile.Server.Entity.Test.csproj", "{4D4530F7-84F4-4B13-A6FE-A18C50705606}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Server.Test", "server\test\Azure.Mobile.Server.Test\Azure.Mobile.Server.Test.csproj", "{9CD5590B-3C3C-4C0F-9C13-F80B22935100}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Client", "client\src\Azure.Mobile.Client\Azure.Mobile.Client.csproj", "{AE882E4E-BD34-4994-86A9-B4E89DC42FC1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Client.Test", "client\test\Azure.Mobile.Client.Test\Azure.Mobile.Client.Test.csproj", "{B6D5BFCB-478C-495B-86CD-68AAFDEE6834}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Server.Test.E2EServer", "server\test\Azure.Mobile.Server.Test.E2EServer\Azure.Mobile.Server.Test.E2EServer.csproj", "{2A669FBA-F128-494F-8D87-63AD40DB13ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Todo.AspNetCore.Server", "Todo.AspNetCore.Server\Todo.AspNetCore.Server.csproj", "{4633677E-1D76-49AD-A1DC-925EB87860DE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Todo.AspNetCore.Server", "samples\Todo.AspNetCore.Server\Todo.AspNetCore.Server.csproj", "{4633677E-1D76-49AD-A1DC-925EB87860DE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -5,8 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.TokenCacheProviders.InMemory;
 using Todo.AspNetCore.Server.Database;
-using Todo.AspNetCore.Server.Extensions;
 
 namespace Todo.AspNetCore.Server
 {
@@ -48,13 +49,12 @@ namespace Todo.AspNetCore.Server
         public void ConfigureServices(IServiceCollection services)
         {
             // Authentication
-            var authConfiguration = Configuration.GetSection("Authentication");
             services
-                .AddCookieAuthentication()
-                .AddFacebookWithConfig(authConfiguration.GetSection("Facebook"))
-                .AddGoogleWithConfig(authConfiguration.GetSection("Google"))
-                .AddMicrosoftAccountWithConfig(authConfiguration.GetSection("Microsoft"))
-                .AddAppleWithConfig(authConfiguration.GetSection("Apple"), WebHostEnvironment);
+                .AddMicrosoftWebApiAuthentication(Configuration.GetSection("Authentication"))
+                .AddInMemoryTokenCaches();
+
+            services.AddAuthorization();
+            services.AddHttpContextAccessor();
 
             // Database Context - uses SQL Server
             var dbConnectionString = Configuration.GetConnectionString("MS_TableConnectionString");
