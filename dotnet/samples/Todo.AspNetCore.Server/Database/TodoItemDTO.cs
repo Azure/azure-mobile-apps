@@ -21,13 +21,19 @@ namespace Todo.AspNetCore.Server.Database
         public string Title { get; set; }
 
         /// <summary>
+        /// Optional field to allow the user to specify a category
+        /// or color for the TodoItem
+        /// </summary>
+        public string Category { get; set; }
+
+        /// <summary>
         /// True if the TodoItem is completed.
         /// </summary>
         public bool Completed { get; set; }
 
         /// <summary>
-        /// The date/time that the task is due.
+        /// The date and time the TodoItem is due
         /// </summary>
-        public DateTime Due { get; set; }
+        public DateTimeOffset Due { get; set; }
     }
 }
