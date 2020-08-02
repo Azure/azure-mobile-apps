@@ -1,16 +1,18 @@
-﻿using System;
+﻿using Todo.NetStandard.Common;
+using Todo.XamarinForms.Views;
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
 
 namespace Todo.XamarinForms
 {
     public partial class App : Application
     {
+        public ITodoRepository repository = new InMemoryTodoRepository();
+
         public App()
         {
             InitializeComponent();
 
-            MainPage = new MainPage();
+            MainPage = new NavigationPage(new TodoListPage(repository));
         }
 
         protected override void OnStart()

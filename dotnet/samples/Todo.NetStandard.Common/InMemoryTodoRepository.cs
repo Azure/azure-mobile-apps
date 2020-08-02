@@ -101,6 +101,16 @@ namespace Todo.NetStandard.Common
             => (item.Id == null) ? AddTodoItemAsync(item) : UpdateTodoItemAsync(item);
 
         /// <summary>
+        /// If you have a backing store, then this signifies that you should synchronize the store.
+        /// </summary>
+        /// <returns></returns>
+        public async Task SynchronizeAsync()
+        {
+            // Does nothing
+            return;
+        }
+
+        /// <summary>
         /// Updates the item in the service table, updating the passed value with any updated
         /// values as well.  The <see cref="RepositoryUpdated"/> event handler is called with
         /// the appropriate action on success.

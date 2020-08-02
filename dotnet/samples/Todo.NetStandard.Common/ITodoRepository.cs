@@ -44,6 +44,12 @@ namespace Todo.NetStandard.Common
         Task SaveTodoItemAsync(TodoItem item);
 
         /// <summary>
+        /// If you have a backing store for this repository, then this signals that you should
+        /// synchronize the store.
+        /// </summary>
+        Task SynchronizeAsync();
+
+        /// <summary>
         /// Updates an item that is already in the table, updating the
         /// item record from the service.  Also sends an event out on
         /// success with the new item.
