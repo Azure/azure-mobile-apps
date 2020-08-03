@@ -11,7 +11,17 @@ namespace Todo.XamarinForms.Views
         public TodoListPage(ITodoRepository repository)
         {
             InitializeComponent();
+
             BindingContext = new TodoListViewModel(Navigation, repository);
+        }
+
+        public void OnListItemTapped(object sender, ItemTappedEventArgs e)
+        {
+            (BindingContext as TodoListViewModel).SelectItemCommand.Execute(e.Item);
+            if (sender is ListView itemlist)
+            {
+                itemlist.SelectedItem = null; // De-select the item in the list.
+            }
         }
     }
 }

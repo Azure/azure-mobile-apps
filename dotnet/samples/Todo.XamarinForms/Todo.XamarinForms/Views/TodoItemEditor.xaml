@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="Todo.XamarinForms.Views.TodoItemEditor"
+             BackgroundColor="#C0808080">
+    <ContentPage.Content>
+        <StackLayout BackgroundColor="Transparent" HorizontalOptions="FillAndExpand" VerticalOptions="Center" Margin="20">
+            <Frame BackgroundColor="White">
+                <StackLayout Orientation="Vertical" >
+                    <Label Style="{StaticResource modalTitle}">Edit Todo Item</Label>
+                    <Entry Text="{Binding Item.Title}" HorizontalOptions="FillAndExpand"/>
+                    <Grid ColumnDefinitions="1,1">
+                        <StackLayout Grid.Row="0" Grid.Column="2" Orientation="Horizontal" HorizontalOptions="End" VerticalOptions="Center">
+                            <Label VerticalOptions="Center" Text="Completed"/>
+                            <Switch VerticalOptions="Center" IsToggled="{Binding Item.Completed}"/>
+                        </StackLayout>
+                    </Grid>
+                    <StackLayout Margin="0,20,0,0" HorizontalOptions="Center" Orientation="Horizontal">
+                        <Button Style="{StaticResource okButton}" Command="{Binding SaveItemCommand}" />
+                        <Button Style="{StaticResource cancelButton}" Command="{Binding CancelCommand}"/>
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+            <Label HorizontalOptions="Center" VerticalOptions="End" FontSize="Micro" TextColor="Orange" Text="{Binding Item.Id}"/>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

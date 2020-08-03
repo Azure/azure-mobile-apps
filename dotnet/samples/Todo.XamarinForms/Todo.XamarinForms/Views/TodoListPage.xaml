@@ -4,12 +4,40 @@
              xmlns:d="http://xamarin.com/schemas/2014/forms/design"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             x:Class="Todo.XamarinForms.Views.TodoListPage">
+             x:Class="Todo.XamarinForms.Views.TodoListPage"
+             Title="{Binding Title}">
     <ContentPage.Content>
-        <StackLayout>
-            <Label Text="Welcome to Xamarin.Forms!"
-                VerticalOptions="CenterAndExpand" 
-                HorizontalOptions="CenterAndExpand" />
+        <StackLayout BackgroundColor="Azure" AbsoluteLayout.LayoutBounds="0, 0, 1, 1" AbsoluteLayout.LayoutFlags="All">
+            <!-- The list of items -->
+            <ListView 
+                ItemsSource="{Binding Items}"
+                ItemTapped="OnListItemTapped"
+                IsPullToRefreshEnabled="True"
+                RefreshCommand="{Binding RefreshItemsCommand}"
+                IsRefreshing="{Binding IsRefreshing}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <StackLayout Orientation="Horizontal" Padding="10,5,10,5">
+                                <Label Style="{StaticResource listItemTitle}" Text="{Binding Title}"/>
+                                <Image Style="{StaticResource listItemIcon}" IsVisible="{Binding Completed}"/>
+                            </StackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <!-- The Add Item control -->
+            <Frame Style="{StaticResource roundedCorners}" HorizontalOptions="FillAndExpand">
+                <StackLayout Orientation="Horizontal" Padding="0">
+                    <Image Style="{StaticResource addItemIcon}" />
+                    <Entry x:Name="addItemEntry"
+                        Placeholder="Add New Item"
+                        MaxLength="200"
+                        ReturnCommand="{Binding AddItemCommand}"
+                        ReturnCommandParameter="{Binding Source={x:Reference addItemEntry}}" />
+                </StackLayout>
+            </Frame>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

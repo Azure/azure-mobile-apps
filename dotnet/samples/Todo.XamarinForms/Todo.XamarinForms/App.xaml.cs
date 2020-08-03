@@ -6,12 +6,10 @@ namespace Todo.XamarinForms
 {
     public partial class App : Application
     {
-        public ITodoRepository repository = new InMemoryTodoRepository();
-
         public App()
         {
             InitializeComponent();
-
+            ITodoRepository repository = new InMemoryTodoRepository();
             MainPage = new NavigationPage(new TodoListPage(repository));
         }
 
