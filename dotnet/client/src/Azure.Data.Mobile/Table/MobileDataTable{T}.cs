@@ -159,34 +159,18 @@ namespace Azure.Data.Mobile
 
         #region DeleteItem
         /// <summary>
-        /// Deletes an item from the backend table, but only if the version matches. 
+        /// Deletes an item from the backend table.  By default, the item is only deleted if it matches the item version.
         /// </summary>
         /// <param name="item">The item to delete</param>
+        /// <param name="conditions">The set of conditional request options to apply as headers to the request.</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>A <see cref="Response"/> from the backend service.</returns>
-        public virtual Task<Response> DeleteItemAsync(T item, CancellationToken cancellationToken = default)
+        public virtual async Task<Response> DeleteItemAsync(T item, MatchConditions conditions = null, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(item, nameof(item));
             Arguments.IsNotNullOrEmpty(item.Id, nameof(item.Id));
 
-            MatchConditions requestOptions = (item.Version == null) ? default : new MatchConditions { IfMatch = new ETag(item.Version) };
-            return DeleteItemAsync(item, requestOptions, cancellationToken);
-        }
-
-        /// <summary>
-        /// Deletes an item from the backend table. 
-        /// </summary>
-        /// <param name="item">The item to delete</param>
-        /// <param name="requestOptions">The set of conditional request options to apply as headers
-        /// to the request.</param>
-        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
-        /// <returns>A <see cref="Response"/> from the backend service.</returns>
-        public virtual async Task<Response> DeleteItemAsync(T item, MatchConditions requestOptions, CancellationToken cancellationToken = default)
-        {
-            Arguments.IsNotNull(item, nameof(item));
-            Arguments.IsNotNullOrEmpty(item.Id, nameof(item.Id));
-
-            using Request request = CreateDeleteRequest(item, requestOptions);
+            using Request request = CreateDeleteRequest(item, conditions ?? new MatchConditions { IfMatch = new ETag(item.Version) });
             Response response = await Pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
             switch (response.Status)
@@ -202,34 +186,18 @@ namespace Azure.Data.Mobile
         }
 
         /// <summary>
-        /// Deletes an item from the backend table, but only if the version matches. 
+        /// Deletes an item from the backend table.  By default, the item is only deleted if it matches the item version.
         /// </summary>
         /// <param name="item">The item to delete</param>
+        /// <param name="conditions">The set of conditional request options to apply as headers to the request.</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>A <see cref="Response"/> from the backend service.</returns>
-        public virtual Response DeleteItem(T item, CancellationToken cancellationToken = default)
+        public virtual Response DeleteItem(T item, MatchConditions conditions = null, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(item, nameof(item));
             Arguments.IsNotNullOrEmpty(item.Id, nameof(item.Id));
 
-            MatchConditions requestOptions = (item.Version == null) ? default : new MatchConditions { IfMatch = new ETag(item.Version) };
-            return DeleteItem(item, requestOptions, cancellationToken);
-        }
-
-        /// <summary>
-        /// Deletes an item from the backend table. 
-        /// </summary>
-        /// <param name="item">The item to delete</param>
-        /// <param name="requestOptions">The set of conditional request options to apply as headers
-        /// to the request.</param>
-        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
-        /// <returns>A <see cref="Response"/> from the backend service.</returns>
-        public virtual Response DeleteItem(T item, MatchConditions requestOptions, CancellationToken cancellationToken = default)
-        {
-            Arguments.IsNotNull(item, nameof(item));
-            Arguments.IsNotNullOrEmpty(item.Id, nameof(item.Id));
-
-            using Request request = CreateDeleteRequest(item, requestOptions);
+            using Request request = CreateDeleteRequest(item, conditions ?? new MatchConditions { IfMatch = new ETag(item.Version) });
             Response response = Pipeline.SendRequest(request, cancellationToken);
 
             switch (response.Status)
@@ -248,15 +216,15 @@ namespace Azure.Data.Mobile
         /// Creates the request for a DELETE operation
         /// </summary>
         /// <param name="item">The item to delete</param>
-        /// <param name="requestOptions">The <see cref="MatchConditions"/> for this request, if any</param>
+        /// <param name="conditions">The <see cref="MatchConditions"/> for this request, if any</param>
         /// <returns></returns>
-        private Request CreateDeleteRequest(T item, MatchConditions requestOptions)
+        private Request CreateDeleteRequest(T item, MatchConditions conditions)
         {
             Request request = Pipeline.CreateRequest();
 
             request.Method = RequestMethod.Delete;
             request.BuildUri(Endpoint, item.Id);
-            request.ApplyConditionalHeaders(requestOptions);
+            request.ApplyConditionalHeaders(conditions);
 
             return request;
         }
@@ -531,34 +499,19 @@ namespace Azure.Data.Mobile
 
         #region ReplaceItem
         /// <summary>
-        /// Replaces the item in the backend service with the local item.  The item must have
-        /// a version and the version must match what is on the backend service.
+        /// Replaces the item in the backend service with the local item, providing additional match conditions are met.  By default, replacement
+        /// only happens if the version provided matches the version on the server.
         /// </summary>
         /// <param name="item">The item to update</param>
+        /// <param name="conditions">The <see cref="MatchConditions"/> to be met</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>The updated item, as it appears in the backend service.</returns>
-        public virtual Task<Response<T>> ReplaceItemAsync(T item, CancellationToken cancellationToken = default)
+        public virtual async Task<Response<T>> ReplaceItemAsync(T item, MatchConditions conditions = null, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(item, nameof(item));
-            Arguments.IsNotNullOrEmpty(item.Id, nameof(item.Id));
+            Arguments.IsNotNull(item.Id, nameof(item.Id));
 
-            MatchConditions requestOptions = (item.Version == null) ? default : new MatchConditions { IfMatch = new ETag(item.Version) };
-            return ReplaceItemAsync(item, requestOptions, cancellationToken);
-        }
-
-        /// <summary>
-        /// Replaces the item in the backend service with the local item, providing additional
-        /// match conditions are met
-        /// </summary>
-        /// <param name="item">The item to update</param>
-        /// <param name="requestOptions">The <see cref="MatchConditions"/> to be met</param>
-        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
-        /// <returns>The updated item, as it appears in the backend service.</returns>
-        public virtual async Task<Response<T>> ReplaceItemAsync(T item, MatchConditions requestOptions, CancellationToken cancellationToken = default)
-        {
-            Arguments.IsNotNull(item, nameof(item));
-
-            using Request request = CreateReplaceRequest(item, requestOptions);
+            using Request request = CreateReplaceRequest(item, conditions ?? new MatchConditions { IfMatch = new ETag(item.Version) });
             Response response = await Pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
             switch (response.Status)
@@ -574,34 +527,19 @@ namespace Azure.Data.Mobile
         }
 
         /// <summary>
-        /// Replaces the item in the backend service with the local item.  The item must have
-        /// a version and the version must match what is on the backend service.
+        /// Replaces the item in the backend service with the local item, providing additional match conditions are met.  By default, replacement
+        /// only happens if the version provided matches the version on the server.
         /// </summary>
         /// <param name="item">The item to update</param>
+        /// <param name="conditions">The <see cref="MatchConditions"/> to be met</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>The updated item, as it appears in the backend service.</returns>
-        public virtual Response<T> ReplaceItem(T item, CancellationToken cancellationToken = default)
+        public virtual Response<T> ReplaceItem(T item, MatchConditions conditions = null, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(item, nameof(item));
-            Arguments.IsNotNullOrEmpty(item.Id, nameof(item.Id));
+            Arguments.IsNotNull(item.Id, nameof(item.Id));
 
-            MatchConditions requestOptions = (item.Version == null) ? default : new MatchConditions { IfMatch = new ETag(item.Version) };
-            return ReplaceItem(item, requestOptions, cancellationToken);
-        }
-
-        /// <summary>
-        /// Replaces the item in the backend service with the local item, providing additional
-        /// match conditions are met
-        /// </summary>
-        /// <param name="item">The item to update</param>
-        /// <param name="requestOptions">The <see cref="MatchConditions"/> to be met</param>
-        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
-        /// <returns>The updated item, as it appears in the backend service.</returns>
-        public virtual Response<T> ReplaceItem(T item, MatchConditions requestOptions, CancellationToken cancellationToken = default)
-        {
-            Arguments.IsNotNull(item, nameof(item));
-
-            using Request request = CreateReplaceRequest(item, requestOptions);
+            using Request request = CreateReplaceRequest(item, conditions ?? new MatchConditions { IfMatch = new ETag(item.Version) });
             Response response = Pipeline.SendRequest(request, cancellationToken);
 
             switch (response.Status)
