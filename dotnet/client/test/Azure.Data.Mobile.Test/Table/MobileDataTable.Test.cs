@@ -1090,12 +1090,12 @@ namespace Azure.Data.Mobile.Test
 
             var client = GetTestClient();
             var table = client.GetTable<Unit>("tables/sunits");
-            var actual = await table.DeleteItemAsync(item);
+            var actual = await table.DeleteItemAsync(item, new MatchConditions());
             Assert.AreEqual(204, actual.Status);
 
             try
             {
-                actual = await table.DeleteItemAsync(item);
+                actual = await table.DeleteItemAsync(item, new MatchConditions());
                 Assert.Fail("RequestFailedException expected");
             }
             catch (RequestFailedException ex)
@@ -1301,12 +1301,12 @@ namespace Azure.Data.Mobile.Test
 
             var client = GetTestClient();
             var table = client.GetTable<Unit>("tables/sunits");
-            var actual = table.DeleteItem(item);
+            var actual = table.DeleteItem(item, new MatchConditions());
             Assert.AreEqual(204, actual.Status);
 
             try
             {
-                actual = table.DeleteItem(item);
+                actual = table.DeleteItem(item, new MatchConditions());
                 Assert.Fail("RequestFailedException expected");
             }
             catch (RequestFailedException ex)
