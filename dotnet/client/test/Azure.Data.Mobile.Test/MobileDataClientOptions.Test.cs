@@ -10,7 +10,7 @@ namespace Azure.Data.Mobile.Test
         [TestMethod]
         public void SetJsonSerializerOptions_RoundTrips()
         {
-            var actual = new MobileDataClientOptions();
+            var actual = new MobileTableClientOptions();
             actual.JsonSerializerOptions = new JsonSerializerOptions
             {
                 IgnoreNullValues = true,

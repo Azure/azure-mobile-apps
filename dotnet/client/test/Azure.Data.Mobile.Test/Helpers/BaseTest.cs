@@ -19,30 +19,30 @@ namespace Azure.Data.Mobile.Test.Helpers
         /// <summary>
         /// Returns a MobileDataClient that hits the test server.
         /// </summary>
-        /// <returns>A <see cref="MobileDataClient"/> reference.</returns>
-        internal MobileDataClient GetTestClient()
+        /// <returns>A <see cref="MobileTableClient"/> reference.</returns>
+        internal MobileTableClient GetTestClient()
         {
             var httpClient = server.CreateClient();
 
-            var clientOptions = new MobileDataClientOptions()
+            var clientOptions = new MobileTableClientOptions()
             {
                 Transport = new HttpClientTransport(httpClient)
             };
 
-            return new MobileDataClient(new Uri("https://localhost:5001"), clientOptions);
+            return new MobileTableClient(new Uri("https://localhost:5001"), clientOptions);
         }
 
         /// <summary>
         /// Returns a MobilDataClient with authentication
         /// </summary>
-        internal MobileDataClient GetTestClient(TokenCredential credential)
+        internal MobileTableClient GetTestClient(TokenCredential credential)
         {
             var httpClient = server.CreateClient();
-            var clientOptions = new MobileDataClientOptions()
+            var clientOptions = new MobileTableClientOptions()
             {
                 Transport = new HttpClientTransport(httpClient)
             };
-            return new MobileDataClient(new Uri("https://localhost:5001"), credential, clientOptions);
+            return new MobileTableClient(new Uri("https://localhost:5001"), credential, clientOptions);
         }
 
         /// <summary>

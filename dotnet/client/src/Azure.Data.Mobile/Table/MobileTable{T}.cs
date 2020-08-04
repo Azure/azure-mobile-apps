@@ -12,14 +12,14 @@ namespace Azure.Data.Mobile
     /// Provides operations that handle a single Azure Mobile Table.
     /// </summary>
     /// <typeparam name="T">The type of the entity stored in the table.</typeparam>
-    public class MobileDataTable<T> where T : TableData
+    public class MobileTable<T> where T : TableData
     {
         /// <summary>
         /// Initializes a <see cref="MobileDataTable{T}"/> instance.
         /// </summary>
-        /// <param name="client">The <see cref="MobileDataClient"/> that created this table reference.</param>
+        /// <param name="client">The <see cref="MobileTableClient"/> that created this table reference.</param>
         /// <param name="endpoint">The absolute Uri to the table controller endpoint.</param>
-        internal MobileDataTable(MobileDataClient client, Uri endpoint)
+        internal MobileTable(MobileTableClient client, Uri endpoint)
         {
             Arguments.IsAbsoluteUri(endpoint, nameof(endpoint));
 
@@ -58,7 +58,7 @@ namespace Azure.Data.Mobile
         /// <summary>
         /// The client options for this connection.
         /// </summary>
-        internal MobileDataClientOptions ClientOptions { get; }
+        internal MobileTableClientOptions ClientOptions { get; }
 
         /// <summary>
         /// The Azure.Core Pipeline used for communicating with to the service
@@ -71,16 +71,16 @@ namespace Azure.Data.Mobile
         /// </summary>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>The table metadata</returns>
-        public virtual Task<Response<TableMetadata>> GetMetadataAsync(CancellationToken cancellationToken = default)
-            => GetMetadataAsync(new MobileTableQuery(), cancellationToken);
+        public virtual Task<Response<MobileTableMetadata>> GetMetadataAsync(CancellationToken cancellationToken = default)
+            => GetMetadataAsync(new MobileTableQueryOptions(), cancellationToken);
 
         /// <summary>
         /// Obtains the table metadata.  The count returned is contstrained by the query provided.
         /// </summary>
-        /// <param name="query">The <see cref="MobileTableQuery"/> describing the query</param>
+        /// <param name="query">The <see cref="MobileTableQueryOptions"/> describing the query</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>The table metadata</returns>
-        public virtual async Task<Response<TableMetadata>> GetMetadataAsync(MobileTableQuery query, CancellationToken cancellationToken = default)
+        public virtual async Task<Response<MobileTableMetadata>> GetMetadataAsync(MobileTableQueryOptions query, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(query, nameof(query));
 
@@ -90,7 +90,7 @@ namespace Azure.Data.Mobile
             switch (response.Status)
             {
                 case 200:
-                    return await CreateResponseAsync<TableMetadata>(response, cancellationToken).ConfigureAwait(false);
+                    return await CreateResponseAsync<MobileTableMetadata>(response, cancellationToken).ConfigureAwait(false);
                 default:
                     throw new RequestFailedException(response.Status, response.ReasonPhrase);
             }
@@ -101,16 +101,16 @@ namespace Azure.Data.Mobile
         /// </summary>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>The table metadata</returns>
-        public virtual Response<TableMetadata> GetMetadata(CancellationToken cancellationToken = default)
-            => GetMetadata(new MobileTableQuery(), cancellationToken);
+        public virtual Response<MobileTableMetadata> GetMetadata(CancellationToken cancellationToken = default)
+            => GetMetadata(new MobileTableQueryOptions(), cancellationToken);
 
         /// <summary>
         /// Obtains the table metadata.  The count returned is contstrained by the query provided.
         /// </summary>
-        /// <param name="query">The <see cref="MobileTableQuery"/> describing the query</param>
+        /// <param name="query">The <see cref="MobileTableQueryOptions"/> describing the query</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>The table metadata</returns>
-        public virtual Response<TableMetadata> GetMetadata(MobileTableQuery query, CancellationToken cancellationToken = default)
+        public virtual Response<MobileTableMetadata> GetMetadata(MobileTableQueryOptions query, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(query, nameof(query));
 
@@ -120,7 +120,7 @@ namespace Azure.Data.Mobile
             switch (response.Status)
             {
                 case 200:
-                    return CreateResponse<TableMetadata>(response, cancellationToken);
+                    return CreateResponse<MobileTableMetadata>(response, cancellationToken);
                 default:
                     throw new RequestFailedException(response.Status, response.ReasonPhrase);
             }
@@ -132,7 +132,7 @@ namespace Azure.Data.Mobile
         /// <param name="query">The query to send</param>
         /// <param name="pageLink">The link to the next page</param>
         /// <returns>The <see cref="Request"/> object corresponding to the request</returns>
-        private Request CreateGetMetadataRequest(MobileTableQuery query)
+        private Request CreateGetMetadataRequest(MobileTableQueryOptions query)
         {
             Request request = Pipeline.CreateRequest();
             request.Method = RequestMethod.Get;
@@ -295,55 +295,37 @@ namespace Azure.Data.Mobile
 
         #region GetItems
         /// <summary>
-        /// Retrieves the list of items in the table from the service.
-        /// </summary>
-        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
-        /// <returns>A pageable list of items</returns>
-        public virtual AsyncPageable<T> GetItemsAsync(CancellationToken cancellationToken = default)
-            => GetItemsAsync(new MobileTableQuery(), cancellationToken);
-
-        /// <summary>
         /// Retrieves a list of items from the service.
         /// </summary>
-        /// <param name="query">The query to send to the remote server</param>
+        /// <param name="options">The query to send to the remote server</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>A pageable list of items</returns>
-        public virtual AsyncPageable<T> GetItemsAsync(MobileTableQuery query, CancellationToken cancellationToken = default)
+        public virtual AsyncPageable<T> GetItemsAsync(MobileTableQueryOptions options = null, CancellationToken cancellationToken = default)
         {
-            Arguments.IsNotNull(query, nameof(query));
-            return PageResponseEnumerator.CreateAsyncEnumerable(nextLink => GetItemsPageAsync(query, nextLink, cancellationToken));
+            return PageResponseEnumerator.CreateAsyncEnumerable(nextLink => GetItemsPageAsync(options, nextLink, cancellationToken));
         }
 
         /// <summary>
-        /// Retrieves the list of items in the table from the service.
-        /// </summary>
-        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
-        /// <returns>A pagable list of items</returns>
-        public virtual Pageable<T> GetItems(CancellationToken cancellationToken = default)
-            => GetItems(new MobileTableQuery(), cancellationToken);
-
-        /// <summary>
         /// Retrieves a list of items from the service.
         /// </summary>
-        /// <param name="query">The query to send to the remote server</param>
+        /// <param name="options">The query to send to the remote server</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>A pageable list of items</returns>
-        public virtual Pageable<T> GetItems(MobileTableQuery query, CancellationToken cancellationToken = default)
+        public virtual Pageable<T> GetItems(MobileTableQueryOptions options = null, CancellationToken cancellationToken = default)
         {
-            Arguments.IsNotNull(query, nameof(query));
-            return PageResponseEnumerator.CreateEnumerable(nextLink => GetItemsPage(query, nextLink, cancellationToken));
+            return PageResponseEnumerator.CreateEnumerable(nextLink => GetItemsPage(options, nextLink, cancellationToken));
         }
 
         /// <summary>
         /// Fetches a single page in the server-side paging result of a list operation.
         /// </summary>
-        /// <param name="query">The query to send to the service</param>
+        /// <param name="options">The query to send to the service</param>
         /// <param name="pageLink">The link to the page</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>A single page of results</returns>
-        private async Task<Page<T>> GetItemsPageAsync(MobileTableQuery query, string pageLink, CancellationToken cancellationToken = default)
+        private async Task<Page<T>> GetItemsPageAsync(MobileTableQueryOptions options, string pageLink, CancellationToken cancellationToken = default)
         {
-            using Request request = CreateListRequest(query, pageLink);
+            using Request request = CreateListRequest(options, pageLink);
             Response response = await Pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
             switch (response.Status)
@@ -359,13 +341,13 @@ namespace Azure.Data.Mobile
         /// <summary>
         /// Fetches a single page in the server-side paging result of a list operation.
         /// </summary>
-        /// <param name="query">The query to send to the service</param>
+        /// <param name="options">The query to send to the service</param>
         /// <param name="pageLink">The link to the page</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>A single page of results</returns>
-        private Page<T> GetItemsPage(MobileTableQuery query, string pageLink, CancellationToken cancellationToken = default)
+        private Page<T> GetItemsPage(MobileTableQueryOptions options, string pageLink, CancellationToken cancellationToken = default)
         {
-            using Request request = CreateListRequest(query, pageLink);
+            using Request request = CreateListRequest(options, pageLink);
             Response response = Pipeline.SendRequest(request, cancellationToken);
 
             switch (response.Status)
@@ -381,10 +363,10 @@ namespace Azure.Data.Mobile
         /// <summary>
         /// Creates a request object for a paged response.
         /// </summary>
-        /// <param name="query">The query to send</param>
+        /// <param name="options">The query to send</param>
         /// <param name="pageLink">The link to the next page</param>
         /// <returns>The <see cref="Request"/> object corresponding to the request</returns>
-        private Request CreateListRequest(MobileTableQuery query, string pageLink)
+        private Request CreateListRequest(MobileTableQueryOptions options, string pageLink)
         {
             Request request = Pipeline.CreateRequest();
             request.Method = RequestMethod.Get;
@@ -396,29 +378,32 @@ namespace Azure.Data.Mobile
             {
                 var builder = request.Uri;
                 builder.Reset(Endpoint);
-                if (query.Filter != null)
+                if (options != null)
                 {
-                    builder.AppendQuery("$filter", query.Filter);
-                }
-                if (query.OrderBy != null)
-                {
-                    builder.AppendQuery("$orderBy", query.OrderBy);
-                }
-                if (query.Skip >= 0)
-                {
-                    builder.AppendQuery("$skip", $"{query.Skip}");
-                }
-                if (query.Top >= 0)
-                {
-                    builder.AppendQuery("$top", $"{query.Top}");
-                }
-                if (query.IncludeDeleted)
-                {
-                    builder.AppendQuery("__includedeleted", "true");
-                }
-                if (query.IncludeCount)
-                {
-                    builder.AppendQuery("$count", "true");
+                    if (options.Filter != null)
+                    {
+                        builder.AppendQuery("$filter", options.Filter);
+                    }
+                    if (options.OrderBy != null)
+                    {
+                        builder.AppendQuery("$orderBy", options.OrderBy);
+                    }
+                    if (options.Skip >= 0)
+                    {
+                        builder.AppendQuery("$skip", $"{options.Skip}");
+                    }
+                    if (options.Top >= 0)
+                    {
+                        builder.AppendQuery("$top", $"{options.Top}");
+                    }
+                    if (options.IncludeDeleted)
+                    {
+                        builder.AppendQuery("__includedeleted", "true");
+                    }
+                    if (options.IncludeCount)
+                    {
+                        builder.AppendQuery("$count", "true");
+                    }
                 }
             }
             return request;

@@ -11,7 +11,7 @@ namespace Azure.Data.Mobile.Test
         public void Ctor_Endpoint_CanCreate()
         {
             var endpoint = new Uri("https://localhost:5001");
-            var actual = new MobileDataClient(endpoint);
+            var actual = new MobileTableClient(endpoint);
             Assert.IsNotNull(actual);
             Assert.AreEqual(endpoint.ToString(), actual.Endpoint.ToString());
             Assert.IsNotNull(actual.ClientOptions);
@@ -23,7 +23,7 @@ namespace Azure.Data.Mobile.Test
         {
             var baseUri = new Uri("https://localhost:5001");
             var relUri = new Uri("https://localhost:5001/tables");
-            var actual = new MobileDataClient(relUri.MakeRelativeUri(baseUri));
+            var actual = new MobileTableClient(relUri.MakeRelativeUri(baseUri));
             Assert.Fail("ArgumentException expected");
         }
 
@@ -32,7 +32,7 @@ namespace Azure.Data.Mobile.Test
         {
             var endpoint = new Uri("https://localhost:5001");
             var credential = new PreauthorizedTokenCredential("token");
-            var actual = new MobileDataClient(endpoint, credential);
+            var actual = new MobileTableClient(endpoint, credential);
             Assert.IsNotNull(actual);
             Assert.AreEqual(endpoint.ToString(), actual.Endpoint.ToString());
             Assert.IsNotNull(actual.ClientOptions);

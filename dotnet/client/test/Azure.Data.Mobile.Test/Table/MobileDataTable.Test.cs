@@ -53,7 +53,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>();
-            var query = new MobileTableQuery { Filter = "mpaaRating eq 'R'" };
+            var query = new MobileTableQueryOptions { Filter = "mpaaRating eq 'R'" };
             var actual = await table.GetMetadataAsync(query);
 
             Assert.AreEqual(200, actual.GetRawResponse().Status);
@@ -68,7 +68,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>("tables/rmovies");
-            var query = new MobileTableQuery
+            var query = new MobileTableQueryOptions
             {
                 IncludeDeleted = true
             };
@@ -86,7 +86,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>("tables/movies");
-            var query = new MobileTableQuery
+            var query = new MobileTableQueryOptions
             {
                 OrderBy = "mpaaRating"
             };
@@ -167,7 +167,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>();
-            var query = new MobileTableQuery { Filter = "mpaaRating eq 'R'" };
+            var query = new MobileTableQueryOptions { Filter = "mpaaRating eq 'R'" };
             var actual = table.GetMetadata(query);
 
             Assert.AreEqual(200, actual.GetRawResponse().Status);
@@ -182,7 +182,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>("tables/rmovies");
-            var query = new MobileTableQuery
+            var query = new MobileTableQueryOptions
             {
                 IncludeDeleted = true
             };
@@ -200,7 +200,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>("tables/movies");
-            var query = new MobileTableQuery
+            var query = new MobileTableQueryOptions
             {
                 OrderBy = "mpaaRating"
             };
@@ -464,7 +464,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>();
-            var query = new MobileTableQuery { IncludeCount = true };
+            var query = new MobileTableQueryOptions { IncludeCount = true };
             var actual = table.GetItemsAsync(query);
 
             var items = new List<Movie>();
@@ -482,7 +482,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>();
-            var query = new MobileTableQuery { Filter = "mpaaRating eq 'R'" };
+            var query = new MobileTableQueryOptions { Filter = "mpaaRating eq 'R'" };
             var actual = table.GetItemsAsync(query);
 
             var items = new List<Movie>();
@@ -500,7 +500,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>();
-            var query = new MobileTableQuery { OrderBy = "releaseDate" };
+            var query = new MobileTableQueryOptions { OrderBy = "releaseDate" };
             var actual = table.GetItemsAsync(query);
 
             var items = new List<Movie>();
@@ -518,7 +518,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>();
-            var query = new MobileTableQuery { 
+            var query = new MobileTableQueryOptions { 
                 OrderBy = "releaseDate",
                 Skip = 5,
                 Top = 5
@@ -544,7 +544,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>("tables/rmovies");
-            var query = new MobileTableQuery
+            var query = new MobileTableQueryOptions
             {
                 IncludeDeleted = true
             };
@@ -638,7 +638,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>();
-            var query = new MobileTableQuery { Filter = "mpaaRating eq 'R'" };
+            var query = new MobileTableQueryOptions { Filter = "mpaaRating eq 'R'" };
             var actual = table.GetItems(query);
 
             var items = new List<Movie>();
@@ -656,7 +656,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>();
-            var query = new MobileTableQuery { OrderBy = "releaseDate" };
+            var query = new MobileTableQueryOptions { OrderBy = "releaseDate" };
             var actual = table.GetItems(query);
 
             var items = new List<Movie>();
@@ -674,7 +674,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>();
-            var query = new MobileTableQuery
+            var query = new MobileTableQueryOptions
             {
                 OrderBy = "releaseDate",
                 Skip = 5,
@@ -701,7 +701,7 @@ namespace Azure.Data.Mobile.Test
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>("tables/rmovies");
-            var query = new MobileTableQuery
+            var query = new MobileTableQueryOptions
             {
                 IncludeDeleted = true
             };

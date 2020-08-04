@@ -3,7 +3,7 @@
     /// <summary>
     /// Information about the table, potentially with a query.
     /// </summary>
-    public class TableMetadata
+    public class MobileTableMetadata
     {
         /// <summary>
         /// The number of items in the table, or (if you supplied a query),
