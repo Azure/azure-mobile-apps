@@ -10,7 +10,7 @@ namespace Todo.NetStandard.Common
         /// <summary>
         /// Where you deployed your backend service
         /// </summary>
-        public static Uri BackendService = new Uri("https://my-zumo-backend.azurewebsites.net");
+        public static Uri BackendService = new Uri("https://todoaspnetcoreserver20200803165803.azurewebsites.net");
 
         /// <summary>
         /// The Application Id (or Client Id) for your AAD application.

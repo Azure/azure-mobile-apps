@@ -9,7 +9,7 @@ namespace Todo.XamarinForms
         public App()
         {
             InitializeComponent();
-            ITodoRepository repository = new InMemoryTodoRepository();
+            ITodoRepository repository = new ZumoTodoRepository();
             MainPage = new NavigationPage(new TodoListPage(repository));
         }
 

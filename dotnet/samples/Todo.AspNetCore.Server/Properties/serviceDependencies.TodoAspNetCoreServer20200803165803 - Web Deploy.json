@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "mssql1": {
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroup')]/providers/Microsoft.Sql/servers/zumoe2eserverappdbserver/databases/zumonextgendb",
+      "type": "mssql.azure",
+      "connectionId": "MS_TableConnectionString",
+      "secretStore": "AzureAppSettings"
+    }
+  }
+}

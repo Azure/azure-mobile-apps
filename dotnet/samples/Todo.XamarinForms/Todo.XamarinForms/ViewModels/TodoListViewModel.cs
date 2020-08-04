@@ -30,7 +30,7 @@ namespace Todo.XamarinForms.ViewModels
             Title = "Azure Todo List";
 
             // Get a copy of the list from the local store
-            RefreshItemsAsync().Wait();
+            RefreshItemsCommand.Execute(null);
 
             // Respond to events from the store.
             Repository.RepositoryUpdated += OnRepositoryUpdated;
