@@ -19,5 +19,15 @@ namespace Azure.Mobile.Client.Table
         /// The Uri to the next page of items.
         /// </summary>
         public string NextLink { get; set; }
+
+        /// <summary>
+        /// Table Metadata - maximum value of $top
+        /// </summary>
+        public long? MaxTop { get; set; }
+
+        /// <summary>
+        /// Table Metadata - value of PageSize
+        /// </summary>
+        public long? PageSize { get; set; }
     }
 }

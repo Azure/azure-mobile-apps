@@ -13,7 +13,6 @@ namespace Todo.NetStandard.Common
     {
         private MobileDataClient _client;
         private MobileDataTable<TodoItem> _table;
-        private Dictionary<string, TodoItem> _items = null;
 
         public ZumoTodoRepository()
         {
@@ -42,7 +41,6 @@ namespace Todo.NetStandard.Common
             try
             {
                 TodoItem response = await _table.InsertItemAsync(item).ConfigureAwait(false);
-                _items[response.Id] = response;
                 OnRepositoryChanged(RepositoryAction.Add, response);
             }
             catch (RequestFailedException ex)
@@ -71,7 +69,6 @@ namespace Todo.NetStandard.Common
             try
             {
                 await _table.DeleteItemAsync(item).ConfigureAwait(false);
-                _items.Remove(item.Id);
                 OnRepositoryChanged(RepositoryAction.Delete, item);
             }
             catch (RequestFailedException ex)
@@ -85,13 +82,10 @@ namespace Todo.NetStandard.Common
         /// Retrieves a list of all items in the table.
         /// </summary>
         /// <returns>An <see cref="IEnumerable{TodoItem}"/> containing all the items</returns>
-        public async Task<IEnumerable<TodoItem>> GetTodoItemsAsync()
+        public Task<IEnumerable<TodoItem>> GetTodoItemsAsync()
         {
-            if (_items == null)
-            {
-                await SynchronizeAsync().ConfigureAwait(false);
-            }
-            return _items.Values.AsEnumerable();
+            var items = _table.GetItems().ToList();
+            return Task.FromResult(items.AsEnumerable());
         }
 
         /// <summary>
@@ -108,18 +102,11 @@ namespace Todo.NetStandard.Common
         /// If you have a backing store, then this signifies that you should synchronize the store.
         /// </summary>
         /// <returns></returns>
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task SynchronizeAsync()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
-            if (_items == null)
-            {
-                _items = new Dictionary<string, TodoItem>();
-            }
-
-            _items.Clear();
-            await foreach (TodoItem item in _table.GetItemsAsync())
-            {
-                _items[item.Id] = item;
-            }
+            // No backing store.
             return;
         }
 
@@ -136,14 +123,13 @@ namespace Todo.NetStandard.Common
             {
                 throw new ArgumentNullException(nameof(item));
             }
-            if (item.Id == null || !_items.ContainsKey(item.Id))
+            if (item.Id == null)
             {
                 throw new RepositoryException("Item does not exist");
             }
             try
             {
                 TodoItem response = await _table.ReplaceItemAsync(item).ConfigureAwait(false);
-                _items[response.Id] = response;
                 OnRepositoryChanged(RepositoryAction.Update, response);
             }
             catch (RequestFailedException ex)
