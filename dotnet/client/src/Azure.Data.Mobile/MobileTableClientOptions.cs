@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace Azure.Data.Mobile
 {
-    public class MobileDataClientOptions : ClientOptions
+    public class MobileTableClientOptions : ClientOptions
     {
         /// <summary>
         /// The SerializerOptions used by the serialization library.  The default is

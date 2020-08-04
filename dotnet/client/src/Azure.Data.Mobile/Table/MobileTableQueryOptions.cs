@@ -4,7 +4,7 @@
     /// The fields necessary to be sent in an OData Query to the
     /// Azure Mobile Apps backend.
     /// </summary>
-    public class MobileTableQuery
+    public class MobileTableQueryOptions
     {
         /// <summary>
         /// The OData <c>$filter</c> query param.  If null, does not

@@ -7,38 +7,38 @@ namespace Azure.Data.Mobile
     /// <summary>
     /// Provides basic access to a Microsoft Azure Mobile Apps service.
     /// </summary>
-    public class MobileDataClient
+    public class MobileTableClient
     {
         #region Constructors
         /// <summary>
-        /// Initialize a new instance of <see cref="MobileDataClient"/> for mocking.
+        /// Initialize a new instance of <see cref="MobileTableClient"/> for mocking.
         /// </summary>
         [ExcludeFromCodeCoverage]
-        protected MobileDataClient()
+        protected MobileTableClient()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="MobileDataClient"/>
+        /// Initializes a new instance of <see cref="MobileTableClient"/>
         /// </summary>
         /// <param name="endpoint">The <see cref="Uri"/> to the backend service</param>
-        public MobileDataClient(Uri endpoint)
-            : this(endpoint, null, new MobileDataClientOptions())
+        public MobileTableClient(Uri endpoint)
+            : this(endpoint, null, new MobileTableClientOptions())
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="MobileDataClient"/>
+        /// Initializes a new instance of <see cref="MobileTableClient"/>
         /// </summary>
         /// <param name="endpoint">The <see cref="Uri"/> to the backend service</param>
         /// <param name="credential">The <see cref="TokenCredential"/> for authentication</param>
-        public MobileDataClient(Uri endpoint, TokenCredential credential)
-            : this(endpoint, credential, new MobileDataClientOptions())
+        public MobileTableClient(Uri endpoint, TokenCredential credential)
+            : this(endpoint, credential, new MobileTableClientOptions())
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="MobileDataClient"/>
+        /// Initializes a new instance of <see cref="MobileTableClient"/>
         /// </summary>
         /// <param name="endpoint">The <see cref="Uri"/> to the backend service</param>
         /// <param name="options">The client options for this connection</param>
@@ -51,19 +51,19 @@ namespace Azure.Data.Mobile
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="options"/> is <c>null</c>.
         /// </exception>
-        public MobileDataClient(Uri endpoint, MobileDataClientOptions options)
+        public MobileTableClient(Uri endpoint, MobileTableClientOptions options)
             : this(endpoint, null, options)
         {
         }
         #endregion
 
         /// <summary>
-        /// Initializes a new instance of <see cref="MobileDataClient"/>
+        /// Initializes a new instance of <see cref="MobileTableClient"/>
         /// </summary>
         /// <param name="endpoint">The <see cref="Uri"/> to the backend service</param>
         /// <param name="credential">The <see cref="TokenCredential"/> for authentication</param>
         /// <param name="options">The client options for this connection</param>
-        public MobileDataClient(Uri endpoint, TokenCredential credential, MobileDataClientOptions options)
+        public MobileTableClient(Uri endpoint, TokenCredential credential, MobileTableClientOptions options)
         {
             Arguments.IsNotNull(endpoint, nameof(endpoint));
             Arguments.IsNotNull(options, nameof(options));
@@ -91,7 +91,7 @@ namespace Azure.Data.Mobile
         /// <summary>
         /// The client options for this connection.
         /// </summary>
-        internal MobileDataClientOptions ClientOptions { get; }
+        internal MobileTableClientOptions ClientOptions { get; }
 
         /// <summary>
         /// Obtain a reference to a <see cref="MobileDataTable{T}"/> for a typed entity, using
@@ -104,12 +104,12 @@ namespace Azure.Data.Mobile
         /// <exception cref="UriFormatException">
         ///     <paramref name="relativePath"/> does not produce a valid Uri.
         /// </exception>
-        public MobileDataTable<T> GetTable<T>(string relativePath = null) where T : TableData
+        public MobileTable<T> GetTable<T>(string relativePath = null) where T : TableData
         {
             var tableEndpoint = relativePath == null
                 ? new Uri(Endpoint, $"tables/{typeof(T).Name.ToLowerInvariant()}s")
                 : new Uri(Endpoint, relativePath);
-            return new MobileDataTable<T>(this, tableEndpoint);
+            return new MobileTable<T>(this, tableEndpoint);
         }
     }
 }

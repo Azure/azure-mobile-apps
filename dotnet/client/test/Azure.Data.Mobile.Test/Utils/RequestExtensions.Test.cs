@@ -10,7 +10,7 @@ namespace Azure.Data.Mobile.Test
         [TestMethod]
         public void IfMatch_Added()
         {
-            var client = new MobileDataClient(new Uri("https://localhost:5001"));
+            var client = new MobileTableClient(new Uri("https://localhost:5001"));
             var table = client.GetTable<Movie>();
             var request = table.Pipeline.CreateRequest();
             var conditions = new MatchConditions { IfMatch = new ETag("foo") };
@@ -21,7 +21,7 @@ namespace Azure.Data.Mobile.Test
         [TestMethod]
         public void IfNoneMatch_Added()
         {
-            var client = new MobileDataClient(new Uri("https://localhost:5001"));
+            var client = new MobileTableClient(new Uri("https://localhost:5001"));
             var table = client.GetTable<Movie>();
             var request = table.Pipeline.CreateRequest();
             var conditions = new MatchConditions { IfNoneMatch = new ETag("foo") };
@@ -32,7 +32,7 @@ namespace Azure.Data.Mobile.Test
         [TestMethod]
         public void IfMatch_All_Added()
         {
-            var client = new MobileDataClient(new Uri("https://localhost:5001"));
+            var client = new MobileTableClient(new Uri("https://localhost:5001"));
             var table = client.GetTable<Movie>();
             var request = table.Pipeline.CreateRequest();
             var conditions = new MatchConditions { IfMatch = ETag.All };
@@ -43,7 +43,7 @@ namespace Azure.Data.Mobile.Test
         [TestMethod]
         public void IfNoneMatch_All_Added()
         {
-            var client = new MobileDataClient(new Uri("https://localhost:5001"));
+            var client = new MobileTableClient(new Uri("https://localhost:5001"));
             var table = client.GetTable<Movie>();
             var request = table.Pipeline.CreateRequest();
             var conditions = new MatchConditions { IfNoneMatch = ETag.All };
@@ -54,7 +54,7 @@ namespace Azure.Data.Mobile.Test
         [TestMethod]
         public void IfMatch_And_IfNoneMatch_Added()
         {
-            var client = new MobileDataClient(new Uri("https://localhost:5001"));
+            var client = new MobileTableClient(new Uri("https://localhost:5001"));
             var table = client.GetTable<Movie>();
             var request = table.Pipeline.CreateRequest();
             var conditions = new MatchConditions { IfMatch = new ETag("foo"), IfNoneMatch = new ETag("bar") };
@@ -66,7 +66,7 @@ namespace Azure.Data.Mobile.Test
         [TestMethod]
         public void IfModifiedSince_Added()
         {
-            var client = new MobileDataClient(new Uri("https://localhost:5001"));
+            var client = new MobileTableClient(new Uri("https://localhost:5001"));
             var table = client.GetTable<Movie>();
             var request = table.Pipeline.CreateRequest();
             var conditions = new RequestConditions { IfModifiedSince = DateTimeOffset.Parse("2020-01-01T07:30:06Z") };
@@ -77,7 +77,7 @@ namespace Azure.Data.Mobile.Test
         [TestMethod]
         public void IfUnmodifiedSince_Added()
         {
-            var client = new MobileDataClient(new Uri("https://localhost:5001"));
+            var client = new MobileTableClient(new Uri("https://localhost:5001"));
             var table = client.GetTable<Movie>();
             var request = table.Pipeline.CreateRequest();
             var conditions = new RequestConditions { IfUnmodifiedSince = DateTimeOffset.Parse("2020-01-01T07:30:06Z") };

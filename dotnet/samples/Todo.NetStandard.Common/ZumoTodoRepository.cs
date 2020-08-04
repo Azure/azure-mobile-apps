@@ -10,12 +10,12 @@ namespace Todo.NetStandard.Common
 {
     public class ZumoTodoRepository : ITodoRepository
     {
-        private MobileDataClient _client;
-        private MobileDataTable<TodoItem> _table;
+        private MobileTableClient _client;
+        private MobileTable<TodoItem> _table;
 
         public ZumoTodoRepository()
         {
-            _client = new MobileDataClient(Configuration.BackendService);
+            _client = new MobileTableClient(Configuration.BackendService);
             _table = _client.GetTable<TodoItem>();
         }
 
