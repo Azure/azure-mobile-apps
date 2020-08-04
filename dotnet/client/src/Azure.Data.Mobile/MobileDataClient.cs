@@ -94,28 +94,22 @@ namespace Azure.Data.Mobile
         internal MobileDataClientOptions ClientOptions { get; }
 
         /// <summary>
-        /// Obtain a reference to a <see cref="MobileDataTable{T}"/> for a typed entity using
-        /// the default relative path to the table controller.
-        /// </summary>
-        /// <typeparam name="T">The type of the entity managed by the table</typeparam>
-        /// <returns>A <see cref="MobileDataTable{T}"/> reference</returns>
-        public MobileDataTable<T> GetTable<T>() where T : TableData
-            => GetTable<T>($"tables/{typeof(T).Name.ToLowerInvariant()}s");
-
-        /// <summary>
         /// Obtain a reference to a <see cref="MobileDataTable{T}"/> for a typed entity, using
-        /// a specific relative path to the table controller.
+        /// a specific relative path to the table controller.  If the relative path to the 
+        /// endpoint is null, then the default path is used.
         /// </summary>
         /// <typeparam name="T">The type of the entity managed by the table</typeparam>
         /// <param name="relativePath">The relative path (to the Endpoint) to the table controller</param>
         /// <returns>A <see cref="MobileDataTable{T}"/> reference</returns>
-        /// <exception cref="ArgumentNullException">
-        ///     <paramref name="relativePath"/> is <c>null</c>.
-        /// </exception>
         /// <exception cref="UriFormatException">
         ///     <paramref name="relativePath"/> does not produce a valid Uri.
         /// </exception>
-        public MobileDataTable<T> GetTable<T>(string relativePath) where T : TableData
-            => new MobileDataTable<T>(this, new Uri(Endpoint, relativePath));
+        public MobileDataTable<T> GetTable<T>(string relativePath = null) where T : TableData
+        {
+            var tableEndpoint = relativePath == null
+                ? new Uri(Endpoint, $"tables/{typeof(T).Name.ToLowerInvariant()}s")
+                : new Uri(Endpoint, relativePath);
+            return new MobileDataTable<T>(this, tableEndpoint);
+        }
     }
 }
