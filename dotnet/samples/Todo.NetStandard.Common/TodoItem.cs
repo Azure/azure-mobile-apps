@@ -1,4 +1,4 @@
-﻿using Azure.Mobile.Client;
+﻿using Azure.Data.Mobile;
 using System;
 
 namespace Todo.NetStandard.Common

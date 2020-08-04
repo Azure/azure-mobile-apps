@@ -1,6 +1,5 @@
 ﻿using Azure;
-using Azure.Mobile.Client;
-using Azure.Mobile.Client.Table;
+using Azure.Data.Mobile;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

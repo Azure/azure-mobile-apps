@@ -30,9 +30,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Server.Entity.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Server.Test", "server\test\Azure.Mobile.Server.Test\Azure.Mobile.Server.Test.csproj", "{9CD5590B-3C3C-4C0F-9C13-F80B22935100}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Client", "client\src\Azure.Mobile.Client\Azure.Mobile.Client.csproj", "{AE882E4E-BD34-4994-86A9-B4E89DC42FC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Data.Mobile", "client\src\Azure.Data.Mobile\Azure.Data.Mobile.csproj", "{AE882E4E-BD34-4994-86A9-B4E89DC42FC1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Client.Test", "client\test\Azure.Mobile.Client.Test\Azure.Mobile.Client.Test.csproj", "{B6D5BFCB-478C-495B-86CD-68AAFDEE6834}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Data.Mobile.Test", "client\test\Azure.Data.Mobile.Test\Azure.Data.Mobile.Test.csproj", "{B6D5BFCB-478C-495B-86CD-68AAFDEE6834}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.Mobile.Server.Test.E2EServer", "server\test\Azure.Mobile.Server.Test.E2EServer\Azure.Mobile.Server.Test.E2EServer.csproj", "{2A669FBA-F128-494F-8D87-63AD40DB13ED}"
 EndProject
