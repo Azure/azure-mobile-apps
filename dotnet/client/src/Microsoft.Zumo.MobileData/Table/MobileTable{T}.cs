@@ -92,13 +92,11 @@ namespace Microsoft.Zumo.MobileData
             using Request request = CreateGetMetadataRequest(query);
             Response response = await Pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
-            switch (response.Status)
+            return response.Status switch
             {
-                case 200:
-                    return await CreateResponseAsync<MobileTableMetadata>(response, cancellationToken).ConfigureAwait(false);
-                default:
-                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
-            }
+                200 => await CreateResponseAsync<MobileTableMetadata>(response, cancellationToken).ConfigureAwait(false),
+                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase),
+            };
         }
 
         /// <summary>
@@ -122,13 +120,11 @@ namespace Microsoft.Zumo.MobileData
             using Request request = CreateGetMetadataRequest(query);
             Response response = Pipeline.SendRequest(request, cancellationToken);
 
-            switch (response.Status)
+            return response.Status switch
             {
-                case 200:
-                    return CreateResponse<MobileTableMetadata>(response, cancellationToken);
-                default:
-                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
-            }
+                200 => CreateResponse<MobileTableMetadata>(response, cancellationToken),
+                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase),
+            };
         }
 
         /// <summary>
@@ -249,13 +245,11 @@ namespace Microsoft.Zumo.MobileData
             using Request request = CreateGetRequest(id, default);
             Response response = await Pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
 
-            switch (response.Status)
+            return response.Status switch
             {
-                case 200:
-                    return await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false);
-                default:
-                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
-            }
+                200 => await CreateResponseAsync(response, cancellationToken).ConfigureAwait(false),
+                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase),
+            };
         }
 
         /// <summary>
@@ -271,13 +265,11 @@ namespace Microsoft.Zumo.MobileData
             using Request request = CreateGetRequest(id, default);
             Response response = Pipeline.SendRequest(request, cancellationToken);
 
-            switch (response.Status)
+            return response.Status switch
             {
-                case 200:
-                    return CreateResponse(response, cancellationToken);
-                default:
-                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
-            }
+                200 => CreateResponse(response, cancellationToken),
+                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase),
+            };
         }
 
         /// <summary>
@@ -397,9 +389,9 @@ namespace Microsoft.Zumo.MobileData
                     {
                         builder.AppendQuery("$skip", $"{options.Skip}");
                     }
-                    if (options.Top >= 0)
+                    if (options.Size >= 0)
                     {
-                        builder.AppendQuery("$top", $"{options.Top}");
+                        builder.AppendQuery("$top", $"{options.Size}");
                     }
                     if (options.IncludeDeleted)
                     {

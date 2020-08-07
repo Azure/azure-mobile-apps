@@ -31,7 +31,7 @@ namespace Microsoft.Zumo.MobileData
         /// The OData <c>$top</c> query param.  If negative, does not send
         /// the parameter.
         /// </summary>
-        public int Top { get; set; } = -1;
+        public int Size { get; set; } = -1;
 
         /// <summary>
         /// The OData <c>$count</c> query param.  Is not sent if false.
