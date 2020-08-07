@@ -1,4 +1,7 @@
-﻿using Azure.Mobile.Server.Entity;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using Microsoft.Zumo.Server.Entity;
 using System;
 using System.Text.Json.Serialization;
 

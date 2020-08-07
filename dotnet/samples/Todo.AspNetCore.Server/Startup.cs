@@ -1,4 +1,3 @@
-using Azure.Mobile.Server;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.TokenCacheProviders.InMemory;
+using Microsoft.Zumo.Server;
 using Todo.AspNetCore.Server.Database;
 
 namespace Todo.AspNetCore.Server
@@ -95,11 +95,9 @@ namespace Todo.AspNetCore.Server
             });
 
             // Initialize the database
-            using (var scope = app.ApplicationServices.CreateScope())
-            {
-                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                DbInitializer.Initialize(context);
-            }
+            using var scope = app.ApplicationServices.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            DbInitializer.Initialize(context);
         }
     }
 }
