@@ -1,4 +1,7 @@
-﻿namespace Todo.AspNetCore.Server.Database
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+namespace Todo.AspNetCore.Server.Database
 {
     public static class DbInitializer
     {

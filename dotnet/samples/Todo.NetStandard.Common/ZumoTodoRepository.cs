@@ -1,5 +1,5 @@
 ﻿using Azure;
-using Azure.Data.Mobile;
+using Microsoft.Zumo.MobileData;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

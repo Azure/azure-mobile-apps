@@ -1,8 +1,11 @@
-﻿using Azure.Mobile.Server;
-using Azure.Mobile.Server.Entity;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.using Microsoft.Zumo.Server;
+
+using Microsoft.Zumo.Server.Entity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web;
 using Todo.AspNetCore.Server.Database;
+using Microsoft.Zumo.Server;
 
 namespace Todo.AspNetCore.Server.Controllers
 {

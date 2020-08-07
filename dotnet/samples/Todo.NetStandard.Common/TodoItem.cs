@@ -1,4 +1,4 @@
-﻿using Azure.Data.Mobile;
+﻿using Microsoft.Zumo.MobileData;
 using System;
 
 namespace Todo.NetStandard.Common

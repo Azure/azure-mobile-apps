@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\server\src\Azure.Mobile.Server.Entity\Azure.Mobile.Server.Entity.csproj" />
-    <ProjectReference Include="..\..\server\src\Azure.Mobile.Server\Azure.Mobile.Server.csproj" />
+    <ProjectReference Include="..\..\server\src\Microsoft.Zumo.Server.Entity\Microsoft.Zumo.Server.Entity.csproj" />
+    <ProjectReference Include="..\..\server\src\Microsoft.Zumo.Server\Microsoft.Zumo.Server.csproj" />
   </ItemGroup>
 
 

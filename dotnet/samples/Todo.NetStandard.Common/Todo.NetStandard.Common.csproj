@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -6,7 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\client\src\Azure.Data.Mobile\Azure.Data.Mobile.csproj" />
+    <ProjectReference Include="..\..\client\src\Microsoft.Zumo.MobileData\Microsoft.Zumo.MobileData.csproj" />
+    <ProjectReference Include="..\..\client\src\Microsoft.Zumo.MobileData\Microsoft.Zumo.MobileData.csproj" />
   </ItemGroup>
 
 </Project>
