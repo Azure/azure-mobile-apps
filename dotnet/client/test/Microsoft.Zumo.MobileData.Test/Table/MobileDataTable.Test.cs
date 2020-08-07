@@ -525,7 +525,7 @@ namespace Microsoft.Zumo.MobileData.Test
             var query = new MobileTableQueryOptions { 
                 OrderBy = "releaseDate",
                 Skip = 5,
-                Top = 5
+                Size = 5
             };
             var actual = table.GetItemsAsync(query);
 
@@ -682,7 +682,7 @@ namespace Microsoft.Zumo.MobileData.Test
             {
                 OrderBy = "releaseDate",
                 Skip = 5,
-                Top = 5
+                Size = 5
             };
             var actual = table.GetItems(query);
 
