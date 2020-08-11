@@ -12,11 +12,13 @@ namespace Microsoft.Zumo.MobileData.Test
         [TestMethod]
         public void SetJsonSerializerOptions_RoundTrips()
         {
-            var actual = new MobileTableClientOptions();
-            actual.JsonSerializerOptions = new JsonSerializerOptions
+            var actual = new MobileTableClientOptions
             {
-                IgnoreNullValues = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                JsonSerializerOptions = new JsonSerializerOptions
+                {
+                    IgnoreNullValues = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                }
             };
 
             Assert.IsTrue(actual.JsonSerializerOptions.IgnoreNullValues);

@@ -27,8 +27,7 @@ namespace Microsoft.Zumo.MobileData
                 ETag = headers.ETag.Value;
             }
 
-            string lastModifiedHeader;
-            if (headers.TryGetValue("Last-Modified", out lastModifiedHeader))
+            if (headers.TryGetValue("Last-Modified", out string lastModifiedHeader))
             {
                 LastModified = DateTimeOffset.Parse(lastModifiedHeader);
             }

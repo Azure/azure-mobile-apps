@@ -17,7 +17,7 @@ namespace Microsoft.Zumo.MobileData.Test
         {
             var client = new MobileTableClient(new Uri("https://localhost:5001"));
             var table = client.GetTable<Movie>();
-            var request = table.Pipeline.CreateRequest();
+            var request = table.Client.Pipeline.CreateRequest();
             var conditions = new MatchConditions { IfMatch = new ETag("foo") };
             request.ApplyConditionalHeaders(conditions);
             HttpAssert.HeaderIsEqual("If-Match", "\"foo\"", request);
@@ -28,7 +28,7 @@ namespace Microsoft.Zumo.MobileData.Test
         {
             var client = new MobileTableClient(new Uri("https://localhost:5001"));
             var table = client.GetTable<Movie>();
-            var request = table.Pipeline.CreateRequest();
+            var request = table.Client.Pipeline.CreateRequest();
             var conditions = new MatchConditions { IfNoneMatch = new ETag("foo") };
             request.ApplyConditionalHeaders(conditions);
             HttpAssert.HeaderIsEqual("If-None-Match", "\"foo\"", request);
@@ -39,7 +39,7 @@ namespace Microsoft.Zumo.MobileData.Test
         {
             var client = new MobileTableClient(new Uri("https://localhost:5001"));
             var table = client.GetTable<Movie>();
-            var request = table.Pipeline.CreateRequest();
+            var request = table.Client.Pipeline.CreateRequest();
             var conditions = new MatchConditions { IfMatch = ETag.All };
             request.ApplyConditionalHeaders(conditions);
             HttpAssert.HeaderIsEqual("If-Match", "*", request);
@@ -50,7 +50,7 @@ namespace Microsoft.Zumo.MobileData.Test
         {
             var client = new MobileTableClient(new Uri("https://localhost:5001"));
             var table = client.GetTable<Movie>();
-            var request = table.Pipeline.CreateRequest();
+            var request = table.Client.Pipeline.CreateRequest();
             var conditions = new MatchConditions { IfNoneMatch = ETag.All };
             request.ApplyConditionalHeaders(conditions);
             HttpAssert.HeaderIsEqual("If-None-Match", "*", request);
@@ -61,7 +61,7 @@ namespace Microsoft.Zumo.MobileData.Test
         {
             var client = new MobileTableClient(new Uri("https://localhost:5001"));
             var table = client.GetTable<Movie>();
-            var request = table.Pipeline.CreateRequest();
+            var request = table.Client.Pipeline.CreateRequest();
             var conditions = new MatchConditions { IfMatch = new ETag("foo"), IfNoneMatch = new ETag("bar") };
             request.ApplyConditionalHeaders(conditions);
             HttpAssert.HeaderIsEqual("If-Match", "\"foo\"", request);
@@ -73,7 +73,7 @@ namespace Microsoft.Zumo.MobileData.Test
         {
             var client = new MobileTableClient(new Uri("https://localhost:5001"));
             var table = client.GetTable<Movie>();
-            var request = table.Pipeline.CreateRequest();
+            var request = table.Client.Pipeline.CreateRequest();
             var conditions = new RequestConditions { IfModifiedSince = DateTimeOffset.Parse("2020-01-01T07:30:06Z") };
             request.ApplyConditionalHeaders(conditions);
             HttpAssert.HeaderIsEqual("If-Modified-Since", "Wed, 01 Jan 2020 07:30:06 GMT", request);
@@ -84,7 +84,7 @@ namespace Microsoft.Zumo.MobileData.Test
         {
             var client = new MobileTableClient(new Uri("https://localhost:5001"));
             var table = client.GetTable<Movie>();
-            var request = table.Pipeline.CreateRequest();
+            var request = table.Client.Pipeline.CreateRequest();
             var conditions = new RequestConditions { IfUnmodifiedSince = DateTimeOffset.Parse("2020-01-01T07:30:06Z") };
             request.ApplyConditionalHeaders(conditions);
             HttpAssert.HeaderIsEqual("If-Unmodified-Since", "Wed, 01 Jan 2020 07:30:06 GMT", request);

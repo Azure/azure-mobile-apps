@@ -57,11 +57,7 @@ namespace Microsoft.Zumo.Server
         /// <param name="tableRepository">The <see cref="ITableRepository{TEntity}"/> for the backend store.</param>
         protected TableController(ITableRepository<TEntity> tableRepository): this()
         {
-            if (tableRepository == null)
-            {
-                throw new ArgumentNullException(nameof(tableRepository));
-            }
-            this.tableRepository = tableRepository;
+            this.tableRepository = tableRepository ?? throw new ArgumentNullException(nameof(tableRepository));
         }
 
         /// <summary>
@@ -79,15 +75,11 @@ namespace Microsoft.Zumo.Server
             }
             set
             {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
                 if (tableRepository != null)
                 {
                     throw new InvalidOperationException("TableRepository cannot be set twice.");
                 }
-                tableRepository = value;
+                tableRepository = value ?? throw new ArgumentNullException(nameof(value));
             }
         }
 
