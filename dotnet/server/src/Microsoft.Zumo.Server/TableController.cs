@@ -98,7 +98,8 @@ namespace Microsoft.Zumo.Server
         /// <param name="item">The item that is being accessed (or null for a list operation).</param>
         /// <returns>true if the user is allowed to perform the operation.</returns>
         [NonAction]
-        public virtual bool IsAuthorized(TableOperation operation, TEntity item) => true;
+        public virtual bool IsAuthorized(TableOperation operation, TEntity item) 
+            => true;
 
         /// <summary>
         /// If the <see cref="IsAuthorized(TableOperation, TEntity)"/> method doesn't provide enough flexibility,
@@ -115,7 +116,7 @@ namespace Microsoft.Zumo.Server
         /// <returns>A HTTP Status Code</returns>
         [NonAction]
         public virtual int ValidateOperation(TableOperation operation, TEntity item) 
-            => 200;
+            => StatusCodes.Status200OK;
 
         /// <summary>
         /// If the <see cref="IsAuthorized(TableOperation, TEntity)"/> method doesn't provide enough flexibility,
@@ -131,10 +132,20 @@ namespace Microsoft.Zumo.Server
         /// <param name="item">The item being used (null for lists)</param>
         /// <returns>A HTTP Status Code</returns>
         [NonAction]
-        public virtual async ValueTask<int> ValidateOperationAsync(TableOperation operation, TEntity item, CancellationToken cancellationToken = default)
+        public virtual Task<int> ValidateOperationAsync(TableOperation operation, TEntity item, CancellationToken cancellationToken = default)
         {
-            int result = await Task.Run(() => ValidateOperation(operation, item), cancellationToken).ConfigureAwait(false);
-            return result;
+            if (!IsAuthorized(operation, item))
+            {
+                return Task.FromResult(StatusCodes.Status403Forbidden);
+            }
+
+            var validateOperationResult = ValidateOperation(operation, item);
+            if (validateOperationResult != StatusCodes.Status200OK)
+            {
+                return Task.FromResult(validateOperationResult);
+            }
+
+            return Task.FromResult(StatusCodes.Status200OK);
         }
 
         /// <summary>
@@ -181,11 +192,6 @@ namespace Microsoft.Zumo.Server
             if (operationValidation != StatusCodes.Status200OK)
             {
                 return StatusCode(operationValidation);
-            }
-
-            if (!IsAuthorized(TableOperation.List, null))
-            {
-                return NotFound();
             }
 
             var dataView = TableRepository.AsQueryable()
@@ -253,11 +259,6 @@ namespace Microsoft.Zumo.Server
                 return StatusCode(operationValidation);
             }
 
-            if (!IsAuthorized(TableOperation.Create, item))
-            {
-                return Unauthorized();
-            }
-
             var entity = await TableRepository.LookupAsync(item.Id).ConfigureAwait(false);
             var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders());
             if (preconditionStatusCode != StatusCodes.Status200OK)
@@ -302,11 +303,6 @@ namespace Microsoft.Zumo.Server
                 return StatusCode(operationValidation);
             }
 
-            if (!IsAuthorized(TableOperation.Delete, entity))
-            {
-                return NotFound();
-            }
-
             var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders());
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
@@ -348,11 +344,6 @@ namespace Microsoft.Zumo.Server
             if (operationValidation != StatusCodes.Status200OK)
             {
                 return StatusCode(operationValidation);
-            }
-
-            if (!IsAuthorized(TableOperation.Read, entity))
-            {
-                return NotFound();
             }
 
             var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders(), true);
@@ -399,11 +390,6 @@ namespace Microsoft.Zumo.Server
                 return StatusCode(operationValidation);
             }
 
-            if (!IsAuthorized(TableOperation.Replace, item))
-            {
-                return NotFound();
-            }
-
             var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders());
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
@@ -416,72 +402,6 @@ namespace Microsoft.Zumo.Server
             AddHeadersToResponse(replacement);
             return Ok(replacement);
         }
-
-#if SUPPORTS_PATCH
-        /// <summary>
-        /// Patch operation: PATCH {path}/{id}
-        /// 
-        /// Note that unlike most of the other operations, this one works all the time on soft-deleted records, as long
-        /// as you are undeleting the record..
-        /// </summary>
-        /// <remarks>
-        /// Disabling JSON Patch Support until Microsoft.AspNetCore.JsonPatch support System.Text.Json
-        /// </remarks>
-        /// <param name="id">The ID of the entity to be patched</param>
-        /// <param name="patchDocument">A patch operation document (see RFC 6901, RFC 6902)</param>
-        /// <returns>200 OK with the new entity in the body</returns>
-        [HttpPatch("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
-        public virtual async Task<IActionResult> PatchItemAsync(string id, [FromBody] JsonPatchDocument<TEntity> patchDocument)
-        {
-            var entity = await TableRepository.LookupAsync(id).ConfigureAwait(false);
-
-            if (entity == null)
-            {
-                return NotFound();
-            }
-            var operationValidation = await ValidateOperationAsync(TableOperation.Patch, entity);
-            if (operationValidation != StatusCodes.Status200OK)
-            {
-                return StatusCode(operationValidation);
-            }
-
-            if (!IsAuthorized(TableOperation.Patch, entity))
-            {
-                return NotFound();
-            }
-            var entityIsDeleted = (TableControllerOptions.SoftDeleteEnabled && entity.Deleted);
-
-            var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders());
-            if (preconditionStatusCode != StatusCodes.Status200OK)
-            {
-                AddHeadersToResponse(entity);
-                return StatusCode(preconditionStatusCode, entity);
-            }
-
-            patchDocument.ApplyTo(entity);
-            if (entity.Id != id)
-            {
-                return BadRequest();
-            }
-
-            // Special Case:
-            //  If SoftDelete is enabled, and the original record is DELETED, then you can
-            //  continue as long as one of the operations is an undelete operation.
-            if (entityIsDeleted && entity.Deleted)
-            {
-                return NotFound();
-            }
-
-            var preparedItem = await PrepareItemForStoreAsync(entity).ConfigureAwait(false);
-            var replacement = await TableRepository.ReplaceAsync(preparedItem).ConfigureAwait(false);
-            AddHeadersToResponse(replacement);
-            return Ok(replacement);
-        }
-#endif
 
         /// <summary>
         /// Adds any necessary response headers, such as ETag and Last-Modified

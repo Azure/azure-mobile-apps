@@ -118,7 +118,7 @@ namespace Microsoft.Zumo.MobileData.Test
         }
 
         [TestMethod]
-        public async Task GetMetadataAsync_NotAuthorized_Returns404()
+        public async Task GetMetadataAsync_NotAuthorized_Returns403()
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>("tables/unauthorized");
@@ -130,7 +130,7 @@ namespace Microsoft.Zumo.MobileData.Test
             }
             catch (RequestFailedException ex)
             {
-                Assert.AreEqual(404, ex.Status);
+                Assert.AreEqual(403, ex.Status);
             }
         }
 
@@ -232,7 +232,7 @@ namespace Microsoft.Zumo.MobileData.Test
         }
 
         [TestMethod]
-        public void GetMetadata_NotAuthorized_Returns404()
+        public void GetMetadata_NotAuthorized_Returns403()
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>("tables/unauthorized");
@@ -244,7 +244,7 @@ namespace Microsoft.Zumo.MobileData.Test
             }
             catch (RequestFailedException ex)
             {
-                Assert.AreEqual(404, ex.Status);
+                Assert.AreEqual(403, ex.Status);
             }
         }
 
@@ -281,7 +281,7 @@ namespace Microsoft.Zumo.MobileData.Test
         }
 
         [TestMethod]
-        public async Task GetItemAsync_NotAuthorized_Returns404()
+        public async Task GetItemAsync_NotAuthorized_Returns403()
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>("tables/unauthorized");
@@ -294,7 +294,7 @@ namespace Microsoft.Zumo.MobileData.Test
             }
             catch (RequestFailedException ex)
             {
-                Assert.AreEqual(404, ex.Status);
+                Assert.AreEqual(403, ex.Status);
             }
         }
 
@@ -363,7 +363,7 @@ namespace Microsoft.Zumo.MobileData.Test
         }
 
         [TestMethod]
-        public void GetItem_NotAuthorized_Returns404()
+        public void GetItem_NotAuthorized_Returns403()
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>("tables/unauthorized");
@@ -375,7 +375,7 @@ namespace Microsoft.Zumo.MobileData.Test
             }
             catch (RequestFailedException ex)
             {
-                Assert.AreEqual(404, ex.Status);
+                Assert.AreEqual(403, ex.Status);
             }
         }
 
@@ -582,7 +582,7 @@ namespace Microsoft.Zumo.MobileData.Test
         }
 
         [TestMethod]
-        public async Task GetItemsAsync_NotAuthorized_Returns404()
+        public async Task GetItemsAsync_NotAuthorized_Returns403()
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>("tables/unauthorized");
@@ -595,7 +595,7 @@ namespace Microsoft.Zumo.MobileData.Test
             }
             catch (RequestFailedException ex)
             {
-                Assert.AreEqual(404, ex.Status);
+                Assert.AreEqual(403, ex.Status);
             }
         }
 
@@ -739,7 +739,7 @@ namespace Microsoft.Zumo.MobileData.Test
         }
 
         [TestMethod]
-        public void GetItems_NotAuthorized_Returns404()
+        public void GetItems_NotAuthorized_Returns403()
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>("tables/unauthorized");
@@ -751,7 +751,7 @@ namespace Microsoft.Zumo.MobileData.Test
             }
             catch (RequestFailedException ex)
             {
-                Assert.AreEqual(404, ex.Status);
+                Assert.AreEqual(403, ex.Status);
             }
         }
 
@@ -801,12 +801,12 @@ namespace Microsoft.Zumo.MobileData.Test
         }
 
         [TestMethod]
-        public async Task CreateItemAsync_NotAuthorized_Returns401()
+        public async Task CreateItemAsync_NotAuthorized_Returns403()
         {
             var item = new Unit
             {
                 Id = Guid.NewGuid().ToString("N"),
-                Data = "create-item-missing-item-returns-201"
+                Data = "createitemasync-notauthorized-returns403"
             };
 
             var client = GetTestClient();
@@ -822,7 +822,7 @@ namespace Microsoft.Zumo.MobileData.Test
             }
             catch (RequestFailedException ex)
             {
-                Assert.AreEqual(401, ex.Status);
+                Assert.AreEqual(403, ex.Status);
             }
 
             var dbItem = DbContext.HUnits.Where(m => m.Id == item.Id);
@@ -924,12 +924,12 @@ namespace Microsoft.Zumo.MobileData.Test
         }
 
         [TestMethod]
-        public void CreateItem_NotAuthorized_Returns401()
+        public void CreateItem_NotAuthorized_Returns403()
         {
             var item = new Unit
             {
                 Id = Guid.NewGuid().ToString("N"),
-                Data = "create-item-missing-item-returns-201"
+                Data = "createitem-notauthorized-returns403"
             };
 
             var client = GetTestClient();
@@ -945,7 +945,7 @@ namespace Microsoft.Zumo.MobileData.Test
             }
             catch (RequestFailedException ex)
             {
-                Assert.AreEqual(401, ex.Status);
+                Assert.AreEqual(403, ex.Status);
             }
 
             var dbItem = DbContext.HUnits.Where(m => m.Id == item.Id);
@@ -1134,7 +1134,7 @@ namespace Microsoft.Zumo.MobileData.Test
         }
 
         [TestMethod]
-        public async Task DeleteItemAsync_Unauthorized_Returns404()
+        public async Task DeleteItemAsync_Unauthorized_Returns403()
         {
             var item = new Movie { Id = "movie-3" };
 
@@ -1148,7 +1148,7 @@ namespace Microsoft.Zumo.MobileData.Test
             }
             catch (RequestFailedException ex)
             {
-                Assert.AreEqual(404, ex.Status);
+                Assert.AreEqual(403, ex.Status);
             }
         }
 
@@ -1345,7 +1345,7 @@ namespace Microsoft.Zumo.MobileData.Test
         }
 
         [TestMethod]
-        public void DeleteItem_Unauthorized_Returns404()
+        public void DeleteItem_Unauthorized_Returns403()
         {
             var item = new Movie { Id = "movie-3" };
 
@@ -1359,7 +1359,7 @@ namespace Microsoft.Zumo.MobileData.Test
             }
             catch (RequestFailedException ex)
             {
-                Assert.AreEqual(404, ex.Status);
+                Assert.AreEqual(403, ex.Status);
             }
         }
 
@@ -1530,7 +1530,7 @@ namespace Microsoft.Zumo.MobileData.Test
         }
 
         [TestMethod]
-        public async Task ReplaceItemAsync_Unauthorized_Returns404()
+        public async Task ReplaceItemAsync_Unauthorized_Returns403()
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>("tables/unauthorized");
@@ -1545,7 +1545,7 @@ namespace Microsoft.Zumo.MobileData.Test
             }
             catch (RequestFailedException ex)
             {
-                Assert.AreEqual(404, ex.Status);
+                Assert.AreEqual(403, ex.Status);
             }
         }
 
@@ -1684,7 +1684,7 @@ namespace Microsoft.Zumo.MobileData.Test
         }
 
         [TestMethod]
-        public void ReplaceItem_Unauthorized_Returns404()
+        public void ReplaceItem_Unauthorized_Returns403()
         {
             var client = GetTestClient();
             var table = client.GetTable<Movie>("tables/unauthorized");
@@ -1699,7 +1699,7 @@ namespace Microsoft.Zumo.MobileData.Test
             }
             catch (RequestFailedException ex)
             {
-                Assert.AreEqual(404, ex.Status);
+                Assert.AreEqual(403, ex.Status);
             }
         }
 

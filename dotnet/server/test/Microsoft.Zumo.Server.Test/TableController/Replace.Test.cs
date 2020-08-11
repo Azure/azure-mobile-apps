@@ -73,11 +73,11 @@ namespace Microsoft.Zumo.Server.Test.TableController
         }
 
         [TestMethod]
-        public async Task ReplaceItem_Unauthorized_Returns404()
+        public async Task ReplaceItem_Unauthorized_Returns403()
         {
             var item = GetItemFromDb<E2EServer.DataObjects.Movie>("movie-8");
             var response = await SendRequestToServer<E2EServer.DataObjects.Movie>(HttpMethod.Put, $"/tables/unauthorized/{item.Id}", item);
-            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [TestMethod]

@@ -42,7 +42,7 @@ namespace Microsoft.Zumo.Server.Test.TableController
         }
 
         [TestMethod]
-        public async Task CreateItem_NotAuthorized_Returns401()
+        public async Task CreateItem_NotAuthorized_Returns403()
         {
             var item = new HUnit
             {
@@ -51,7 +51,7 @@ namespace Microsoft.Zumo.Server.Test.TableController
             };
             var response = await SendRequestToServer<HUnit>(HttpMethod.Post, "tables/unauthorized", item);
 
-            Assert.AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
 
             var dbItem = GetItemFromDb<HUnit>(item.Id);
             Assert.IsNull(dbItem);
