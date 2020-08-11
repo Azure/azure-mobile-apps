@@ -88,10 +88,10 @@ namespace Microsoft.Zumo.Server.Test.TableController
         }
 
         [TestMethod]
-        public async Task DeleteItem_Unauthorized_Returns404()
+        public async Task DeleteItem_Unauthorized_Returns403()
         {
             var response = await SendRequestToServer<E2EServer.DataObjects.Movie>(HttpMethod.Delete, "/tables/unauthorized/movie-3", null);
-            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [TestMethod]

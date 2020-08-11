@@ -51,11 +51,11 @@ namespace Microsoft.Zumo.Server.Test.TableController
         }
         
         [TestMethod]
-        public async Task ReadItemAsync_NotAuthorized_Returns404()
+        public async Task ReadItemAsync_NotAuthorized_Returns403()
         {
             var response = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/unauthorized/{Movie4.Id}", null);
 
-            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [TestMethod]
