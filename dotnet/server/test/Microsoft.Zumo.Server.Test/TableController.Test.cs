@@ -79,7 +79,7 @@ namespace Microsoft.Zumo.Server.Test
         public void TableRepository_ThrowsIfSetNull()
         {
             var context = MovieDbContext.InMemoryContext();
-            _ = new MoviesController(context)
+            _ = new MoviesController()
             {
                 TableRepository = null
             };

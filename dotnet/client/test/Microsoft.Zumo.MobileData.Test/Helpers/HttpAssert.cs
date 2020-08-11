@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using Azure.Core;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Diagnostics;
 
 namespace Microsoft.Zumo.MobileData.Test.Helpers
 {
@@ -10,11 +10,10 @@ namespace Microsoft.Zumo.MobileData.Test.Helpers
     {
         internal static void HeaderIsEqual(string headerName, string headerValue, Request request)
         {
-            string actual;
-            var isPresent = request.Headers.TryGetValue(headerName, out actual);
-            Assert.IsTrue(isPresent);
-            Assert.IsNotNull(actual);
-            Assert.AreEqual(headerValue, actual);
+            var isPresent = request.Headers.TryGetValue(headerName, out string actual);
+            Debug.Assert(isPresent, $"Expected header {headerName} to be present in response");
+            Debug.Assert(actual != null, $"Value of header {headerName} is null");
+            Debug.Assert(actual.Equals(headerValue), $"Expected {headerName} value to be \"{headerValue}\", Actual \"{actual}\"");
         }
     }
 }
