@@ -195,7 +195,7 @@ namespace Microsoft.Zumo.Server.Test
 
         #region CreateItemAsync
         [TestMethod]
-        public async Task CreateAsync_Returns403_WhenIsAuthorized_False()
+        public async Task CreateItemAsync_Returns403_WhenIsAuthorized_False()
         {
             var repository = new MockTableRepository<Movie>();
             var controller = new MoviesController(repository)
@@ -218,7 +218,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task CreateAsync_ReturnsValidateResult_WhenValidateOperations_Used()
+        public async Task CreateItemAsync_ReturnsValidateResult_WhenValidateOperations_Used()
         {
             var repository = new MockTableRepository<Movie>();
             var controller = new MoviesController(repository)
@@ -243,7 +243,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task CreateAsync_ReturnsValidateResult_WhenValidateOperationsAsync_Used()
+        public async Task CreateItemAsync_ReturnsValidateResult_WhenValidateOperationsAsync_Used()
         {
             var repository = new MockTableRepository<Movie>();
             var controller = new MoviesController(repository)
@@ -267,7 +267,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task CreateAsync_Returns201_WhenInsertingValidItem()
+        public async Task CreateItemAsync_Returns201_WhenInsertingValidItem()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -320,7 +320,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task CreateAsync_Returns409_WhenExistingIdAdded()
+        public async Task CreateItemAsync_Returns409_WhenExistingIdAdded()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -361,7 +361,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task CreateAsync_Returns201_WhenInsertingValidItemWithNullId()
+        public async Task CreateItemAsync_Returns201_WhenInsertingValidItemWithNullId()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -416,7 +416,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task CreateAsync_Returns412_WhenPreconditionsFail()
+        public async Task CreateItemAsync_Returns412_WhenPreconditionsFail()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -458,7 +458,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task CreateAsync_Returns201_WhenPreconditionsMatch()
+        public async Task CreateItemAsync_Returns201_WhenPreconditionsMatch()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -514,7 +514,7 @@ namespace Microsoft.Zumo.Server.Test
 
         #region DeleteItemAsync
         [TestMethod]
-        public async Task DeleteAsync_Returns403_WhenIsAuthorized_False()
+        public async Task DeleteItemAsync_Returns403_WhenIsAuthorized_False()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -540,7 +540,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task DeleteAsync_ReturnsValidateResult_WhenValidateOperations_Used()
+        public async Task DeleteItemAsync_ReturnsValidateResult_WhenValidateOperations_Used()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -566,7 +566,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task DeleteAsync_ReturnsValidateResult_WhenValidateOperationsAsync_Used()
+        public async Task DeleteItemAsync_ReturnsValidateResult_WhenValidateOperationsAsync_Used()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -593,7 +593,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task DeleteAsync_WithSoftDelete_Returns204_WhenDeletingExistingItem()
+        public async Task DeleteItemAsync_WithSoftDelete_Returns204_WhenDeletingExistingItem()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -612,9 +612,9 @@ namespace Microsoft.Zumo.Server.Test
             // Status Code Matches
             Assert.AreEqual(204, actual.StatusCode);
 
-            // The ReplaceAsync method in the repository was the last thing called
+            // The DeleteAsync method in the repository was not called (it's a hard delete)
             Assert.AreEqual(1, repository.Modifications);
-            Assert.AreEqual("ReplaceAsync", repository.CallData);
+            Assert.AreNotEqual("DeleteAsync", repository.CallData);
 
             // The entity is not actually deleted - just marked deleted
             Assert.AreEqual(nItems, repository.Data.Count);
@@ -622,7 +622,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task DeleteAsync_WithHardDelete_Returns204_WhenDeletingExistingItem()
+        public async Task DeleteItemAsync_WithHardDelete_Returns204_WhenDeletingExistingItem()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -641,7 +641,7 @@ namespace Microsoft.Zumo.Server.Test
             // Status Code Matches
             Assert.AreEqual(204, actual.StatusCode);
 
-            // The DeleteAsync method in the repository was the last thing called
+            // The DeleteItemAsync method in the repository was the last thing called
             Assert.AreEqual(1, repository.Modifications);
             Assert.AreEqual("DeleteAsync", repository.CallData);
 
@@ -651,7 +651,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task DeleteAsync_WithSoftDelete_Returns404_WhenDeletingMissingItem()
+        public async Task DeleteItemAsync_WithSoftDelete_Returns404_WhenDeletingMissingItem()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -670,7 +670,7 @@ namespace Microsoft.Zumo.Server.Test
             // Status Code Matches
             Assert.AreEqual(404, actual.StatusCode);
 
-            // The DeleteAsync method was not called
+            // The DeleteItemAsync method was not called
             Assert.AreEqual(0, repository.Modifications);
             Assert.AreNotEqual("DeleteAsync", repository.CallData);
 
@@ -679,7 +679,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task DeleteAsync_WithHardDelete_Returns404_WhenDeletingMissingItem()
+        public async Task DeleteItemAsync_WithHardDelete_Returns404_WhenDeletingMissingItem()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -698,7 +698,7 @@ namespace Microsoft.Zumo.Server.Test
             // Status Code Matches
             Assert.AreEqual(404, actual.StatusCode);
 
-            // The DeleteAsync method was not called
+            // The DeleteItemAsync method was not called
             Assert.AreEqual(0, repository.Modifications);
             Assert.AreNotEqual("DeleteAsync", repository.CallData);
 
@@ -707,7 +707,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task DeleteAsync_WithSoftDelete_Returns404_WhenDeletingDeletedItem()
+        public async Task DeleteItemAsync_WithSoftDelete_Returns404_WhenDeletingDeletedItem()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository, true);
@@ -726,7 +726,7 @@ namespace Microsoft.Zumo.Server.Test
             // Status Code Matches
             Assert.AreEqual(404, actual.StatusCode);
 
-            // The DeleteAsync method was not called
+            // The DeleteItemAsync method was not called
             Assert.AreEqual(0, repository.Modifications);
             Assert.AreNotEqual("DeleteAsync", repository.CallData);
 
@@ -736,7 +736,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task DeleteAsync_WithSoftDelete_Returns412_WhenPreconditionsFail()
+        public async Task DeleteItemAsync_WithSoftDelete_Returns412_WhenPreconditionsFail()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -779,7 +779,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task DeleteAsync_WithHardDelete_Returns412_WhenPreconditionsFail()
+        public async Task DeleteItemAsync_WithHardDelete_Returns412_WhenPreconditionsFail()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -822,7 +822,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task DeleteAsync_WithSoftDelete_Returns204_WhenPreconditionsMatch()
+        public async Task DeleteItemAsync_WithSoftDelete_Returns204_WhenPreconditionsMatch()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -852,7 +852,7 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
-        public async Task DeleteAsync_WithHardDelete_Returns204_WhenPreconditionsMatch()
+        public async Task DeleteItemAsync_WithHardDelete_Returns204_WhenPreconditionsMatch()
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
@@ -872,7 +872,7 @@ namespace Microsoft.Zumo.Server.Test
             // Status Code Matches
             Assert.AreEqual(204, actual.StatusCode);
 
-            // The DeleteAsync method in the repository was the last thing called
+            // The DeleteItemAsync method in the repository was the last thing called
             Assert.AreEqual(1, repository.Modifications);
             Assert.AreEqual("DeleteAsync", repository.CallData);
 
@@ -882,7 +882,377 @@ namespace Microsoft.Zumo.Server.Test
         }
         #endregion
 
-        #region GetItemAsync
+        #region ReadItemAsync
+        [TestMethod]
+        public async Task ReadAsync_Returns403_WhenIsAuthorized_False()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var controller = new MoviesController(repository)
+            {
+                IsAuthorizedResult = false
+            };
+            var itemToGet = repository.Data["movie-5"].Id;
+
+            var actual = await controller.DeleteItemAsync(itemToGet);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(actual, typeof(StatusCodeResult));
+            var objectResult = actual as StatusCodeResult;
+            Assert.AreEqual(403, objectResult.StatusCode);
+
+            // IsAuthorized is called
+            Assert.AreEqual(1, controller.IsAuthorizedCount);
+            Assert.AreEqual(itemToGet, controller.LastAuthorizedMovie.Id);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task ReadAsync_ReturnsValidateResult_WhenValidateOperations_Used()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var controller = new MoviesController(repository)
+            {
+                ValidateOperationResult = 418
+            };
+            var itemToGet = repository.Data["movie-5"].Id;
+
+            var actual = await controller.ReadItemAsync(itemToGet);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(actual, typeof(StatusCodeResult));
+            var objectResult = actual as StatusCodeResult;
+            Assert.AreEqual(418, objectResult.StatusCode);
+
+            // ValidateOperation is called
+            Assert.AreEqual(1, controller.ValidateOperationCount);
+            Assert.AreEqual(itemToGet, controller.LastValidateOperationMovie.Id);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task ReadAsync_ReturnsValidateResult_WhenValidateOperationsAsync_Used()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var controller = new MoviesController(repository)
+            {
+                ValidateOperationAsyncResult = 418
+            };
+            var itemToGet = repository.Data["movie-5"].Id;
+
+            var actual = await controller.ReadItemAsync(itemToGet);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(actual, typeof(StatusCodeResult));
+            var objectResult = actual as StatusCodeResult;
+            Assert.AreEqual(418, objectResult.StatusCode);
+
+            // ValidateOperationAsync is called
+            Assert.AreEqual(1, controller.ValidateOperationCount);
+            Assert.AreEqual(itemToGet, controller.LastValidateOperationMovie.Id);
+            Assert.IsTrue(controller.WasLastValidateOperationAsync);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task ReadAsync_WithHardDelete_Returns200_WithValidId()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = false });
+            var httpContext = new DefaultHttpContext();
+            controller.ControllerContext.HttpContext = httpContext;
+            var expectedItem = repository.Data["movie-5"].Clone();
+
+            var response = await controller.ReadItemAsync(expectedItem.Id);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+            var actual = response as ObjectResult;
+            Assert.AreEqual(200, actual.StatusCode);
+
+            // Response value is correct
+            Assert.IsNotNull(actual.Value);
+            var actualItem = actual.Value as Movie;
+            Assert.IsInstanceOfType(actualItem, typeof(Movie));
+            Assert.AreEqual(expectedItem, actualItem);
+
+            // Version and UpdatedAt are correct
+            Assert.IsNotNull(actualItem.Version);
+            Assert.IsNotNull(actualItem.UpdatedAt);
+            CollectionAssert.AreEqual(expectedItem.Version, actualItem.Version);
+            Assert.AreEqual(expectedItem.UpdatedAt, actualItem.UpdatedAt);
+
+            // ETag and Last-Modified headers are set
+            HttpAssert.HasResponseHeader(httpContext, "ETag", $"\"{Convert.ToBase64String(actualItem.Version)}\"");
+            HttpAssert.HasResponseHeader(httpContext, "Last-Modified", actualItem.UpdatedAt.ToString("r"));
+
+            // The repository is called
+            Assert.IsTrue(repository.CallCount > 0);
+            Assert.AreEqual("LookupAsync", repository.CallData);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task ReadAsync_WithSoftDelete_Returns200_WithValidId()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var httpContext = new DefaultHttpContext();
+            controller.ControllerContext.HttpContext = httpContext;
+            var expectedItem = repository.Data["movie-5"].Clone();
+
+            var response = await controller.ReadItemAsync(expectedItem.Id);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+            var actual = response as ObjectResult;
+            Assert.AreEqual(200, actual.StatusCode);
+
+            // Response value is correct
+            Assert.IsNotNull(actual.Value);
+            var actualItem = actual.Value as Movie;
+            Assert.IsInstanceOfType(actualItem, typeof(Movie));
+            Assert.AreEqual(expectedItem, actualItem);
+
+            // Version and UpdatedAt are correct
+            Assert.IsNotNull(actualItem.Version);
+            Assert.IsNotNull(actualItem.UpdatedAt);
+            CollectionAssert.AreEqual(expectedItem.Version, actualItem.Version);
+            Assert.AreEqual(expectedItem.UpdatedAt, actualItem.UpdatedAt);
+
+            // ETag and Last-Modified headers are set
+            HttpAssert.HasResponseHeader(httpContext, "ETag", $"\"{Convert.ToBase64String(actualItem.Version)}\"");
+            HttpAssert.HasResponseHeader(httpContext, "Last-Modified", actualItem.UpdatedAt.ToString("r"));
+
+            // The repository is called
+            Assert.IsTrue(repository.CallCount > 0);
+            Assert.AreEqual("LookupAsync", repository.CallData);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task ReadAsync_WithHardDelete_Returns404_WithInvalidId()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = false });
+            var httpContext = new DefaultHttpContext();
+            controller.ControllerContext.HttpContext = httpContext;
+            var expectedItem = "not-present";
+
+            var response = await controller.ReadItemAsync(expectedItem);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(StatusCodeResult));
+            var actual = response as StatusCodeResult;
+            Assert.AreEqual(404, actual.StatusCode);
+
+            // The repository is called
+            Assert.IsTrue(repository.CallCount > 0);
+            Assert.AreEqual("LookupAsync", repository.CallData);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task ReadAsync_WithSoftDelete_Returns404_WithInvalidId()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var httpContext = new DefaultHttpContext();
+            controller.ControllerContext.HttpContext = httpContext;
+            var expectedItem = "not-present";
+
+            var response = await controller.ReadItemAsync(expectedItem);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(StatusCodeResult));
+            var actual = response as StatusCodeResult;
+            Assert.AreEqual(404, actual.StatusCode);
+
+            // The repository is called
+            Assert.IsTrue(repository.CallCount > 0);
+            Assert.AreEqual("LookupAsync", repository.CallData);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task ReadAsync_WithSoftDelete_Returns404_WithSoftDeletedId()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository, true);
+            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var httpContext = new DefaultHttpContext();
+            controller.ControllerContext.HttpContext = httpContext;
+            var expectedItem = repository.Data.Values.Where(m => m.Deleted).First().Id;
+
+            var response = await controller.ReadItemAsync(expectedItem);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(StatusCodeResult));
+            var actual = response as StatusCodeResult;
+            Assert.AreEqual(404, actual.StatusCode);
+
+            // The repository is called
+            Assert.IsTrue(repository.CallCount > 0);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task ReadAsync_Returns200_WhenPreconditionsSucceed()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var expectedItem = repository.Data["movie-5"].Clone();
+            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var httpContext = new DefaultHttpContext();
+            AddHeaderToRequest(httpContext, "If-Match", $"\"{Convert.ToBase64String(expectedItem.Version)}\"");
+            controller.ControllerContext.HttpContext = httpContext;
+
+            var response = await controller.ReadItemAsync(expectedItem.Id);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+            var actual = response as ObjectResult;
+            Assert.AreEqual(200, actual.StatusCode);
+
+            // Response value is correct
+            Assert.IsNotNull(actual.Value);
+            var actualItem = actual.Value as Movie;
+            Assert.IsInstanceOfType(actualItem, typeof(Movie));
+            Assert.AreEqual(expectedItem, actualItem);
+
+            // Version and UpdatedAt are correct
+            Assert.IsNotNull(actualItem.Version);
+            Assert.IsNotNull(actualItem.UpdatedAt);
+            CollectionAssert.AreEqual(expectedItem.Version, actualItem.Version);
+            Assert.AreEqual(expectedItem.UpdatedAt, actualItem.UpdatedAt);
+
+            // ETag and Last-Modified headers are set
+            HttpAssert.HasResponseHeader(httpContext, "ETag", $"\"{Convert.ToBase64String(actualItem.Version)}\"");
+            HttpAssert.HasResponseHeader(httpContext, "Last-Modified", actualItem.UpdatedAt.ToString("r"));
+
+            // The repository is called
+            Assert.IsTrue(repository.CallCount > 0);
+            Assert.AreEqual("LookupAsync", repository.CallData);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task ReadAsync_Returns304_WhenETagMatches()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var expectedItem = repository.Data["movie-5"].Clone();
+            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var httpContext = new DefaultHttpContext();
+            AddHeaderToRequest(httpContext, "If-None-Match", $"\"{Convert.ToBase64String(expectedItem.Version)}\"");
+            controller.ControllerContext.HttpContext = httpContext;
+
+            var response = await controller.ReadItemAsync(expectedItem.Id);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+            var actual = response as ObjectResult;
+            Assert.AreEqual(304, actual.StatusCode);
+
+            // The repository is called
+            Assert.IsTrue(repository.CallCount > 0);
+            Assert.AreEqual("LookupAsync", repository.CallData);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task ReadAsync_Returns304_WhenLastModifiedInPast()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var expectedItem = repository.Data["movie-5"].Clone();
+            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var httpContext = new DefaultHttpContext();
+            AddHeaderToRequest(httpContext, "If-Modified-Since", expectedItem.UpdatedAt.AddDays(1).ToString("r"));
+            controller.ControllerContext.HttpContext = httpContext;
+
+            var response = await controller.ReadItemAsync(expectedItem.Id);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+            var actual = response as ObjectResult;
+            Assert.AreEqual(304, actual.StatusCode);
+
+            // The repository is called
+            Assert.IsTrue(repository.CallCount > 0);
+            Assert.AreEqual("LookupAsync", repository.CallData);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task ReadAsync_Returns200_WhenLastModifiedInFuture()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var expectedItem = repository.Data["movie-5"].Clone();
+            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var httpContext = new DefaultHttpContext();
+            AddHeaderToRequest(httpContext, "If-Modified-Since", expectedItem.UpdatedAt.AddDays(-1).ToString("r"));
+            controller.ControllerContext.HttpContext = httpContext;
+
+            var response = await controller.ReadItemAsync(expectedItem.Id);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+            var actual = response as ObjectResult;
+            Assert.AreEqual(200, actual.StatusCode);
+
+            // Response value is correct
+            Assert.IsNotNull(actual.Value);
+            var actualItem = actual.Value as Movie;
+            Assert.IsInstanceOfType(actualItem, typeof(Movie));
+            Assert.AreEqual(expectedItem, actualItem);
+
+            // Version and UpdatedAt are correct
+            Assert.IsNotNull(actualItem.Version);
+            Assert.IsNotNull(actualItem.UpdatedAt);
+            CollectionAssert.AreEqual(expectedItem.Version, actualItem.Version);
+            Assert.AreEqual(expectedItem.UpdatedAt, actualItem.UpdatedAt);
+
+            // ETag and Last-Modified headers are set
+            HttpAssert.HasResponseHeader(httpContext, "ETag", $"\"{Convert.ToBase64String(actualItem.Version)}\"");
+            HttpAssert.HasResponseHeader(httpContext, "Last-Modified", actualItem.UpdatedAt.ToString("r"));
+
+            // The repository is called
+            Assert.IsTrue(repository.CallCount > 0);
+            Assert.AreEqual("LookupAsync", repository.CallData);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
         #endregion
 
         #region ReplaceItemAsync
