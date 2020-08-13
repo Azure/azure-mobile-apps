@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Zumo.Server.Entity;
 using System;
-using System.Linq;
 
 namespace Microsoft.Zumo.Server.Test.Helpers
 {
-    public class Movie : EntityTableData, IEquatable<Movie>
+    public class Movie : ITableData, IEquatable<Movie>
     {
         public Movie()
         {
@@ -17,6 +15,12 @@ namespace Microsoft.Zumo.Server.Test.Helpers
             Deleted = false;
         }
 
+        #region ITableData
+        public string Id { get; set; }
+        public byte[] Version { get; set; }
+        public DateTimeOffset UpdatedAt { get; set; }
+        public bool Deleted { get; set; }
+        #endregion
         public string Title { get; set; }
         public int Duration { get; set; }
         public string MpaaRating { get; set; }
@@ -30,7 +34,7 @@ namespace Microsoft.Zumo.Server.Test.Helpers
             return new Movie
             {
                 Id = this.Id,
-                Version = this.Version.ToArray(),
+                Version = (byte[])this.Version.Clone(),
                 UpdatedAt = this.UpdatedAt,
                 Deleted = this.Deleted,
                 Title = this.Title,
@@ -49,14 +53,12 @@ namespace Microsoft.Zumo.Server.Test.Helpers
             return Equals(obj as Movie);
         }
 
-        public static string GetLast(string source, int nChars)
-            => (nChars >= source.Length) ? source : source.Substring(source.Length - nChars);
-
         public bool Equals(Movie other)
         {
-            // Note, this matches movie-X and rmovie-X
+            // Note that we explicitly avoid using UpdatedAt & Version fields
+            // in the equality check - the data must match, not the Metadata.
             return other != null &&
-                   GetLast(Id, 5) == GetLast(other.Id, 5) &&
+                   Id.Equals(other.Id) &&
                    Title == other.Title &&
                    Duration == other.Duration &&
                    MpaaRating == other.MpaaRating &&

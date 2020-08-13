@@ -10,9 +10,9 @@ namespace Microsoft.Zumo.Server.Test.E2EServer.Controllers
 {
     [Route("tables/movies")]
     [ApiController]
-    public class MoviesController : TableController<Movie>
+    public class ApiController : TableController<Movie>
     {
-        public MoviesController(E2EDbContext context)
+        public ApiController(E2EDbContext context)
         {
             TableRepository = new EntityTableRepository<Movie>(context);
         }

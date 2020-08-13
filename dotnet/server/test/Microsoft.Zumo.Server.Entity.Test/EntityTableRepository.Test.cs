@@ -1,207 +1,386 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using Microsoft.VisualBasic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Zumo.Server.Entity.Test.Helpers;
 using Microsoft.Zumo.Server.Exceptions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.Zumo.Server.Entity.Test
 {
+    /// <summary>
+    /// Test Suite for the EntityTableRepository
+    /// </summary>
     [TestClass]
-    public class EntityTableRepository_Tests
+    public class EntityTableRepository_Tests : BaseTest
     {
-        #region Helper Methods
-        private Movie RandomMovie() => TestData.Movies[(new Random()).Next(TestData.Movies.Length)].Clone();
-        #endregion
-
+        #region Constructor
         [TestMethod]
-        public void AsQueryable_CanCountItems()
+        public void EntityTableRepository_CanCreate_WithContext()
         {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
-
-            var actual = repository.AsQueryable().Count();
-
-            Assert.AreEqual(TestData.Movies.Length, actual);
-        }
-
-        [TestMethod]
-        public async Task LookupAsync_ReturnsValidData()
-        {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
-            var testItem = RandomMovie();
-
-            var actual = await repository.LookupAsync(testItem.Id);
-            Assert.IsNotNull(actual);
-            Assert.AreEqual(testItem.Title, actual.Title);
-        }
-
-        [TestMethod]
-        public async Task LookupAsync_ReturnsNullOnMissingData()
-        {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
-            var testId = "random-invalid-id";
-
-            var actual = await repository.LookupAsync(testId);
-            Assert.IsNull(actual);
+            var repository = GetTableRepository();
+            Assert.IsNotNull(repository);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public async Task LookupAsync_ThrowsOnNullId()
+        public void EntityTableRepository_Throws_WithNullContext()
         {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
-
-            await repository.LookupAsync(null);
+            _ = new EntityTableRepository<Movie>(null);
             Assert.Fail("ArgumentNullException expected");
         }
 
         [TestMethod]
-        public async Task DeleteAsync_DeletesValidData()
+        [ExpectedException(typeof(ArgumentException))]
+        public void EntityTableRepository_Throws_WithMissingSet()
         {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
-            var testItem = RandomMovie();
+            var context = GetMovieContext();
+            _ = new EntityTableRepository<ErrorEntity>(context);
+            Assert.Fail("ArgumentException expected");
+        }
+        #endregion
 
-            await repository.DeleteAsync(testItem.Id);
+        #region AsQueryable()
+        [TestMethod]
+        public void AsQueryable_Returns_IQueryable()
+        {
+            var repository = GetTableRepository();
+            var actual = repository.AsQueryable();
+
+            Assert.IsInstanceOfType(actual, typeof(IQueryable<Movie>));
+        }
+
+        [TestMethod]
+        public void AsQueryable_CanCount()
+        {
+            var repository = GetTableRepository();
             var actual = repository.AsQueryable().Count();
-            Assert.AreEqual(TestData.Movies.Length - 1, actual);
+
+            Assert.AreEqual(MOVIE_COUNT, actual);
+        }
+
+        [TestMethod]
+        public void AsQueryable_CanFilter()
+        {
+            var repository = GetTableRepository();
+            var actual = repository.AsQueryable().Where(m => m.MpaaRating == "R").Count();
+
+            Assert.AreEqual(R_MOVIE_COUNT, actual);
+        }
+        #endregion
+
+        #region CreateAsync
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public async Task CreateAsync_Throws_NullEntity()
+        {
+            var repository = GetTableRepository();
+            _ = await repository.CreateAsync(null);
+            Assert.Fail("ArgumentNullException expected");
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public async Task DeleteAsync_ThrowsOnNullId()
+        public async Task CreateAsync_Throws_NullIdInEntity()
         {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
+            var repository = GetTableRepository();
+            var item = new Movie { Id = null };
+            _ = await repository.CreateAsync(item);
+            Assert.Fail("ArgumentNullException expected");
+        }
 
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public async Task CreateAsync_Throws_EmptyIdInEntity()
+        {
+            var repository = GetTableRepository();
+            var item = new Movie { Id = "" };
+            _ = await repository.CreateAsync(item);
+            Assert.Fail("ArgumentNullException expected");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(EntityExistsException))]
+        public async Task CreateAsync_Throws_EntityExists()
+        {
+            var repository = GetTableRepository();
+            var item = new Movie { Id = "movie-5" };
+            _ = await repository.CreateAsync(item);
+            Assert.Fail("EntityExistsException expected");
+        }
+
+        [TestMethod]
+        public async Task CreateAsync_CreatesItem_WhenValid()
+        {
+            var repository = GetTableRepository();
+            var item = new Movie
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                BestPictureWinner = false,
+                Duration = 50,
+                MpaaRating = "G",
+                Title = "Home Movie Magic",
+                Year = 2020,
+                ReleaseDate = new DateTime(2020, 12, 24)
+            };
+            var updatedItem = await repository.CreateAsync(item);
+            Assert.IsNotNull(updatedItem);
+
+            var isFound = repository.AsQueryable().Any(m => m.Id == item.Id);
+            Assert.IsTrue(isFound);
+        }
+
+        [TestMethod]
+        public async Task CreateAsync_UpdatesVersion_WhenValid()
+        {
+            var repository = GetTableRepository();
+            var version = Guid.NewGuid().ToByteArray();
+            var item = new Movie
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                UpdatedAt = DateTimeOffset.Now.AddDays(-20),
+                Version = version,
+                BestPictureWinner = false,
+                Duration = 50,
+                MpaaRating = "G",
+                Title = "Home Movie Magic",
+                Year = 2020,
+                ReleaseDate = new DateTime(2020, 12, 24)
+            };
+            var updatedItem = await repository.CreateAsync(item);
+            Assert.IsNotNull(updatedItem);
+            CollectionAssert.AreNotEqual(version, updatedItem.Version);
+        }
+
+        [TestMethod]
+        public async Task CreateAsync_UpdatesTimestamp_WhenValid()
+        {
+            var repository = GetTableRepository();
+            var version = Guid.NewGuid().ToByteArray();
+            var item = new Movie
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                UpdatedAt = DateTimeOffset.Now.AddDays(-20),
+                Version = version,
+                BestPictureWinner = false,
+                Duration = 50,
+                MpaaRating = "G",
+                Title = "Home Movie Magic",
+                Year = 2020,
+                ReleaseDate = new DateTime(2020, 12, 24)
+            };
+            var updatedItem = await repository.CreateAsync(item);
+            Assert.IsNotNull(updatedItem);
+            TimestampAssert.AreClose(DateTimeOffset.UtcNow, updatedItem.UpdatedAt);
+        }
+
+        [TestMethod]
+        public async Task CreateAsync_CreatesVersion_WhenNotPresent()
+        {
+            var repository = GetTableRepository();
+            var item = new Movie
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                BestPictureWinner = false,
+                Duration = 50,
+                MpaaRating = "G",
+                Title = "Home Movie Magic",
+                Year = 2020,
+                ReleaseDate = new DateTime(2020, 12, 24)
+            };
+            var updatedItem = await repository.CreateAsync(item);
+            Assert.IsNotNull(updatedItem);
+            Assert.IsNotNull(updatedItem.Version);
+            Assert.IsTrue(updatedItem.Version.Length > 0);
+        }
+
+        [TestMethod]
+        public async Task CreateAsync_CreatesTimestamp_WhenNotPresent()
+        {
+            var repository = GetTableRepository();
+            var item = new Movie
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                BestPictureWinner = false,
+                Duration = 50,
+                MpaaRating = "G",
+                Title = "Home Movie Magic",
+                Year = 2020,
+                ReleaseDate = new DateTime(2020, 12, 24)
+            };
+            var updatedItem = await repository.CreateAsync(item);
+            Assert.IsNotNull(updatedItem);
+            TimestampAssert.AreClose(DateTimeOffset.UtcNow, updatedItem.UpdatedAt);
+        }
+        #endregion
+
+        #region DeleteAsync
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public async Task DeleteAsync_Throws_NullId()
+        {
+            var repository = GetTableRepository();
             await repository.DeleteAsync(null);
             Assert.Fail("ArgumentNullException expected");
         }
 
         [TestMethod]
-        [ExpectedException(typeof(EntityDoesNotExistException))]
-        public async Task DeleteAsync_ThrowsOnMissingData()
+        [ExpectedException(typeof(ArgumentNullException))]
+        public async Task DeleteAsync_Throws_EmptyId()
         {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
-            var testId = "random-invalid-id";
-
-            await repository.DeleteAsync(testId);
-            Assert.Fail("EntityDoesNotExistException expected");
+            var repository = GetTableRepository();
+            await repository.DeleteAsync("");
+            Assert.Fail("ArgumentNullException expected");
         }
 
         [TestMethod]
-        public async Task CreateAsync_CreatesNewItem()
+        [ExpectedException(typeof(EntityDoesNotExistException))]
+        public async Task DeleteAsync_Throws_EntityDoesNotExist()
         {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var dataset = dbcontext.Set<Movie>();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
-            var newItem = new Movie()
+            var repository = GetTableRepository();
+            await repository.DeleteAsync("does-not-exist");
+            Assert.Fail("EntityDoesNotExist expected");
+        }
+
+        [TestMethod]
+        public async Task DeleteAsync_RemovesEntity_WhenValid()
+        {
+            var repository = GetTableRepository();
+            var id = "movie-10";
+            await repository.DeleteAsync(id);
+            var isPresent = repository.AsQueryable().Any(m => m.Id == id);
+            Assert.IsFalse(isPresent);
+        }
+        #endregion
+
+        #region LookupAsync
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public async Task LookupAsync_Throws_NullId()
+        {
+            var repository = GetTableRepository();
+            _ = await repository.LookupAsync(null);
+            Assert.Fail("ArgumentNullException expected");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public async Task LookupAsync_Throws_EmptyId()
+        {
+            var repository = GetTableRepository();
+            _ = await repository.LookupAsync("");
+            Assert.Fail("ArgumentNullException expected");
+        }
+
+        [TestMethod]
+        public async Task LookupAsync_ReturnsNull_MissingId()
+        {
+            var repository = GetTableRepository();
+            var actual = await repository.LookupAsync(Guid.NewGuid().ToString("N"));
+            Assert.IsNull(actual);
+        }
+
+        [TestMethod]
+        public async Task LookupAsync_ReturnsEntity_PresentId()
+        {
+            var repository = GetTableRepository();
+            
+            for (var i = 0; i < MOVIE_COUNT; i++)
             {
-                Title = "Test Item"
-            };
+                var id = $"movie-{i}";
+                var actual = await repository.LookupAsync(id);
+                var expected = new Movie()
+                {
+                    Id = $"movie-{i}",
+                    Title = TestData.Movies[i].Title,
+                    Duration = TestData.Movies[i].Duration,
+                    MpaaRating = TestData.Movies[i].MpaaRating,
+                    ReleaseDate = TestData.Movies[i].ReleaseDate,
+                    BestPictureWinner = TestData.Movies[i].BestPictureWinner,
+                    Year = TestData.Movies[i].Year
+                };
 
-            var actual = await repository.CreateAsync(newItem);
-            Assert.IsNotNull(actual);
-            Assert.AreEqual(32, actual.Id.Length);
-            Assert.AreEqual(1, dataset.Count(m => m.Id == actual.Id));
-            Assert.IsTrue(DateTimeOffset.UtcNow.Subtract(actual.UpdatedAt).TotalMilliseconds < 500);
-            Assert.IsNotNull(actual.Version);
-            Assert.AreEqual("Test Item", actual.Title);
+                Assert.AreEqual(expected, actual);
+            }
         }
+        #endregion
 
-        [TestMethod]
-        [ExpectedException(typeof(EntityExistsException))]
-        public async Task CreateAsync_Duplicate_Throws()
-        {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
-            var testItem = RandomMovie();
-
-            await repository.CreateAsync(testItem);
-            Assert.Fail("EntityExistsException expected");
-        }
-
+        #region ReplaceAsync
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public async Task CreateAsync_ThrowsOnNull()
+        public async Task ReplaceAsync_Throws_NullEntity()
         {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
-
-            await repository.CreateAsync(null);
+            var repository = GetTableRepository();
+            _ = await repository.ReplaceAsync(null);
             Assert.Fail("ArgumentNullException expected");
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public async Task CreateAsync_ThrowsOnNullId()
+        public async Task ReplaceAsync_Throws_NullIdInEntity()
         {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
-            var testItem = new Movie() { Id = null };
-
-            await repository.CreateAsync(testItem);
-            Assert.Fail("ArgumentNullException expected");
-        }
-
-        [TestMethod]
-        public async Task ReplaceAsync_ReplacesExistingItem()
-        {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
-            var original = RandomMovie();
-            original.Title = "Test Data";
-
-            var actual = await repository.ReplaceAsync(original);
-            Assert.IsNotNull(actual);
-            Assert.AreEqual(original.Id, actual.Id);
-            Assert.IsTrue(DateTimeOffset.UtcNow.Subtract(actual.UpdatedAt).TotalMilliseconds < 500);
-            CollectionAssert.AreEqual(original.Version, actual.Version);
-            Assert.AreEqual("Test Data", actual.Title);
-            Assert.AreEqual(original.ReleaseDate, actual.ReleaseDate);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public async Task ReplaceAsync_ThrowsOnNull()
-        {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
-
-            await repository.ReplaceAsync(null);
+            var repository = GetTableRepository();
+            var item = new Movie { Id = null };
+            _ = await repository.ReplaceAsync(item);
             Assert.Fail("ArgumentNullException expected");
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public async Task ReplaceAsync_ThrowsOnNullId()
+        public async Task ReplaceAsync_Throws_EmptyIdInEntit()
         {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
-            var item = new Movie() { Id = null };
-
-            await repository.ReplaceAsync(item);
+            var repository = GetTableRepository();
+            var item = new Movie { Id = "" };
+            _ = await repository.ReplaceAsync(item);
             Assert.Fail("ArgumentNullException expected");
         }
 
         [TestMethod]
         [ExpectedException(typeof(EntityDoesNotExistException))]
-        public async Task ReplaceAsync_ThrowsOnMissingEntity()
+        public async Task ReplaceAsync_Throws_EntityMissing()
         {
-            var dbcontext = InMemoryContext.GetDbContext();
-            var repository = new EntityTableRepository<Movie>(dbcontext);
-            var item = new Movie();
-
-            await repository.ReplaceAsync(item);
-            Assert.Fail("EntityDoesNotExistException expected");
+            var repository = GetTableRepository();
+            var item = new Movie { Id = "does-not-exist" };
+            _ = await repository.ReplaceAsync(item);
+            Assert.Fail("EntityDoesNotExist expected");
         }
+
+        [TestMethod]
+        public async Task ReplaceAsync_UpdatesItem_WhenValid()
+        {
+            var repository = GetTableRepository();
+            var item = repository.AsQueryable().Where(t => t.Id == "movie-5").First();
+            item.Title = "Updated";
+            var updatedItem = await repository.ReplaceAsync(item);
+            Assert.IsNotNull(updatedItem);
+            Assert.AreEqual("Updated", item.Title);
+        }
+
+        [TestMethod]
+        public async Task ReplaceAsync_UpdatesVersion_WhenValid()
+        {
+            var repository = GetTableRepository();
+            var item = repository.AsQueryable().Where(t => t.Id == "movie-5").First();
+            var version = (byte[])item.Version.Clone();
+            item.Title = "Updated";
+            var updatedItem = await repository.ReplaceAsync(item);
+            Assert.IsNotNull(updatedItem);
+            CollectionAssert.AreNotEqual(version, updatedItem.Version);
+        }
+
+        [TestMethod]
+        public async Task ReplaceAsync_UpdatesTimestamp_WhenValid()
+        {
+            var repository = GetTableRepository();
+            var item = repository.AsQueryable().Where(t => t.Id == "movie-5").First();
+            item.Title = "Updated";
+            var updatedItem = await repository.ReplaceAsync(item);
+            Assert.IsNotNull(updatedItem);
+            TimestampAssert.AreClose(DateTimeOffset.UtcNow, updatedItem.UpdatedAt);
+        }
+        #endregion
     }
 }

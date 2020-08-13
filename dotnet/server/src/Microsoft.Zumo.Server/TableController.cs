@@ -214,18 +214,19 @@ namespace Microsoft.Zumo.Server
             }
             var odataQuery = odataOptions.ApplyTo(dataView.AsQueryable(), odataQuerySettings);
             var items = (odataQuery as IEnumerable<TEntity>).ToList();
-            var excludeItems = Request.Query.ContainsKey("__excludeitems") && Request.Query["__excludeitems"].First().ToLower() == "true";
+            var includeCount = (Request.Query.ContainsKey("$inlinecount") && Request.Query["$inlinecount"].First().ToLower() == "allpages") || odataOptions.Count.Value;
 
-            var result = new PagedListResult<TEntity>
+            if (includeCount)
             {
-                Values = !excludeItems ? items : null,
-                NextLink = (!excludeItems && items.Count() > 0) ? Request.GetNextPageLink(TableControllerOptions.PageSize) : null,
-                Count = odataOptions.Count?.GetEntityCount(odataOptions.Filter?.ApplyTo(dataView.AsQueryable(), new ODataQuerySettings()) ?? dataView.AsQueryable()),
-                MaxTop = TableControllerOptions.MaxTop,
-                PageSize = TableControllerOptions.PageSize
-            };
+                var result = new PagedListResult<TEntity>
+                {
+                    Results = items,
+                    Count = odataOptions.Count?.GetEntityCount(odataOptions.Filter?.ApplyTo(dataView.AsQueryable(), new ODataQuerySettings()) ?? dataView.AsQueryable())
+                };
+                return Ok(result);
+            }
 
-            return Ok(result); 
+            return Ok(items); 
         }
 
         /// <summary>
@@ -298,6 +299,7 @@ namespace Microsoft.Zumo.Server
             var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders());
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
+                AddHeadersToResponse(entity);
                 return StatusCode(preconditionStatusCode, entity);
             }
 
