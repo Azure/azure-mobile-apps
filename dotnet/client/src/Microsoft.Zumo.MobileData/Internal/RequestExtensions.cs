@@ -18,6 +18,7 @@ namespace Microsoft.Zumo.MobileData.Internal
         /// <param name="relativePath">An optional relative path to the real endpoint</param>
         internal static void BuildUri(this Request request, Uri endpoint, string relativePath = null)
         {
+            Arguments.IsAbsoluteUri(endpoint, nameof(endpoint));
             var builder = request.Uri;
             builder.Reset(endpoint);
             if (relativePath != null)

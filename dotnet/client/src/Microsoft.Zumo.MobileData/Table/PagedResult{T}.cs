@@ -12,21 +12,11 @@ namespace Microsoft.Zumo.MobileData
         /// <summary>
         /// A single page of items.
         /// </summary>
-        public T[] Values { get; set; }
+        public T[] Results { get; set; }
 
         /// <summary>
         /// The Uri to the next page of items.
         /// </summary>
-        public string NextLink { get; set; }
-
-        /// <summary>
-        /// Table Metadata - maximum value of $top
-        /// </summary>
-        public long? MaxTop { get; set; }
-
-        /// <summary>
-        /// Table Metadata - value of PageSize
-        /// </summary>
-        public long? PageSize { get; set; }
+        public long? Count { get; set; }
     }
 }

@@ -110,7 +110,7 @@ namespace Microsoft.Zumo.MobileData
         /// </exception>
         public MobileTable<T> GetTable<T>(string relativePath = null) where T : TableData
         {
-            var tableEndpoint = relativePath == null
+            var tableEndpoint = string.IsNullOrEmpty(relativePath)
                 ? new Uri(Endpoint, $"tables/{typeof(T).Name.ToLowerInvariant()}s")
                 : new Uri(Endpoint, relativePath);
             return new MobileTable<T>(this, tableEndpoint);

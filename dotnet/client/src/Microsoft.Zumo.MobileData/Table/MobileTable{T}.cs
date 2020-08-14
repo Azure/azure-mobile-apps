@@ -33,64 +33,6 @@ namespace Microsoft.Zumo.MobileData
         /// </summary>
         internal ServiceRestClient<T> Client { get; }
 
-        #region GetMetadata
-        /// <summary>
-        /// Obtains the table metadata.
-        /// </summary>
-        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
-        /// <returns>The table metadata</returns>
-        public virtual Task<Response<MobileTableMetadata>> GetMetadataAsync(CancellationToken cancellationToken = default)
-            => GetMetadataAsync(new MobileTableQueryOptions(), cancellationToken);
-
-        /// <summary>
-        /// Obtains the table metadata.  The count returned is contstrained by the query provided.
-        /// </summary>
-        /// <param name="query">The <see cref="MobileTableQueryOptions"/> describing the query</param>
-        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
-        /// <returns>The table metadata</returns>
-        public virtual async Task<Response<MobileTableMetadata>> GetMetadataAsync(MobileTableQueryOptions query, CancellationToken cancellationToken = default)
-        {
-            Arguments.IsNotNull(query, nameof(query));
-
-            using Request request = Client.CreateGetMetadataRequest(query);
-            Response response = await Client.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
-
-            return response.Status switch
-            {
-                200 => await Client.CreateResponseAsync<MobileTableMetadata>(response, cancellationToken).ConfigureAwait(false),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase),
-            };
-        }
-
-        /// <summary>
-        /// Obtains the table metadata.
-        /// </summary>
-        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
-        /// <returns>The table metadata</returns>
-        public virtual Response<MobileTableMetadata> GetMetadata(CancellationToken cancellationToken = default)
-            => GetMetadata(new MobileTableQueryOptions(), cancellationToken);
-
-        /// <summary>
-        /// Obtains the table metadata.  The count returned is contstrained by the query provided.
-        /// </summary>
-        /// <param name="query">The <see cref="MobileTableQueryOptions"/> describing the query</param>
-        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
-        /// <returns>The table metadata</returns>
-        public virtual Response<MobileTableMetadata> GetMetadata(MobileTableQueryOptions query, CancellationToken cancellationToken = default)
-        {
-            Arguments.IsNotNull(query, nameof(query));
-
-            using Request request = Client.CreateGetMetadataRequest(query);
-            Response response = Client.SendRequest(request, cancellationToken);
-
-            return response.Status switch
-            {
-                200 => Client.CreateResponse<MobileTableMetadata>(response, cancellationToken),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase),
-            };
-        }
-        #endregion
-
         #region DeleteItem
         /// <summary>
         /// Deletes an item from the backend table.  By default, the item is only deleted if it matches the item version.
@@ -228,7 +170,7 @@ namespace Microsoft.Zumo.MobileData
             {
                 case 200:
                     PagedResult<T> data = await Client.CreatePagedResultAsync(response, cancellationToken).ConfigureAwait(false);
-                    return Page<T>.FromValues(data.Values, data.NextLink, response);
+                    return Page<T>.FromValues(data.Results, null, response);
                 default:
                     throw new RequestFailedException(response.Status, response.ReasonPhrase);
             }
@@ -250,7 +192,7 @@ namespace Microsoft.Zumo.MobileData
             {
                 case 200:
                     PagedResult<T> data = Client.CreatePagedResult(response, cancellationToken);
-                    return Page<T>.FromValues(data.Values, data.NextLink, response);
+                    return Page<T>.FromValues(data.Results, null, response);
                 default:
                     throw new RequestFailedException(response.Status, response.ReasonPhrase);
             }

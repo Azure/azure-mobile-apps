@@ -34,11 +34,6 @@ namespace Microsoft.Zumo.MobileData
         public int Size { get; set; } = -1;
 
         /// <summary>
-        /// The OData <c>$count</c> query param.  Is not sent if false.
-        /// </summary>
-        public bool IncludeCount { get; set; } = false;
-
-        /// <summary>
         /// Set on a table controller with soft-delete enabled, this returns the
         /// deleted records as well.
         /// 
