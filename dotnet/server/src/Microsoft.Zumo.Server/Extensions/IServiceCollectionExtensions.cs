@@ -31,9 +31,11 @@ namespace Microsoft.Zumo.Server
                 .AddTransient<ODataUriResolver>()
                 .AddTransient<ODataQueryValidator>()
                 .AddTransient<TopQueryValidator>()
+                .AddTransient<CountQueryValidator>()
                 .AddTransient<FilterQueryValidator>()
-                .AddTransient<SkipQueryValidator>()
                 .AddTransient<OrderByQueryValidator>()
+                .AddTransient<SelectExpandQueryValidator>()
+                .AddTransient<SkipQueryValidator>()
                 .AddTransient<SkipTokenQueryValidator>();
 
             return collection;

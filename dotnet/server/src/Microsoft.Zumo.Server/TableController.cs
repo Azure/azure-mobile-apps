@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -213,20 +214,31 @@ namespace Microsoft.Zumo.Server
             }
             var odataQuery = odataOptions.ApplyTo(dataView.AsQueryable(), odataQuerySettings);
             var items = (odataQuery as IEnumerable<TEntity>).ToList();
-            var includeCount = (Request.Query.ContainsKey("$inlinecount") && Request.Query["$inlinecount"].First().ToLower() == "allpages") || odataOptions.Count.Value;
 
-            if (includeCount)
+            var odata3count = Request.Query.ContainsKey("$inlinecount") && Request.Query["$inlinecount"].First().ToLower() == "allpages";
+            var odata4count = odataOptions.Count != null && odataOptions.Count.Value;
+            if (odata3count || odata4count)
             {
+                var view = odataOptions.Filter?.ApplyTo(dataView.AsQueryable(), new ODataQuerySettings()) ?? dataView.AsQueryable();
+
                 var result = new PagedListResult<TEntity>
                 {
                     Results = items,
-                    Count = odataOptions.Count?.GetEntityCount(odataOptions.Filter?.ApplyTo(dataView.AsQueryable(), new ODataQuerySettings()) ?? dataView.AsQueryable())
+                    Count = odataOptions.Count?.GetEntityCount(view) ?? GetEntityCount(view)
                 };
                 return Ok(result);
             }
 
             return Ok(items); 
         }
+
+        /// <summary>
+        /// Obtains the number of elements in the IQueryable, so that we can provide the inline count
+        /// This is only used for old clients - new clients will use $count = true.
+        /// </summary>
+        /// <param name="view">The <see cref="IQueryable"/> to count</param>
+        /// <returns></returns>
+        private long GetEntityCount(IQueryable query) => (query as IQueryable<TEntity>).LongCount();
 
         /// <summary>
         /// Create operation: POST {path}

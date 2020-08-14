@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\samples\Todo.AspNetCore.Server\Todo.AspNetCore.Server.csproj" />
-    <ProjectReference Include="..\..\..\server\test\Microsoft.Zumo.Server.Test.E2EServer\Microsoft.Zumo.Server.Test.E2EServer.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Zumo.MobileData\Microsoft.Zumo.MobileData.csproj" />
   </ItemGroup>
 

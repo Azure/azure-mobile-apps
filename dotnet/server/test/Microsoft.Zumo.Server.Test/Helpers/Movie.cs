@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AspNet.OData.Query;
 using System;
 
 namespace Microsoft.Zumo.Server.Test.Helpers
 {
+    [Filter]
+    [OrderBy]
     public class Movie : ITableData, IEquatable<Movie>
     {
         public Movie()
