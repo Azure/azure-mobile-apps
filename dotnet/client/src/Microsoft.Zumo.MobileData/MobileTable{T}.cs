@@ -33,6 +33,60 @@ namespace Microsoft.Zumo.MobileData
         /// </summary>
         internal ServiceRestClient<T> Client { get; }
 
+        #region CreateItem
+        /// <summary>
+        /// Inserts a new item into the backend table.  The item must not already exist.  If an Id
+        /// is not provided in the local item, one will be added.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>The item that was stored in the backend service</returns>
+        public virtual async Task<Response<T>> CreateItemAsync(T item, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(item, nameof(item));
+
+            using Request request = Client.CreateInsertRequest(item);
+            Response response = await Client.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+
+            switch (response.Status)
+            {
+                case 201:
+                    return await Client.CreateResponseAsync(response, cancellationToken).ConfigureAwait(false);
+                case 409:
+                case 412:
+                    throw new ConflictException<T>(await Client.CreateResponseAsync(response, cancellationToken).ConfigureAwait(false));
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
+        }
+
+        /// <summary>
+        /// Inserts a new item into the backend table.  The item must not already exist.  If an Id
+        /// is not provided in the local item, one will be added.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>The item that was stored in the backend service</returns>
+        public virtual Response<T> CreateItem(T item, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(item, nameof(item));
+
+            using Request request = Client.CreateInsertRequest(item);
+            Response response = Client.SendRequest(request, cancellationToken);
+
+            switch (response.Status)
+            {
+                case 201:
+                    return Client.CreateResponse(response, cancellationToken);
+                case 409:
+                case 412:
+                    throw new ConflictException<T>(Client.CreateResponse(response, cancellationToken));
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
+        }
+        #endregion
+
         #region DeleteItem
         /// <summary>
         /// Deletes an item from the backend table.  By default, the item is only deleted if it matches the item version.
@@ -193,60 +247,6 @@ namespace Microsoft.Zumo.MobileData
                 case 200:
                     PagedResult<T> data = Client.CreatePagedResult(response, cancellationToken);
                     return Page<T>.FromValues(data.Results, null, response);
-                default:
-                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
-            }
-        }
-        #endregion
-
-        #region InsertItem
-        /// <summary>
-        /// Inserts a new item into the backend table.  The item must not already exist.  If an Id
-        /// is not provided in the local item, one will be added.
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns>The item that was stored in the backend service</returns>
-        public virtual async Task<Response<T>> InsertItemAsync(T item, CancellationToken cancellationToken = default)
-        {
-            Arguments.IsNotNull(item, nameof(item));
-
-            using Request request = Client.CreateInsertRequest(item);
-            Response response = await Client.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
-
-            switch (response.Status)
-            {
-                case 201:
-                    return await Client.CreateResponseAsync(response, cancellationToken).ConfigureAwait(false);
-                case 409:
-                case 412:
-                    throw new ConflictException<T>(await Client.CreateResponseAsync(response, cancellationToken).ConfigureAwait(false));
-                default:
-                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
-            }
-        }
-
-        /// <summary>
-        /// Inserts a new item into the backend table.  The item must not already exist.  If an Id
-        /// is not provided in the local item, one will be added.
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns>The item that was stored in the backend service</returns>
-        public virtual Response<T> InsertItem(T item, CancellationToken cancellationToken = default)
-        {
-            Arguments.IsNotNull(item, nameof(item));
-
-            using Request request = Client.CreateInsertRequest(item);
-            Response response = Client.SendRequest(request, cancellationToken);
-
-            switch (response.Status)
-            {
-                case 201:
-                    return Client.CreateResponse(response, cancellationToken);
-                case 409:
-                case 412:
-                    throw new ConflictException<T>(Client.CreateResponse(response, cancellationToken));
                 default:
                     throw new RequestFailedException(response.Status, response.ReasonPhrase);
             }

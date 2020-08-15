@@ -28,6 +28,14 @@ namespace Microsoft.Zumo.MobileData.Test.Helpers
             Assert.IsTrue(actual.Equals(headerValue), $"Expected {headerName} value to be \"{headerValue}\", Actual \"{actual}\"");
         }
 
+        internal static void HeaderIsEqual(string headerName, string headerValue, ResponseHeaders headers)
+        {
+            var isPresent = headers.TryGetValue(headerName, out string actual);
+            Assert.IsTrue(isPresent, $"Expected header {headerName} to be present in response");
+            Assert.IsTrue(actual != null, $"Value of header {headerName} is null");
+            Assert.IsTrue(actual.Equals(headerValue), $"Expected {headerName} value to be \"{headerValue}\", Actual \"{actual}\"");
+        }
+
         internal static void HeaderIsNotPresent(string headerName, Request request)
         {
             var isPresent = request.Headers.Contains(headerName);
