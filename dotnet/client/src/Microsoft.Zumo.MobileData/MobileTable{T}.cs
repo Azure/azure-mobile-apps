@@ -192,10 +192,8 @@ namespace Microsoft.Zumo.MobileData
         /// <param name="options">The query to send to the remote server</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>A pageable list of items</returns>
-        public virtual AsyncPageable<T> GetItemsAsync(MobileTableQueryOptions options = null, CancellationToken cancellationToken = default)
-        {
-            return PageResponseEnumerator.CreateAsyncEnumerable(nextLink => GetItemsPageAsync(options, nextLink, cancellationToken));
-        }
+        public virtual MobileTableAsyncPageable<T> GetItemsAsync(MobileTableQueryOptions options = null, CancellationToken cancellationToken = default)
+            => new MobileTableAsyncPageable<T>(Client, options, cancellationToken);
 
         /// <summary>
         /// Retrieves a list of items from the service.
@@ -203,54 +201,8 @@ namespace Microsoft.Zumo.MobileData
         /// <param name="options">The query to send to the remote server</param>
         /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
         /// <returns>A pageable list of items</returns>
-        public virtual Pageable<T> GetItems(MobileTableQueryOptions options = null, CancellationToken cancellationToken = default)
-        {
-            return PageResponseEnumerator.CreateEnumerable(nextLink => GetItemsPage(options, nextLink, cancellationToken));
-        }
-
-        /// <summary>
-        /// Fetches a single page in the server-side paging result of a list operation.
-        /// </summary>
-        /// <param name="options">The query to send to the service</param>
-        /// <param name="pageLink">The link to the page</param>
-        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
-        /// <returns>A single page of results</returns>
-        private async Task<Page<T>> GetItemsPageAsync(MobileTableQueryOptions options, string pageLink, CancellationToken cancellationToken = default)
-        {
-            using Request request = Client.CreateListRequest(options, pageLink);
-            Response response = await Client.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
-
-            switch (response.Status)
-            {
-                case 200:
-                    PagedResult<T> data = await Client.CreatePagedResultAsync(response, cancellationToken).ConfigureAwait(false);
-                    return Page<T>.FromValues(data.Results, null, response);
-                default:
-                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
-            }
-        }
-
-        /// <summary>
-        /// Fetches a single page in the server-side paging result of a list operation.
-        /// </summary>
-        /// <param name="options">The query to send to the service</param>
-        /// <param name="pageLink">The link to the page</param>
-        /// <param name="cancellationToken">A lifecycle token for cancelling the request.</param>
-        /// <returns>A single page of results</returns>
-        private Page<T> GetItemsPage(MobileTableQueryOptions options, string pageLink, CancellationToken cancellationToken = default)
-        {
-            using Request request = Client.CreateListRequest(options, pageLink);
-            Response response = Client.SendRequest(request, cancellationToken);
-
-            switch (response.Status)
-            {
-                case 200:
-                    PagedResult<T> data = Client.CreatePagedResult(response, cancellationToken);
-                    return Page<T>.FromValues(data.Results, null, response);
-                default:
-                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
-            }
-        }
+        public virtual MobileTablePageable<T> GetItems(MobileTableQueryOptions options = null, CancellationToken cancellationToken = default)
+            => new MobileTablePageable<T>(Client, options, cancellationToken);
         #endregion
 
         #region ReplaceItem
