@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.Zumo.Server.Entity.Test.Helpers
+namespace Microsoft.Zumo.Server.Test.Helpers
 {
     public static class TestData
     {

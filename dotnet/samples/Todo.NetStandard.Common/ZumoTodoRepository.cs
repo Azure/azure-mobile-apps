@@ -10,8 +10,8 @@ namespace Todo.NetStandard.Common
 {
     public class ZumoTodoRepository : ITodoRepository
     {
-        private MobileTableClient _client;
-        private MobileTable<TodoItem> _table;
+        private readonly MobileTableClient _client;
+        private readonly MobileTable<TodoItem> _table;
 
         public ZumoTodoRepository()
         {
@@ -39,7 +39,7 @@ namespace Todo.NetStandard.Common
             }
             try
             {
-                TodoItem response = await _table.InsertItemAsync(item).ConfigureAwait(false);
+                TodoItem response = await _table.CreateItemAsync(item).ConfigureAwait(false);
                 OnRepositoryChanged(RepositoryAction.Add, response);
             }
             catch (RequestFailedException ex)

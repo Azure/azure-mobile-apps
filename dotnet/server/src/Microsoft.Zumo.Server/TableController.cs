@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Zumo.Server.Extensions;
-using Microsoft.Zumo.Server.Utils;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Builder;
-using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Http;
@@ -13,11 +10,14 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OData;
 using Microsoft.OData.Edm;
+using Microsoft.Zumo.Server.Extensions;
+using Microsoft.Zumo.Server.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -214,19 +214,31 @@ namespace Microsoft.Zumo.Server
             }
             var odataQuery = odataOptions.ApplyTo(dataView.AsQueryable(), odataQuerySettings);
             var items = (odataQuery as IEnumerable<TEntity>).ToList();
-            var excludeItems = Request.Query.ContainsKey("__excludeitems") && Request.Query["__excludeitems"].First().ToLower() == "true";
 
-            var result = new PagedListResult<TEntity>
+            var odata3count = Request.Query.ContainsKey("$inlinecount") && Request.Query["$inlinecount"].First().ToLower() == "allpages";
+            var odata4count = odataOptions.Count != null && odataOptions.Count.Value;
+            if (odata3count || odata4count)
             {
-                Values = !excludeItems ? items : null,
-                NextLink = (!excludeItems && items.Count() > 0) ? Request.GetNextPageLink(TableControllerOptions.PageSize) : null,
-                Count = odataOptions.Count?.GetEntityCount(odataOptions.Filter?.ApplyTo(dataView.AsQueryable(), new ODataQuerySettings()) ?? dataView.AsQueryable()),
-                MaxTop = TableControllerOptions.MaxTop,
-                PageSize = TableControllerOptions.PageSize
-            };
+                var view = odataOptions.Filter?.ApplyTo(dataView.AsQueryable(), new ODataQuerySettings()) ?? dataView.AsQueryable();
 
-            return Ok(result); 
+                var result = new PagedListResult<TEntity>
+                {
+                    Results = items,
+                    Count = odataOptions.Count?.GetEntityCount(view) ?? GetEntityCount(view)
+                };
+                return Ok(result);
+            }
+
+            return Ok(items); 
         }
+
+        /// <summary>
+        /// Obtains the number of elements in the IQueryable, so that we can provide the inline count
+        /// This is only used for old clients - new clients will use $count = true.
+        /// </summary>
+        /// <param name="view">The <see cref="IQueryable"/> to count</param>
+        /// <returns></returns>
+        private long GetEntityCount(IQueryable query) => (query as IQueryable<TEntity>).LongCount();
 
         /// <summary>
         /// Create operation: POST {path}
@@ -298,6 +310,7 @@ namespace Microsoft.Zumo.Server
             var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders());
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
+                AddHeadersToResponse(entity);
                 return StatusCode(preconditionStatusCode, entity);
             }
 

@@ -7,6 +7,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace Microsoft.Zumo.MobileData.Internal
 {
     /// <summary>
@@ -59,8 +61,11 @@ namespace Microsoft.Zumo.MobileData.Internal
         /// <param name="request">The request to send</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        internal Response SendRequest(Request request, CancellationToken cancellationToken)
-            => Pipeline.SendRequest(request, cancellationToken);
+        internal Response SendRequest(Request request, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(request, nameof(request));
+            return Pipeline.SendRequest(request, cancellationToken);
+        }
 
         /// <summary>
         /// Helper method to send the request to the remote service.
@@ -68,37 +73,10 @@ namespace Microsoft.Zumo.MobileData.Internal
         /// <param name="request">The request to send</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        internal ValueTask<Response> SendRequestAsync(Request request, CancellationToken cancellationToken)
-            => Pipeline.SendRequestAsync(request, cancellationToken);
-
-        /// <summary>
-        /// Creates a request object for a paged response.
-        /// </summary>
-        /// <param name="query">The query to send</param>
-        /// <param name="pageLink">The link to the next page</param>
-        /// <returns>The <see cref="Request"/> object corresponding to the request</returns>
-        internal Request CreateGetMetadataRequest(MobileTableQueryOptions query)
+        internal ValueTask<Response> SendRequestAsync(Request request, CancellationToken cancellationToken = default)
         {
-            Request request = Pipeline.CreateRequest();
-            request.Method = RequestMethod.Get;
-            var builder = request.Uri;
-            builder.Reset(Endpoint);
-            if (query.Filter != null)
-            {
-                builder.AppendQuery("$filter", query.Filter);
-            }
-            if (query.OrderBy != null)
-            {
-                builder.AppendQuery("$orderBy", query.OrderBy);
-            }
-            if (query.IncludeDeleted)
-            {
-                builder.AppendQuery("__includedeleted", "true");
-            }
-            builder.AppendQuery("$count", "true");
-            builder.AppendQuery("__excludeitems", "true");
-
-            return request;
+            Arguments.IsNotNull(request, nameof(request));
+            return Pipeline.SendRequestAsync(request, cancellationToken);
         }
 
         /// <summary>
@@ -109,12 +87,16 @@ namespace Microsoft.Zumo.MobileData.Internal
         /// <returns></returns>
         internal Request CreateDeleteRequest(T item, MatchConditions conditions)
         {
-            Request request = Pipeline.CreateRequest();
+            Arguments.IsNotNull(item, nameof(item));
+            Arguments.IsNotNullOrEmpty(item.Id, nameof(item.Id));
 
+            Request request = Pipeline.CreateRequest();
             request.Method = RequestMethod.Delete;
             request.BuildUri(Endpoint, item.Id);
-            request.ApplyConditionalHeaders(conditions ?? new MatchConditions { IfMatch = new ETag(item.Version) });
-
+            if (item.Version != null)
+            {
+                request.ApplyConditionalHeaders(conditions ?? new MatchConditions { IfMatch = new ETag(item.Version) });
+            }
             return request;
         }
 
@@ -126,61 +108,13 @@ namespace Microsoft.Zumo.MobileData.Internal
         /// <returns>A pageable list of items</returns>
         internal Request CreateGetRequest(string id, MatchConditions requestOptions)
         {
-            Request request = Pipeline.CreateRequest();
+            Arguments.IsNotNullOrEmpty(id, nameof(id));
 
+            Request request = Pipeline.CreateRequest();
             request.Method = RequestMethod.Get;
             request.BuildUri(Endpoint, id);
             request.ApplyConditionalHeaders(requestOptions);
 
-            return request;
-        }
-
-        /// <summary>
-        /// Creates a request object for a paged response.
-        /// </summary>
-        /// <param name="options">The query to send</param>
-        /// <param name="pageLink">The link to the next page</param>
-        /// <returns>The <see cref="Request"/> object corresponding to the request</returns>
-        internal Request CreateListRequest(MobileTableQueryOptions options, string pageLink)
-        {
-            Request request = Pipeline.CreateRequest();
-            request.Method = RequestMethod.Get;
-            if (pageLink != null)
-            {
-                request.Uri.Reset(new Uri(pageLink));
-            }
-            else
-            {
-                var builder = request.Uri;
-                builder.Reset(Endpoint);
-                if (options != null)
-                {
-                    if (options.Filter != null)
-                    {
-                        builder.AppendQuery("$filter", options.Filter);
-                    }
-                    if (options.OrderBy != null)
-                    {
-                        builder.AppendQuery("$orderBy", options.OrderBy);
-                    }
-                    if (options.Skip >= 0)
-                    {
-                        builder.AppendQuery("$skip", $"{options.Skip}");
-                    }
-                    if (options.Size >= 0)
-                    {
-                        builder.AppendQuery("$top", $"{options.Size}");
-                    }
-                    if (options.IncludeDeleted)
-                    {
-                        builder.AppendQuery("__includedeleted", "true");
-                    }
-                    if (options.IncludeCount)
-                    {
-                        builder.AppendQuery("$count", "true");
-                    }
-                }
-            }
             return request;
         }
 
@@ -191,8 +125,9 @@ namespace Microsoft.Zumo.MobileData.Internal
         /// <returns>A <see cref="Request"/> object ready for transmission</returns>
         internal Request CreateInsertRequest(T item)
         {
-            Request request = Pipeline.CreateRequest();
+            Arguments.IsNotNull(item, nameof(item));
 
+            Request request = Pipeline.CreateRequest();
             request.Method = RequestMethod.Post;
             request.BuildUri(Endpoint, null);
             request.ApplyConditionalHeaders(new MatchConditions { IfNoneMatch = ETag.All });
@@ -209,13 +144,73 @@ namespace Microsoft.Zumo.MobileData.Internal
         /// <returns>A <see cref="Request"/> object ready for transmission</returns>
         internal Request CreateReplaceRequest(T item, MatchConditions requestOptions)
         {
-            Request request = Pipeline.CreateRequest();
+            Arguments.IsNotNull(item, nameof(item));
+            Arguments.IsNotNullOrEmpty(item.Id, nameof(item.Id));
 
+            Request request = Pipeline.CreateRequest();
             request.Method = RequestMethod.Put;
             request.BuildUri(Endpoint, item.Id);
-            request.ApplyConditionalHeaders(requestOptions ?? new MatchConditions { IfMatch = new ETag(item.Version) });
+            if (item.Version != null)
+            {
+                request.ApplyConditionalHeaders(requestOptions ?? new MatchConditions { IfMatch = new ETag(item.Version) });
+            }
             request.Headers.Add(HttpHeader.Common.JsonContentType);
             request.Content = CreateRequestContent(item);
+
+            return request;
+        }
+
+        /// <summary>
+        /// Creates a request object for a paged response.
+        /// </summary>
+        /// <param name="options">The query to send</param>
+        /// <param name="pageLink">The next page link, if available</param>
+        /// <returns>The <see cref="Request"/> object corresponding to the request</returns>
+        internal Request CreateListPageRequest(MobileTableQueryOptions options, string? continuationToken = null, bool includeCount = false, int? pageSizeHint = null)
+        {
+            Arguments.IsNotNull(options, nameof(options));
+
+            Request request = Pipeline.CreateRequest();
+            request.Method = RequestMethod.Get;
+            var builder = request.Uri;
+            builder.Reset(Endpoint);
+            if (options.Filter != null)
+            {
+                builder.AppendQuery("$filter", options.Filter);
+            }
+            if (options.OrderBy != null)
+            {
+                builder.AppendQuery("$orderBy", options.OrderBy);
+            }
+            if (options.IncludeDeleted)
+            {
+                builder.AppendQuery("__includedeleted", "true");
+            }
+
+            // If continuationToken is set, then it's the $skip value of a multi-page request
+            // If not, then use the $skip within the options
+            if (continuationToken != null)
+            {
+                builder.AppendQuery("$skip", continuationToken);
+            }
+            else if (options.Skip >= 0)
+            {
+                builder.AppendQuery("$skip", $"{options.Skip}");
+            }
+
+            // If pageSizeHint is set, then use it.  Otherwise, use what is in the options
+            if (pageSizeHint != null && pageSizeHint > 0)
+            {
+                builder.AppendQuery("$top", $"{pageSizeHint}");
+            } else if (options.Size >= 0)
+            {
+                builder.AppendQuery("$top", $"{options.Size}");
+            }
+
+            if (includeCount)
+            {
+                builder.AppendQuery("$count", "true");
+            }
 
             return request;
         }
@@ -278,8 +273,8 @@ namespace Microsoft.Zumo.MobileData.Internal
         /// <param name="response">The response to process</param>
         /// <param name="cancellationToken">A lifecycle cancellation token</param>
         /// <returns></returns>
-        internal ValueTask<PagedResult<T>> CreatePagedResultAsync(Response response, CancellationToken cancellationToken)
-            => JsonSerializer.DeserializeAsync<PagedResult<T>>(response.ContentStream, SerializerOptions, cancellationToken);
+        internal ValueTask<U> DeserializeAsync<U>(Response response, CancellationToken cancellationToken) where U : class
+            => JsonSerializer.DeserializeAsync<U>(response.ContentStream, SerializerOptions, cancellationToken);
 
         /// <summary>
         /// Deserializes the content of the response into a <see cref="PagedResult{T}"/> object.
@@ -287,7 +282,7 @@ namespace Microsoft.Zumo.MobileData.Internal
         /// <param name="response">The response to process</param>
         /// <param name="cancellationToken">A lifecycle cancellation token</param>
         /// <returns></returns>
-        internal PagedResult<T> CreatePagedResult(Response response, CancellationToken cancellationToken)
-            => JsonSerializer.DeserializeAsync<PagedResult<T>>(response.ContentStream, SerializerOptions, cancellationToken).Result;
+        internal U Deserialize<U>(Response response, CancellationToken cancellationToken) where U : class
+            => JsonSerializer.DeserializeAsync<U>(response.ContentStream, SerializerOptions, cancellationToken).Result;
     }
 }

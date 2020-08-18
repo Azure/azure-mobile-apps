@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Zumo.Server.Test.Helpers;
 using Microsoft.Zumo.Server.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
@@ -17,12 +16,19 @@ namespace Microsoft.Zumo.Server.Test.Utils
     public class ETag_Test
     {
         #region Test Data
-        private readonly Movie testMovie = new Movie()
+        class Entity : ITableData
+        {
+            public string Id { get; set; }
+            public byte[] Version { get; set; }
+            public DateTimeOffset UpdatedAt { get; set; }
+            public bool Deleted { get; set; }
+        }
+
+        private readonly Entity testEntity = new Entity()
         {
             Version = new byte[] { 0x01, 0x00, 0x42, 0x22, 0x47, 0x8F },
             UpdatedAt = DateTimeOffset.Parse("Wed, 30 Jan 2019 13:30:15 GMT"),
-            Id = "test1",
-            Title = "Test Data"
+            Id = "test1"
         };
 
         private readonly string earlierTestDate = "Tue, 29 Jan 2019 13:30:15 GMT";
@@ -124,175 +130,175 @@ namespace Microsoft.Zumo.Server.Test.Utils
         [TestMethod]
         public void EvaluatePreoonditions_NoHeaders_NullItem_200()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(null, GetEmptyRequestHeaders(), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(null, GetEmptyRequestHeaders(), false);
             Assert.AreEqual(200, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_NoHeaders_TestItem_200()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetEmptyRequestHeaders(), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetEmptyRequestHeaders(), false);
             Assert.AreEqual(200, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfMatchStar_NullItem_412()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(null, GetRequestHeaders("If-Match", "*"), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(null, GetRequestHeaders("If-Match", "*"), false);
             Assert.AreEqual(412, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfNoneMatchStar_NullItem_200()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(null, GetRequestHeaders("If-None-Match", "*"), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(null, GetRequestHeaders("If-None-Match", "*"), false);
             Assert.AreEqual(200, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfMatch_NullItem_412()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(null, GetRequestHeaders("If-Match", matchingETag), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(null, GetRequestHeaders("If-Match", matchingETag), false);
             Assert.AreEqual(412, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfNoneMatch_NullItem_200()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(null, GetRequestHeaders("If-None-Match", matchingETag), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(null, GetRequestHeaders("If-None-Match", matchingETag), false);
             Assert.AreEqual(200, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfUnmodifiedSince_NullItem_412()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(null, GetRequestHeaders("If-Unmodified-Since", earlierTestDate), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(null, GetRequestHeaders("If-Unmodified-Since", earlierTestDate), false);
             Assert.AreEqual(412, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfMatchStar_TestItem_200()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-Match", "*"), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-Match", "*"), false);
             Assert.AreEqual(200, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_GET_IfNoneMatchStar_TestItem_304()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-None-Match", "*"), true);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-None-Match", "*"), true);
             Assert.AreEqual(304, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_POST_IfNoneMatchStar_TestItem_412()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-None-Match", "*"), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-None-Match", "*"), false);
             Assert.AreEqual(412, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfMatch_TestItem_200()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-Match", matchingETag), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-Match", matchingETag), false);
             Assert.AreEqual(200, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfMatch_NonMatchingItem_412()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-Match", nonMatchingETag), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-Match", nonMatchingETag), false);
             Assert.AreEqual(412, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_POST_IfNoneMatch_TestItem_412()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-None-Match", matchingETag), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-None-Match", matchingETag), false);
             Assert.AreEqual(412, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_GET_IfNoneMatch_TestItem_304()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-None-Match", matchingETag), true);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-None-Match", matchingETag), true);
             Assert.AreEqual(304, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfNoneMatch_NonMatchingItem_200()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-None-Match", nonMatchingETag), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-None-Match", nonMatchingETag), false);
             Assert.AreEqual(200, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfModifiedSinceEarlier_GET_NullItem_200()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(null, GetRequestHeaders("If-Modified-Since", earlierTestDate), true);
+            var actual = ETag.EvaluatePreconditions<Entity>(null, GetRequestHeaders("If-Modified-Since", earlierTestDate), true);
             Assert.AreEqual(304, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfModifiedSinceEarlier_GET_TestItem_200()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-Modified-Since", earlierTestDate), true);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-Modified-Since", earlierTestDate), true);
             Assert.AreEqual(200, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfModifiedSinceLater_GET_NullItem_304()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-Modified-Since", laterTestDate), true);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-Modified-Since", laterTestDate), true);
             Assert.AreEqual(304, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfModifiedSinceLater_GET_TestItem_304()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-Modified-Since", laterTestDate), true);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-Modified-Since", laterTestDate), true);
             Assert.AreEqual(304, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfModifiedSinceEarlier_POST_TestItem_200()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-Modified-Since", earlierTestDate), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-Modified-Since", earlierTestDate), false);
             Assert.AreEqual(200, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfModifiedSinceLater_POST_TestItem_200()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-Modified-SInce", laterTestDate), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-Modified-SInce", laterTestDate), false);
             Assert.AreEqual(200, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfUnmodifiedSinceEarlier_GET_TestItem_412()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-Unmodified-Since", earlierTestDate), true);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-Unmodified-Since", earlierTestDate), true);
             Assert.AreEqual(412, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfUnmodifiedSinceLater_GET_TestItem_200()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-Unmodified-Since", laterTestDate), true);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-Unmodified-Since", laterTestDate), true);
             Assert.AreEqual(200, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfUnmodifiedSInceEarlier_POST_TestItem_412()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-Unmodified-Since", earlierTestDate), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-Unmodified-Since", earlierTestDate), false);
             Assert.AreEqual(412, actual);
         }
 
         [TestMethod]
         public void EvaluatePreconditions_IfUnmodifiedSinceLater_POST_TestItem_200()
         {
-            var actual = ETag.EvaluatePreconditions<Movie>(testMovie, GetRequestHeaders("If-Unmodified-Since", laterTestDate), false);
+            var actual = ETag.EvaluatePreconditions<Entity>(testEntity, GetRequestHeaders("If-Unmodified-Since", laterTestDate), false);
             Assert.AreEqual(200, actual);
         }
         #endregion

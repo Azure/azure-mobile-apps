@@ -1,35 +1,24 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Zumo.Server.Utils;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Net.Http.Headers;
+using System.Linq;
 
 namespace Microsoft.Zumo.Server.Test.Helpers
 {
+    /// <summary>
+    /// Assertions dealing with a HTTP Request or Response.
+    /// </summary>
     public static class HttpAssert
     {
-        public static void AreEqual(byte[] expected, EntityTagHeaderValue actual)
+        public static void HasResponseHeader(HttpContext context, string headerName, string headerValue)
         {
-            Assert.IsNotNull(expected);
-            Assert.IsNotNull(actual);
-            Assert.AreEqual(ETag.FromByteArray(expected), actual.Tag);
-        }
-
-        public static void Match(DateTimeOffset expected, DateTimeOffset? actual)
-        {
-            Assert.IsNotNull(expected);
-            Assert.IsNotNull(actual);
-            Assert.AreEqual(expected.ToString("r"), (actual ?? DateTimeOffset.MinValue).ToString("r"));
-        }
-
-        public static void IsWithin(DateTimeOffset expected, DateTimeOffset actual, long timeDiff)
-        {
-            Assert.IsNotNull(expected);
-            Assert.IsNotNull(actual);
-            var actualDiff = expected.Subtract(actual).TotalMilliseconds;
-            Assert.IsTrue(Math.Abs(actualDiff) < timeDiff);
+            bool hasHeader = context.Response.Headers.TryGetValue(headerName, out StringValues headerValues);
+            Assert.IsTrue(hasHeader, $"Header {headerName} is not present in the response");
+            Assert.AreEqual(1, headerValues.Count, $"There are {headerValues.Count} {headerName} header(s) in the response (expected: 1)");
+            Assert.AreEqual(headerValue, headerValues.First(), $"Expected <{headerValue}> for header {headerName}, Actual <{headerValues.First()}>");
         }
     }
 }

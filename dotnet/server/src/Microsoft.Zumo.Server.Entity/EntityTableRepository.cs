@@ -34,8 +34,18 @@ namespace Microsoft.Zumo.Server.Entity
         /// <param name="context">The <see cref="DbContext"/> for the backend store.</param>
         public EntityTableRepository(DbContext context)
         {
-            Context = context;
+            Context = context ?? throw new ArgumentNullException(nameof(context));
             DataSet = context.Set<TEntity>();
+            
+            // Validate that TEntity is a registered entity type within the EF Core system
+            try
+            {
+                _ = DataSet.Local;
+            } 
+            catch (InvalidOperationException)
+            {
+                throw new ArgumentException($"Unregistered entity type: {typeof(TEntity).Name}", nameof(context));
+            }
         }
 
         /// <summary>
@@ -54,7 +64,7 @@ namespace Microsoft.Zumo.Server.Entity
         /// <exception cref="EntityExistsException">if the entity exists</exception>
         public virtual async Task<TEntity> CreateAsync(TEntity item, CancellationToken cancellationToken = default)
         {
-            if (item == null)
+            if (item == null || string.IsNullOrEmpty(item.Id))
             {
                 throw new ArgumentNullException(nameof(item));
             }
@@ -78,7 +88,7 @@ namespace Microsoft.Zumo.Server.Entity
         /// <exception cref="EntityDoesNotExistException">if the entity to be deleted does not exist</exception>
         public virtual async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
         {
-            if (id == null)
+            if (string.IsNullOrEmpty(id))
             {
                 throw new ArgumentNullException(nameof(id));
             }
@@ -102,7 +112,7 @@ namespace Microsoft.Zumo.Server.Entity
         /// <returns>The entity, or null if no entity is available.</returns>
         public virtual ValueTask<TEntity> LookupAsync(string id, CancellationToken cancellationToken = default)
         {
-            if (id == null)
+            if (string.IsNullOrEmpty(id))
             {
                 throw new ArgumentNullException(nameof(id));
             }
@@ -117,13 +127,9 @@ namespace Microsoft.Zumo.Server.Entity
         /// <exception cref="EntityDoesNotExistException">if the entity to be replaced does not exist</exception>
         public virtual async Task<TEntity> ReplaceAsync(TEntity item, CancellationToken cancellationToken = default)
         {
-            if (item == null)
+            if (item == null || string.IsNullOrEmpty(item.Id))
             {
                 throw new ArgumentNullException(nameof(item));
-            }
-            if (item.Id == null)
-            {
-                throw new ArgumentNullException(nameof(item.Id));
             }
 
             var entity = await LookupAsync(item.Id, cancellationToken).ConfigureAwait(false);

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Http;
+using System;
 using System.Linq;
 
 namespace Microsoft.Zumo.Server.Extensions
@@ -20,6 +21,15 @@ namespace Microsoft.Zumo.Server.Extensions
         /// <returns></returns>
         public static IQueryable<T> ApplyDeletedFilter<T>(this IQueryable<T> query, TableControllerOptions<T> tableOptions, HttpRequest request) where T : class, ITableData
         {
+            if (tableOptions == null)
+            {
+                throw new ArgumentNullException(nameof(tableOptions));
+            }
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             const string IncludeDeletedParameter = "__includedeleted";
             var includeDeleted = request.Query.Any(t => t.Key.ToLowerInvariant() == IncludeDeletedParameter);
 

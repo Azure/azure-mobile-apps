@@ -2,8 +2,6 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.Zumo.Server.Entity.Test.Helpers
 {
@@ -30,7 +28,7 @@ namespace Microsoft.Zumo.Server.Entity.Test.Helpers
             return new Movie
             {
                 Id = this.Id,
-                Version = this.Version.ToArray(),
+                Version = (byte[])this.Version.Clone(),
                 UpdatedAt = this.UpdatedAt,
                 Deleted = this.Deleted,
                 Title = this.Title,
@@ -51,11 +49,10 @@ namespace Microsoft.Zumo.Server.Entity.Test.Helpers
 
         public bool Equals(Movie other)
         {
+            // Note that we explicitly avoid using UpdatedAt & Version fields
+            // in the equality check - the data must match, not the Metadata.
             return other != null &&
-                   Id == other.Id &&
-                   UpdatedAt.Equals(other.UpdatedAt) &&
-                   EqualityComparer<byte[]>.Default.Equals(Version, other.Version) &&
-                   Deleted == other.Deleted &&
+                   Id.Equals(other.Id) &&
                    Title == other.Title &&
                    Duration == other.Duration &&
                    MpaaRating == other.MpaaRating &&
