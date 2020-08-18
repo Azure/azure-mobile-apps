@@ -23,11 +23,12 @@ namespace Microsoft.Zumo.MobileData
         private readonly MobileTableQueryOptions _options;
         private CancellationToken _token;
         private long nResults = 0;
+        private long? _count;
 
         internal MobileTableAsyncPageable(ServiceRestClient<T> client, MobileTableQueryOptions options, CancellationToken cancellationToken = default)
         {
             _client = client;
-            _options = options;
+            _options = options ?? new MobileTableQueryOptions();
             _token = cancellationToken;
         }
 
@@ -35,7 +36,27 @@ namespace Microsoft.Zumo.MobileData
         /// The count of the number of entities that will be returned by this pageable.  This is an
         /// approximation since the count can change over time.
         /// </summary>
-        public long? Count { get; private set; }
+        public async ValueTask<long> GetCountAsync(CancellationToken cancellationToken = default) 
+            => _count ?? await GetCountFromServerAsync(cancellationToken).ConfigureAwait(false);
+
+        /// <summary>
+        /// Returns the length from the server by creating a request for 1 item.
+        /// </summary>
+        /// <returns>The length from the server</returns>
+        private async ValueTask<long> GetCountFromServerAsync(CancellationToken cancellationToken)
+        {
+            using Request request = _client.CreateListPageRequest(_options, null, true, 1);
+            Response response = await _client.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+            switch (response.Status)
+            {
+                case 200:
+                    PagedResult<T> data = await _client.DeserializeAsync<PagedResult<T>>(response, cancellationToken).ConfigureAwait(false);
+                    _count = data.Count;
+                    return data.Count ?? throw new RequestFailedException(500, "Invalid object returned from List request");
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
+        }
 
         /// <summary>
         /// Obtains the enumerated list response as a set of pages with consecutive requests to the service.
@@ -66,7 +87,7 @@ namespace Microsoft.Zumo.MobileData
             {
                 case 200:
                     PagedResult<T> data = await _client.DeserializeAsync<PagedResult<T>>(response, _token).ConfigureAwait(false);
-                    Count = data.Count;
+                    _count = data.Count;
                     return PageOfData(data.Results, response);
                 default:
                     throw new RequestFailedException(response.Status, response.ReasonPhrase);

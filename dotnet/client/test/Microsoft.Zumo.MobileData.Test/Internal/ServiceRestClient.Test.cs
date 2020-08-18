@@ -323,7 +323,7 @@ namespace Microsoft.Zumo.MobileData.Test.Internal
         }
         #endregion
 
-        #region CreateListRequest
+        #region CreateListPageRequest
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public void CreateListRequest_NullItemAndPageLink_Throws()
@@ -333,35 +333,8 @@ namespace Microsoft.Zumo.MobileData.Test.Internal
             var options = new MobileTableClientOptions();
             var client = new ServiceRestClient<Movie>(uri, credential, options);
 
-            _ = client.CreateListRequest(null, null);
+            _ = client.CreateListPageRequest(null);
             Assert.Fail("ArgumentNullException expected");
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(UriFormatException))]
-        public void CreateListRequest_InvalidLink_Throws()
-        {
-            var uri = new Uri("https://localhost/tables/movies");
-            var credential = new SimpleTokenCredential("foo");
-            var options = new MobileTableClientOptions();
-            var client = new ServiceRestClient<Movie>(uri, credential, options);
-
-            _ = client.CreateListRequest(null, "foo");
-            Assert.Fail("UriFormatException expected");
-        }
-
-        [TestMethod]
-        public void CreateListRequest_ValidLink_WorksAsExpected()
-        {
-            var uri = new Uri("https://localhost/tables/movies");
-            var credential = new SimpleTokenCredential("foo");
-            var options = new MobileTableClientOptions();
-            var client = new ServiceRestClient<Movie>(uri, credential, options);
-
-            var actual = client.CreateListRequest(null, "https://localhost/foo");
-
-            Assert.AreEqual(RequestMethod.Get, actual.Method);
-            Assert.AreEqual("https://localhost/foo", actual.Uri.ToString());
         }
 
         [TestMethod]
@@ -373,7 +346,7 @@ namespace Microsoft.Zumo.MobileData.Test.Internal
             var client = new ServiceRestClient<Movie>(uri, credential, options);
             var query = new MobileTableQueryOptions();
 
-            var actual = client.CreateListRequest(query);
+            var actual = client.CreateListPageRequest(query, null, true);
 
             Assert.AreEqual(RequestMethod.Get, actual.Method);
             Assert.AreEqual("https://localhost/tables/movies?$count=true", actual.Uri.ToString());
@@ -388,7 +361,7 @@ namespace Microsoft.Zumo.MobileData.Test.Internal
             var client = new ServiceRestClient<Movie>(uri, credential, options);
             var query = new MobileTableQueryOptions { IncludeDeleted = true };
 
-            var actual = client.CreateListRequest(query);
+            var actual = client.CreateListPageRequest(query, null, true);
 
             Assert.AreEqual(RequestMethod.Get, actual.Method);
             Assert.AreEqual("https://localhost/tables/movies?__includedeleted=true&$count=true", actual.Uri.ToString());
@@ -403,10 +376,10 @@ namespace Microsoft.Zumo.MobileData.Test.Internal
             var client = new ServiceRestClient<Movie>(uri, credential, options);
             var query = new MobileTableQueryOptions { Skip = 5, Size = 10 };
 
-            var actual = client.CreateListRequest(query);
+            var actual = client.CreateListPageRequest(query, null, false);
 
             Assert.AreEqual(RequestMethod.Get, actual.Method);
-            Assert.AreEqual("https://localhost/tables/movies?$skip=5&$top=10&$count=true", actual.Uri.ToString());
+            Assert.AreEqual("https://localhost/tables/movies?$skip=5&$top=10", actual.Uri.ToString());
         }
 
         [TestMethod]
@@ -418,10 +391,25 @@ namespace Microsoft.Zumo.MobileData.Test.Internal
             var client = new ServiceRestClient<Movie>(uri, credential, options);
             var query = new MobileTableQueryOptions { Filter = "mpaaRating eq 'R'", OrderBy = "Year" };
 
-            var actual = client.CreateListRequest(query);
+            var actual = client.CreateListPageRequest(query, null, true);
 
             Assert.AreEqual(RequestMethod.Get, actual.Method);
             Assert.AreEqual("https://localhost/tables/movies?$filter=mpaaRating%20eq%20%27R%27&$orderBy=Year&$count=true", actual.Uri.ToString());
+        }
+
+        [TestMethod]
+        public void CreateListRequest_Filter_WithContinuation_WorksAsExpected()
+        {
+            var uri = new Uri("https://localhost/tables/movies");
+            var credential = new SimpleTokenCredential("foo");
+            var options = new MobileTableClientOptions();
+            var client = new ServiceRestClient<Movie>(uri, credential, options);
+            var query = new MobileTableQueryOptions { Filter = "mpaaRating eq 'R'", OrderBy = "Year" };
+
+            var actual = client.CreateListPageRequest(query, "5", false);
+
+            Assert.AreEqual(RequestMethod.Get, actual.Method);
+            Assert.AreEqual("https://localhost/tables/movies?$filter=mpaaRating%20eq%20%27R%27&$orderBy=Year&$skip=5", actual.Uri.ToString());
         }
         #endregion
 
@@ -945,7 +933,7 @@ namespace Microsoft.Zumo.MobileData.Test.Internal
 
         #region CreatePagedResultAsync
         [TestMethod]
-        public async Task CreatePagedResultAsync_Deserializes_FullBody()
+        public async Task DeserializeAsync_Deserializes_FullBody()
         {
             var uri = new Uri("https://localhost");
             var mockTransport = new MockTransport();
@@ -970,7 +958,7 @@ namespace Microsoft.Zumo.MobileData.Test.Internal
 
             // This is the actual test
             var response = await client.SendRequestAsync(request, default);
-            PagedResult<Entity> actual = await client.CreatePagedResultAsync(response, default);
+            PagedResult<Entity> actual = await client.DeserializeAsync<PagedResult<Entity>>(response, default);
 
             // Check that the response created is the right type
             Assert.IsNotNull(actual);
@@ -981,7 +969,7 @@ namespace Microsoft.Zumo.MobileData.Test.Internal
 
         #region CreatedPagedResult
         [TestMethod]
-        public async Task CreatePagedResult_Deserializes_FullBody()
+        public async Task Deserialize_Deserializes_FullBody()
         {
             var uri = new Uri("https://localhost");
             var mockTransport = new MockTransport();
@@ -1006,7 +994,7 @@ namespace Microsoft.Zumo.MobileData.Test.Internal
 
             // This is the actual test
             var response = await client.SendRequestAsync(request, default);
-            PagedResult<Entity> actual = client.CreatePagedResult(response, default);
+            PagedResult<Entity> actual = client.Deserialize<PagedResult<Entity>>(response, default);
 
             // Check that the response created is the right type
             Assert.IsNotNull(actual);

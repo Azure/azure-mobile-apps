@@ -4,9 +4,12 @@
 using Azure;
 using Azure.Core.Pipeline;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.Zumo.MobileData.Internal;
 using Microsoft.Zumo.MobileData.Test.Helpers;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -30,7 +33,7 @@ namespace Microsoft.Zumo.MobileData.Test
         }
 
         private readonly string returnedEntity = "{\"id\":\"retid\",\"data\":\"retdata\",\"deleted\":false,\"updatedAt\":\"2020-02-27T03:22:05.000Z\",\"version\":\"abcdef\"}";
-        
+
         private HttpResponseMessage CreateEntityResponse(HttpStatusCode code)
         {
             var response = new HttpResponseMessage
@@ -1071,9 +1074,469 @@ namespace Microsoft.Zumo.MobileData.Test
         #endregion
 
         #region GetItemsAsync
+        [TestMethod]
+        public async Task GetItemsAsync_Unauthorized_Returns403()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = new HttpResponseMessage { StatusCode = HttpStatusCode.Forbidden };
+
+            try
+            {
+                MobileTableAsyncPageable<Entity> actual = table.GetItemsAsync();
+                var enumerator = actual.GetAsyncEnumerator();
+                await enumerator.MoveNextAsync(); // This will cause the request
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(403, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_UnauthorizedCount_Returns403()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = new HttpResponseMessage { StatusCode = HttpStatusCode.Forbidden };
+
+            try
+            {
+                MobileTableAsyncPageable<Entity> actual = table.GetItemsAsync();
+                _ = await actual.GetCountAsync();
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(403, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_RequestsCount()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = CreateResponse(HttpStatusCode.OK, new PagedResult<Entity>
+            {
+                Results = new Entity[] {
+                    new Entity { Id = "id1", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") }
+                },
+                Count = 20
+            });
+
+            MobileTableAsyncPageable<Entity> results = table.GetItemsAsync();
+            var count = await results.GetCountAsync();
+
+            Assert.AreEqual(20, count);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_GetCount_CachesCount()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = CreateResponse(HttpStatusCode.OK, new PagedResult<Entity>
+            {
+                Results = new Entity[] {
+                    new Entity { Id = "id1", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") }
+                },
+                Count = 20
+            });
+
+            MobileTableAsyncPageable<Entity> results = table.GetItemsAsync();
+            var count = await results.GetCountAsync();
+
+            Assert.AreEqual(20, count);
+
+            mock.Response = new HttpResponseMessage { StatusCode = HttpStatusCode.AlreadyReported };
+            // Should not generate a request, so if you get AlreadyReported, it's an error
+            var cachedCount = await results.GetCountAsync(); 
+
+            Assert.AreEqual(20, cachedCount);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_GetCount_Throws_IfCountNotReturned()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = CreateResponse(HttpStatusCode.OK, new PagedResult<Entity>
+            {
+                Results = new Entity[] {
+                    new Entity { Id = "id1", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") }
+                }
+            });
+
+            try
+            {
+                MobileTableAsyncPageable<Entity> results = table.GetItemsAsync();
+                var count = await results.GetCountAsync();
+                Assert.Fail("RequestFailedException expected");
+            } 
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(500, ex.Status);
+            }
+        }
+
+
+        [TestMethod]
+        public async Task GetItemsAsync_PagesProperly()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = CreateResponse(HttpStatusCode.OK, new PagedResult<Entity>
+            {
+                Results = new Entity[] {
+                    new Entity { Id = "id1", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id2", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id3", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id4", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id5", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") }
+                },
+                Count = 20
+            });
+
+            var response2 = CreateResponse(HttpStatusCode.OK, new Entity[] {
+                new Entity { Id = "id6", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                new Entity { Id = "id7", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                new Entity { Id = "id8", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                new Entity { Id = "id9", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                new Entity { Id = "id10", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") }
+            });
+
+            var response3 = CreateResponse(HttpStatusCode.OK, new Entity[] { });
+
+            MobileTableAsyncPageable<Entity> results = table.GetItemsAsync();
+            var nResults = 0;
+            await foreach (var item in results)
+            {
+                nResults++;
+
+                // Check the proper Id is received.
+                Assert.AreEqual($"id{nResults}", item.Id);
+
+                // Replace the Response when the id1 and id6 are received.
+                if (item.Id == "id1")
+                {
+                    mock.Response = response2;
+                }
+                if (item.Id == "id6")
+                {
+                    mock.Response = response3;
+                }
+
+                Assert.IsTrue(nResults < 11);
+            }
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_ThrowsOnSecondPageError()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = CreateResponse(HttpStatusCode.OK, new PagedResult<Entity>
+            {
+                Results = new Entity[] {
+                    new Entity { Id = "id1", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id2", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id3", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id4", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id5", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") }
+                },
+                Count = 20
+            });
+
+            var response2 = new HttpResponseMessage { StatusCode = HttpStatusCode.AlreadyReported };
+
+            try
+            {
+                MobileTableAsyncPageable<Entity> results = table.GetItemsAsync();
+                var nResults = 0;
+                await foreach (var item in results)
+                {
+                    nResults++;
+
+                    // Check the proper Id is received.
+                    Assert.AreEqual($"id{nResults}", item.Id);
+
+                    // Replace the Response when the id1 and id6 are received.
+                    if (item.Id == "id1")
+                    {
+                        mock.Response = response2;
+                    }
+
+                    // We only return 5 items
+                    if (nResults > 6) break;
+                }
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(208, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_GetCount_UsesCachedCopy_AfterFirstItem()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = CreateResponse(HttpStatusCode.OK, new PagedResult<Entity>
+            {
+                Results = new Entity[] {
+                    new Entity { Id = "id1", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id2", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id3", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id4", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id5", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") }
+                },
+                Count = 20
+            });
+
+            MobileTableAsyncPageable<Entity> results = table.GetItemsAsync();
+            var enumerator = results.GetAsyncEnumerator();
+            await enumerator.MoveNextAsync();
+
+            mock.Response = new HttpResponseMessage { StatusCode = HttpStatusCode.AlreadyReported };
+            // This next line should not throw - the above mock will ensure it does if there is a problem.
+            var count = await results.GetCountAsync();
+            Assert.AreEqual(20, count);
+        }
         #endregion
 
         #region GetItems
+        [TestMethod]
+        public void GetItems_Unauthorized_Returns403()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = new HttpResponseMessage { StatusCode = HttpStatusCode.Forbidden };
+
+            try
+            {
+                MobileTablePageable<Entity> actual = table.GetItems();
+                // We need to do the first requestto get a thrown error
+                _ = actual.First();
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(403, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public void GetItems_UnauthorizedCount_Returns403()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = new HttpResponseMessage { StatusCode = HttpStatusCode.Forbidden };
+
+            try
+            {
+                MobileTablePageable<Entity> actual = table.GetItems();
+                _ = actual.GetCount();
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(403, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public void GetItems_RequestsCount()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = CreateResponse(HttpStatusCode.OK, new PagedResult<Entity> 
+            {
+                Results = new Entity[] { 
+                    new Entity { Id = "id1", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") }
+                },
+                Count = 20
+            });
+
+            MobileTablePageable<Entity> results = table.GetItems();
+            var count = results.GetCount();
+
+            Assert.AreEqual(20, count);
+        }
+
+        [TestMethod]
+        public void GetItems_GetCount_CachesCount()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = CreateResponse(HttpStatusCode.OK, new PagedResult<Entity>
+            {
+                Results = new Entity[] {
+                    new Entity { Id = "id1", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") }
+                },
+                Count = 20
+            });
+
+            MobileTablePageable<Entity> results = table.GetItems();
+            var count = results.GetCount();
+
+            Assert.AreEqual(20, count);
+
+            mock.Response = new HttpResponseMessage { StatusCode = HttpStatusCode.AlreadyReported };
+            // Should not generate a request, so if you get AlreadyReported, it's an error
+            var cachedCount = results.GetCount();
+
+            Assert.AreEqual(20, cachedCount);
+        }
+
+        [TestMethod]
+        public void GetItems_GetCount_Throws_IfCountNotReturned()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = CreateResponse(HttpStatusCode.OK, new PagedResult<Entity>
+            {
+                Results = new Entity[] {
+                    new Entity { Id = "id1", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") }
+                }
+            });
+
+            try
+            {
+                MobileTablePageable<Entity> results = table.GetItems();
+                var count = results.GetCount();
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(500, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public void GetItems_PagesProperly()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = CreateResponse(HttpStatusCode.OK, new PagedResult<Entity>
+            {
+                Results = new Entity[] {
+                    new Entity { Id = "id1", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id2", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id3", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id4", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id5", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") }
+                },
+                Count = 20
+            });
+
+            var response2 = CreateResponse(HttpStatusCode.OK, new Entity[] {
+                new Entity { Id = "id6", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                new Entity { Id = "id7", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                new Entity { Id = "id8", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                new Entity { Id = "id9", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                new Entity { Id = "id10", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") }
+            });
+
+            var response3 = CreateResponse(HttpStatusCode.OK, new Entity[] { });
+
+            MobileTablePageable<Entity> results = table.GetItems();
+            var nResults = 0;
+            foreach (var item in results) {
+                nResults++;
+                
+                // Check the proper Id is received.
+                Assert.AreEqual($"id{nResults}", item.Id);
+
+                // Replace the Response when the id1 and id6 are received.
+                if (item.Id == "id1")
+                {
+                    mock.Response = response2;
+                }
+                if (item.Id == "id6")
+                {
+                    mock.Response = response3;
+                }
+
+                Assert.IsTrue(nResults < 11);
+            }
+        }
+
+        [TestMethod]
+        public void GetItems_ThrowsOnSecondPageError()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = CreateResponse(HttpStatusCode.OK, new PagedResult<Entity>
+            {
+                Results = new Entity[] {
+                    new Entity { Id = "id1", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id2", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id3", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id4", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id5", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") }
+                },
+                Count = 20
+            });
+
+            var response2 = new HttpResponseMessage { StatusCode = HttpStatusCode.AlreadyReported };
+
+            try
+            {
+                MobileTablePageable<Entity> results = table.GetItems();
+                var nResults = 0;
+                foreach (var item in results)
+                {
+                    nResults++;
+
+                    // Check the proper Id is received.
+                    Assert.AreEqual($"id{nResults}", item.Id);
+
+                    // Replace the Response when the id1 and id6 are received.
+                    if (item.Id == "id1")
+                    {
+                        mock.Response = response2;
+                    }
+
+                    // We only return 5 items
+                    if (nResults > 6) break;
+                }
+                Assert.Fail("RequestFailedException expected");
+            }
+            catch (RequestFailedException ex)
+            {
+                Assert.AreEqual(208, ex.Status);
+            }
+        }
+
+        [TestMethod]
+        public void GetItems_GetCount_UsesCachedCopy_AfterFirstItem()
+        {
+            var mock = new MockTransport();
+            var table = GetTableReference(mock);
+            mock.Response = CreateResponse(HttpStatusCode.OK, new PagedResult<Entity>
+            {
+                Results = new Entity[] {
+                    new Entity { Id = "id1", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id2", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id3", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id4", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") },
+                    new Entity { Id = "id5", Data = "foo", UpdatedAt = DateTimeOffset.UtcNow, Version = Guid.NewGuid().ToString("N") }
+                },
+                Count = 20
+            });
+
+            MobileTablePageable<Entity> results = table.GetItems();
+            var enumerator = results.GetEnumerator();
+            enumerator.MoveNext();
+
+            mock.Response = new HttpResponseMessage { StatusCode = HttpStatusCode.AlreadyReported };
+            // This next line should not throw - the above mock will ensure it does if there is a problem.
+            var count = results.GetCount();
+            Assert.AreEqual(20, count);
+        }
         #endregion
 
         #region ReplaceItemAsync
