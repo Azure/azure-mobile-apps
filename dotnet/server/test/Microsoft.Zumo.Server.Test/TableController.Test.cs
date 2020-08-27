@@ -1730,6 +1730,18 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
+        public async Task GetItemsAsync_Returns200_WithIdFilter()
+        {
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$filter=id eq 'movie-4'");
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = await GetValueFromResponse<List<Movie>>(response);
+            Assert.IsNotNull(actual);
+            Assert.AreEqual(1, actual.Count);
+            Assert.AreEqual("The Good, the Bad and the Ugly", actual[0].Title);
+        }
+
+        [TestMethod]
         public async Task GetItemsAsync_Returns200_WhenFilterRequested_WithCount()
         {
             var options = new TableControllerOptions<Movie>();

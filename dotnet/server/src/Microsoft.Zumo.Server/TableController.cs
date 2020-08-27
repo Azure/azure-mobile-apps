@@ -46,7 +46,7 @@ namespace Microsoft.Zumo.Server
         protected TableController()
         {
             var modelBuilder = new ODataConventionModelBuilder();
-            modelBuilder.AddEntityType(typeof(TEntity));
+            modelBuilder.EntityType<TEntity>().Filter().Count().OrderBy().Expand().Select();
             EdmModel = modelBuilder.GetEdmModel();
         }
 
