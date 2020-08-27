@@ -45,6 +45,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Todo.XamarinForms.iOS", "sa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Todo.XamarinForms", "samples\Todo.XamarinForms\Todo.XamarinForms\Todo.XamarinForms.csproj", "{77C706F6-2A39-400F-B9B1-CCDAEA3821C8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "e2etest", "e2etest", "{B8336DA4-13C4-4039-B30A-A7AA7B077672}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Zumo.E2EServer", "e2etest\Microsoft.Zumo.E2EServer\Microsoft.Zumo.E2EServer.csproj", "{A224ED88-22B6-44FC-A39D-A0520DB0EBD2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -191,6 +195,18 @@ Global
 		{77C706F6-2A39-400F-B9B1-CCDAEA3821C8}.Release|iPhone.Build.0 = Release|Any CPU
 		{77C706F6-2A39-400F-B9B1-CCDAEA3821C8}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
 		{77C706F6-2A39-400F-B9B1-CCDAEA3821C8}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+		{A224ED88-22B6-44FC-A39D-A0520DB0EBD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A224ED88-22B6-44FC-A39D-A0520DB0EBD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A224ED88-22B6-44FC-A39D-A0520DB0EBD2}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{A224ED88-22B6-44FC-A39D-A0520DB0EBD2}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{A224ED88-22B6-44FC-A39D-A0520DB0EBD2}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{A224ED88-22B6-44FC-A39D-A0520DB0EBD2}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{A224ED88-22B6-44FC-A39D-A0520DB0EBD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A224ED88-22B6-44FC-A39D-A0520DB0EBD2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A224ED88-22B6-44FC-A39D-A0520DB0EBD2}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{A224ED88-22B6-44FC-A39D-A0520DB0EBD2}.Release|iPhone.Build.0 = Release|Any CPU
+		{A224ED88-22B6-44FC-A39D-A0520DB0EBD2}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{A224ED88-22B6-44FC-A39D-A0520DB0EBD2}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -211,6 +227,7 @@ Global
 		{B20FA84C-34CA-4DA6-9EDC-59D245A0596D} = {A6A816F1-EB1C-4C9A-8AB0-6119E7A79302}
 		{DF89BA07-7887-4329-85F9-93E376AA3E35} = {A6A816F1-EB1C-4C9A-8AB0-6119E7A79302}
 		{77C706F6-2A39-400F-B9B1-CCDAEA3821C8} = {A6A816F1-EB1C-4C9A-8AB0-6119E7A79302}
+		{A224ED88-22B6-44FC-A39D-A0520DB0EBD2} = {B8336DA4-13C4-4039-B30A-A7AA7B077672}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B7D84DF-EF2C-47CA-880E-D600E89CA1EB}
