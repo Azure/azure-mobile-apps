@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Zumo.E2EServer.DataObjects;
+using System.Linq;
 
 namespace Microsoft.Zumo.E2EServer.Models
 {
@@ -14,6 +15,12 @@ namespace Microsoft.Zumo.E2EServer.Models
         public static void Initialize(AppDbContext context)
         {
             context.Database.EnsureCreated();
+
+            if (context.Movies.Any())
+            {
+                // We've already initialized the database
+                return;
+            }
 
             var movies = TestMovies.GetTestMovies();
             context.Movies.AddRange(movies);

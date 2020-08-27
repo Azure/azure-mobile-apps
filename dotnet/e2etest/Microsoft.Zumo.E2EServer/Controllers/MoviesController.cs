@@ -10,7 +10,7 @@ using Microsoft.Zumo.Server.Entity;
 
 namespace Microsoft.Zumo.E2EServer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("tables/[controller]")]
     [ApiController]
     public class MoviesController : TableController<Movie>
     {
