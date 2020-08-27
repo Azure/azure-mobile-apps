@@ -14,5 +14,10 @@ namespace Microsoft.Zumo.E2EServer.Models
         }
 
         public DbSet<Movie> Movies { get; set; }
+        public DbSet<Dates> Dates { get; set; }
+        public DbSet<BlogPost> BlogPosts { get; set; }
+        public DbSet<BlogComment> BlogComments { get; set; }
+        public DbSet<RoundTripTableItem> RoundTripTableItems { get; set; }
+        public DbSet<OfflineReady> OfflineReadyItems { get; set; }
     }
 }

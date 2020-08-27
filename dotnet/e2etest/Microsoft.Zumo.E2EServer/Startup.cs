@@ -86,7 +86,7 @@ namespace Microsoft.Zumo.E2EServer
             // Initialize the database
             using var scope = app.ApplicationServices.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            DbInitializer.Initialize(context);
+            DbInitializer.Initialize(env, context);
         }
     }
 }
