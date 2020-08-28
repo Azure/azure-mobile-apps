@@ -25,6 +25,8 @@ namespace Microsoft.Zumo.Server.Test.Extensions
             }
             public string Id { get; set; }
             public byte[] Version { get; set; }
+            public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+
             public DateTimeOffset UpdatedAt { get; set; }
             public bool Deleted { get; set; }
         }

@@ -24,6 +24,11 @@ namespace Microsoft.Zumo.Server
         byte[] Version { get; set; }
 
         /// <summary>
+        /// The timestamp for when the entity was created.
+        /// </summary>
+        DateTimeOffset CreatedAt { get; set; }
+
+        /// <summary>
         /// The timestamp for when the entity was last modified.
         /// </summary>
         DateTimeOffset UpdatedAt { get; set; }

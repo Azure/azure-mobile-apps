@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Microsoft.Zumo.Server.Entity
 {
@@ -15,6 +16,12 @@ namespace Microsoft.Zumo.Server.Entity
     {
         [Key]
         public string Id { get; set; }
+
+        /// <summary>
+        /// The date/time that the entity was created.
+        /// </summary>
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
         /// <summary>
         /// The date/time that the entity was updated.

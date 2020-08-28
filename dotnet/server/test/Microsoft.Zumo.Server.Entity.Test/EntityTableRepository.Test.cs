@@ -128,6 +128,32 @@ namespace Microsoft.Zumo.Server.Entity.Test
             };
             var updatedItem = await repository.CreateAsync(item);
             Assert.IsNotNull(updatedItem);
+            Assert.IsFalse(updatedItem.Deleted);
+            Assert.IsNotNull(updatedItem.CreatedAt);
+
+            var isFound = repository.AsQueryable().Any(m => m.Id == item.Id);
+            Assert.IsTrue(isFound);
+        }
+
+        [TestMethod]
+        public async Task CreateAsync_CreatesItem_WithCreatedAtDate()
+        {
+            var repository = GetTableRepository();
+            var item = new Movie
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                BestPictureWinner = false,
+                Duration = 50,
+                MpaaRating = "G",
+                Title = "Home Movie Magic",
+                Year = 2020,
+                ReleaseDate = new DateTime(2020, 12, 24),
+                CreatedAt = new DateTimeOffset(2020, 12, 31, 08, 00, 00, TimeSpan.Zero)
+            };
+            var updatedItem = await repository.CreateAsync(item);
+            Assert.IsNotNull(updatedItem);
+            Assert.IsFalse(updatedItem.Deleted);
+            Assert.AreEqual(item.CreatedAt, updatedItem.CreatedAt);
 
             var isFound = repository.AsQueryable().Any(m => m.Id == item.Id);
             Assert.IsTrue(isFound);

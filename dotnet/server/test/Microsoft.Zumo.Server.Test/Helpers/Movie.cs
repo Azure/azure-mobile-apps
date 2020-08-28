@@ -21,9 +21,11 @@ namespace Microsoft.Zumo.Server.Test.Helpers
         #region ITableData
         public string Id { get; set; }
         public byte[] Version { get; set; }
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
         public DateTimeOffset UpdatedAt { get; set; }
         public bool Deleted { get; set; }
         #endregion
+
         public string Title { get; set; }
         public int Duration { get; set; }
         public string MpaaRating { get; set; }

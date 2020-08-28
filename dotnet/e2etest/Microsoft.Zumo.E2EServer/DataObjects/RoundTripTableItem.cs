@@ -44,7 +44,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
         public DateTimeOffset UpdatedAt { get; set; }
 
         [NotMapped]
-        public DateTimeOffset? CreatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
 
         [NotMapped]
         public Byte[] Version { get; set; }
