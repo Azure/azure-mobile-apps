@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -887,6 +888,574 @@ namespace Microsoft.Zumo.Server.Test
         }
         #endregion
 
+        #region GetItemsAsync
+        [TestMethod]
+        public async Task GetItemsAsync_Returns403_WhenIsAuthorized_False()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var controller = new MoviesController(repository)
+            {
+                IsAuthorizedResult = false
+            };
+
+            var response = await controller.GetItems();
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(StatusCodeResult));
+            var actual = response as StatusCodeResult;
+            Assert.AreEqual(403, actual.StatusCode);
+
+            // IsAuthorized is called
+            Assert.AreEqual(1, controller.IsAuthorizedCount);
+            Assert.IsNull(controller.LastAuthorizedMovie);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_ReturnsValidateResult_WhenValidateOperations_Used()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var controller = new MoviesController(repository)
+            {
+                ValidateOperationResult = 418
+            };
+
+            var response = await controller.GetItems();
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(StatusCodeResult));
+            var actual = response as StatusCodeResult;
+            Assert.AreEqual(418, actual.StatusCode);
+
+            // IsAuthorized is called
+            Assert.AreEqual(1, controller.ValidateOperationCount);
+            Assert.IsNull(controller.LastValidateOperationMovie);
+            Assert.IsFalse(controller.WasLastValidateOperationAsync);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_ReturnsValidateResult_WhenValidateOperationsAsync_Used()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var controller = new MoviesController(repository)
+            {
+                ValidateOperationAsyncResult = 418
+            };
+
+            var response = await controller.GetItems();
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(StatusCodeResult));
+            var actual = response as StatusCodeResult;
+            Assert.AreEqual(418, actual.StatusCode);
+
+            // IsAuthorized is called
+            Assert.AreEqual(1, controller.ValidateOperationCount);
+            Assert.IsNull(controller.LastValidateOperationMovie);
+            Assert.IsTrue(controller.WasLastValidateOperationAsync);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_Returns200_WithArray_WhenRequested()
+        {
+            var options = new TableControllerOptions<Movie>();
+
+            // This unit test requires a complete ASP.NET Core service set up
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies");
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = await GetValueFromResponse<List<Movie>>(response);
+            Assert.IsNotNull(actual);
+
+            // Ensure that the actual response is a unique list
+            Assert.AreEqual(options.PageSize, actual.Count);
+            CollectionAssert.AllItemsAreNotNull(actual);
+            CollectionAssert.AllItemsAreUnique(actual);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_CanPageThroughResults()
+        {
+            var options = new TableControllerOptions<Movie>();
+            var responseCount = 0;
+            var totalItemCount = 0;
+            int lastItemCount;
+
+            // There are 248 items in the page.
+            // Calculate the correct number of pages - it will be n + 1 empty page
+            int expectedPages = (int)(Math.Ceiling((double)(248 / options.PageSize)) + 1.0);
+            do
+            {
+                var response = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/movies?$skip={totalItemCount}");
+                responseCount++;
+
+                // The correct status code is returned
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+                // The result is a list of items
+                var actual = await GetValueFromResponse<List<Movie>>(response);
+                Assert.IsNotNull(actual);
+                Assert.IsTrue(actual.Count <= options.PageSize);
+                CollectionAssert.AllItemsAreUnique(actual);
+
+                lastItemCount = actual.Count;
+                totalItemCount += lastItemCount;
+            } while (lastItemCount != 0 && responseCount <= expectedPages);
+
+            // Check the results are correct
+            Assert.AreEqual(expectedPages, responseCount);
+            Assert.AreEqual(0, lastItemCount);
+            // The controller is Soft-Delete, so we don't expect the Soft Deleted items to be provided
+            Assert.AreEqual(TestData.Movies.Where(m => m.MpaaRating != "R").Count(), totalItemCount);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_Returns200_WithPagedResult_WhenInlineCountRequested()
+        {
+            var options = new TableControllerOptions<Movie>();
+
+            // This unit test requires a complete ASP.NET Core service set up
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$inlinecount=allpages");
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = await GetValueFromResponse<PagedListResult<Movie>>(response);
+            Assert.IsNotNull(actual);
+
+            // Ensure that the actual response is a unique list
+            Assert.AreEqual(options.PageSize, actual.Results.Count);
+            CollectionAssert.AllItemsAreNotNull(actual.Results.ToList());
+            CollectionAssert.AllItemsAreUnique(actual.Results.ToList());
+            Assert.AreEqual(TestData.Movies.Where(m => m.MpaaRating != "R").Count(), actual.Count);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_Returns200_WithPagedResult_WhenCountRequested()
+        {
+            var options = new TableControllerOptions<Movie>();
+
+            // This unit test requires a complete ASP.NET Core service set up
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$count=true");
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = await GetValueFromResponse<PagedListResult<Movie>>(response);
+            Assert.IsNotNull(actual);
+
+            // Ensure that the actual response is a unique list
+            Assert.AreEqual(options.PageSize, actual.Results.Count);
+            CollectionAssert.AllItemsAreNotNull(actual.Results.ToList());
+            CollectionAssert.AllItemsAreUnique(actual.Results.ToList());
+            // The controller is Soft-Delete, so we don't expect the Soft Deleted items to be provided
+            Assert.AreEqual(TestData.Movies.Where(m => m.MpaaRating != "R").Count(), actual.Count);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_Returns200_WhenFilterRequested()
+        {
+            // This unit test requires a complete ASP.NET Core service set up
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$filter=mpaaRating eq 'R'");
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = await GetValueFromResponse<List<Movie>>(response);
+            Assert.IsNotNull(actual);
+
+            // Ensure that the actual response is an empty list - all R rated movies are deleted.
+            Assert.AreEqual(0, actual.Count);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_Returns200_WithIdFilter()
+        {
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$filter=id eq 'movie-4'");
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = await GetValueFromResponse<List<Movie>>(response);
+            Assert.IsNotNull(actual);
+            Assert.AreEqual(1, actual.Count);
+            Assert.AreEqual("The Good, the Bad and the Ugly", actual[0].Title);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_Returns200_WhenFilterRequested_WithCount()
+        {
+            var options = new TableControllerOptions<Movie>();
+
+            // This unit test requires a complete ASP.NET Core service set up
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$filter=mpaaRating ne 'R'&$count=true");
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = await GetValueFromResponse<PagedListResult<Movie>>(response);
+            Assert.IsNotNull(actual);
+
+            // Ensure that the actual response is a unique list - there are 194 non 'R' rated movies
+            Assert.AreEqual(options.PageSize, actual.Results.Count);
+            CollectionAssert.AllItemsAreNotNull(actual.Results.ToList());
+            CollectionAssert.AllItemsAreUnique(actual.Results.ToList());
+            Assert.AreEqual(TestData.Movies.Where(m => m.MpaaRating != "R").Count(), actual.Count);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_Returns200_WhenDeletedItemsRequested_WithCount()
+        {
+            var options = new TableControllerOptions<Movie>();
+
+            // This unit test requires a complete ASP.NET Core service set up
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?__includedeleted=true&$count=true");
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = await GetValueFromResponse<PagedListResult<Movie>>(response);
+            Assert.IsNotNull(actual);
+
+            // Ensure that the actual response is a unique list - there are 194 non 'R' rated movies
+            Assert.AreEqual(options.PageSize, actual.Results.Count);
+            CollectionAssert.AllItemsAreNotNull(actual.Results.ToList());
+            CollectionAssert.AllItemsAreUnique(actual.Results.ToList());
+            Assert.AreEqual(TestData.Movies.Length, actual.Count);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_Returns400_WhenInvalidODataQueryProvided()
+        {
+            // This unit test requires a complete ASP.NET Core service set up
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$filter=invalid");
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_Returns200_WithDataView()
+        {
+            // This unit test requires a complete ASP.NET Core service set up
+            // This unit test requires a complete ASP.NET Core service set up
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/recentmovies");
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = await GetValueFromResponse<List<Movie>>(response);
+            Assert.IsNotNull(actual);
+            CollectionAssert.AllItemsAreUnique(actual);
+            Assert.AreEqual(10, actual.Count);      // This is the page size given in recentmovies controller.
+        }
+
+        [TestMethod]
+        public async Task GetItemsAsync_Returns200_WithDataView_AndTop()
+        {
+            // This unit test requires a complete ASP.NET Core service set up
+            // This unit test requires a complete ASP.NET Core service set up
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/recentmovies?$top=5");
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var actual = await GetValueFromResponse<List<Movie>>(response);
+            Assert.IsNotNull(actual);
+            CollectionAssert.AllItemsAreUnique(actual);
+            Assert.AreEqual(5, actual.Count);      // This is an explicit top value that is valid.
+        }
+
+
+        [TestMethod]
+        public async Task GetItemsAsync_Returns400_WithMaxTopExceeded()
+        {
+            // This unit test requires a complete ASP.NET Core service set up
+            // This unit test requires a complete ASP.NET Core service set up
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/recentmovies?$top=50");
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+        #endregion
+
+        #region PatchItemAsync
+        [TestMethod]
+        public async Task PatchItemAsync_Returns403_WhenIsAuthorized_False()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var expectedItem = repository.Data["movie-7"].Clone();
+            var delta = new Delta<Movie>(typeof(Movie));
+            delta.TrySetPropertyValue("Title", "Replaced");
+            var controller = new MoviesController(repository)
+            {
+                IsAuthorizedResult = false
+            };
+
+            var actual = await controller.PatchItemAsync(expectedItem.Id, delta);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(actual, typeof(StatusCodeResult));
+            var objectResult = actual as StatusCodeResult;
+            Assert.AreEqual(403, objectResult.StatusCode);
+
+            // IsAuthorized is called
+            Assert.AreEqual(1, controller.IsAuthorizedCount);
+            Assert.AreEqual(expectedItem.Id, controller.LastAuthorizedMovie.Id);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task PatchItemAsync_ReturnsValidateResult_WhenValidateOperations_Used()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var expectedItem = repository.Data["movie-7"].Clone();
+            var delta = new Delta<Movie>(typeof(Movie));
+            delta.TrySetPropertyValue("Title", "Replaced");
+            var controller = new MoviesController(repository)
+            {
+                ValidateOperationResult = 418
+            };
+
+            var actual = await controller.PatchItemAsync(expectedItem.Id, delta);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(actual, typeof(StatusCodeResult));
+            var objectResult = actual as StatusCodeResult;
+            Assert.AreEqual(418, objectResult.StatusCode);
+
+            // ValidateOperation is called
+            Assert.AreEqual(1, controller.ValidateOperationCount);
+            Assert.AreEqual(expectedItem.Id, controller.LastValidateOperationMovie.Id);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task PatchItemAsync_ReturnsValidateResult_WhenValidateOperationsAsync_Used()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var expectedItem = repository.Data["movie-7"].Clone();
+            var delta = new Delta<Movie>(typeof(Movie));
+            delta.TrySetPropertyValue("Title", "Replaced");
+            var controller = new MoviesController(repository)
+            {
+                ValidateOperationAsyncResult = 418
+            };
+
+            var actual = await controller.PatchItemAsync(expectedItem.Id, delta);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(actual, typeof(StatusCodeResult));
+            var objectResult = actual as StatusCodeResult;
+            Assert.AreEqual(418, objectResult.StatusCode);
+
+            // ValidateOperationAsync is called
+            Assert.AreEqual(1, controller.ValidateOperationCount);
+            Assert.AreEqual(expectedItem.Id, controller.LastValidateOperationMovie.Id);
+            Assert.IsTrue(controller.WasLastValidateOperationAsync);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task PatchItemAsync_Returns200_WithValidReplacement()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var expectedItem = repository.Data["movie-7"].Clone();
+            var delta = new Delta<Movie>(typeof(Movie));
+            delta.TrySetPropertyValue("Title", "Replaced");
+            var controller = new MoviesController(repository);
+            var httpContext = new DefaultHttpContext();
+            controller.ControllerContext.HttpContext = httpContext;
+
+            var response = await controller.PatchItemAsync(expectedItem.Id, delta);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+            var actual = response as ObjectResult;
+            Assert.AreEqual(200, actual.StatusCode);
+
+            // Response value is correct
+            Assert.IsNotNull(actual.Value);
+            var actualItem = actual.Value as Movie;
+            Assert.IsInstanceOfType(actualItem, typeof(Movie));
+            Assert.AreEqual("Replaced", actualItem.Title);
+            Assert.AreEqual(expectedItem.MpaaRating, actualItem.MpaaRating);
+
+            // Version and UpdatedAt are correct
+            Assert.IsNotNull(actualItem.Version);
+            Assert.IsNotNull(actualItem.UpdatedAt);
+            CollectionAssert.AreNotEqual(expectedItem.Version, actualItem.Version);
+            TimestampAssert.AreClose(DateTimeOffset.UtcNow, actualItem.UpdatedAt);
+
+            // ETag and Last-Modified headers are set
+            HttpAssert.HasResponseHeader(httpContext, "ETag", $"\"{Convert.ToBase64String(actualItem.Version)}\"");
+            HttpAssert.HasResponseHeader(httpContext, "Last-Modified", actualItem.UpdatedAt.ToString("r"));
+
+            // The repository is called
+            Assert.IsTrue(repository.CallCount > 0);
+            Assert.AreEqual("ReplaceAsync", repository.CallData);
+
+            // The repository is modified
+            Assert.AreEqual(1, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task PatchItemAsync_Returns404_ReplacingMissingItem()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var delta = new Delta<Movie>(typeof(Movie));
+            delta.TrySetPropertyValue("Title", "Replaced");
+
+            var controller = new MoviesController(repository);
+            var httpContext = new DefaultHttpContext();
+            controller.ControllerContext.HttpContext = httpContext;
+
+            var response = await controller.PatchItemAsync("not-present", delta);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(StatusCodeResult));
+            var actual = response as StatusCodeResult;
+            Assert.AreEqual(404, actual.StatusCode);
+
+            // The repository is called (so this is an actual lookup in the repository)
+            Assert.IsTrue(repository.CallCount > 0);
+
+            // The repository is not modified
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task PatchItemAsync_WithSoftDelete_Returns200_WhenUndeletingItem()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository, true);
+            var expectedItem = repository.Data.Values.Where(m => m.Deleted).First().Clone();
+            var delta = new Delta<Movie>(typeof(Movie));
+            delta.TrySetPropertyValue("Deleted", false);
+            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var httpContext = new DefaultHttpContext();
+            controller.ControllerContext.HttpContext = httpContext;
+
+            var response = await controller.PatchItemAsync(expectedItem.Id, delta);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+            var actual = response as ObjectResult;
+            Assert.AreEqual(200, actual.StatusCode);
+
+            // Response value is correct
+            Assert.IsNotNull(actual.Value);
+            var actualItem = actual.Value as Movie;
+            Assert.IsInstanceOfType(actualItem, typeof(Movie));
+            Assert.IsFalse(actualItem.Deleted);
+            Assert.AreEqual(expectedItem.MpaaRating, actualItem.MpaaRating);
+
+            // Version and UpdatedAt are correct
+            Assert.IsNotNull(actualItem.Version);
+            Assert.IsNotNull(actualItem.UpdatedAt);
+            CollectionAssert.AreNotEqual(expectedItem.Version, actualItem.Version);
+            TimestampAssert.AreClose(DateTimeOffset.UtcNow, actualItem.UpdatedAt);
+
+            // ETag and Last-Modified headers are set
+            HttpAssert.HasResponseHeader(httpContext, "ETag", $"\"{Convert.ToBase64String(actualItem.Version)}\"");
+            HttpAssert.HasResponseHeader(httpContext, "Last-Modified", actualItem.UpdatedAt.ToString("r"));
+
+            // The repository is called
+            Assert.IsTrue(repository.CallCount > 0);
+            Assert.AreEqual("ReplaceAsync", repository.CallData);
+
+            // The repository is modified
+            Assert.AreEqual(1, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task PatchItemAsync_Returns412_WhenETagDoesNotMatch()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var expectedItem = repository.Data["movie-9"].Clone();
+            var delta = new Delta<Movie>(typeof(Movie));
+            delta.TrySetPropertyValue("Title", "Replaced");
+            var controller = new MoviesController(repository);
+            var httpContext = new DefaultHttpContext();
+            AddHeaderToRequest(httpContext, "If-Match", $"\"{Guid.NewGuid()}\"");
+            controller.ControllerContext.HttpContext = httpContext;
+
+            var response = await controller.PatchItemAsync(expectedItem.Id, delta);
+
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+            var actual = response as ObjectResult;
+
+            // Status Code is correct
+            Assert.AreEqual(412, actual.StatusCode);
+
+            // Response value is correct
+            Assert.IsNotNull(actual.Value);
+            var actualItem = actual.Value as Movie;
+            Assert.IsInstanceOfType(actualItem, typeof(Movie));
+            Assert.AreEqual(expectedItem, actualItem);
+
+            // Version and UpdatedAt are correct
+            Assert.IsNotNull(actualItem.Version);
+            Assert.IsNotNull(actualItem.UpdatedAt);
+            CollectionAssert.AreEqual(expectedItem.Version, actualItem.Version);
+            Assert.AreEqual(expectedItem.UpdatedAt, actualItem.UpdatedAt);
+
+            // ETag and Last-Modified headers are set
+            HttpAssert.HasResponseHeader(httpContext, "ETag", $"\"{Convert.ToBase64String(actualItem.Version)}\"");
+            HttpAssert.HasResponseHeader(httpContext, "Last-Modified", actualItem.UpdatedAt.ToString("r"));
+
+            // The repository was NOT called
+            Assert.AreEqual(0, repository.Modifications);
+        }
+
+        [TestMethod]
+        public async Task PatchItemAsync_Returns200_WhenETagMatches()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var expectedItem = repository.Data["movie-7"].Clone();
+            var delta = new Delta<Movie>(typeof(Movie));
+            delta.TrySetPropertyValue("Title", "Replaced");
+            var controller = new MoviesController(repository);
+            var httpContext = new DefaultHttpContext();
+            AddHeaderToRequest(httpContext, "If-Match", $"\"{Convert.ToBase64String(expectedItem.Version)}\"");
+            controller.ControllerContext.HttpContext = httpContext;
+
+            var response = await controller.PatchItemAsync(expectedItem.Id, delta);
+
+            // The correct status code is returned
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+            var actual = response as ObjectResult;
+            Assert.AreEqual(200, actual.StatusCode);
+
+            // Response value is correct
+            Assert.IsNotNull(actual.Value);
+            var actualItem = actual.Value as Movie;
+            Assert.IsInstanceOfType(actualItem, typeof(Movie));
+            Assert.AreEqual("Replaced", actualItem.Title);
+
+            // Version and UpdatedAt are correct
+            Assert.IsNotNull(actualItem.Version);
+            Assert.IsNotNull(actualItem.UpdatedAt);
+            CollectionAssert.AreNotEqual(expectedItem.Version, actualItem.Version);
+            TimestampAssert.AreClose(DateTimeOffset.UtcNow, actualItem.UpdatedAt);
+
+            // ETag and Last-Modified headers are set
+            HttpAssert.HasResponseHeader(httpContext, "ETag", $"\"{Convert.ToBase64String(actualItem.Version)}\"");
+            HttpAssert.HasResponseHeader(httpContext, "Last-Modified", actualItem.UpdatedAt.ToString("r"));
+
+            // The repository is called
+            Assert.IsTrue(repository.CallCount > 0);
+            Assert.AreEqual("ReplaceAsync", repository.CallData);
+
+            // The repository is modified
+            Assert.AreEqual(1, repository.Modifications);
+        }
+        #endregion
+
         #region ReadItemAsync
         [TestMethod]
         public async Task ReadItemAsync_Returns403_WhenIsAuthorized_False()
@@ -1544,286 +2113,5 @@ namespace Microsoft.Zumo.Server.Test
         }
         #endregion
 
-        #region GetItemsAsync
-        [TestMethod]
-        public async Task GetItemsAsync_Returns403_WhenIsAuthorized_False()
-        {
-            var repository = new MockTableRepository<Movie>();
-            PopulateRepository(repository);
-            var controller = new MoviesController(repository)
-            {
-                IsAuthorizedResult = false
-            };
-
-            var response = await controller.GetItems();
-
-            // The correct status code is returned
-            Assert.IsInstanceOfType(response, typeof(StatusCodeResult));
-            var actual = response as StatusCodeResult;
-            Assert.AreEqual(403, actual.StatusCode);
-
-            // IsAuthorized is called
-            Assert.AreEqual(1, controller.IsAuthorizedCount);
-            Assert.IsNull(controller.LastAuthorizedMovie);
-
-            // The repository is not modified
-            Assert.AreEqual(0, repository.Modifications);
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_ReturnsValidateResult_WhenValidateOperations_Used()
-        {
-            var repository = new MockTableRepository<Movie>();
-            PopulateRepository(repository);
-            var controller = new MoviesController(repository)
-            {
-                ValidateOperationResult = 418
-            };
-
-            var response = await controller.GetItems();
-
-            // The correct status code is returned
-            Assert.IsInstanceOfType(response, typeof(StatusCodeResult));
-            var actual = response as StatusCodeResult;
-            Assert.AreEqual(418, actual.StatusCode);
-
-            // IsAuthorized is called
-            Assert.AreEqual(1, controller.ValidateOperationCount);
-            Assert.IsNull(controller.LastValidateOperationMovie);
-            Assert.IsFalse(controller.WasLastValidateOperationAsync);
-
-            // The repository is not modified
-            Assert.AreEqual(0, repository.Modifications);
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_ReturnsValidateResult_WhenValidateOperationsAsync_Used()
-        {
-            var repository = new MockTableRepository<Movie>();
-            PopulateRepository(repository);
-            var controller = new MoviesController(repository)
-            {
-                ValidateOperationAsyncResult = 418
-            };
-
-            var response = await controller.GetItems();
-
-            // The correct status code is returned
-            Assert.IsInstanceOfType(response, typeof(StatusCodeResult));
-            var actual = response as StatusCodeResult;
-            Assert.AreEqual(418, actual.StatusCode);
-
-            // IsAuthorized is called
-            Assert.AreEqual(1, controller.ValidateOperationCount);
-            Assert.IsNull(controller.LastValidateOperationMovie);
-            Assert.IsTrue(controller.WasLastValidateOperationAsync);
-
-            // The repository is not modified
-            Assert.AreEqual(0, repository.Modifications);
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_Returns200_WithArray_WhenRequested()
-        {
-            var options = new TableControllerOptions<Movie>();
-
-            // This unit test requires a complete ASP.NET Core service set up
-            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies");
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var actual = await GetValueFromResponse<List<Movie>>(response);
-            Assert.IsNotNull(actual);
-
-            // Ensure that the actual response is a unique list
-            Assert.AreEqual(options.PageSize, actual.Count);
-            CollectionAssert.AllItemsAreNotNull(actual);
-            CollectionAssert.AllItemsAreUnique(actual);
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_CanPageThroughResults()
-        {
-            var options = new TableControllerOptions<Movie>();
-            var responseCount = 0;
-            var totalItemCount = 0;
-            int lastItemCount;
-
-            // There are 248 items in the page.
-            // Calculate the correct number of pages - it will be n + 1 empty page
-            int expectedPages = (int)(Math.Ceiling((double)(248 / options.PageSize)) + 1.0);
-            do
-            {
-                var response = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/movies?$skip={totalItemCount}");
-                responseCount++;
-
-                // The correct status code is returned
-                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-                // The result is a list of items
-                var actual = await GetValueFromResponse<List<Movie>>(response);
-                Assert.IsNotNull(actual);
-                Assert.IsTrue(actual.Count <= options.PageSize);
-                CollectionAssert.AllItemsAreUnique(actual);
-
-                lastItemCount = actual.Count;
-                totalItemCount += lastItemCount;
-            } while (lastItemCount != 0 && responseCount <= expectedPages);
-
-            // Check the results are correct
-            Assert.AreEqual(expectedPages, responseCount);
-            Assert.AreEqual(0, lastItemCount);
-            // The controller is Soft-Delete, so we don't expect the Soft Deleted items to be provided
-            Assert.AreEqual(TestData.Movies.Where(m => m.MpaaRating != "R").Count(), totalItemCount);
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_Returns200_WithPagedResult_WhenInlineCountRequested()
-        {
-            var options = new TableControllerOptions<Movie>();
-
-            // This unit test requires a complete ASP.NET Core service set up
-            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$inlinecount=allpages");
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var actual = await GetValueFromResponse <PagedListResult<Movie>>(response);
-            Assert.IsNotNull(actual);
-
-            // Ensure that the actual response is a unique list
-            Assert.AreEqual(options.PageSize, actual.Results.Count);
-            CollectionAssert.AllItemsAreNotNull(actual.Results.ToList()) ;
-            CollectionAssert.AllItemsAreUnique(actual.Results.ToList());
-            Assert.AreEqual(TestData.Movies.Where(m => m.MpaaRating != "R").Count(), actual.Count);
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_Returns200_WithPagedResult_WhenCountRequested()
-        {
-            var options = new TableControllerOptions<Movie>();
-
-            // This unit test requires a complete ASP.NET Core service set up
-            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$count=true");
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var actual = await GetValueFromResponse<PagedListResult<Movie>>(response);
-            Assert.IsNotNull(actual);
-
-            // Ensure that the actual response is a unique list
-            Assert.AreEqual(options.PageSize, actual.Results.Count);
-            CollectionAssert.AllItemsAreNotNull(actual.Results.ToList());
-            CollectionAssert.AllItemsAreUnique(actual.Results.ToList());
-            // The controller is Soft-Delete, so we don't expect the Soft Deleted items to be provided
-            Assert.AreEqual(TestData.Movies.Where(m => m.MpaaRating != "R").Count(), actual.Count);
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_Returns200_WhenFilterRequested()
-        {
-            // This unit test requires a complete ASP.NET Core service set up
-            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$filter=mpaaRating eq 'R'");
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var actual = await GetValueFromResponse<List<Movie>>(response);
-            Assert.IsNotNull(actual);
-
-            // Ensure that the actual response is an empty list - all R rated movies are deleted.
-            Assert.AreEqual(0, actual.Count);
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_Returns200_WithIdFilter()
-        {
-            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$filter=id eq 'movie-4'");
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var actual = await GetValueFromResponse<List<Movie>>(response);
-            Assert.IsNotNull(actual);
-            Assert.AreEqual(1, actual.Count);
-            Assert.AreEqual("The Good, the Bad and the Ugly", actual[0].Title);
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_Returns200_WhenFilterRequested_WithCount()
-        {
-            var options = new TableControllerOptions<Movie>();
-
-            // This unit test requires a complete ASP.NET Core service set up
-            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$filter=mpaaRating ne 'R'&$count=true");
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var actual = await GetValueFromResponse<PagedListResult<Movie>>(response);
-            Assert.IsNotNull(actual);
-
-            // Ensure that the actual response is a unique list - there are 194 non 'R' rated movies
-            Assert.AreEqual(options.PageSize, actual.Results.Count);
-            CollectionAssert.AllItemsAreNotNull(actual.Results.ToList());
-            CollectionAssert.AllItemsAreUnique(actual.Results.ToList());
-            Assert.AreEqual(TestData.Movies.Where(m => m.MpaaRating != "R").Count(), actual.Count);
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_Returns200_WhenDeletedItemsRequested_WithCount()
-        {
-            var options = new TableControllerOptions<Movie>();
-
-            // This unit test requires a complete ASP.NET Core service set up
-            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?__includedeleted=true&$count=true");
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var actual = await GetValueFromResponse<PagedListResult<Movie>>(response);
-            Assert.IsNotNull(actual);
-
-            // Ensure that the actual response is a unique list - there are 194 non 'R' rated movies
-            Assert.AreEqual(options.PageSize, actual.Results.Count);
-            CollectionAssert.AllItemsAreNotNull(actual.Results.ToList());
-            CollectionAssert.AllItemsAreUnique(actual.Results.ToList());
-            Assert.AreEqual(TestData.Movies.Length, actual.Count);
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_Returns400_WhenInvalidODataQueryProvided()
-        {
-            // This unit test requires a complete ASP.NET Core service set up
-            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$filter=invalid");
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_Returns200_WithDataView()
-        {
-            // This unit test requires a complete ASP.NET Core service set up
-            // This unit test requires a complete ASP.NET Core service set up
-            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/recentmovies");
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var actual = await GetValueFromResponse<List<Movie>>(response);
-            Assert.IsNotNull(actual);
-            CollectionAssert.AllItemsAreUnique(actual);
-            Assert.AreEqual(10, actual.Count);      // This is the page size given in recentmovies controller.
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_Returns200_WithDataView_AndTop()
-        {
-            // This unit test requires a complete ASP.NET Core service set up
-            // This unit test requires a complete ASP.NET Core service set up
-            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/recentmovies?$top=5");
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var actual = await GetValueFromResponse<List<Movie>>(response);
-            Assert.IsNotNull(actual);
-            CollectionAssert.AllItemsAreUnique(actual);
-            Assert.AreEqual(5, actual.Count);      // This is an explicit top value that is valid.
-        }
-
-
-        [TestMethod]
-        public async Task GetItemsAsync_Returns400_WithMaxTopExceeded()
-        {
-            // This unit test requires a complete ASP.NET Core service set up
-            // This unit test requires a complete ASP.NET Core service set up
-            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/recentmovies?$top=50");
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-        }
-        #endregion
     }
 }

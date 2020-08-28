@@ -328,6 +328,45 @@ namespace Microsoft.Zumo.Server
         }
 
         /// <summary>
+        /// Delete operation: PATCH {path}/{id}
+        /// </summary>
+        /// <param name="id">The ID of the entity to be patched</param>
+        /// <param name="patchDoc">The patch document provided in the body</param>
+        /// <returns>200 OK response with the new entity</returns>
+        [HttpPatch("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
+        public virtual async Task<IActionResult> PatchItemAsync(string id, [FromBody] Delta<TEntity> patchDoc)
+        {
+            var entity = await TableRepository.LookupAsync(id).ConfigureAwait(false);
+            if (entity == null) // Note: You can patch an item to undelete it
+            {
+                return NotFound();
+            }
+
+            var operationValidation = await ValidateOperationAsync(TableOperation.Patch, entity);
+            if (operationValidation != StatusCodes.Status200OK)
+            {
+                return StatusCode(operationValidation);
+            }
+
+            var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders());
+            if (preconditionStatusCode != StatusCodes.Status200OK)
+            {
+                AddHeadersToResponse(entity);
+                return StatusCode(preconditionStatusCode, entity);
+            }
+
+            // Apply the patch to the entity
+            patchDoc.Patch(entity);
+            var preparedItem = await PrepareItemForStoreAsync(entity).ConfigureAwait(false);
+            var replacement = await TableRepository.ReplaceAsync(preparedItem).ConfigureAwait(false);
+            AddHeadersToResponse(replacement);
+            return Ok(replacement);
+        }
+
+        /// <summary>
         /// Read operation: GET {path}/{id}
         /// </summary>
         /// <param name="id">The ID of the entity to be deleted</param>
