@@ -195,12 +195,6 @@ namespace Microsoft.Zumo.Server
                 MaxTop = TableControllerOptions.MaxTop
             };
 
-            var odataQuerySettings = new ODataQuerySettings
-            {
-                PageSize = TableControllerOptions.PageSize,
-                EnsureStableOrdering = true
-            };
-
             // Construct the OData context and parse the query
             var queryContext = new ODataQueryContext(EdmModel, typeof(TEntity), new ODataPath());
             var odataOptions = new ODataQueryOptions<TEntity>(queryContext, Request);
@@ -212,6 +206,11 @@ namespace Microsoft.Zumo.Server
             {
                 return BadRequest(ex.Message);
             }
+            var odataQuerySettings = new ODataQuerySettings
+            {
+                PageSize = odataOptions.Top?.Value ?? TableControllerOptions.PageSize,
+                EnsureStableOrdering = true
+            };
             var odataQuery = odataOptions.ApplyTo(dataView.AsQueryable(), odataQuerySettings);
             var items = (odataQuery as IEnumerable<TEntity>).ToList();
 
