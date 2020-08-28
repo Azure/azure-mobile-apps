@@ -156,12 +156,14 @@ namespace Microsoft.Zumo.MobileData
 
             using Request request = Client.CreateGetRequest(id, default);
             Response response = await Client.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
-
-            return response.Status switch
+            
+            switch (response.Status)
             {
-                200 => await Client.CreateResponseAsync(response, cancellationToken).ConfigureAwait(false),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase),
-            };
+                case 200:
+                    return await Client.CreateResponseAsync(response, cancellationToken).ConfigureAwait(false);
+                default:
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
 
         /// <summary>
@@ -177,11 +179,13 @@ namespace Microsoft.Zumo.MobileData
             using Request request = Client.CreateGetRequest(id, default);
             Response response = Client.SendRequest(request, cancellationToken);
 
-            return response.Status switch
+            switch (response.Status)
             {
-                200 => Client.CreateResponse(response, cancellationToken),
-                _ => throw new RequestFailedException(response.Status, response.ReasonPhrase),
-            };
+                case 200: 
+                    return Client.CreateResponse(response, cancellationToken);
+                default: 
+                    throw new RequestFailedException(response.Status, response.ReasonPhrase);
+            }
         }
         #endregion
 
