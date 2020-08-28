@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Zumo.E2EServer.Utils;
 using Microsoft.Zumo.Server.Entity;
 using System;
 
 namespace Microsoft.Zumo.E2EServer.DataObjects
 {
-    public class Movie : EntityTableData
+    public class BaseMovie
     {
         public string Title { get; set; }
         public int Duration { get; set; }
@@ -17,9 +16,8 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
         public int Year { get; set; }
     }
 
-    public class IntIdMovie : IInt64IdTable
+    public class Movie : EntityTableData
     {
-        public long Id { get; set; }
         public string Title { get; set; }
         public int Duration { get; set; }
         public string MpaaRating { get; set; }

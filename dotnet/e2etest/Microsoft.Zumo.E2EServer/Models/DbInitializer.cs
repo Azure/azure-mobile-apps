@@ -24,7 +24,17 @@ namespace Microsoft.Zumo.E2EServer.Models
 
             if (!context.Movies.Any())
             {
-                var movies = TestMovies.GetTestMovies();
+                var movies = TestData.Movies.Select((movie, i) => new Movie()
+                {
+                    Id = string.Format("Movie {0:000}", i),
+                    Title = movie.Title,
+                    Duration = movie.Duration,
+                    MpaaRating = movie.MpaaRating,
+                    ReleaseDate = movie.ReleaseDate,
+                    BestPictureWinner = movie.BestPictureWinner,
+                    Year = movie.Year
+                });
+
                 context.Movies.AddRange(movies);
                 context.SaveChanges();
             }
