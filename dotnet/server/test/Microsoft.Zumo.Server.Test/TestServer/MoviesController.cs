@@ -27,12 +27,12 @@ namespace Microsoft.Zumo.Server.Test.E2EServer.Controllers
 
             // Set up the table controller
             TableRepository = repository;
-            TableControllerOptions = new TableControllerOptions<Movie> { SoftDeleteEnabled = true };
+            TableControllerOptions = new TableControllerOptions { SoftDeleteEnabled = true };
         }
 
         public override bool IsAuthorized(TableOperation operation, Movie item)
         {
-            return operation == TableOperation.Read || operation == TableOperation.List;
+            return operation == TableOperation.Read;
         }
     }
 }

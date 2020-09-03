@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web;
 using Todo.AspNetCore.Server.Database;
 using Microsoft.Zumo.Server;
+using System.Linq;
 
 namespace Todo.AspNetCore.Server.Controllers
 {
@@ -19,14 +20,16 @@ namespace Todo.AspNetCore.Server.Controllers
     {
         public TodoItemsController(AppDbContext context)
         {
-            TableControllerOptions = new TableControllerOptions<TodoItemDTO>
+            TableControllerOptions = new TableControllerOptions
             {
-                DataView = item => item.OwnerId == CurrentUserId,
-                MaxTop = 1000,
                 SoftDeleteEnabled = false
             };
             TableRepository = new EntityTableRepository<TodoItemDTO>(context);
         }
+
+        [HttpGet, ZumoQuery(MaxTop = 1000)]
+        public override IActionResult GetItems() 
+            => Ok(TableRepository.AsQueryable().Where(item => item.OwnerId == CurrentUserId));
 
         /// <summary>
         /// User is authorized for the operation if it's a list (controlled by the DataView above)
@@ -36,7 +39,7 @@ namespace Todo.AspNetCore.Server.Controllers
         /// <param name="item">The item being resolved</param>
         /// <returns></returns>
         public override bool IsAuthorized(TableOperation operation, TodoItemDTO item)
-            => operation == TableOperation.List || operation == TableOperation.Create || item.OwnerId == CurrentUserId;
+            => operation == TableOperation.Create || item.OwnerId == CurrentUserId;
 
         /// <summary>
         /// When we store data, we always tag the record with the users ownerId

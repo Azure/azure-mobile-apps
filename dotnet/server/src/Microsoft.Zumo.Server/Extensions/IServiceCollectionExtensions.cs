@@ -26,6 +26,11 @@ namespace Microsoft.Zumo.Server
             // Add the OData Functionality
             collection.AddOData();
 
+            // Add the Controllers
+            collection
+                .AddControllers(o => o.EnableEndpointRouting = false)
+                .AddNewtonsoftJson();
+
             // Add transients for OData parsing.
             collection
                 .AddTransient<ODataUriResolver>()
@@ -35,8 +40,7 @@ namespace Microsoft.Zumo.Server
                 .AddTransient<FilterQueryValidator>()
                 .AddTransient<OrderByQueryValidator>()
                 .AddTransient<SelectExpandQueryValidator>()
-                .AddTransient<SkipQueryValidator>()
-                .AddTransient<SkipTokenQueryValidator>();
+                .AddTransient<SkipQueryValidator>();
 
             return collection;
         }

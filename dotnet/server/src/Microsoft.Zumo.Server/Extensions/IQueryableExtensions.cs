@@ -19,7 +19,7 @@ namespace Microsoft.Zumo.Server.Extensions
         /// <param name="tableOptions">The table options for the table controller</param>
         /// <param name="request">The <see cref="HttpRequest"/> for the current request</param>
         /// <returns></returns>
-        public static IQueryable<T> ApplyDeletedFilter<T>(this IQueryable<T> query, TableControllerOptions<T> tableOptions, HttpRequest request) where T : class, ITableData
+        public static IQueryable<T> ApplyDeletedFilter<T>(this IQueryable<T> query, TableControllerOptions tableOptions, HttpRequest request) where T : class, ITableData
         {
             if (tableOptions == null)
             {

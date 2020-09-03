@@ -3,21 +3,15 @@
 
 using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Builder;
-using Microsoft.AspNet.OData.Query;
-using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.OData;
 using Microsoft.OData.Edm;
 using Microsoft.Zumo.Server.Extensions;
 using Microsoft.Zumo.Server.Utils;
 using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,7 +32,7 @@ namespace Microsoft.Zumo.Server
         /// <summary>
         /// The EdmModel for the entity, used in OData processing.
         /// </summary>
-        private IEdmModel EdmModel { get; set; }
+        //private IEdmModel EdmModel { get; }
 
         /// <summary>
         /// Initialze a new instance of the <see cref="TableController{TEntity}"/> class.
@@ -46,8 +40,8 @@ namespace Microsoft.Zumo.Server
         protected TableController()
         {
             var modelBuilder = new ODataConventionModelBuilder();
-            modelBuilder.EntityType<TEntity>().Filter().Count().OrderBy().Expand().Select();
-            EdmModel = modelBuilder.GetEdmModel();
+            modelBuilder.EntityType<TEntity>();
+            // EdmModel = modelBuilder.GetEdmModel();
         }
 
         /// <summary>
@@ -162,11 +156,11 @@ namespace Microsoft.Zumo.Server
             => Task.Run(() => PrepareItemForStore(item));
 
         /// <summary>
-        /// The <see cref="TableControllerOptions{T}"/> for this controller.  This is used to specify
+        /// The <see cref="TableControllerOptions"/> for this controller.  This is used to specify
         /// the data view, soft-delete, and list limits.
         /// </summary>
-        public TableControllerOptions<TEntity> TableControllerOptions { get; set; } 
-            = new TableControllerOptions<TEntity>();
+        public TableControllerOptions TableControllerOptions { get; set; } 
+            = new TableControllerOptions();
 
         /// <summary>
         /// List operation: GET {path}?{odata-filters}
@@ -175,69 +169,19 @@ namespace Microsoft.Zumo.Server
         ///     __includedeleted = true     Include deleted records in a soft-delete situation.
         /// </summary>
         /// <returns>200 OK with the results of the list (paged)</returns>
-        [HttpGet]
+        [HttpGet, ZumoQuery(MaxTop = 50, PageSize = 50)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public virtual async Task<IActionResult> GetItems()
-        {
-            var operationValidation = await ValidateOperationAsync(TableOperation.List, null);
-            if (operationValidation != StatusCodes.Status200OK)
-            {
-                return StatusCode(operationValidation);
-            }
-
-            var dataView = TableRepository.AsQueryable()
-                .ApplyDeletedFilter(TableControllerOptions, Request)
-                .Where(TableControllerOptions.DataView);
-
-            var odataValidationSettings = new ODataValidationSettings
-            {
-                MaxTop = TableControllerOptions.MaxTop
-            };
-
-            // Construct the OData context and parse the query
-            var queryContext = new ODataQueryContext(EdmModel, typeof(TEntity), new ODataPath());
-            var odataOptions = new ODataQueryOptions<TEntity>(queryContext, Request);
-            try
-            {
-                odataOptions.Validate(odataValidationSettings);
-            }
-            catch (ODataException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            var odataQuerySettings = new ODataQuerySettings
-            {
-                PageSize = odataOptions.Top?.Value ?? TableControllerOptions.PageSize,
-                EnsureStableOrdering = true
-            };
-            var odataQuery = odataOptions.ApplyTo(dataView.AsQueryable(), odataQuerySettings);
-            var items = (odataQuery as IEnumerable<TEntity>).ToList();
-
-            var odata3count = Request.Query.ContainsKey("$inlinecount") && Request.Query["$inlinecount"].First().ToLower() == "allpages";
-            var odata4count = odataOptions.Count != null && odataOptions.Count.Value;
-            if (odata3count || odata4count)
-            {
-                var view = odataOptions.Filter?.ApplyTo(dataView.AsQueryable(), new ODataQuerySettings()) ?? dataView.AsQueryable();
-
-                var result = new PagedListResult<TEntity>
-                {
-                    Results = items,
-                    Count = odataOptions.Count?.GetEntityCount(view) ?? GetEntityCount(view)
-                };
-                return Ok(result);
-            }
-
-            return Ok(items); 
-        }
+        public virtual IActionResult GetItems()
+            => Ok(QueryItems());
 
         /// <summary>
-        /// Obtains the number of elements in the IQueryable, so that we can provide the inline count
-        /// This is only used for old clients - new clients will use $count = true.
+        /// Base operation for querying items.  This takes into account the request for including
+        /// (or not) soft-deleted items.
         /// </summary>
-        /// <param name="view">The <see cref="IQueryable"/> to count</param>
         /// <returns></returns>
-        private long GetEntityCount(IQueryable query) => (query as IQueryable<TEntity>).LongCount();
+        public virtual IQueryable<TEntity> QueryItems()
+            => TableRepository.AsQueryable().ApplyDeletedFilter(TableControllerOptions, Request);
 
         /// <summary>
         /// Create operation: POST {path}

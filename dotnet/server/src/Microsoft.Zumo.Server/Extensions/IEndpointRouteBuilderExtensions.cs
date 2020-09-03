@@ -20,6 +20,7 @@ namespace Microsoft.Zumo.Server
     {
         public static void EnableAzureMobileApps(this IEndpointRouteBuilder routeBuilder)
         {
+            routeBuilder.Count().Expand().Filter().MaxTop(null).OrderBy().Select();
             routeBuilder.EnableDependencyInjection();
         }
     }

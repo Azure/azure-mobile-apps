@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Zumo.Server.Test.Helpers;
 using System;
+using System.Linq;
 
 namespace Microsoft.Zumo.Server.Test.TestServer
 {
@@ -30,16 +31,14 @@ namespace Microsoft.Zumo.Server.Test.TestServer
 
             // Set up the table controller
             TableRepository = repository;
-            TableControllerOptions = new TableControllerOptions<Movie> { 
-                DataView = m => m.Year > 2000,
-                MaxTop = 10,
-                PageSize = 10
-            };
         }
+
+        [HttpGet, ZumoQuery(MaxTop = 10, PageSize = 10)]
+        public override IActionResult GetItems() => Ok(QueryItems().Where(m => m.Year > 2000));
 
         public override bool IsAuthorized(TableOperation operation, Movie item)
         {
-            return operation == TableOperation.Read || operation == TableOperation.List;
+            return operation == TableOperation.Read;
         }
     }
 }

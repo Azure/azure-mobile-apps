@@ -16,20 +16,25 @@ namespace Microsoft.Zumo.E2EServer.Controllers
     {
         public MoviesController(AppDbContext context)
         {
-            TableControllerOptions = new TableControllerOptions<Movie>
-            {
-                MaxTop = 1000
-            };
             TableRepository = new EntityTableRepository<Movie>(context);
         }
 
+        /// <summary>
+        /// The LIST operation (GET .../route), which implements OData Semantics.
+        /// </summary>
+        /// <returns>The result of the LIST operation</returns>
+        [HttpGet, ZumoQuery(MaxTop = 1000)]
+        public override IActionResult GetItems() 
+            => Ok(QueryItems());
+
+        /// <summary>
+        /// Validate the operation - this table is read-only.  The GetItems() LIST method is
+        /// handled directly, but the other methods don't need to be over-ridden.
+        /// </summary>
+        /// <param name="operation"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public override int ValidateOperation(TableOperation operation, Movie item)
-        {
-            if (operation == TableOperation.List || operation == TableOperation.Read)
-            {
-                return StatusCodes.Status200OK;
-            }
-            return StatusCodes.Status405MethodNotAllowed;
-        }
+            => operation == TableOperation.Read ? StatusCodes.Status200OK : StatusCodes.Status405MethodNotAllowed;
     }
 }

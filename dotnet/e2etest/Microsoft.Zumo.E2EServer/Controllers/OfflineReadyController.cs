@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +16,15 @@ namespace Microsoft.Zumo.E2EServer.Controllers
     {
         public OfflineReadyController(AppDbContext context)
         {
-            TableControllerOptions = new TableControllerOptions<OfflineReady>
-            {
-                MaxTop = 1000
-            };
             TableRepository = new EntityTableRepository<OfflineReady>(context);
         }
+
+        /// <summary>
+        /// The LIST operation (GET .../route), which implements OData Semantics.
+        /// </summary>
+        /// <returns>The result of the LIST operation</returns>
+        [HttpGet, ZumoQuery(MaxTop = 1000)]
+        public override IActionResult GetItems()
+            => Ok(QueryItems());
     }
 }

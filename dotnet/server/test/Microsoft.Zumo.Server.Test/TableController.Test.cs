@@ -5,10 +5,8 @@ using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
-using Microsoft.VisualBasic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Zumo.Server.Test.Helpers;
-using Microsoft.Zumo.Server.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +20,8 @@ namespace Microsoft.Zumo.Server.Test
     public class TableController_Tests : BaseTest
     {
         #region Test Data
+        const int ExpectedPageSize = 50;
+
         class TestTableController : TableController<Movie>
         {
             public TestTableController() : base(null) { }
@@ -115,7 +115,6 @@ namespace Microsoft.Zumo.Server.Test
         [DataTestMethod]
         [DataRow(TableOperation.Create)]
         [DataRow(TableOperation.Delete)]
-        [DataRow(TableOperation.List)]
         [DataRow(TableOperation.None)]
         [DataRow(TableOperation.Patch)]
         [DataRow(TableOperation.Read)]
@@ -133,7 +132,6 @@ namespace Microsoft.Zumo.Server.Test
         [DataTestMethod]
         [DataRow(TableOperation.Create)]
         [DataRow(TableOperation.Delete)]
-        [DataRow(TableOperation.List)]
         [DataRow(TableOperation.None)]
         [DataRow(TableOperation.Patch)]
         [DataRow(TableOperation.Read)]
@@ -149,7 +147,6 @@ namespace Microsoft.Zumo.Server.Test
         [DataTestMethod]
         [DataRow(TableOperation.Create)]
         [DataRow(TableOperation.Delete)]
-        [DataRow(TableOperation.List)]
         [DataRow(TableOperation.None)]
         [DataRow(TableOperation.Patch)]
         [DataRow(TableOperation.Read)]
@@ -603,7 +600,7 @@ namespace Microsoft.Zumo.Server.Test
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = true });
             var httpContext = new DefaultHttpContext();
             controller.ControllerContext.HttpContext = httpContext;
             var nItems = repository.Data.Count;
@@ -661,7 +658,7 @@ namespace Microsoft.Zumo.Server.Test
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = true });
             var httpContext = new DefaultHttpContext();
             controller.ControllerContext.HttpContext = httpContext;
             var nItems = repository.Data.Count;
@@ -717,7 +714,7 @@ namespace Microsoft.Zumo.Server.Test
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository, true);
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = true });
             var httpContext = new DefaultHttpContext();
             controller.ControllerContext.HttpContext = httpContext;
             var nItems = repository.Data.Count;
@@ -746,7 +743,7 @@ namespace Microsoft.Zumo.Server.Test
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = true });
             var httpContext = new DefaultHttpContext(); 
             AddHeaderToRequest(httpContext, "If-None-Match", "*");
             controller.ControllerContext.HttpContext = httpContext;
@@ -833,7 +830,7 @@ namespace Microsoft.Zumo.Server.Test
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
             var expectedItem = repository.Data["movie-8"];
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = true });
             var httpContext = new DefaultHttpContext();
             AddHeaderToRequest(httpContext, "If-Match", $"\"{Convert.ToBase64String(expectedItem.Version)}\"");
             controller.ControllerContext.HttpContext = httpContext;
@@ -890,87 +887,16 @@ namespace Microsoft.Zumo.Server.Test
 
         #region GetItemsAsync
         [TestMethod]
-        public async Task GetItemsAsync_Returns403_WhenIsAuthorized_False()
+        public async Task GetItemsAsync_Returns400_WithBadRequest()
         {
-            var repository = new MockTableRepository<Movie>();
-            PopulateRepository(repository);
-            var controller = new MoviesController(repository)
-            {
-                IsAuthorizedResult = false
-            };
-
-            var response = await controller.GetItems();
-
-            // The correct status code is returned
-            Assert.IsInstanceOfType(response, typeof(StatusCodeResult));
-            var actual = response as StatusCodeResult;
-            Assert.AreEqual(403, actual.StatusCode);
-
-            // IsAuthorized is called
-            Assert.AreEqual(1, controller.IsAuthorizedCount);
-            Assert.IsNull(controller.LastAuthorizedMovie);
-
-            // The repository is not modified
-            Assert.AreEqual(0, repository.Modifications);
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_ReturnsValidateResult_WhenValidateOperations_Used()
-        {
-            var repository = new MockTableRepository<Movie>();
-            PopulateRepository(repository);
-            var controller = new MoviesController(repository)
-            {
-                ValidateOperationResult = 418
-            };
-
-            var response = await controller.GetItems();
-
-            // The correct status code is returned
-            Assert.IsInstanceOfType(response, typeof(StatusCodeResult));
-            var actual = response as StatusCodeResult;
-            Assert.AreEqual(418, actual.StatusCode);
-
-            // IsAuthorized is called
-            Assert.AreEqual(1, controller.ValidateOperationCount);
-            Assert.IsNull(controller.LastValidateOperationMovie);
-            Assert.IsFalse(controller.WasLastValidateOperationAsync);
-
-            // The repository is not modified
-            Assert.AreEqual(0, repository.Modifications);
-        }
-
-        [TestMethod]
-        public async Task GetItemsAsync_ReturnsValidateResult_WhenValidateOperationsAsync_Used()
-        {
-            var repository = new MockTableRepository<Movie>();
-            PopulateRepository(repository);
-            var controller = new MoviesController(repository)
-            {
-                ValidateOperationAsyncResult = 418
-            };
-
-            var response = await controller.GetItems();
-
-            // The correct status code is returned
-            Assert.IsInstanceOfType(response, typeof(StatusCodeResult));
-            var actual = response as StatusCodeResult;
-            Assert.AreEqual(418, actual.StatusCode);
-
-            // IsAuthorized is called
-            Assert.AreEqual(1, controller.ValidateOperationCount);
-            Assert.IsNull(controller.LastValidateOperationMovie);
-            Assert.IsTrue(controller.WasLastValidateOperationAsync);
-
-            // The repository is not modified
-            Assert.AreEqual(0, repository.Modifications);
+            // This unit test requires a complete ASP.NET Core service set up
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$foo=true");
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [TestMethod]
         public async Task GetItemsAsync_Returns200_WithArray_WhenRequested()
         {
-            var options = new TableControllerOptions<Movie>();
-
             // This unit test requires a complete ASP.NET Core service set up
             var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies");
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
@@ -979,7 +905,7 @@ namespace Microsoft.Zumo.Server.Test
             Assert.IsNotNull(actual);
 
             // Ensure that the actual response is a unique list
-            Assert.AreEqual(options.PageSize, actual.Count);
+            Assert.AreEqual(ExpectedPageSize, actual.Count);
             CollectionAssert.AllItemsAreNotNull(actual);
             CollectionAssert.AllItemsAreUnique(actual);
         }
@@ -987,14 +913,13 @@ namespace Microsoft.Zumo.Server.Test
         [TestMethod]
         public async Task GetItemsAsync_CanPageThroughResults()
         {
-            var options = new TableControllerOptions<Movie>();
             var responseCount = 0;
             var totalItemCount = 0;
             int lastItemCount;
 
-            // There are 248 items in the page.
+            // There are 154 items in the page.
             // Calculate the correct number of pages - it will be n + 1 empty page
-            int expectedPages = (int)(Math.Ceiling((double)(248 / options.PageSize)) + 1.0);
+            int expectedPages = 5; // (154 / 50 == 4 total pages) + 1 for the blank page.
             do
             {
                 var response = await SendRequestToServer<Movie>(HttpMethod.Get, $"/tables/movies?$skip={totalItemCount}");
@@ -1006,7 +931,7 @@ namespace Microsoft.Zumo.Server.Test
                 // The result is a list of items
                 var actual = await GetValueFromResponse<List<Movie>>(response);
                 Assert.IsNotNull(actual);
-                Assert.IsTrue(actual.Count <= options.PageSize);
+                Assert.IsTrue(actual.Count <= ExpectedPageSize);
                 CollectionAssert.AllItemsAreUnique(actual);
 
                 lastItemCount = actual.Count;
@@ -1023,8 +948,6 @@ namespace Microsoft.Zumo.Server.Test
         [TestMethod]
         public async Task GetItemsAsync_Returns200_WithPagedResult_WhenInlineCountRequested()
         {
-            var options = new TableControllerOptions<Movie>();
-
             // This unit test requires a complete ASP.NET Core service set up
             var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$inlinecount=allpages");
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
@@ -1033,7 +956,7 @@ namespace Microsoft.Zumo.Server.Test
             Assert.IsNotNull(actual);
 
             // Ensure that the actual response is a unique list
-            Assert.AreEqual(options.PageSize, actual.Results.Count);
+            Assert.AreEqual(ExpectedPageSize, actual.Results.Count);
             CollectionAssert.AllItemsAreNotNull(actual.Results.ToList());
             CollectionAssert.AllItemsAreUnique(actual.Results.ToList());
             Assert.AreEqual(TestData.Movies.Where(m => m.MpaaRating != "R").Count(), actual.Count);
@@ -1042,17 +965,15 @@ namespace Microsoft.Zumo.Server.Test
         [TestMethod]
         public async Task GetItemsAsync_Returns200_WithPagedResult_WhenCountRequested()
         {
-            var options = new TableControllerOptions<Movie>();
-
             // This unit test requires a complete ASP.NET Core service set up
-            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$count=true");
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$inlinecount=allpages");
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
             var actual = await GetValueFromResponse<PagedListResult<Movie>>(response);
             Assert.IsNotNull(actual);
 
             // Ensure that the actual response is a unique list
-            Assert.AreEqual(options.PageSize, actual.Results.Count);
+            Assert.AreEqual(ExpectedPageSize, actual.Results.Count);
             CollectionAssert.AllItemsAreNotNull(actual.Results.ToList());
             CollectionAssert.AllItemsAreUnique(actual.Results.ToList());
             // The controller is Soft-Delete, so we don't expect the Soft Deleted items to be provided
@@ -1088,17 +1009,15 @@ namespace Microsoft.Zumo.Server.Test
         [TestMethod]
         public async Task GetItemsAsync_Returns200_WhenFilterRequested_WithCount()
         {
-            var options = new TableControllerOptions<Movie>();
-
             // This unit test requires a complete ASP.NET Core service set up
-            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$filter=mpaaRating ne 'R'&$count=true");
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?$filter=mpaaRating ne 'R'&$inlinecount=allpages");
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
             var actual = await GetValueFromResponse<PagedListResult<Movie>>(response);
             Assert.IsNotNull(actual);
 
             // Ensure that the actual response is a unique list - there are 194 non 'R' rated movies
-            Assert.AreEqual(options.PageSize, actual.Results.Count);
+            Assert.AreEqual(ExpectedPageSize, actual.Results.Count);
             CollectionAssert.AllItemsAreNotNull(actual.Results.ToList());
             CollectionAssert.AllItemsAreUnique(actual.Results.ToList());
             Assert.AreEqual(TestData.Movies.Where(m => m.MpaaRating != "R").Count(), actual.Count);
@@ -1107,17 +1026,15 @@ namespace Microsoft.Zumo.Server.Test
         [TestMethod]
         public async Task GetItemsAsync_Returns200_WhenDeletedItemsRequested_WithCount()
         {
-            var options = new TableControllerOptions<Movie>();
-
             // This unit test requires a complete ASP.NET Core service set up
-            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?__includedeleted=true&$count=true");
+            var response = await SendRequestToServer<Movie>(HttpMethod.Get, "/tables/movies?__includedeleted=true&$inlinecount=allpages");
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
             var actual = await GetValueFromResponse<PagedListResult<Movie>>(response);
             Assert.IsNotNull(actual);
 
             // Ensure that the actual response is a unique list - there are 194 non 'R' rated movies
-            Assert.AreEqual(options.PageSize, actual.Results.Count);
+            Assert.AreEqual(ExpectedPageSize, actual.Results.Count);
             CollectionAssert.AllItemsAreNotNull(actual.Results.ToList());
             CollectionAssert.AllItemsAreUnique(actual.Results.ToList());
             Assert.AreEqual(TestData.Movies.Length, actual.Count);
@@ -1334,7 +1251,7 @@ namespace Microsoft.Zumo.Server.Test
             var expectedItem = repository.Data.Values.Where(m => m.Deleted).First().Clone();
             var delta = new Delta<Movie>(typeof(Movie));
             delta.TrySetPropertyValue("Deleted", false);
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = true });
             var httpContext = new DefaultHttpContext();
             controller.ControllerContext.HttpContext = httpContext;
 
@@ -1541,7 +1458,7 @@ namespace Microsoft.Zumo.Server.Test
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = false });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = false });
             var httpContext = new DefaultHttpContext();
             controller.ControllerContext.HttpContext = httpContext;
             var expectedItem = repository.Data["movie-5"].Clone();
@@ -1582,7 +1499,7 @@ namespace Microsoft.Zumo.Server.Test
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = true });
             var httpContext = new DefaultHttpContext();
             controller.ControllerContext.HttpContext = httpContext;
             var expectedItem = repository.Data["movie-5"].Clone();
@@ -1623,7 +1540,7 @@ namespace Microsoft.Zumo.Server.Test
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = false });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = false });
             var httpContext = new DefaultHttpContext();
             controller.ControllerContext.HttpContext = httpContext;
             var expectedItem = "not-present";
@@ -1648,7 +1565,7 @@ namespace Microsoft.Zumo.Server.Test
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = true });
             var httpContext = new DefaultHttpContext();
             controller.ControllerContext.HttpContext = httpContext;
             var expectedItem = "not-present";
@@ -1673,7 +1590,7 @@ namespace Microsoft.Zumo.Server.Test
         {
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository, true);
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = true });
             var httpContext = new DefaultHttpContext();
             controller.ControllerContext.HttpContext = httpContext;
             var expectedItem = repository.Data.Values.Where(m => m.Deleted).First().Id;
@@ -1698,7 +1615,7 @@ namespace Microsoft.Zumo.Server.Test
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
             var expectedItem = repository.Data["movie-5"].Clone();
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = true });
             var httpContext = new DefaultHttpContext();
             AddHeaderToRequest(httpContext, "If-Match", $"\"{Convert.ToBase64String(expectedItem.Version)}\"");
             controller.ControllerContext.HttpContext = httpContext;
@@ -1740,7 +1657,7 @@ namespace Microsoft.Zumo.Server.Test
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
             var expectedItem = repository.Data["movie-5"].Clone();
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = true });
             var httpContext = new DefaultHttpContext();
             AddHeaderToRequest(httpContext, "If-None-Match", $"\"{Convert.ToBase64String(expectedItem.Version)}\"");
             controller.ControllerContext.HttpContext = httpContext;
@@ -1766,7 +1683,7 @@ namespace Microsoft.Zumo.Server.Test
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
             var expectedItem = repository.Data["movie-5"].Clone();
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = true });
             var httpContext = new DefaultHttpContext();
             AddHeaderToRequest(httpContext, "If-Modified-Since", expectedItem.UpdatedAt.AddDays(1).ToString("r"));
             controller.ControllerContext.HttpContext = httpContext;
@@ -1792,7 +1709,7 @@ namespace Microsoft.Zumo.Server.Test
             var repository = new MockTableRepository<Movie>();
             PopulateRepository(repository);
             var expectedItem = repository.Data["movie-5"].Clone();
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = true });
             var httpContext = new DefaultHttpContext();
             AddHeaderToRequest(httpContext, "If-Modified-Since", expectedItem.UpdatedAt.AddDays(-1).ToString("r"));
             controller.ControllerContext.HttpContext = httpContext;
@@ -2011,7 +1928,7 @@ namespace Microsoft.Zumo.Server.Test
             PopulateRepository(repository, true);
             var expectedItem = repository.Data.Values.Where(m => m.Deleted).First().Clone();
             var replacedItem = expectedItem.Clone(); replacedItem.Title = "Replaced";
-            var controller = new MoviesController(repository, new TableControllerOptions<Movie> { SoftDeleteEnabled = true });
+            var controller = new MoviesController(repository, new TableControllerOptions { SoftDeleteEnabled = true });
             var httpContext = new DefaultHttpContext();
             controller.ControllerContext.HttpContext = httpContext;
 
