@@ -64,7 +64,7 @@ namespace Microsoft.Zumo.Server.Test.Extensions
         [ExpectedException(typeof(ArgumentNullException))]
         public void ApplyDeletedFilter_Throws_NullRequest()
         {
-            var options = new TableControllerOptions<Entity>();
+            var options = new TableControllerOptions();
             _ = entityData.AsQueryable().ApplyDeletedFilter(options, null);
             Assert.Fail("ArgumentNullException expected");
         }
@@ -72,7 +72,7 @@ namespace Microsoft.Zumo.Server.Test.Extensions
         [TestMethod]
         public void ApplyDeletedFilter_HardDelete_NoQuery_DoesNotFilter()
         {
-            var options = new TableControllerOptions<Entity> { SoftDeleteEnabled = false };
+            var options = new TableControllerOptions { SoftDeleteEnabled = false };
             var httpContext = new DefaultHttpContext();
             var actual = entityData.AsQueryable().ApplyDeletedFilter(options, httpContext.Request).ToList();
             CollectionAssert.AreEqual(entityData, actual);
@@ -81,7 +81,7 @@ namespace Microsoft.Zumo.Server.Test.Extensions
         [TestMethod]
         public void ApplyDeletedFilter_HardDelete_Query_DoesNotFilter()
         {
-            var options = new TableControllerOptions<Entity> { SoftDeleteEnabled = false };
+            var options = new TableControllerOptions { SoftDeleteEnabled = false };
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Query = new QueryCollection(IncludeDeletedQuery);
             var actual = entityData.AsQueryable().ApplyDeletedFilter(options, httpContext.Request).ToList();
@@ -91,7 +91,7 @@ namespace Microsoft.Zumo.Server.Test.Extensions
         [TestMethod]
         public void ApplyDeletedFilter_SoftDelete_NoQuery_Filters()
         {
-            var options = new TableControllerOptions<Entity> { SoftDeleteEnabled = true };
+            var options = new TableControllerOptions { SoftDeleteEnabled = true };
             var httpContext = new DefaultHttpContext();
             var actual = entityData.AsQueryable().ApplyDeletedFilter(options, httpContext.Request).ToList();
             Assert.IsFalse(actual.Any(m => m.Deleted));
@@ -101,7 +101,7 @@ namespace Microsoft.Zumo.Server.Test.Extensions
         [TestMethod]
         public void ApplyDeletedFilter_SoftDelete_Query_DoesNotFilter()
         {
-            var options = new TableControllerOptions<Entity> { SoftDeleteEnabled = true };
+            var options = new TableControllerOptions { SoftDeleteEnabled = true };
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Query = new QueryCollection(IncludeDeletedQuery);
             var actual = entityData.AsQueryable().ApplyDeletedFilter(options, httpContext.Request).ToList();

@@ -19,7 +19,7 @@ namespace Microsoft.Zumo.Server.Test.Helpers
         {
         }
 
-        public MoviesController(ITableRepository<Movie> repository, TableControllerOptions<Movie> options) : base(repository)
+        public MoviesController(ITableRepository<Movie> repository, TableControllerOptions options) : base(repository)
         {
             TableControllerOptions = options;
         }

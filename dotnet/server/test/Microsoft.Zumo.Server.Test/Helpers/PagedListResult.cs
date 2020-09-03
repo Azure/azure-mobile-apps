@@ -1,9 +1,8 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
+﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
-namespace Microsoft.Zumo.Server.Utils
+namespace Microsoft.Zumo.Server.Test.Helpers
 {
     /// <summary>
     /// A return type for handling paged responses.

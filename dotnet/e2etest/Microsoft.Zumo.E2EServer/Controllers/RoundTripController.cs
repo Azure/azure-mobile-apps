@@ -22,6 +22,14 @@ namespace Microsoft.Zumo.E2EServer.Controllers
             TableRepository = new EntityTableRepository<RoundTripTableItem>(context);
         }
 
+        /// <summary>
+        /// The LIST operation (GET .../route), which implements OData Semantics.
+        /// </summary>
+        /// <returns>The result of the LIST operation</returns>
+        [HttpGet, ZumoQuery(MaxTop = 1000)]
+        public override IActionResult GetItems()
+            => Ok(QueryItems());
+
         public override async Task<IActionResult> PatchItemAsync(string id, [FromBody] Delta<RoundTripTableItem> patchDoc)
         {
             const int numAttempts = 5;

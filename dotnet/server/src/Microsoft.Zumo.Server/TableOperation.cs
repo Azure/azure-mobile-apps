@@ -13,7 +13,6 @@ namespace Microsoft.Zumo.Server
         None,
         Create,
         Delete,
-        List,
         Patch,
         Read,
         Replace
