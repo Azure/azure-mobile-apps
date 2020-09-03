@@ -30,6 +30,7 @@ namespace Microsoft.Zumo.E2EServer.Controllers
         public override IActionResult GetItems()
             => Ok(QueryItems());
 
+        [HttpPatch("{id}")]
         public override async Task<IActionResult> PatchItemAsync(string id, [FromBody] Delta<RoundTripTableItem> patchDoc)
         {
             const int numAttempts = 5;
@@ -59,6 +60,16 @@ namespace Microsoft.Zumo.E2EServer.Controllers
                 return response;
             }
             return response;
+        }
+
+        [HttpPost]
+        public override Task<IActionResult> CreateItemAsync([FromBody] RoundTripTableItem item)
+        {
+            if (string.IsNullOrWhiteSpace(item.Id))
+            {
+                item.Id = null;
+            }
+            return base.CreateItemAsync(item);
         }
 
         private int GetStatusCode(IActionResult response)
