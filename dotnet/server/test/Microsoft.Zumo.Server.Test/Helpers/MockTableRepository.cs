@@ -45,14 +45,18 @@ namespace Microsoft.Zumo.Server.Test.Helpers
         public Task<T> CreateAsync(T item, CancellationToken cancellationToken = default)
         {
             Call("CreateAsync");
-            if (item == null || string.IsNullOrEmpty(item.Id))
+            if (item == null)
             {
                 throw new ArgumentNullException(nameof(item));
             }
 
-            if (Data.ContainsKey(item.Id))
+            if (item.Id != null && Data.ContainsKey(item.Id))
             {
                 throw new EntityExistsException();
+            }
+            if (item.Id == null)
+            {
+                item.Id = Guid.NewGuid().ToString("N");
             }
 
             UpdateVersionFields(item);

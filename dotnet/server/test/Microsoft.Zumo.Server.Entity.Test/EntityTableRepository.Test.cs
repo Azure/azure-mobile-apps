@@ -84,16 +84,6 @@ namespace Microsoft.Zumo.Server.Entity.Test
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public async Task CreateAsync_Throws_NullIdInEntity()
-        {
-            var repository = GetTableRepository();
-            var item = new Movie { Id = null };
-            _ = await repository.CreateAsync(item);
-            Assert.Fail("ArgumentNullException expected");
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public async Task CreateAsync_Throws_EmptyIdInEntity()
         {
             var repository = GetTableRepository();
@@ -110,6 +100,30 @@ namespace Microsoft.Zumo.Server.Entity.Test
             var item = new Movie { Id = "movie-5" };
             _ = await repository.CreateAsync(item);
             Assert.Fail("EntityExistsException expected");
+        }
+
+        [TestMethod]
+        public async Task CreateAsync_CreatesItem_WithNullId()
+        {
+            var repository = GetTableRepository();
+            var item = new Movie
+            {
+                Id = null,
+                BestPictureWinner = false,
+                Duration = 50,
+                MpaaRating = "G",
+                Title = "Home Movie Magic",
+                Year = 2020,
+                ReleaseDate = new DateTime(2020, 12, 24)
+            };
+            var updatedItem = await repository.CreateAsync(item);
+            Assert.IsNotNull(updatedItem);
+            Assert.IsNotNull(updatedItem.Id);
+            Assert.IsFalse(updatedItem.Deleted);
+            Assert.IsNotNull(updatedItem.CreatedAt);
+
+            var isFound = repository.AsQueryable().Any(m => m.Id == updatedItem.Id);
+            Assert.IsTrue(isFound);
         }
 
         [TestMethod]

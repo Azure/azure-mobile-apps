@@ -31,6 +31,14 @@ namespace Microsoft.Zumo.Server.Utils
         /// <returns>true if the two values match</returns>
         internal static bool Matches(EntityTagHeaderValue a, EntityTagHeaderValue b)
             => a != null && b != null && !a.IsWeak && !b.IsWeak && (a.Tag == "*" || b.Tag == "*" || a.Tag == b.Tag);
+        
+        /// <summary>
+        /// Determines if the Version provided is valid for an ETag distribution.
+        /// </summary>
+        /// <param name="version"></param>
+        /// <returns></returns>
+        internal static bool IsValidETag(byte[] version)
+            => version != null && version.Length > 0;
 
         /// <summary>
         /// Evaluate the pre-condition headers (If-Match, If-None-Match, etc.) according
@@ -43,7 +51,9 @@ namespace Microsoft.Zumo.Server.Utils
         /// <returns>A HTTP Status Code indicating success or expected response.</returns>
         internal static int EvaluatePreconditions<T>(T item, RequestHeaders headers, bool isFetch = false) where T : class, ITableData
         {
-            var eTagVersion = item == null ? null : new EntityTagHeaderValue(ETag.FromByteArray(item.Version));
+            EntityTagHeaderValue eTagVersion = item == null || !IsValidETag(item.Version) 
+                ? null 
+                : new EntityTagHeaderValue(ETag.FromByteArray(item.Version));
 
             // Step 1: If If-Match is present, evaluate it
             if (headers.IfMatch.Count > 0)
