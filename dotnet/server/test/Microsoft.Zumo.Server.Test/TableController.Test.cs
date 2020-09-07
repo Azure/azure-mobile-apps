@@ -323,6 +323,63 @@ namespace Microsoft.Zumo.Server.Test
         }
 
         [TestMethod]
+        public async Task CreateItemAsync_Returns201_WhenInsertingValidItemWithNullId()
+        {
+            var repository = new MockTableRepository<Movie>();
+            PopulateRepository(repository);
+            var controller = new MoviesController(repository);
+            var expectedItem = new Movie()
+            {
+                Id = null,
+                BestPictureWinner = false,
+                Duration = 60,
+                MpaaRating = "G",
+                ReleaseDate = new DateTime(2020, 12, 24),
+                Title = "Home Movie",
+                Year = 2020
+            };
+            var newItem = expectedItem.Clone();
+            var httpContext = new DefaultHttpContext();
+            controller.ControllerContext.HttpContext = httpContext;
+            var nItems = repository.Data.Count;
+
+            var response = await controller.CreateItemAsync(newItem);
+
+            Assert.IsInstanceOfType(response, typeof(ObjectResult));
+            var actual = response as ObjectResult;
+
+            // Status Code is correct
+            Assert.AreEqual(201, actual.StatusCode);
+
+            // Response value is correct
+            Assert.IsNotNull(actual.Value);
+            var actualItem = actual.Value as Movie;
+            Assert.IsInstanceOfType(actualItem, typeof(Movie));
+            // Copy Id from actualItem into newItem before comparing
+            Assert.IsNotNull(actualItem.Id);
+            newItem.Id = actualItem.Id;
+            Assert.AreEqual(newItem, actualItem);
+
+            // Version and UpdatedAt are correct
+            Assert.IsNotNull(actualItem.Version);
+            Assert.IsNotNull(actualItem.UpdatedAt);
+            CollectionAssert.AreNotEqual(expectedItem.Version, actualItem.Version);
+            TimestampAssert.AreClose(DateTimeOffset.UtcNow, actualItem.UpdatedAt);
+
+            // ETag and Last-Modified headers are set
+            HttpAssert.HasResponseHeader(httpContext, "ETag", $"\"{Convert.ToBase64String(actualItem.Version)}\"");
+            HttpAssert.HasResponseHeader(httpContext, "Last-Modified", actualItem.UpdatedAt.ToString("r"));
+
+            // The repository was called and modified.
+            Assert.AreEqual(1, repository.Modifications);
+            Assert.AreEqual("CreateAsync", repository.CallData);
+
+            // The mock repository contains a record with the ID
+            Assert.IsTrue(repository.Data.ContainsKey(newItem.Id));
+            Assert.AreEqual(nItems + 1, repository.Data.Count);
+        }
+
+        [TestMethod]
         public async Task CreateItemAsync_Returns409_WhenExistingIdAdded()
         {
             var repository = new MockTableRepository<Movie>();
@@ -361,61 +418,6 @@ namespace Microsoft.Zumo.Server.Test
             // The repository was NOT called
             Assert.AreEqual(0, repository.Modifications);
             Assert.AreEqual(nItems, repository.Data.Count);
-        }
-
-        [TestMethod]
-        public async Task CreateItemAsync_Returns201_WhenInsertingValidItemWithNullId()
-        {
-            var repository = new MockTableRepository<Movie>();
-            PopulateRepository(repository);
-            var controller = new MoviesController(repository);
-            var expectedItem = new Movie()
-            {
-                Id = null,
-                BestPictureWinner = false,
-                Duration = 60,
-                MpaaRating = "G",
-                ReleaseDate = new DateTime(2020, 12, 24),
-                Title = "Home Movie",
-                Year = 2020
-            };
-            var newItem = expectedItem.Clone();
-            var httpContext = new DefaultHttpContext();
-            controller.ControllerContext.HttpContext = httpContext;
-            var nItems = repository.Data.Count;
-
-            var response = await controller.CreateItemAsync(newItem);
-
-            Assert.IsInstanceOfType(response, typeof(ObjectResult));
-            var actual = response as ObjectResult;
-
-            // Status Code is correct
-            Assert.AreEqual(201, actual.StatusCode);
-
-            // Response value is correct
-            Assert.IsNotNull(actual.Value);
-            var actualItem = actual.Value as Movie;
-            Assert.IsInstanceOfType(actualItem, typeof(Movie));
-            Assert.IsNotNull(new Guid(actualItem.Id)); // Make sure the Id generated is actually a GUID
-
-            // Version and UpdatedAt are correct
-            Assert.IsNotNull(actualItem.Version);
-            Assert.IsTrue(actualItem.Version.Length > 0);
-            Assert.IsNotNull(actualItem.UpdatedAt);
-            CollectionAssert.AreNotEqual(expectedItem.Version, actualItem.Version);
-            TimestampAssert.AreClose(DateTimeOffset.UtcNow, actualItem.UpdatedAt);
-
-            // ETag and Last-Modified headers are set
-            HttpAssert.HasResponseHeader(httpContext, "ETag", $"\"{Convert.ToBase64String(actualItem.Version)}\"");
-            HttpAssert.HasResponseHeader(httpContext, "Last-Modified", actualItem.UpdatedAt.ToString("r"));
-
-            // The repository was called
-            Assert.AreEqual("CreateAsync", repository.CallData);
-
-            // The mock repository contains a record with the ID
-            Assert.AreEqual(1, repository.Modifications);
-            Assert.IsTrue(repository.Data.ContainsKey(newItem.Id));
-            Assert.AreEqual(nItems + 1, repository.Data.Count);
         }
 
         [TestMethod]
@@ -2030,5 +2032,50 @@ namespace Microsoft.Zumo.Server.Test
         }
         #endregion
 
+        [TestMethod]
+        public void AddHeadersToResponse_DoesNotAddETag_WhenVersionMissing()
+        {
+            var controller = new MoviesController(new MockTableRepository<Movie>());
+            controller.ControllerContext.HttpContext = new DefaultHttpContext();
+
+            var entity = new Movie()
+            {
+                BestPictureWinner = false,
+                Duration = 60,
+                MpaaRating = "G",
+                ReleaseDate = new DateTime(2020, 12, 24),
+                Title = "Home Movie",
+                Year = 2020,
+                Version = null
+            };
+
+            controller.AddHeadersToResponse(entity);
+
+            Assert.IsFalse(controller.Response.Headers.ContainsKey("ETag"));
+            Assert.IsTrue(controller.Response.Headers.ContainsKey("Last-Modified"));
+        }
+
+        [TestMethod]
+        public void AddHeadersToResponse_DoesNotAddETag_WhenVersionEmpty()
+        {
+            var controller = new MoviesController(new MockTableRepository<Movie>());
+            controller.ControllerContext.HttpContext = new DefaultHttpContext();
+
+            var entity = new Movie()
+            {
+                BestPictureWinner = false,
+                Duration = 60,
+                MpaaRating = "G",
+                ReleaseDate = new DateTime(2020, 12, 24),
+                Title = "Home Movie",
+                Year = 2020,
+                Version = new byte[] {}
+            };
+
+            controller.AddHeadersToResponse(entity);
+
+            Assert.IsFalse(controller.Response.Headers.ContainsKey("ETag"));
+            Assert.IsTrue(controller.Response.Headers.ContainsKey("Last-Modified"));
+        }
     }
 }

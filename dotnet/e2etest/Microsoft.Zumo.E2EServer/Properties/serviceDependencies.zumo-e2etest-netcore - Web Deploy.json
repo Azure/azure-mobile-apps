@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "mssql1": {
-      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/zumo-e2etest-dbserver/databases/netcore_e2etest_db",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/zumo-e2etest-dbserver/databases/Microsoft.Zumo.E2EServer_db",
       "type": "mssql.azure",
       "connectionId": "MS_TableConnectionString",
       "secretStore": "AzureAppSettings"

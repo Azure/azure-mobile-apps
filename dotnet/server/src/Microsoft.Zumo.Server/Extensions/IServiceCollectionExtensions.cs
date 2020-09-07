@@ -5,6 +5,7 @@ using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Query.Validators;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OData.UriParser;
+using Newtonsoft.Json;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Zumo.Server
@@ -29,7 +30,9 @@ namespace Microsoft.Zumo.Server
             // Add the Controllers
             collection
                 .AddControllers(o => o.EnableEndpointRouting = false)
-                .AddNewtonsoftJson();
+                .AddNewtonsoftJson(o => {
+                    o.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                });
 
             // Add transients for OData parsing.
             collection

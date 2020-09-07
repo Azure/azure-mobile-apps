@@ -195,18 +195,13 @@ namespace Microsoft.Zumo.Server
         [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
         public virtual async Task<IActionResult> CreateItemAsync([FromBody] TEntity item)
         {
-            if (item.Id == null)
-            {
-                item.Id = Guid.NewGuid().ToString("N");
-            }
-
             var operationValidation = await ValidateOperationAsync(TableOperation.Create, item);
             if (operationValidation != StatusCodes.Status200OK)
             {
                 return StatusCode(operationValidation);
             }
 
-            var entity = await TableRepository.LookupAsync(item.Id).ConfigureAwait(false);
+            var entity = item.Id == null ? null : await TableRepository.LookupAsync(item.Id).ConfigureAwait(false);
             var preconditionStatusCode = ETag.EvaluatePreconditions(entity, Request.GetTypedHeaders());
             if (preconditionStatusCode != StatusCodes.Status200OK)
             {
@@ -394,12 +389,18 @@ namespace Microsoft.Zumo.Server
         /// Adds any necessary response headers, such as ETag and Last-Modified
         /// </summary>
         /// <param name="item">The item being returned</param>
-        private void AddHeadersToResponse(TEntity item)
+        internal void AddHeadersToResponse(TEntity item)
         {
             if (item != null)
             {
-                Response.Headers["ETag"] = ETag.FromByteArray(item.Version);
-                Response.Headers["Last-Modified"] = item.UpdatedAt.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern);
+                if (item.Version != null && item.Version.Length > 0)
+                {
+                    Response.Headers["ETag"] = ETag.FromByteArray(item.Version);
+                }
+                if (item.UpdatedAt != null)
+                {
+                    Response.Headers["Last-Modified"] = item.UpdatedAt.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern);
+                }
             }
         }
     }

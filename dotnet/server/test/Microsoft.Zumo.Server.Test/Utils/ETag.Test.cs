@@ -303,5 +303,15 @@ namespace Microsoft.Zumo.Server.Test.Utils
             Assert.AreEqual(200, actual);
         }
         #endregion
+
+        #region ETag.IsValidETag
+        [TestMethod]
+        public void IsValidETag_Validity()
+        {
+            Assert.IsTrue(ETag.IsValidETag(Guid.NewGuid().ToByteArray()));
+            Assert.IsFalse(ETag.IsValidETag(null));
+            Assert.IsFalse(ETag.IsValidETag(new byte[] { }));
+        }
+        #endregion
     }
 }

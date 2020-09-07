@@ -2,14 +2,28 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Linq;
 
 namespace Microsoft.Zumo.E2EServer.DataObjects
 {
     public static class TestData
     {
-        public static BaseMovie[] Movies = new BaseMovie[]
+        public static Movie[] GetTestMovies()
         {
-            new BaseMovie
+            return TestIntIdMovies.Select((movie, i) => new Movie()
+            {
+                Id = string.Format("Movie {0:000}", i),
+                Title = movie.Title,
+                Duration = movie.Duration,
+                MpaaRating = movie.MpaaRating,
+                ReleaseDate = movie.ReleaseDate,
+                BestPictureWinner = movie.BestPictureWinner,
+                Year = movie.Year
+            }).ToArray();
+        }
+        public static IntIdMovie[] TestIntIdMovies = new IntIdMovie[]
+        {
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 142,
@@ -18,7 +32,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Shawshank Redemption",
                 Year = 1994
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 175,
@@ -27,7 +41,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Godfather",
                 Year = 1972
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 200,
@@ -36,7 +50,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Godfather: Part II",
                 Year = 1974
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 168,
@@ -45,7 +59,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Pulp Fiction",
                 Year = 1994
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 161,
@@ -54,7 +68,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Good, the Bad and the Ugly",
                 Year = 1966
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 96,
@@ -63,7 +77,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "12 Angry Men",
                 Year = 1957
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 152,
@@ -72,7 +86,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Dark Knight",
                 Year = 2008
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 195,
@@ -81,7 +95,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Schindler's List",
                 Year = 1993
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 201,
@@ -90,7 +104,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Lord of the Rings: The Return of the King",
                 Year = 2003
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 139,
@@ -99,7 +113,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Fight Club",
                 Year = 1999
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 127,
@@ -108,7 +122,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Star Wars: Episode V - The Empire Strikes Back",
                 Year = 1980
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 133,
@@ -117,7 +131,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "One Flew Over the Cuckoo's Nest",
                 Year = 1975
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 178,
@@ -126,7 +140,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Lord of the Rings: The Fellowship of the Ring",
                 Year = 2001
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 148,
@@ -135,7 +149,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Inception",
                 Year = 2010
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 146,
@@ -144,7 +158,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Goodfellas",
                 Year = 1990
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 121,
@@ -153,7 +167,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Star Wars",
                 Year = 1977
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 141,
@@ -162,7 +176,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Seven Samurai",
                 Year = 1954
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 136,
@@ -171,7 +185,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Matrix",
                 Year = 1999
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 142,
@@ -180,7 +194,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Forrest Gump",
                 Year = 1994
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 130,
@@ -189,7 +203,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "City of God",
                 Year = 2002
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 179,
@@ -198,7 +212,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Lord of the Rings: The Two Towers",
                 Year = 2002
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 175,
@@ -207,7 +221,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Once Upon a Time in the West",
                 Year = 1968
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 127,
@@ -216,7 +230,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Se7en",
                 Year = 1995
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 118,
@@ -225,7 +239,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Silence of the Lambs",
                 Year = 1991
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 102,
@@ -234,7 +248,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Casablanca",
                 Year = 1942
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 106,
@@ -243,7 +257,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Usual Suspects",
                 Year = 1995
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 115,
@@ -252,7 +266,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Raiders of the Lost Ark",
                 Year = 1981
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 112,
@@ -261,7 +275,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Rear Window",
                 Year = 1954
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 109,
@@ -270,7 +284,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Psycho",
                 Year = 1960
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 130,
@@ -279,7 +293,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "It's a Wonderful Life",
                 Year = 1946
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 110,
@@ -288,7 +302,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Léon: The Professional",
                 Year = 1994
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 110,
@@ -297,7 +311,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Sunset Blvd.",
                 Year = 1950
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 113,
@@ -306,7 +320,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Memento",
                 Year = 2000
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 165,
@@ -315,7 +329,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Dark Knight Rises",
                 Year = 2012
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 119,
@@ -324,7 +338,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "American History X",
                 Year = 1998
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 153,
@@ -333,7 +347,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Apocalypse Now",
                 Year = 1979
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 152,
@@ -342,7 +356,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Terminator 2: Judgment Day",
                 Year = 1991
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 95,
@@ -351,7 +365,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb",
                 Year = 1964
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 169,
@@ -360,7 +374,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Saving Private Ryan",
                 Year = 1998
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 117,
@@ -369,7 +383,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Alien",
                 Year = 1979
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 136,
@@ -378,7 +392,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "North by Northwest",
                 Year = 1959
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 87,
@@ -387,7 +401,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "City Lights",
                 Year = 1931
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 125,
@@ -396,7 +410,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Spirited Away",
                 Year = 2001
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 119,
@@ -405,7 +419,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Citizen Kane",
                 Year = 1941
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 87,
@@ -414,7 +428,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Modern Times",
                 Year = 1936
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 142,
@@ -423,7 +437,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Shining",
                 Year = 1980
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 129,
@@ -432,7 +446,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Vertigo",
                 Year = 1958
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 116,
@@ -441,7 +455,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Back to the Future",
                 Year = 1985
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 122,
@@ -450,7 +464,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "American Beauty",
                 Year = 1999
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 117,
@@ -459,7 +473,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "M",
                 Year = 1931
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 150,
@@ -468,7 +482,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Pianist",
                 Year = 2002
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 151,
@@ -477,7 +491,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Departed",
                 Year = 2006
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 113,
@@ -486,7 +500,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Taxi Driver",
                 Year = 1976
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 103,
@@ -495,7 +509,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Toy Story 3",
                 Year = 2010
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 88,
@@ -504,7 +518,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Paths of Glory",
                 Year = 1957
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 118,
@@ -513,7 +527,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Life Is Beautiful",
                 Year = 1997
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 107,
@@ -522,7 +536,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Double Indemnity",
                 Year = 1944
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 154,
@@ -531,7 +545,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Aliens",
                 Year = 1986
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 98,
@@ -540,7 +554,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "WALL-E",
                 Year = 2008
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 137,
@@ -549,7 +563,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Lives of Others",
                 Year = 2006
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 136,
@@ -558,7 +572,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "A Clockwork Orange",
                 Year = 1971
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 122,
@@ -567,7 +581,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Amélie",
                 Year = 2001
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 155,
@@ -576,7 +590,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Gladiator",
                 Year = 2000
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 189,
@@ -585,7 +599,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Green Mile",
                 Year = 1999
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 112,
@@ -594,7 +608,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Intouchables",
                 Year = 2011
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 227,
@@ -603,7 +617,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Lawrence of Arabia",
                 Year = 1962
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 129,
@@ -612,7 +626,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "To Kill a Mockingbird",
                 Year = 1962
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 130,
@@ -621,7 +635,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Prestige",
                 Year = 2006
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 125,
@@ -630,7 +644,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Great Dictator",
                 Year = 1940
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 99,
@@ -639,7 +653,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Reservoir Dogs",
                 Year = 1992
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 149,
@@ -648,7 +662,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Das Boot",
                 Year = 1981
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 102,
@@ -657,7 +671,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Requiem for a Dream",
                 Year = 2000
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 93,
@@ -666,7 +680,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Third Man",
                 Year = 1949
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 126,
@@ -675,7 +689,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Treasure of the Sierra Madre",
                 Year = 1948
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 108,
@@ -684,7 +698,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Eternal Sunshine of the Spotless Mind",
                 Year = 2004
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 155,
@@ -693,7 +707,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Cinema Paradiso",
                 Year = 1988
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 139,
@@ -702,7 +716,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Once Upon a Time in America",
                 Year = 1984
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 130,
@@ -711,7 +725,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Chinatown",
                 Year = 1974
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 138,
@@ -720,7 +734,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "L.A. Confidential",
                 Year = 1997
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 89,
@@ -729,7 +743,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Lion King",
                 Year = 1994
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 134,
@@ -738,7 +752,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Star Wars: Episode VI - Return of the Jedi",
                 Year = 1983
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 116,
@@ -747,7 +761,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Full Metal Jacket",
                 Year = 1987
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 91,
@@ -756,7 +770,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Monty Python and the Holy Grail",
                 Year = 1975
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 177,
@@ -765,7 +779,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Braveheart",
                 Year = 1995
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 103,
@@ -774,7 +788,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Singin' in the Rain",
                 Year = 1952
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 120,
@@ -783,7 +797,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Oldboy",
                 Year = 2003
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 120,
@@ -792,7 +806,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Some Like It Hot",
                 Year = 1959
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 160,
@@ -801,7 +815,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Amadeus",
                 Year = 1984
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 114,
@@ -810,7 +824,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Metropolis",
                 Year = 1927
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 88,
@@ -819,7 +833,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Rashomon",
                 Year = 1950
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 93,
@@ -828,7 +842,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Bicycle Thieves",
                 Year = 1948
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 141,
@@ -837,7 +851,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "2001: A Space Odyssey",
                 Year = 1968
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 131,
@@ -846,7 +860,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Unforgiven",
                 Year = 1992
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 138,
@@ -855,7 +869,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "All About Eve",
                 Year = 1950
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 125,
@@ -864,7 +878,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Apartment",
                 Year = 1960
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 127,
@@ -873,7 +887,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Indiana Jones and the Last Crusade",
                 Year = 1989
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 129,
@@ -882,7 +896,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Sting",
                 Year = 1973
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 129,
@@ -891,7 +905,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Raging Bull",
                 Year = 1980
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 161,
@@ -900,7 +914,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Bridge on the River Kwai",
                 Year = 1957
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 131,
@@ -909,7 +923,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Die Hard",
                 Year = 1988
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 116,
@@ -918,7 +932,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Witness for the Prosecution",
                 Year = 1957
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 140,
@@ -927,7 +941,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Batman Begins",
                 Year = 2005
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 123,
@@ -936,7 +950,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "A Separation",
                 Year = 2011
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 89,
@@ -945,7 +959,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Grave of the Fireflies",
                 Year = 1988
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 118,
@@ -954,7 +968,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Pan's Labyrinth",
                 Year = 2006
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 156,
@@ -963,7 +977,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Downfall",
                 Year = 2004
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 129,
@@ -972,7 +986,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Mr. Smith Goes to Washington",
                 Year = 1939
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 75,
@@ -981,7 +995,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Yojimbo",
                 Year = 1961
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 172,
@@ -990,7 +1004,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Great Escape",
                 Year = 1963
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 132,
@@ -999,7 +1013,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "For a Few Dollars More",
                 Year = 1965
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 102,
@@ -1008,7 +1022,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Snatch.",
                 Year = 2000
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 153,
@@ -1017,7 +1031,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Inglourious Basterds",
                 Year = 2009
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 108,
@@ -1026,7 +1040,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "On the Waterfront",
                 Year = 1954
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 124,
@@ -1035,7 +1049,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Elephant Man",
                 Year = 1980
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 96,
@@ -1044,7 +1058,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Seventh Seal",
                 Year = 1957
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 81,
@@ -1053,7 +1067,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Toy Story",
                 Year = 1995
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 100,
@@ -1062,7 +1076,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Maltese Falcon",
                 Year = 1941
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 170,
@@ -1071,7 +1085,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Heat",
                 Year = 1995
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 75,
@@ -1080,7 +1094,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The General",
                 Year = 1926
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 116,
@@ -1089,7 +1103,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Gran Torino",
                 Year = 2008
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 130,
@@ -1098,7 +1112,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Rebecca",
                 Year = 1940
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 117,
@@ -1107,7 +1121,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Blade Runner",
                 Year = 1982
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 143,
@@ -1116,7 +1130,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Avengers",
                 Year = 2012
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 91,
@@ -1125,7 +1139,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Wild Strawberries",
                 Year = 1957
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 98,
@@ -1134,7 +1148,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Fargo",
                 Year = 1996
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 68,
@@ -1143,7 +1157,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Kid",
                 Year = 1921
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 170,
@@ -1152,7 +1166,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Scarface",
                 Year = 1983
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 108,
@@ -1161,7 +1175,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Touch of Evil",
                 Year = 1958
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 117,
@@ -1170,7 +1184,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Big Lebowski",
                 Year = 1998
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 162,
@@ -1179,7 +1193,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Ran",
                 Year = 1985
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 182,
@@ -1188,7 +1202,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Deer Hunter",
                 Year = 1978
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 126,
@@ -1197,7 +1211,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Cool Hand Luke",
                 Year = 1967
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 147,
@@ -1206,7 +1220,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Sin City",
                 Year = 2005
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 72,
@@ -1215,7 +1229,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Gold Rush",
                 Year = 1925
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 101,
@@ -1224,7 +1238,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Strangers on a Train",
                 Year = 1951
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 105,
@@ -1233,7 +1247,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "It Happened One Night",
                 Year = 1934
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 122,
@@ -1242,7 +1256,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "No Country for Old Men",
                 Year = 2007
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 130,
@@ -1251,7 +1265,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Jaws",
                 Year = 1975
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 107,
@@ -1260,7 +1274,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Lock, Stock and Two Smoking Barrels",
                 Year = 1998
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 107,
@@ -1269,7 +1283,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Sixth Sense",
                 Year = 1999
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 121,
@@ -1278,7 +1292,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Hotel Rwanda",
                 Year = 2004
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 85,
@@ -1287,7 +1301,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "High Noon",
                 Year = 1952
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 120,
@@ -1296,7 +1310,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Platoon",
                 Year = 1986
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 109,
@@ -1305,7 +1319,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Thing",
                 Year = 1982
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 110,
@@ -1314,7 +1328,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Butch Cassidy and the Sundance Kid",
                 Year = 1969
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 101,
@@ -1323,7 +1337,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Wizard of Oz",
                 Year = 1939
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 178,
@@ -1332,7 +1346,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Casino",
                 Year = 1995
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 94,
@@ -1341,7 +1355,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Trainspotting",
                 Year = 1996
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 111,
@@ -1350,7 +1364,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Kill Bill: Vol. 1",
                 Year = 2003
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 140,
@@ -1359,7 +1373,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Warrior",
                 Year = 2011
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 93,
@@ -1368,7 +1382,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Annie Hall",
                 Year = 1977
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 101,
@@ -1377,7 +1391,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Notorious",
                 Year = 1946
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 129,
@@ -1386,7 +1400,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Secret in Their Eyes",
                 Year = 2009
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 238,
@@ -1395,7 +1409,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Gone with the Wind",
                 Year = 1939
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 126,
@@ -1404,7 +1418,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Good Will Hunting",
                 Year = 1997
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 118,
@@ -1413,7 +1427,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The King's Speech",
                 Year = 2010
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 129,
@@ -1422,7 +1436,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Grapes of Wrath",
                 Year = 1940
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 148,
@@ -1431,7 +1445,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Into the Wild",
                 Year = 2007
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 94,
@@ -1440,7 +1454,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Life of Brian",
                 Year = 1979
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 100,
@@ -1449,7 +1463,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Finding Nemo",
                 Year = 2003
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 132,
@@ -1458,7 +1472,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "V for Vendetta",
                 Year = 2005
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 98,
@@ -1467,7 +1481,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "How to Train Your Dragon",
                 Year = 2010
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 86,
@@ -1476,7 +1490,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "My Neighbor Totoro",
                 Year = 1988
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 114,
@@ -1485,7 +1499,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Big Sleep",
                 Year = 1946
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 105,
@@ -1494,7 +1508,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Dial M for Murder",
                 Year = 1954
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 212,
@@ -1503,7 +1517,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Ben-Hur",
                 Year = 1959
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 107,
@@ -1512,7 +1526,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Terminator",
                 Year = 1984
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 121,
@@ -1521,7 +1535,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Network",
                 Year = 1976
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 132,
@@ -1530,7 +1544,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Million Dollar Baby",
                 Year = 2004
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 108,
@@ -1539,7 +1553,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Black Swan",
                 Year = 2010
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 93,
@@ -1548,7 +1562,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Night of the Hunter",
                 Year = 1955
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 158,
@@ -1557,7 +1571,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "There Will Be Blood",
                 Year = 2007
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 89,
@@ -1566,7 +1580,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Stand by Me",
                 Year = 1986
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 113,
@@ -1575,7 +1589,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Donnie Darko",
                 Year = 2001
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 101,
@@ -1584,7 +1598,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Groundhog Day",
                 Year = 1993
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 125,
@@ -1593,7 +1607,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Dog Day Afternoon",
                 Year = 1975
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 129,
@@ -1602,7 +1616,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Twelve Monkeys",
                 Year = 1995
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 154,
@@ -1611,7 +1625,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Amores Perros",
                 Year = 2000
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 115,
@@ -1620,7 +1634,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Bourne Ultimatum",
                 Year = 2007
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 92,
@@ -1629,7 +1643,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Mary and Max",
                 Year = 2009
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 99,
@@ -1638,7 +1652,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The 400 Blows",
                 Year = 1959
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 83,
@@ -1647,7 +1661,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Persona",
                 Year = 1966
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 106,
@@ -1656,7 +1670,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Graduate",
                 Year = 1967
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 191,
@@ -1665,7 +1679,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Gandhi",
                 Year = 1982
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 85,
@@ -1674,7 +1688,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Killing",
                 Year = 1956
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 119,
@@ -1683,7 +1697,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Howl's Moving Castle",
                 Year = 2004
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 100,
@@ -1692,7 +1706,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Artist",
                 Year = 2011
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 98,
@@ -1701,7 +1715,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Princess Bride",
                 Year = 1987
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 120,
@@ -1710,7 +1724,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Argo",
                 Year = 2012
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 120,
@@ -1719,7 +1733,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Slumdog Millionaire",
                 Year = 2008
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 131,
@@ -1728,7 +1742,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Who's Afraid of Virginia Woolf?",
                 Year = 1966
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 108,
@@ -1737,7 +1751,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "La Strada",
                 Year = 1954
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 126,
@@ -1746,7 +1760,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Manchurian Candidate",
                 Year = 1962
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 134,
@@ -1755,7 +1769,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Hustler",
                 Year = 1961
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 135,
@@ -1764,7 +1778,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "A Beautiful Mind",
                 Year = 2001
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 145,
@@ -1773,7 +1787,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Wild Bunch",
                 Year = 1969
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 119,
@@ -1782,7 +1796,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Rocky",
                 Year = 1976
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 160,
@@ -1791,7 +1805,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Anatomy of a Murder",
                 Year = 1959
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 120,
@@ -1800,7 +1814,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Stalag 17",
                 Year = 1953
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 122,
@@ -1809,7 +1823,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Exorcist",
                 Year = 1973
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 138,
@@ -1818,7 +1832,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Sleuth",
                 Year = 1972
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 80,
@@ -1827,7 +1841,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Rope",
                 Year = 1948
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 184,
@@ -1836,7 +1850,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Barry Lyndon",
                 Year = 1975
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 123,
@@ -1845,7 +1859,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Man Who Shot Liberty Valance",
                 Year = 1962
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 112,
@@ -1854,7 +1868,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "District 9",
                 Year = 2009
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 163,
@@ -1863,7 +1877,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Stalker",
                 Year = 1979
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 101,
@@ -1872,7 +1886,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Infernal Affairs",
                 Year = 2002
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 118,
@@ -1881,7 +1895,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Roman Holiday",
                 Year = 1953
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 103,
@@ -1890,7 +1904,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Truman Show",
                 Year = 1998
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 111,
@@ -1899,7 +1913,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Ratatouille",
                 Year = 2007
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 143,
@@ -1908,7 +1922,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Pirates of the Caribbean: The Curse of the Black Pearl",
                 Year = 2003
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 106,
@@ -1917,7 +1931,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Ip Man",
                 Year = 2008
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 112,
@@ -1926,7 +1940,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Diving Bell and the Butterfly",
                 Year = 2007
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 130,
@@ -1935,7 +1949,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Harry Potter and the Deathly Hallows: Part 2",
                 Year = 2011
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 99,
@@ -1944,7 +1958,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "A Fistful of Dollars",
                 Year = 1964
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 125,
@@ -1953,7 +1967,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "A Streetcar Named Desire",
                 Year = 1951
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 92,
@@ -1962,7 +1976,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Monsters, Inc.",
                 Year = 2001
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 133,
@@ -1971,7 +1985,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "In the Name of the Father",
                 Year = 1993
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 127,
@@ -1980,7 +1994,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Star Trek",
                 Year = 2009
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 84,
@@ -1989,7 +2003,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Beauty and the Beast",
                 Year = 1991
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 136,
@@ -1998,7 +2012,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Rosemary's Baby",
                 Year = 1968
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 104,
@@ -2007,7 +2021,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Harvey",
                 Year = 1950
             },
-            new BaseMovie {
+            new IntIdMovie {
                 BestPictureWinner = false,
                 Duration = 117,
                 MpaaRating = "PG",
@@ -2015,7 +2029,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Nauticaä of the Valley of the Wind",
                 Year = 1984
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 109,
@@ -2024,7 +2038,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Wrestler",
                 Year = 2008
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 133,
@@ -2033,7 +2047,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "All Quiet on the Western Front",
                 Year = 1930
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 98,
@@ -2042,7 +2056,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "La Haine",
                 Year = 1995
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 133,
@@ -2051,7 +2065,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Rain Man",
                 Year = 1988
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 66,
@@ -2060,7 +2074,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Battleship Potemkin",
                 Year = 1925
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 138,
@@ -2069,7 +2083,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Shutter Island",
                 Year = 2010
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 81,
@@ -2078,7 +2092,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Nosferatu",
                 Year = 1922
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 103,
@@ -2087,7 +2101,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Spring, Summer, Fall, Winter... and Spring",
                 Year = 2003
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 96,
@@ -2096,7 +2110,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Manhattan",
                 Year = 1979
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 138,
@@ -2105,7 +2119,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Mystic River",
                 Year = 2003
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 102,
@@ -2114,7 +2128,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Bringing Up Baby",
                 Year = 1938
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 108,
@@ -2123,7 +2137,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Shadow of a Doubt",
                 Year = 1943
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 125,
@@ -2132,7 +2146,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Big Fish",
                 Year = 2003
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 124,
@@ -2141,7 +2155,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Castle in the Sky",
                 Year = 1986
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 151,
@@ -2150,7 +2164,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Papillon",
                 Year = 1973
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 76,
@@ -2159,7 +2173,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Nightmare Before Christmas",
                 Year = 1993
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 119,
@@ -2168,7 +2182,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Untouchables",
                 Year = 1987
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 127,
@@ -2177,7 +2191,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Jurassic Park",
                 Year = 1993
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 115,
@@ -2186,7 +2200,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Let the Right One In",
                 Year = 2008
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = true,
                 Duration = 109,
@@ -2195,7 +2209,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "In the Heat of the Night",
                 Year = 1967
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 170,
@@ -2204,7 +2218,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "3 Idiots",
                 Year = 2009
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 118,
@@ -2213,7 +2227,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "Arsenic and Old Lace",
                 Year = 1944
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 119,
@@ -2222,7 +2236,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "The Searchers",
                 Year = 1956
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 98,
@@ -2231,7 +2245,7 @@ namespace Microsoft.Zumo.E2EServer.DataObjects
                 Title = "In the Mood for Love",
                 Year = 2000
             },
-            new BaseMovie
+            new IntIdMovie
             {
                 BestPictureWinner = false,
                 Duration = 141,

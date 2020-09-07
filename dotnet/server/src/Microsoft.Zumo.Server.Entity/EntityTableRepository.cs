@@ -64,15 +64,20 @@ namespace Microsoft.Zumo.Server.Entity
         /// <exception cref="EntityExistsException">if the entity exists</exception>
         public virtual async Task<TEntity> CreateAsync(TEntity item, CancellationToken cancellationToken = default)
         {
-            if (item == null || string.IsNullOrEmpty(item.Id))
+            if (item == null)
             {
                 throw new ArgumentNullException(nameof(item));
             }
 
-            var entity = await LookupAsync(item.Id, cancellationToken).ConfigureAwait(false);
+            var entity = item.Id == null ? null : await LookupAsync(item.Id, cancellationToken).ConfigureAwait(false);
             if (entity != null)
             {
                 throw new EntityExistsException();
+            }
+
+            if (item.Id == null)
+            {
+                item.Id = Guid.NewGuid().ToString("N");
             }
 
             UpdateVersionFields(item);
