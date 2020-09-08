@@ -349,7 +349,7 @@ namespace Microsoft.Zumo.MobileData.Test.Internal
             var actual = client.CreateListPageRequest(query, null, true);
 
             Assert.AreEqual(RequestMethod.Get, actual.Method);
-            Assert.AreEqual("https://localhost/tables/movies?$count=true", actual.Uri.ToString());
+            Assert.AreEqual("https://localhost/tables/movies?$inlinecount=allpages", actual.Uri.ToString());
         }
 
         [TestMethod]
@@ -364,7 +364,7 @@ namespace Microsoft.Zumo.MobileData.Test.Internal
             var actual = client.CreateListPageRequest(query, null, true);
 
             Assert.AreEqual(RequestMethod.Get, actual.Method);
-            Assert.AreEqual("https://localhost/tables/movies?__includedeleted=true&$count=true", actual.Uri.ToString());
+            Assert.AreEqual("https://localhost/tables/movies?__includedeleted=true&$inlinecount=allpages", actual.Uri.ToString());
         }
 
         [TestMethod]
@@ -394,7 +394,7 @@ namespace Microsoft.Zumo.MobileData.Test.Internal
             var actual = client.CreateListPageRequest(query, null, true);
 
             Assert.AreEqual(RequestMethod.Get, actual.Method);
-            Assert.AreEqual("https://localhost/tables/movies?$filter=mpaaRating%20eq%20%27R%27&$orderBy=Year&$count=true", actual.Uri.ToString());
+            Assert.AreEqual("https://localhost/tables/movies?$filter=mpaaRating%20eq%20%27R%27&$orderBy=Year&$inlinecount=allpages", actual.Uri.ToString());
         }
 
         [TestMethod]
