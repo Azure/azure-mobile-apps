@@ -209,7 +209,7 @@ namespace Microsoft.Zumo.MobileData.Internal
 
             if (includeCount)
             {
-                builder.AppendQuery("$count", "true");
+                builder.AppendQuery("$inlinecount", "allpages");
             }
 
             return request;

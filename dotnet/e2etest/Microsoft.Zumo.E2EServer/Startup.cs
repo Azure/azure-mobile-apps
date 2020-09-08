@@ -4,6 +4,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,7 @@ using Microsoft.Zumo.E2EServer.DataObjects;
 using Microsoft.Zumo.E2EServer.Models;
 using Microsoft.Zumo.Server;
 using System;
+using System.Data.Common;
 
 namespace Microsoft.Zumo.E2EServer
 {
@@ -56,9 +58,19 @@ namespace Microsoft.Zumo.E2EServer
             });
             services.AddSingleton(mapperConfiguration);
 
-            // Database Context - uses SQL Server
+            // Database Context - uses SAQL Server
             var dbConnectionString = Configuration.GetConnectionString("MS_TableConnectionString");
-            services.AddDbContext<AppDbContext>(options => options.UseSqlServer(dbConnectionString));
+
+            if (dbConnectionString != null && !dbConnectionString.Contains(":memory:"))
+            {
+                // SQL Server or Azure SQL database
+                services.AddDbContext<AppDbContext>(options => options.UseSqlServer(dbConnectionString));
+            }
+            else
+            {
+                // SQLite in-memory store
+                services.AddDbContext<AppDbContext>(options => options.UseSqlite(CreateInMemoryDatabase()));
+            }
 
             // Azure Mobile Apps
             services.AddAzureMobileApps();
@@ -93,5 +105,20 @@ namespace Microsoft.Zumo.E2EServer
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             DbInitializer.Initialize(env, context);
         }
+
+        #region SQLite Database
+        private static DbConnection _connection = null;
+
+        private static DbConnection CreateInMemoryDatabase()
+        {
+            if (_connection == null)
+            {
+                _connection = new SqliteConnection("Data Source=:memory:");
+                _connection.Open();
+            }
+
+            return _connection;
+        }
+        #endregion
     }
 }

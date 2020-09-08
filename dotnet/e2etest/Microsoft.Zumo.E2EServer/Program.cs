@@ -8,16 +8,36 @@ namespace Microsoft.Zumo.E2EServer
 {
     public class Program
     {
+        /// <summary>
+        /// Main entrypoint
+        /// </summary>
+        /// <param name="args"></param>
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();
         }
 
+        /// <summary>
+        /// When the application enters through the test suite.
+        /// </summary>
+        /// <returns></returns>
+        public static AspNetCore.TestHost.TestServer GetTestServer()
+        {
+            var applicationBasePath = System.AppContext.BaseDirectory;
+            var builder = new WebHostBuilder()
+                .UseEnvironment("Test")
+                .UseContentRoot(applicationBasePath)
+                .UseStartup<Startup>();
+
+            var server = new AspNetCore.TestHost.TestServer(builder);
+
+            return server;
+        }
+
         public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
+            Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(builder =>
+            {
+                builder.UseStartup<Startup>();
+            });
     }
 }
