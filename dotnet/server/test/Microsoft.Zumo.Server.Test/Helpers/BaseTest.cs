@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Zumo.Server.Test.TestServer;
 using System;
 using System.Collections.Generic;

@@ -2,7 +2,12 @@
 // Licensed under the MIT License.
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Zumo.E2EServer.DataObjects;
+using System.Linq;
+using System.Text;
 
 namespace Microsoft.Zumo.E2EServer.Models
 {
@@ -25,6 +30,30 @@ namespace Microsoft.Zumo.E2EServer.Models
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<IntIdMovie>().Property(t => t.Id).ValueGeneratedOnAdd();
+
+            if (Database.IsSqlite())
+            {
+                var properties = modelBuilder.Model.GetEntityTypes()
+                    .SelectMany(t => t.GetProperties())
+                    .Where(p => p.ClrType == typeof(byte[]) && p.ValueGenerated == ValueGenerated.OnAddOrUpdate && p.IsConcurrencyToken);
+                foreach (var prop in properties)
+                {
+                    prop.SetValueConverter(new SqliteTimestampConverter());
+                    // This allows ms timestamp
+                    prop.SetDefaultValueSql("strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime')");
+
+                }
+            }
+        }
+
+        class SqliteTimestampConverter : ValueConverter<byte[], string>
+        {
+            public SqliteTimestampConverter() : base(v => v == null ? null : ToDb(v), v => v == null ? null : FromDb(v))
+            { 
+            }
+
+            static byte[] FromDb(string v) => Encoding.ASCII.GetBytes(v);
+            static string ToDb(byte[] v) => Encoding.ASCII.GetString(v);
         }
     }
 }
