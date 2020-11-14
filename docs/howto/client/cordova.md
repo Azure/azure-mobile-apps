@@ -1,0 +1,1 @@
+# HOWTO: client/cordova
