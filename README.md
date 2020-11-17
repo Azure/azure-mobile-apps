@@ -29,6 +29,20 @@ If you already have an Azure account, start with [this tutorial](https://azure.m
  
 Microsoft is committed to fully supporting Azure Mobile Apps, including **support for the latest OS release, bug fixes, documentation improvements, and community PR reviews**. Please note that the product team is **not currently investing in any new feature work** for Azure Mobile Apps. We highly appreciate community contributions to all areas of Azure Mobile Apps. 
 
+## Generating the documentation
+
+This project uses [mkdocs](https://mkdocs.org) for documentation.  Documentation is written in Markdown.  To install the pre-requisites, use the following:
+
+```bash
+pip install mkdocs mkdocs-material pymdown-extensions markdown-include
+```
+
+To host the documentation locally, use:
+
+```bash
+mkdocs serve
+```
+
 ## Contributing
 
 If you would like to become an active contributor to this project please follow the instructions provided in [Microsoft Azure Projects Contribution Guidelines](http://azure.github.com/guidelines.html). 

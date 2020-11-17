@@ -98,16 +98,10 @@ public class TodoActivity extends Activity {
             Duration timeout = Duration.ofSeconds(30);
             mClient.setAndroidHttpClientFactory(() -> new OkHttpClient.Builder().connectTimeout(timeout).readTimeout(timeout).build());
 
-            // Get a reference to the Remote table.
-            mTable = mClient.getTable(TodoItem.class);
-            // OFFLINE SYNC:
-            // mTable = mClient.getSyncTable(TodoItem.class);
+            // AUTHENTICATE USERS
+            // authenticate();
+            createTable();
 
-            // Initialize the local store.
-            initLocalStore().get();
-
-            // Load items from the backend
-            refreshItemsFromTable();
         } catch (Exception e) {
             createAndShowDialog(e, e.getClass().getName());
         }
@@ -131,6 +125,19 @@ public class TodoActivity extends Activity {
             refreshItemsFromTable();
         }
         return true;
+    }
+
+    private void createTable() {
+        // Get a reference to the Remote table.
+        mTable = mClient.getTable(TodoItem.class);
+        // OFFLINE SYNC:
+        // mTable = mClient.getSyncTable(TodoItem.class);
+
+        // Initialize the local store.
+        initLocalStore().get();
+
+        // Load items from the backend
+        refreshItemsFromTable();
     }
 
     /**

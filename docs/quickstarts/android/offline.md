@@ -12,15 +12,15 @@ In online operation, you read to and write from a `MobileServiceTable`.  When us
 
 In `TodoActivity.java`:
 
-1. Update the definition of the `mTable` variable (approx. line 56).  Comment out the current definition, and uncomment the offline sync version.
+1. Update the definition of the `mTable` variable.  Comment out the current definition, and uncomment the offline sync version.
 
     ``` java linenums="56"
     private MobileServiceSyncTable<TodoItem> mTable;
     ```
 
-2. When initializing the `mTable` variable in the `onCreate()` method (approx. line 102), change the call to use `getSyncTable()` instead.   Comment out the current definition, and uncomment the offline sync version.
+2. When initializing the `mTable` variable in the `onCreate()` method, change the call to use `getSyncTable()` instead.   Comment out the current definition, and uncomment the offline sync version.
 
-    ``` java linenums="102"
+    ``` java linenums="131"
     // Get a reference to the Remote table.
     // mTable = mClient.getTable(TodoItem.class);
     // OFFLINE SYNC:
@@ -29,7 +29,7 @@ In `TodoActivity.java`:
 
 3. In the `RefreshItemsAsync` class, replace the search using the online table to a synchronization and then searching the offline table.  Comment out the current code, and uncomment the offline sync version.
 
-    ``` java linenums="224"
+    ``` java linenums="231"
     // List<TodoItem> results = mTable.where(query).execute().get();
     // OFFLINE SYNC:
     sync().get();
@@ -38,7 +38,7 @@ In `TodoActivity.java`:
 
 4. In the `SyncItemsAsync` class, uncomment the code that pulls changes from the remote server.
 
-    ``` java linenums="262"
+    ``` java linenums="269"
     // OFFLINE SYNC:
     mTable.pull(null).get();
     ```

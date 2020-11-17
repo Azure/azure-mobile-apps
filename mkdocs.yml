@@ -25,6 +25,8 @@ markdown_extensions:
       permalink: true
   - pymdownx.highlight
   - pymdownx.superfences
+  - markdown_include.include:
+      base_path: docs
 plugins:
   - search
 nav:
