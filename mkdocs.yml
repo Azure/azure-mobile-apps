@@ -1,8 +1,32 @@
 site_name: Azure Mobile Apps
 site_url: https://azure.github.io/azure-mobile-apps/
-repo_url: https://github.com/azure/azure-mobile-apps/
+repo_url: https://github.com/azure/azure-mobile-apps
 edit_uri: blob/master/docs/
-copyright: Microsoft, Inc.  All Rights Reserved.
+copyright: Copyright &copy; Microsoft, Inc.  All Rights Reserved.
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/azure/azure-mobile-apps
+theme:
+  icon:
+    repo: fontawesome/brands/github-alt
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - search.suggest
+    - search.highlight
+  name: material
+  palette:
+    scheme: preference
+markdown_extensions:
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+plugins:
+  - search
 nav:
   - Home: index.md
   - Quickstarts:

@@ -23,14 +23,7 @@ You can complete this tutorial on Mac, Linux, or Windows.
 
 ## Download the Android quickstart project
 
-The Android quickstart project is located in the `samples/android` folder of the [azure/azure-mobile-apps](https://github.com/azure/azure-mobile-apps) GitHub repository.  You can clone the repository using a command line:
-
-```bash
-# This will create a folder called azure-mobile-apps in the current directory
-git clone https://github.com/azure/azure-mobile-apps
-```
-
-Or you can [download the repository as a ZIP file](https://github.com/Azure/azure-mobile-apps/archive/master.zip), then unpack it.  The files will be created in the `azure-mobile-apps-master` folder.
+The Android quickstart project is located in the `samples/android` folder of the [azure/azure-mobile-apps](https://github.com/azure/azure-mobile-apps) GitHub repository.  You can [download the repository as a ZIP file](https://github.com/Azure/azure-mobile-apps/archive/master.zip), then unpack it.  The files will be created in the `azure-mobile-apps-master` folder.
 
 Once downloaded, open a Terminal and change directory to the location of the files.
 
