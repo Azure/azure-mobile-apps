@@ -39,12 +39,13 @@ To deploy the resources, type the following:
 ```
 
 > **Deployment Failed**
-> If the deployment failed, but all the resources seem to be created, it is likely that the deployment of the backend code failed.  To check this, log onto the Azure portal, then locate your App Service (in the _zumo-quickstart_ resource group).  Select **Deployment Center**.  If the deployment is listed as failed, press the **Sync** button to re-try the deployment.
+>
+> If the deployment failed, but all the resources seem to be created, it is likely that the deployment of the backend code failed.  To check this, log onto the Azure portal, then locate your App Service (in the _zumo-quickstart_ resource group).  Select **Deployment Center**.  If the deployment is listed as failed, press the **Sync** button to re-try the deployment.  You can then re-run the deployment above.
 
 Once complete, run the following to see the outputs:
 
 ```bash
-az deployment group create -n ZumoQuickstart -g zumo-quickstart --query properties.output
+az deployment group show -n ZumoQuickstart -g zumo-quickstart --query properties.outputs
 ```
 
 This will show the password for your database and the URI of the backend are printed.  You will need the URI when configuring your mobile app.  You do not require the password for your database.  However, it is useful if you wish to inspect the database through the Azure portal.
@@ -53,4 +54,4 @@ This will show the password for your database and the URI of the backend are pri
 >
 > Once you have completed the quickstart tutorial, you can delete the resources with `az group delete -n zumo-quickstart`.
 > 
-> The tutorial is comprised of four parts (including this section).  Do not delete the resources before completing the tutorial.
+> The tutorial is comprised of three parts (including this section).  Do not delete the resources before completing the tutorial.
