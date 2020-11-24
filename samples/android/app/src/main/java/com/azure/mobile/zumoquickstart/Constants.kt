@@ -8,6 +8,6 @@ class Constants {
         /**
          * The base URL of the backend service within Azure.
          */
-        const val BackendUrl = "https://ZUMOAPPNAME.azurewebsites.net"
+        const val BackendUrl = "https://zumo-nnufwob7xsvby.azurewebsites.net/"
     }
 }

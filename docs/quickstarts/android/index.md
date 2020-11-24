@@ -10,8 +10,7 @@ To complete this tutorial, you need the following:
 
 * [Android Studio 4.1.1](https://developer.android.com/sdk/index.html).
 * A suitable SDK, which can be installed from the [SDK Manager](https://developer.android.com/studio/intro/update).
-  * Android 8.1 (Oreo) > Android SDK Platform 27
-  * Android 8.1 (Oreo) > Google Play Intel x86 Atom System Image
+  * A suitable emulator - one should be installed for you when you install Android Studio.
 * An [Android Virtual Device](https://developer.android.com/studio/run/managing-avds), with the following settings:
   * Phone: Pixel 4 (includes Play Store)
   * System Image: Oreo (API 27, x86, Google Play)
@@ -31,16 +30,21 @@ Once downloaded, open a Terminal and change directory to the location of the fil
 
 ## Configure the Android quickstart project
 
-Open the Android project (located at `samples/android`).  Edit the `Configuration.java` file to replace the `BackendUrl` with your backend URL.  For example, if your backend URL was `https://web-abcd1234.azurewebsites.net`, then the file would look like this:
+Open the Android project (located at `samples/android`).  Edit the `Configuration.java` file to replace the `BackendUrl` with your backend URL.  For example, if your backend URL was `https://zumo-abcd1234.azurewebsites.net`, then the file would look like this:
 
-```java
-package com.example.zumoquickstart;
+```kotlin
+package com.azure.mobile.zumoquickstart
 
-public class Configuration {
-    /**
-     * The Url to your ZUMO Backend
-     */
-    public static String BackendUrl = "https://web-abcd1234.azurewebsites.net";
+/**
+ * Constants used to configure the application
+ */
+class Constants {
+    companion object {
+        /**
+         * The base URL of the backend service within Azure.
+         */
+        const val BackendUrl = "https://zumo-abcd1234.azurewebsites.net/"
+    }
 }
 ```
 
@@ -48,8 +52,8 @@ Save the file, then build your application.
 
 ## Run the Android app
 
-In the top bar, select the AVD that you created (for example, `Pixel 4 API 27`), then press the Run button next to the AVD selector.
+In the top bar, select a suitable emulator, then press the Run button next to the AVD selector.
 
-Once the app starts, type some text, such as *Complete the tutorial*, then click 'Add'.  This will insert the text into the TodoItem SQL table you created earlier, and displays the text in the list.
+Once the app starts, press the **Add Item** floating action button, type some text, such as *Complete the tutorial*, then click **OK**.  This will insert the text into the TodoItem SQL table you created earlier, and display032970 the text in the list.
 
 ![Quickstart Android](./media/startup.png)

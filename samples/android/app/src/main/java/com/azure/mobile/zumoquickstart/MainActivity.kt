@@ -4,7 +4,10 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
@@ -87,8 +90,19 @@ class MainActivity : AppCompatActivity() {
      */
     private fun onAddItemClicked() {
         Toast.makeText(this, "Add Item", Toast.LENGTH_LONG).show()
-        // TODO: Make an alert dialog for getting new text
-        // Submit to createItemFromDialog when complete and if non-blank text
+
+        val builder = AlertDialog.Builder(this)
+        var dialogLayout: View = layoutInflater.inflate(R.layout.dialog_new_item, null)
+        val newItemControl = dialogLayout.findViewById<EditText>(R.id.new_item_text)
+
+        with (builder) {
+            setTitle(R.string.new_item_title)
+            setView(dialogLayout)
+            setPositiveButton(android.R.string.ok) { _, _ ->
+                createItemFromDialog(newItemControl.text.toString())
+            }
+            show()
+        }
     }
 
     /**
@@ -126,6 +140,12 @@ class MainActivity : AppCompatActivity() {
      * @param error the exception that was thrown
      */
     private fun showError(error: Throwable) = runOnUiThread {
-        TODO("Not implemented")
+        val builder = AlertDialog.Builder(this)
+        with (builder) {
+            setTitle(R.string.error_title)
+            setMessage(error.localizedMessage)
+            setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
+            show()
+        }
     }
 }

@@ -45,20 +45,6 @@
       "metadata": {
         "description": "Location for all resources."
       }
-    },
-    "repoURL": {
-      "type": "string",
-      "defaultValue": "https://github.com/Azure-Samples/app-service-mobile-nodejs-backend-quickstart.git",
-      "metadata": {
-        "description": "The URL for the GitHub repository that contains the project to deploy."
-      }
-    },
-    "branch": {
-      "type": "string",
-      "defaultValue": "master",
-      "metadata": {
-        "description": "The branch of the GitHub repository to use."
-      }
     }
   },
   "variables": {
@@ -135,7 +121,7 @@
       }
     },
     {
-      "apiVersion": "2019-08-01",
+      "apiVersion": "2020-06-01",
       "name": "[variables('webSiteName')]",
       "type": "Microsoft.Web/sites",
       "location": "[parameters('location')]",
@@ -147,39 +133,26 @@
         "displayName": "Website"
       },
       "properties": {
+        "httpsOnly": true,
         "name": "[variables('webSiteName')]",
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
-      },
-      "resources": [
-        {
-          "apiVersion": "2019-08-01",
-          "type": "config",
-          "name": "connectionstrings",
-          "dependsOn": [
-            "[variables('webSiteName')]"
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "siteConfig": {
+          "nodeVersion": "12.18.0",
+          "appSettings": [
+            {
+              "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+              "value": "true"
+            }
           ],
-          "properties": {
-            "MS_TableConnectionString": {
-              "value": "[concat('Data Source=tcp:', reference(resourceId('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', variables('databaseName'), ';User Id=', parameters('sqlAdministratorLogin'), '@', reference(resourceId('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ';Password=', variables('sqlAdminPassword'), ';')]",
+          "connectionStrings": [
+            {
+              "name": "MS_TableConnectionString",
+              "connectionString": "[concat('Data Source=tcp:', reference(resourceId('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', variables('databaseName'), ';User Id=', parameters('sqlAdministratorLogin'), '@', reference(resourceId('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ';Password=', variables('sqlAdminPassword'), ';')]",
               "type": "SQLAzure"
             }
-          }
-        },
-        {
-          "type": "sourcecontrols",
-          "apiVersion": "2018-11-01",
-          "name": "web",
-          "location": "[parameters('location')]",
-          "dependsOn": [
-            "[resourceId('Microsoft.Web/sites', variables('webSiteName'))]"
-          ],
-          "properties": {
-            "repoUrl": "[parameters('repoURL')]",
-            "branch": "[parameters('branch')]",
-            "isManualIntegration": true
-          }
+          ]
         }
-      ]
+      }
     }
   ],
   "outputs": {
@@ -194,6 +167,10 @@
     "publicEndpoint": {
       "type": "string",
       "value": "[concat('https://', variables('webSiteName'), '.azurewebsites.net')]"
+    },
+    "appServiceName": {
+      "type": "string",
+      "value": "[variables('webSiteName')]"
     }
   }
 }

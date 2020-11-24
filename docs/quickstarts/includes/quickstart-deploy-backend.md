@@ -3,7 +3,7 @@
 To deploy the quickstart service, first login to Azure with the Azure CLI:
 
 ```bash
-> az login
+az login
 ```
 
 A web browser will be opened to complete the authorization.
@@ -15,10 +15,10 @@ If necessary, [select a subscription](https://docs.microsoft.com/cli/azure/manag
 Type the following to create a resource group:
 
 ```bash
-> az group create -l westus -n zumo-quickstart
+az group create -l westus -n zumo-quickstart
 ```
 
-This will create a resource group called _zumo-quickstart_ to hold all the resources we create.  
+This will create a resource group called _zumo-quickstart_ to hold all the resources we create. You can select a region closer to you by replacing `westus` with the region to deploy resources.
 
 ### Deploy the backend to Azure
 
@@ -29,18 +29,14 @@ The service is comprised of the following resources:
 * An Azure SQL server
 * An Azure SQL database in the Basic tier (incurs cost)
 
-The only item that incurs cost if the Azure SQL database.  For details, see [Pricing](https://azure.microsoft.com/en-us/pricing/details/sql-database/single/).
+Tthe Azure SQL database is the only resource that incurs cost.  For details, see [Pricing](https://azure.microsoft.com/en-us/pricing/details/sql-database/single/).
 
 To deploy the resources, type the following:
 
 ```bash
-> cd samples/nodejs
-> az deployment group create -n ZumoQuickstart -g zumo-quickstart --template-file ./azuredeploy.json
+cd samples/nodejs
+az deployment group create -n ZumoQuickstart -g zumo-quickstart --template-file ./azuredeploy.json
 ```
-
-> **Deployment Failed**
->
-> If the deployment failed, but all the resources seem to be created, it is likely that the deployment of the backend code failed.  To check this, log onto the Azure portal, then locate your App Service (in the _zumo-quickstart_ resource group).  Select **Deployment Center**.  If the deployment is listed as failed, press the **Sync** button to re-try the deployment.  You can then re-run the deployment above.
 
 Once complete, run the following to see the outputs:
 
@@ -48,7 +44,15 @@ Once complete, run the following to see the outputs:
 az deployment group show -n ZumoQuickstart -g zumo-quickstart --query properties.outputs
 ```
 
-This will show the password for your database and the URI of the backend are printed.  You will need the URI when configuring your mobile app.  You do not require the password for your database.  However, it is useful if you wish to inspect the database through the Azure portal.
+This will show information about your deployment that you need in developing your mobile application.  The database username and password are useful for accessing the database through the Azure Portal.  The name of the App Service is used below, and the public endpoint is embedded in your code later on.
+
+Finally, deploy the Azure Mobile Apps server to the created App Service:
+
+```bash
+az webapp deployment source config-zip -g zumo-quickstart --name zumo-XXXXXXXX --src ./zumoserver.zip
+```
+
+Replace `zumo-XXXXXXXX` with the name of your App Service; shown in the list of outputs.  Within 2-3 minutes, your Azure Mobile Apps server will be ready to use.  You can use a web browser to confirm this.  Point your web browser to your public endpoint with `/tables/TodoItem` appended to it (e.g. `https://zumo-XXXXXXXX.azurewebsites.net/tables.TodoItem`).  The browser will display an error about a missing X-ZUMO-VERSION parameter if the server is working properly.
 
 > **Deleting the resources**
 >
