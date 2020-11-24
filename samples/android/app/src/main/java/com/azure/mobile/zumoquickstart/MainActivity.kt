@@ -7,17 +7,11 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.microsoft.windowsazure.mobileservices.MobileServiceClient
-import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable
 
 class MainActivity : AppCompatActivity() {
     private lateinit var itemList: RecyclerView
     private lateinit var addItemButton: FloatingActionButton
     private lateinit var adapter: TodoItemAdapter
-
-    // Azure Mobile Apps
-    private lateinit var mClient: MobileServiceClient
-    private lateinit var mTable: MobileServiceTable<TodoItem>
 
     /**
      * Lifecycle event handler called when the activity is starting.  This is where most
@@ -31,6 +25,9 @@ class MainActivity : AppCompatActivity() {
         // Identify the components
         itemList = findViewById(R.id.item_list)
         addItemButton = findViewById(R.id.add_item_button)
+
+        // Initialize the ZumoService
+        TodoService.instance.initialize(this)
 
         // Initialize the RecyclerView for the List of Items
         adapter = TodoItemAdapter { item, isChecked -> updateItemFromList(item, isChecked) }
@@ -46,12 +43,6 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onResume() {
         super.onResume()
-
-        // Connect to the Azure Mobile Apps backend
-        mClient = MobileServiceClient(Constants.BackendUrl, this)
-
-        // Get a reference to the online table
-        mTable = mClient.getTable(TodoItem::class.java)
 
         // Automatically refresh the items when the view starts
         onRefreshItemsClicked()
@@ -82,7 +73,13 @@ class MainActivity : AppCompatActivity() {
      * Event handler: called when the items list needs to be refreshed.
      */
     private fun onRefreshItemsClicked() {
-        Toast.makeText(this, "Refresh Items", Toast.LENGTH_LONG).show()
+        TodoService.instance.getTodoItems { items, error ->
+            if (error != null)
+                showError(error)
+            else runOnUiThread {
+                adapter.submitList(items!!.toList())
+            }
+        }
     }
 
     /**
@@ -90,12 +87,45 @@ class MainActivity : AppCompatActivity() {
      */
     private fun onAddItemClicked() {
         Toast.makeText(this, "Add Item", Toast.LENGTH_LONG).show()
+        // TODO: Make an alert dialog for getting new text
+        // Submit to createItemFromDialog when complete and if non-blank text
     }
 
+    /**
+     * Event handler: called when the user adds an item from a dialog
+     */
+    private fun createItemFromDialog(text: String) {
+        val item = TodoItem(id=null, text=text, complete=false)
+        TodoService.instance.createTodoItem(item) { newItem, error ->
+            if (error != null)
+                showError(error)
+            else runOnUiThread {
+                val newList: MutableList<TodoItem> = adapter.currentList
+                newList.add(newItem!!)
+                adapter.submitList(newList)
+            }
+        }
+    }
     /**
      * Event handler: called when the user presses an item to complete it.
      */
     private fun updateItemFromList(item: TodoItem, isChecked: Boolean) {
-        Toast.makeText(this, "Update Item", Toast.LENGTH_LONG).show()
+        item.complete = isChecked
+        TodoService.instance.updateTodoItem(item) { newItem, error ->
+            if (error != null)
+                showError(error)
+            else runOnUiThread {
+                val newList = adapter.currentList.map { if (it.id == newItem!!.id) newItem else it }
+                adapter.submitList(newList)
+            }
+        }
+    }
+
+    /**
+     * Shows an error as a dialog box
+     * @param error the exception that was thrown
+     */
+    private fun showError(error: Throwable) = runOnUiThread {
+        TODO("Not implemented")
     }
 }
