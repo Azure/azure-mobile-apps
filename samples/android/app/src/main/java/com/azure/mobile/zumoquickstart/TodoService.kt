@@ -5,7 +5,11 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient
 import com.microsoft.windowsazure.mobileservices.MobileServiceList
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable
+import com.microsoft.windowsazure.mobileservices.table.query.QueryOrder
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * Implements an asynchronous service call to the Azure Mobile Apps backend.
@@ -29,11 +33,23 @@ class TodoService private constructor() {
      * application context.
      */
     fun initialize(context: Context) {
-        if (!initialized) {
-            mClient = MobileServiceClient(Constants.BackendUrl, context)
-            mTable = mClient.getTable(TodoItem::class.java)
-            initialized = true
+        if (initialized)
+            return
+
+        mClient = MobileServiceClient(Constants.BackendUrl, context)
+
+        // Extend timeout from default of 10s to 30s
+        mClient.setAndroidHttpClientFactory {
+            OkHttpClient.Builder()
+                .readTimeout(30, TimeUnit.SECONDS)
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
+                .build()
         }
+
+        // Get a reference to the table to use.
+        mTable = mClient.getTable(TodoItem::class.java)
+        initialized = true
     }
 
     /**
@@ -42,7 +58,9 @@ class TodoService private constructor() {
      * @param callback called when the operation completes.
      */
     fun getTodoItems(callback: (MobileServiceList<TodoItem>?, Throwable?) -> Unit) {
-        val future = mTable.where().execute()
+        val future = mTable.where()
+            .orderBy("createdAt", QueryOrder.Ascending)
+            .execute()
 
         /*
          * The return type from .execute() is a ListenableFuture<MobileServiceList<TodoItem>>, which

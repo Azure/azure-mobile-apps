@@ -42,6 +42,7 @@ dependencies {
     // Required for Azure Mobile Apps
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.google.guava:guava:24.1-jre'
-    implementation 'com.squareup.okhttp3:okhttp:3.12.1'
+    implementation 'com.squareup.okhttp3:okhttp:3.12.4'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.12.12'
     implementation 'com.microsoft.azure:azure-mobile-android:3.5.1@aar'
 }

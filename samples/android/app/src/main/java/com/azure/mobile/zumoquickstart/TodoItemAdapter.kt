@@ -9,27 +9,37 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
 class TodoItemAdapter(val onChangeListener: (TodoItem, Boolean) -> Unit)
-    : ListAdapter<TodoItem, TodoItemAdapter.ViewHolder>(DiffCallback())
+    : RecyclerView.Adapter<TodoItemAdapter.ViewHolder>()
 {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TodoItemAdapter.ViewHolder
+    var itemsInList: MutableList<TodoItem> = mutableListOf()
+
+    fun refreshItems(items: List<TodoItem>) {
+        itemsInList.clear()
+        itemsInList.addAll(items)
+        notifyDataSetChanged()
+    }
+
+    fun addItem(item: TodoItem) {
+        itemsInList.add(item)
+        notifyItemInserted(itemsInList.indexOf(item))
+    }
+
+    fun replaceItem(item: TodoItem) {
+        val index = itemsInList.indexOfFirst { i -> i.id == item.id }
+        if (index >= 0) {
+            itemsInList[index] = item
+            notifyItemChanged(index)
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder
         = ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.row_list_item, parent, false))
 
-    override fun onBindViewHolder(holder: TodoItemAdapter.ViewHolder, position: Int) {
-        holder.bind(getItem(position))
-    }
+    override fun onBindViewHolder(holder: ViewHolder, position: Int)
+        = holder.bind(itemsInList[position])
 
-    /**
-     * Part of the ListAdapter specification - this class helps with determining if the items
-     * are the same or not.
-     */
-    private class DiffCallback: DiffUtil.ItemCallback<TodoItem>()
-    {
-        override fun areItemsTheSame(oldItem: TodoItem, newItem: TodoItem): Boolean
-            = oldItem.id == newItem.id
-
-        override fun areContentsTheSame(oldItem: TodoItem, newItem: TodoItem): Boolean
-            = (oldItem.text == newItem.text) && (oldItem.complete == newItem.complete)
-    }
+    override fun getItemCount(): Int
+        = itemsInList.size
 
     /**
      * Binding for each row.
@@ -46,4 +56,6 @@ class TodoItemAdapter(val onChangeListener: (TodoItem, Boolean) -> Unit)
             }
         }
     }
+
+
 }

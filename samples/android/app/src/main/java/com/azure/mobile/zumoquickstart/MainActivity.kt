@@ -6,14 +6,16 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
-import android.widget.Toast
+import android.widget.ProgressBar
 import androidx.appcompat.app.AlertDialog
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity() {
     private lateinit var itemList: RecyclerView
     private lateinit var addItemButton: FloatingActionButton
+    private lateinit var isBusyIndicator: ProgressBar
     private lateinit var adapter: TodoItemAdapter
 
     /**
@@ -28,6 +30,7 @@ class MainActivity : AppCompatActivity() {
         // Identify the components
         itemList = findViewById(R.id.item_list)
         addItemButton = findViewById(R.id.add_item_button)
+        isBusyIndicator = findViewById(R.id.busy_indicator)
 
         // Initialize the ZumoService
         TodoService.instance.initialize(this)
@@ -35,6 +38,7 @@ class MainActivity : AppCompatActivity() {
         // Initialize the RecyclerView for the List of Items
         adapter = TodoItemAdapter { item, isChecked -> updateItemFromList(item, isChecked) }
         itemList.adapter = adapter
+        itemList.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
         // Wire up an event handler to handle the click event on the Add Item button
         addItemButton.setOnClickListener { onAddItemClicked() }
@@ -65,7 +69,8 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_refresh -> {
-                onRefreshItemsClicked()
+                if (isBusyIndicator.visibility == View.GONE)
+                    onRefreshItemsClicked()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -76,12 +81,15 @@ class MainActivity : AppCompatActivity() {
      * Event handler: called when the items list needs to be refreshed.
      */
     private fun onRefreshItemsClicked() {
+        setIsBusy(true)
         TodoService.instance.getTodoItems { items, error ->
             if (error != null)
                 showError(error)
             else runOnUiThread {
-                adapter.submitList(items!!.toList())
+                val serverItems = items!!.toMutableList()
+                adapter.refreshItems(serverItems)
             }
+            setIsBusy(false)
         }
     }
 
@@ -89,10 +97,8 @@ class MainActivity : AppCompatActivity() {
      * Event handler: called when the Add Item floating action button is clicked.
      */
     private fun onAddItemClicked() {
-        Toast.makeText(this, "Add Item", Toast.LENGTH_LONG).show()
-
         val builder = AlertDialog.Builder(this)
-        var dialogLayout: View = layoutInflater.inflate(R.layout.dialog_new_item, null)
+        val dialogLayout: View = layoutInflater.inflate(R.layout.dialog_new_item, null)
         val newItemControl = dialogLayout.findViewById<EditText>(R.id.new_item_text)
 
         with (builder) {
@@ -114,9 +120,7 @@ class MainActivity : AppCompatActivity() {
             if (error != null)
                 showError(error)
             else runOnUiThread {
-                val newList: MutableList<TodoItem> = adapter.currentList
-                newList.add(newItem!!)
-                adapter.submitList(newList)
+                adapter.addItem(newItem!!)
             }
         }
     }
@@ -129,8 +133,7 @@ class MainActivity : AppCompatActivity() {
             if (error != null)
                 showError(error)
             else runOnUiThread {
-                val newList = adapter.currentList.map { if (it.id == newItem!!.id) newItem else it }
-                adapter.submitList(newList)
+                adapter.replaceItem(newItem!!)
             }
         }
     }
@@ -147,5 +150,18 @@ class MainActivity : AppCompatActivity() {
             setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
             show()
         }
+    }
+
+    private fun setIsBusy(isBusy: Boolean) = runOnUiThread {
+        if (isBusy) {
+            isBusyIndicator.isEnabled = true
+            isBusyIndicator.visibility = View.VISIBLE
+            addItemButton.isEnabled = false
+        } else {
+            isBusyIndicator.isEnabled = false
+            isBusyIndicator.visibility = View.GONE
+            addItemButton.isEnabled = true
+        }
+
     }
 }
