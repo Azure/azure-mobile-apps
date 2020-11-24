@@ -7,10 +7,17 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.microsoft.windowsazure.mobileservices.MobileServiceClient
+import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable
 
 class MainActivity : AppCompatActivity() {
     private lateinit var itemList: RecyclerView
     private lateinit var addItemButton: FloatingActionButton
+    private lateinit var adapter: TodoItemAdapter
+
+    // Azure Mobile Apps
+    private lateinit var mClient: MobileServiceClient
+    private lateinit var mTable: MobileServiceTable<TodoItem>
 
     /**
      * Lifecycle event handler called when the activity is starting.  This is where most
@@ -26,10 +33,11 @@ class MainActivity : AppCompatActivity() {
         addItemButton = findViewById(R.id.add_item_button)
 
         // Initialize the RecyclerView for the List of Items
-        TODO("Not yet implemented")
+        adapter = TodoItemAdapter { item, isChecked -> updateItemFromList(item, isChecked) }
+        itemList.adapter = adapter
 
         // Wire up an event handler to handle the click event on the Add Item button
-        addItemButton.setOnClickListener { _ -> onAddItemClicked() }
+        addItemButton.setOnClickListener { onAddItemClicked() }
     }
 
     /**
@@ -38,6 +46,12 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onResume() {
         super.onResume()
+
+        // Connect to the Azure Mobile Apps backend
+        mClient = MobileServiceClient(Constants.BackendUrl, this)
+
+        // Get a reference to the online table
+        mTable = mClient.getTable(TodoItem::class.java)
 
         // Automatically refresh the items when the view starts
         onRefreshItemsClicked()
@@ -56,20 +70,32 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.action_refresh -> onRefreshItemsClicked()
+            R.id.action_refresh -> {
+                onRefreshItemsClicked()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    private fun onRefreshItemsClicked(): Boolean {
-        TODO("Not yet implemnented")
+    /**
+     * Event handler: called when the items list needs to be refreshed.
+     */
+    private fun onRefreshItemsClicked() {
         Toast.makeText(this, "Refresh Items", Toast.LENGTH_LONG).show()
-        return true
     }
 
-    private fun onAddItemClicked(): Boolean {
-        TODO("Not yet implemented")
+    /**
+     * Event handler: called when the Add Item floating action button is clicked.
+     */
+    private fun onAddItemClicked() {
         Toast.makeText(this, "Add Item", Toast.LENGTH_LONG).show()
-        return true
+    }
+
+    /**
+     * Event handler: called when the user presses an item to complete it.
+     */
+    private fun updateItemFromList(item: TodoItem, isChecked: Boolean) {
+        Toast.makeText(this, "Update Item", Toast.LENGTH_LONG).show()
     }
 }
