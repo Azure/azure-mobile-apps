@@ -21,9 +21,6 @@ If you already have an Azure account, start with [this tutorial](https://azure.m
 
 ### Misc
 * [azure-mobile-apps-quickstarts](https://github.com/Azure/azure-mobile-apps-quickstarts) - Client and server project templates used in the Azure Portal for getting started quickly with Mobile Apps
-* [azure-mobile-services](https://github.com/azure/azure-mobile-services) - Older version of the Client SDKs targeting Azure Mobile Services
-* [azure-mobile-net-files-server](https://github.com/Azure/azure-mobile-apps-net-files-server) - File management support for the .NET server 
-* [azure-mobile-net-files-client](https://github.com/Azure/azure-mobile-apps-net-files-client) - File management support for the .NET client
 
 ## Future of Azure Mobile Apps
  
