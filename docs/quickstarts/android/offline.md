@@ -10,38 +10,61 @@ To learn more about the offline sync feature, see the topic [Offline Data Sync i
 
 In online operation, you read to and write from a `MobileServiceTable`.  When using offline sync, you read to and write from a `MobileServiceSyncTable` instead.  The `MobileServiceSyncTable` is backed by an on-device SQLite database, and synchronized with the backend database.
 
-In `TodoActivity.java`:
+In the `TodoService` class:
 
 1. Update the definition of the `mTable` variable.  Comment out the current definition, and uncomment the offline sync version.
 
-    ``` java linenums="56"
-    private MobileServiceSyncTable<TodoItem> mTable;
+    ``` kotlin linenums="37"
+    //private lateinit var mTable: MobileServiceTable<TodoItem>
+    private lateinit var mTable: MobileServiceSyncTable<TodoItem>
     ```
 
-2. When initializing the `mTable` variable in the `onCreate()` method, change the call to use `getSyncTable()` instead.   Comment out the current definition, and uncomment the offline sync version.
+   Ensure you add relevant imports using Alt+Enter.
 
-    ``` java linenums="131"
-    // Get a reference to the Remote table.
-    // mTable = mClient.getTable(TodoItem.class);
-    // OFFLINE SYNC:
-    mTable = mClient.getSyncTable(TodoItem.class);
+2. Use the `mClient.getSyncTable()` method to get a reference to an offline sync table in the `initialize()` method:
+
+    ``` kotlin linenums="59"
+        // Get a reference to the table to use.
+        //mTable = mClient.getTable(TodoItem::class.java)
+        mTable = mClient.getSyncTable(TodoItem::class.java)
     ```
 
-3. In the `RefreshItemsAsync` class, replace the search using the online table to a synchronization and then searching the offline table.  Comment out the current code, and uncomment the offline sync version.
+3. Replace `syncItems()` method that will synchronize the data in the offline store with the online store:
 
-    ``` java linenums="231"
-    // List<TodoItem> results = mTable.where(query).execute().get();
-    // OFFLINE SYNC:
-    sync().get();
-    List<TodoItem> results = mTable.read(query).get();
+    ``` kotlin linenums="94"
+    /**
+     * Synchronize items with the server.  First, any changes are pushed to the server,
+     * then new or changed items are pulled from the server
+     */
+    fun syncItems(callback: (Throwable?) -> Unit) {
+        val pushChangesToServerTask = mClient.syncContext.push()
+        pushChangesToServerTask.addListener({
+            try {
+                pushChangesToServerTask.get()
+                val pullChangesFromServerTask = mTable.pull(null)
+                pullChangesFromServerTask.addListener({
+                    try {
+                        pullChangesFromServerTask.get()
+                        callback.invoke(null)
+                    } catch (e: Exception) {
+                        callback.invoke(e)
+                    }
+                }, executor)
+            } catch (e: Exception) {
+                callback.invoke(e)
+            }
+        }, executor)
+    }
+    ``` 
+
+3. Update the operation within `getTodoItems()` to query the offline table instead:
+
+    ``` java linenums="125"
+        // val future = mTable.where(query).execute()
+        val future = mTable.read(query)
     ```
 
-4. In the `SyncItemsAsync` class, uncomment the code that pulls changes from the remote server.
 
-    ``` java linenums="269"
-    // OFFLINE SYNC:
-    mTable.pull(null).get();
-    ```
 
 ## Test the app
 

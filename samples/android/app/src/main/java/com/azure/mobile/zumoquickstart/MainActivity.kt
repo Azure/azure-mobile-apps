@@ -32,9 +32,6 @@ class MainActivity : AppCompatActivity() {
         addItemButton = findViewById(R.id.add_item_button)
         isBusyIndicator = findViewById(R.id.busy_indicator)
 
-        // Initialize the ZumoService
-        TodoService.instance.initialize(this)
-
         // Initialize the RecyclerView for the List of Items
         adapter = TodoItemAdapter { item, isChecked -> updateItemFromList(item, isChecked) }
         itemList.adapter = adapter
@@ -52,7 +49,9 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         // Automatically refresh the items when the view starts
-        onRefreshItemsClicked()
+        TodoService.instance.initialize(this) { error ->
+            if (error != null) showError(error) else onRefreshItemsClicked()
+        }
     }
 
     /**
@@ -82,14 +81,20 @@ class MainActivity : AppCompatActivity() {
      */
     private fun onRefreshItemsClicked() {
         setIsBusy(true)
-        TodoService.instance.getTodoItems { items, error ->
-            if (error != null)
-                showError(error)
-            else runOnUiThread {
-                val serverItems = items!!.toMutableList()
-                adapter.refreshItems(serverItems)
+        TodoService.instance.syncItems {
+            if (it != null)
+                showError(it)
+            else {
+                TodoService.instance.getTodoItems { items, error ->
+                    if (error != null)
+                        showError(error)
+                    else runOnUiThread {
+                        val serverItems = items!!.toMutableList()
+                        adapter.refreshItems(serverItems)
+                    }
+                    setIsBusy(false)
+                }
             }
-            setIsBusy(false)
         }
     }
 
@@ -162,6 +167,5 @@ class MainActivity : AppCompatActivity() {
             isBusyIndicator.visibility = View.GONE
             addItemButton.isEnabled = true
         }
-
     }
 }
