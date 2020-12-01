@@ -15,61 +15,48 @@ This exception happens because the app attempts to access the back end as an una
 ## Add authentication to the app
 
 1. Open your project in Android Studio.
-2. Open the `TodoActivity.java` file.  Add the following import statements:
+2. Open the `MainActivity` class.  Add the following constant to the top of the class:
 
-    ```java
-    import java.util.concurrent.ExecutionException;
-    import java.util.concurrent.atomic.AtomicBoolean;
-
-    import android.content.Context;
-    import android.content.SharedPreferences;
-    import android.content.SharedPreferences.Editor;
-
-    import com.microsoft.windowsazure.mobileservices.authentication.MobileServiceAuthenticationProvider;
-    import com.microsoft.windowsazure.mobileservices.authentication.MobileServiceUser;
+    ```kotlin linenums="16"
+    class MainActivity : AppCompatActivity() {
+        companion object {
+            const val LOGIN_REQUEST_CODE = 1
+        }
+        // ... rest of class ...
     ```
 
-3. Add the following methods to the `TodoActivity` class:
+3. Add the following method to the `MainActivity` class:
 
-    ```java
-    // You can choose any unique number here to differentiate auth providers from each other. 
-    // Note this is the same code at login() and onActivityResult().
-    public static final int LOGIN_REQUEST_CODE = 1;
-
-    private void authenticate() {
-        // Sign in using the Azure Active Directory provider.
-        mClient.login("aad", "zumoquickstart", LOGIN_REQUEST_CODE);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // When request completes
-        if (resultCode == RESULT_OK) {
-            // Check the request code matches the one we send in the login request
-            if (requestCode == LOGIN_REQUEST_CODE) {
-                MobileServiceActivityResult result = mClient.onActivityResult(data);
-                if (result.isLoggedIn()) {
-                    // sign-in succeeded
-                    createAndShowDialog(String.format("You are now signed in - %1$2s", 
-                        mClient.getCurrentUser().getUserId()), "Success");
-                    createTable();
-                } else {
-                    createAndShowDialog(result.getErrorMessage(), "Error");
-                }
+    ``` kotlin linenums="62"
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == LOGIN_REQUEST_CODE && resultCode == RESULT_OK) {
+            TodoService.instance.onActivityResult(data) { error ->
+                if (error != null) showError(error) else onRefreshItemsClicked()
             }
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+    ```
+
+    This code creates a method to handle the Azure Active Directory authentication process.  Once authentication is successful, the data is refreshed automatically.
+
+4. In the `onResume()` method, replace the initialization of the TodoService with the following code:
+
+    ``` kotlin linenums="53"
+    override fun onResume() {
+        super.onResume()
+
+        // Automatically refresh the items when the view starts
+        TodoService.instance.initialize(this) { error ->
+            if (error != null)
+                showError(error)
+            else
+                TodoService.instance.authenticate(LOGIN_REQUEST_CODE)
         }
     }
     ```
 
-    This code creates a mehtod to handle the Azure Active Directory authentication process.  A dialog displays the ID of the authenticated user.  You can only proceed on a successful authentication.
-
-4. In the `onCreate` method, uncomment the `authenticate()` call and comment out the `createTable()` call.  The `createTable()` call is now done only when authentication is successful:
-
-    ```java linenums="101"
-    // AUTHENTICATE USERS
-    authenticate();
-    //createTable();
-    ```
+   This will start the authentication flow when the application starts.
 
 5. To ensure redirection works as expected, add the following snippet to `AndroidManifest.xml`.  Ensure the snippet is added inside the `<application>` node:
 

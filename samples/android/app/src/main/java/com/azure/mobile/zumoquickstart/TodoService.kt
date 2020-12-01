@@ -1,6 +1,7 @@
 package com.azure.mobile.zumoquickstart
 
 import android.content.Context
+import android.content.Intent
 import com.google.common.util.concurrent.MoreExecutors
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient
 import com.microsoft.windowsazure.mobileservices.MobileServiceList
@@ -87,6 +88,26 @@ class TodoService private constructor() {
                callback.invoke(e)
            }
         }, executor)
+    }
+
+    /**
+     * Initiate the login process with the provided request code.
+     */
+    fun authenticate(requestCode: Int) {
+        mClient.login("aad", "zumoquickstart", requestCode)
+    }
+
+    /**
+     * Handle the response from the login process.
+     */
+    fun onActivityResult(data: Intent?, callback: (Throwable?) -> Unit) {
+        var result = mClient.onActivityResult(data)
+        if (result.isLoggedIn) {
+            callback(null)
+        } else {
+            callback(Exception(result.errorMessage))
+        }
+
     }
 
     /**

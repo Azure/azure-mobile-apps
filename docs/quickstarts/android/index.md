@@ -30,7 +30,7 @@ Once downloaded, open a Terminal and change directory to the location of the fil
 
 ## Configure the Android quickstart project
 
-Open the Android project (located at `samples/android`).  Edit the `Configuration.java` file to replace the `BackendUrl` with your backend URL.  For example, if your backend URL was `https://zumo-abcd1234.azurewebsites.net`, then the file would look like this:
+Open the Android project in Android Studio (located at `samples/android`).  Edit the `Configuration.java` file to replace the `BackendUrl` with your backend URL.  For example, if your backend URL was `https://zumo-abcd1234.azurewebsites.net`, then the file would look like this:
 
 ```kotlin
 package com.azure.mobile.zumoquickstart
@@ -54,6 +54,6 @@ Save the file, then build your application.
 
 In the top bar, select a suitable emulator, then press the Run button next to the AVD selector.
 
-Once the app starts, press the **Add Item** floating action button, type some text, such as *Complete the tutorial*, then click **OK**.  This will insert the text into the TodoItem SQL table you created earlier, and display032970 the text in the list.
+Once the app starts, press the **Add Item** floating action button, type some text, such as *Complete the tutorial*, then click **OK**.  This will insert the text into the TodoItem SQL table you created earlier, and display the text in the list.
 
 ![Quickstart Android](./media/startup.png)
