@@ -85,3 +85,23 @@ This exception happens because the app attempts to access the back end as an una
 ## Test the app
 
 From the **Run** menu, click **Run app** to start the app.  You will be prompted for a Microsoft account.  When you are successfully signed in, the app should run as before without errors.
+
+> **Deleting the resources**
+>
+> Now you have completed the quickstart tutorial, you can delete the resources with `az group delete -n zumo-quickstart`.
+
+## Next steps
+
+Take a look at the HOW TO sections:
+
+* Server ([Node.js](../../howto/server/nodejs.md) or [ASP.NET Framework](../../howto/server/dotnet-framework.md))
+* [Android Client](../../howto/client/android.md)
+
+You can also do a Quick Start for another platform using the same backend server:
+
+* [Apache Cordova](../cordova/index.md)
+* [iOS](../ios/index.md)
+* [UWP](../uwp/index.md)
+* [Xamarin.Android](../xamarin-android/index.md)
+* [Xamarin.iOS](../xamarin-ios/index.md)
+* [Xamarin.Forms](../xamarin-forms/index.md)

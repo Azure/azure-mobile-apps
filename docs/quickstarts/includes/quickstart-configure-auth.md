@@ -21,6 +21,8 @@ To complete this tutorial, you will need to know the Backend URL for your applic
 7. Copy the **Application (client) ID**.  You will need it later.
 8. From the left pane, select **Certificates & secrets** > **New client secret**.  Enter a suitable description, select a validity duration, then select **Add**.
 9. Copy the value that appears on the **Certificates & secrets** page.  You will need it later and it won't be displayed again.
+10. Select **Authentication**. Under **Implicit grant**, enable **ID tokens** to allow OpenID Connect user sign-ins from App Service.
+11. Press **Save** at the top of the page.
 
 > **Important**
 > The client secret value (password) is an important security credential.  Do not share the password with anyone or distribute it within a client application.

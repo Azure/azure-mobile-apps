@@ -94,7 +94,9 @@ class TodoService private constructor() {
      * Initiate the login process with the provided request code.
      */
     fun authenticate(requestCode: Int) {
-        mClient.login("aad", "zumoquickstart", requestCode)
+        if (mClient.currentUser == null) {
+            mClient.login("aad", "zumoquickstart", requestCode)
+        }
     }
 
     /**
