@@ -23,7 +23,7 @@ Change both **build.gradle** files:
 
 1. Add this code to the *Project* level **build.gradle** file:
 
-    ```gradle
+    ``` gradle
     buildscript {
         repositories {
             jcenter()
@@ -41,7 +41,7 @@ Change both **build.gradle** files:
 
 2. Add this code to the *Module app* level **build.gradle** file inside the *dependencies* tag:
 
-    ```gradle
+    ``` gradle
     // Required for Azure Mobile Apps
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.google.guava:guava:24.1-jre'
@@ -61,7 +61,7 @@ Change both **build.gradle** files:
 
 To access Azure, your app must have the `INTERNET` permission enabled. If it's not already enabled, add the following line of code to your **AndroidManifest.xml** file:
 
-```xml
+``` xml
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
@@ -87,7 +87,7 @@ Each of these functions first requires that you create a `MobileServiceClient` o
 === "Kotlin"
 
     ``` kotlin
-    var mClient = MobileServiceClient(
+    val mClient = MobileServiceClient(
         "<MobileAppUrl>",       // Replace with the Site URL
         this)                   // Your application Context
     )
@@ -101,7 +101,7 @@ As a best practice, you should abstract server communication into its own (singl
 
 === "Java"
 
-    ```java
+    ``` java
     public class AzureServiceAdapter {
         private String mMobileBackendUrl = "https://myappname.azurewebsites.net";
         private Context mContext;
@@ -184,6 +184,71 @@ You can now call the `initialize()` method within the `onCreate()` method of you
 
 In larger applications, you will want to use a dependency injection package to properly initialize the client for online operations.
 
+### Implementing logging
+
+The Azure Mobile Apps client defers all HTTP client creation to a client factory that creates an [OkHttp] client when required.  You can override the default client factory to adjust the [OkHttp] client settings.  For example, to add connection logging:
+
+=== "Java"
+
+    ``` java
+    HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+    loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY;
+
+    mClient.setAndroidHttpClientFactory(new OkHttpClientFactory() {
+        @Override
+        public OkHttpClient createOkHttpClient() {
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(loggingInterceptor)
+                    .build();
+
+            return client;
+        }
+    });
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    mClient.setAndroidHttpClientFactory {
+        OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().apply { 
+                level = HttpLoggingInterceptor.Level.BODY 
+            })
+            .build()
+    }
+    ```
+### Adjusting the HTTP connection timeouts
+
+In a similar way, you can adjust the connect and read timeout if you expect your app will operate on slow links.  Create an OkHttpClientFactory and use the callback to create the appropriate client reference.
+
+=== "Java"
+
+    ``` java
+    mClient.setAndroidHttpClientFactory(new OkHttpClientFactory() {
+        @Override
+        public OkHttpClient createOkHttpClient() {
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .connectTimeout(20, TimeUnit.SECONDS)
+                    .readTimeout(20, TimeUnit.SECONDS)
+                    .build();
+
+            return client;
+        }
+    });
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    mClient.setAndroidHttpClientFactory {
+        OkHttpClient.Builder()
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .build()
+    }
+    ```
+
+You can use this method to add additional headers.  This provides a mechanism for adding additional authentication mechanisms that use the `Authorization` header, as an example.
 ## Data Operations
 
 The core of the Azure Mobile Apps SDK is to provide access to data stored within SQL Azure on the Mobile App backend.  You can access this data using strongly typed classes (preferred) or untyped queries (not recommended).  The bulk of this section deals with using strongly typed classes.
@@ -192,9 +257,9 @@ The core of the Azure Mobile Apps SDK is to provide access to data stored within
 
 To access data from SQL Azure tables, define client data classes that correspond to the tables in the Mobile App backend. Examples in this topic assume a table named **MyDataTable**, which has the following columns:
 
-* id
-* text
-* complete
+* `id`
+* `text`
+* `complete`
 
 The corresponding typed client-side object resides in a "POCO" class:
 
@@ -335,7 +400,7 @@ The `id` field is required.  The `updatedAt` field and `version` field are used 
 
 To access a table, first create a [MobileServiceTable][8] object by calling the **getTable** method on the [MobileServiceClient][9].  This method has two overloads:
 
-```java
+``` java
 public class MobileServiceClient {
     public <E> MobileServiceTable<E> getTable(Class<E> clazz);
     public <E> MobileServiceTable<E> getTable(String name, Class<E> clazz);
@@ -353,7 +418,7 @@ In the following code, **mClient** is a reference to your MobileServiceClient ob
 === "Kotlin"
 
     ``` kotlin
-    var mTable = mClient.getTable(MyDataTable::class.java)
+    val mTable = mClient.getTable(MyDataTable::class.java)
     ```
 
 The second overload is used when the table name is different from the class, The first parameter is the table name according to the server (and exposed as a REST endpoint under `/tables`).
@@ -367,7 +432,7 @@ The second overload is used when the table name is different from the class, The
 === "Kotlin"
 
     ``` kotlin
-    var mTable = mClient.getTable("MyTable", MyDataTable::class.java)
+    val mTable = mClient.getTable("MyTable", MyDataTable::class.java)
     ```
 
 To avoid confusion, you should almost always match the class name to the table name on the server (i.e. use the one parameter version of the `getTable()` method).
@@ -387,12 +452,25 @@ The clauses must be presented in the preceding order.
 
 The general form of a query is:
 
-```java
-List<MyDataTable> results = mDataTable
-    // More filters here
-    .execute()          // Returns a ListenableFuture<E>
-    .get()              // Converts the async into a sync result
-```
+=== "Java"
+
+    ``` java
+    List<MyDataTable> results = mTable
+        // More filters here
+        .execute()          // Returns a ListenableFuture<E>
+        .get()              // Converts the async into a sync result
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val results = mTable
+        // More filters here
+        .execute()          // Returns a ListenableFuture<E>
+        .get()              // Converts the async into a sync result
+    ```
+
+Azure Mobile Apps uses [Guava](https://github.com/google/guava/wiki/ListenableFutureExplained) to report results from asynchronous operations back to your application.
 
 The preceding example returns all results (up to the maximum page size set by the server).  The `.execute()` method executes the query on the backend.  The query is converted to an [OData v3][19] query before transmission to the Mobile Apps backend.  On receipt, the Mobile Apps backend converts the query into an SQL statement before executing it on the SQL Azure instance.  Since network activity takes some time, The `.execute()` method returns a [`ListenableFuture<E>`][18].
 
@@ -400,97 +478,193 @@ The preceding example returns all results (up to the maximum page size set by th
 
 The following query execution returns all items from the **ToDoItem** table where **complete** equals **false**.
 
-```java
-List<ToDoItem> result = mToDoTable
-    .where()
-    .field("complete").eq(false)
-    .execute()
-    .get();
-```
+=== "Java"
 
-**mToDoTable** is the reference to the mobile service table that we created previously.
+    ``` java
+    List<ToDoItem> results = mTable
+        .where()
+        .field("complete").eq(false)
+        .execute()
+        .get();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val results = mTable
+        .where()
+        .field("complete").eq(false)
+        .execute()
+        .get();
+    ```
+
+**mTable** is the reference to the mobile service table that we created previously.
 
 Define a filter using the **where** method call on the table reference. The **where** method is followed by a **field** method followed by a method that specifies the logical predicate. Possible predicate methods include **eq** (equals), **ne** (not equal), **gt** (greater than), **ge** (greater than or equal to), **lt** (less than), **le** (less than or equal to). These methods let you compare number and string fields to specific values.
 
 You can filter on dates. The following methods let you compare the entire date field or parts of the date: **year**, **month**, **day**, **hour**, **minute**, and **second**. The following example adds a filter for items whose *due date* equals 2013.
 
-```java
-List<ToDoItem> results = MToDoTable
-    .where()
-    .year("due").eq(2013)
-    .execute()
-    .get();
-```
+=== "Java"
+
+    ``` java
+    List<ToDoItem> results = mTable
+        .where()
+        .year("due").eq(2013)
+        .execute()
+        .get();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val results = mTable
+        .where()
+        .year("due").eq(2013)
+        .execute()
+        .get();
+    ```
 
 The following methods support complex filters on string fields: **startsWith**, **endsWith**, **concat**, **subString**, **indexOf**, **replace**, **toLower**, **toUpper**, **trim**, and **length**. The following example filters for table rows where the *text* column starts with "PRI0."
 
-```java
-List<ToDoItem> results = mToDoTable
-    .where()
-    .startsWith("text", "PRI0")
-    .execute()
-    .get();
-```
+=== "Java"
+
+    ``` java
+    List<ToDoItem> results = mTable
+        .where()
+        .startsWith("text", "PRI0")
+        .execute()
+        .get();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val results = mTable
+        .where()
+        .startsWith("text", "PRI0")
+        .execute()
+        .get();
+    ```
 
 The following operator methods are supported on number fields: **add**, **sub**, **mul**, **div**, **mod**, **floor**, **ceiling**, and **round**. The following example filters for table rows where the **duration** is an even number.
 
-```java
-List<ToDoItem> results = mToDoTable
-    .where()
-    .field("duration").mod(2).eq(0)
-    .execute()
-    .get();
-```
+=== "Java"
+
+    ``` java
+    List<ToDoItem> results = mTable
+        .where()
+        .field("duration").mod(2).eq(0)
+        .execute()
+        .get();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val results = mTable
+        .where()
+        .field("duration").mod(2).eq(0)
+        .execute()
+        .get();
+    ```
 
 You can combine predicates with these logical methods: **and**, **or** and **not**. The following example combines two of the preceding examples.
 
-```java
-List<ToDoItem> results = mToDoTable
-    .where()
-    .year("due").eq(2013).and().startsWith("text", "PRI0")
-    .execute()
-    .get();
-```
+=== "Java"
+
+    ``` java
+    List<ToDoItem> results = mTable
+        .where()
+        .year("due").eq(2013).and().startsWith("text", "PRI0")
+        .execute()
+        .get();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val results = mTable
+        .where()
+        .year("due").eq(2013).and().startsWith("text", "PRI0")
+        .execute()
+        .get();
+    ```
 
 Group and nest logical operators:
 
-```java
-List<ToDoItem> results = mToDoTable
-    .where()
-    .year("due").eq(2013)
-    .and(
-        startsWith("text", "PRI0")
-        .or()
-        .field("duration").gt(10)
-    )
-    .execute().get();
-```
+=== "Java"
 
-For more detailed discussion and examples of filtering, see [Exploring the richness of the Android client query model][20].
+    ``` java
+    List<ToDoItem> results = mTable
+        .where()
+        .year("due").eq(2013)
+        .and(
+            startsWith("text", "PRI0")
+            .or()
+            .field("duration").gt(10)
+        )
+        .execute().get();
+    ```
+
+=== "Kotlin"
+
+    ``` java
+    val results = mTable
+        .where()
+        .year("due").eq(2013)
+        .and(
+            startsWith("text", "PRI0")
+            .or()
+            .field("duration").gt(10)
+        )
+        .execute().get();
+    ```
 
 ### <a name="sorting"></a>Sort returned data
 
-The following code returns all items from a table of **ToDoItems** sorted ascending by the *text* field. *mToDoTable* is the reference to the backend table that you created previously:
+The following code returns all items from a table of **Items** sorted ascending by the *text* field. *mTable* is the reference to the backend table that you created previously:
 
-```java
-List<ToDoItem> results = mToDoTable
-    .orderBy("text", QueryOrder.Ascending)
-    .execute()
-    .get();
-```
+=== "Java"
+
+    ``` java
+    List<Item> results = mTable
+        .orderBy("text", QueryOrder.Ascending)
+        .execute()
+        .get();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val results = mTable
+        .orderBy("text", QueryOrder.Ascending)
+        .execute()
+        .get();
+    ```
 
 The first parameter of the **orderBy** method is a string equal to the name of the field on which to sort. The second parameter uses the **QueryOrder** enumeration to specify whether to sort ascending or descending.  If you are filtering using the ***where*** method, the ***where*** method must be invoked before the ***orderBy*** method.
 
 ### <a name="selection"></a>Select specific columns
 
-The following code illustrates how to return all items from a table of **ToDoItems**, but only displays the **complete** and **text** fields. **mToDoTable** is the reference to the backend table that we created previously.
+The following code illustrates how to return all items from a table of **Items**, but only displays the **complete** and **text** fields. **mTable** is the reference to the backend table that we created previously.
 
-```java
-List<ToDoItemNarrow> result = mToDoTable
-    .select("complete", "text")
-    .execute()
-    .get();
-```
+=== "Java"
+
+    ``` java
+    List<ItemNarrow> results = mTable
+        .select("complete", "text")
+        .execute()
+        .get();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val results = mTable
+        .select("complete", "text")
+        .execute()
+        .get();
+    ```
 
 The parameters to the select function are the string names of the table's columns that you want to return.  The **select** method needs to follow methods like **where** and **orderBy**. It can be followed by paging methods like **skip** and **top**.
 
@@ -498,40 +672,68 @@ The parameters to the select function are the string names of the table's column
 
 Data is **ALWAYS** returned in pages.  The maximum number of records returned is set by the server.  If the client requests more records, then the server returns the maximum number of records.  By default, the maximum page size on the server is 50 records.
 
-The first example shows how to select the top five items from a table. The query returns the items from a table of **ToDoItems**. **mToDoTable** is the reference to the backend table that you created previously:
+The first example shows how to select the top five items from a table. The query returns the items from a table of **ToDoItems**. **mTable** is the reference to the backend table that you created previously:
 
-```java
-List<ToDoItem> result = mToDoTable
-    .top(5)
-    .execute()
-    .get();
-```
+=== "Java"
+
+    ``` java
+    List<ToDoItem> results = mTable.top(5).execute().get();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val results = mTable.top(5).execute().get();
+    ```
 
 Here's a query that skips the first five items, and then returns the next five:
 
-```java
-List<ToDoItem> result = mToDoTable
-    .skip(5).top(5)
-    .execute()
-    .get();
-```
+=== "Java"
+
+    ``` java
+    List<ToDoItem> results = mTable
+        .skip(5).top(5)
+        .execute()
+        .get();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val results = mTable
+        .skip(5).top(5)
+        .execute()
+        .get();
+    ```
 
 If you wish to get all records in a table, implement code to iterate over all pages:
 
-```java
-List<MyDataModel> results = new ArrayList<>();
-int nResults;
-do {
-    int currentCount = results.size();
-    List<MyDataModel> pagedResults = mDataTable
-        .skip(currentCount).top(500)
-        .execute().get();
-    nResults = pagedResults.size();
-    if (nResults > 0) {
-        results.addAll(pagedResults);
-    }
-} while (nResults > 0);
-```
+=== "Java"
+
+    ``` java
+    List<Item> results = new ArrayList<>();
+    int nResults;
+    do {
+        int currentCount = results.size();
+        List<Item> page = mTable.skip(currentCount).top(500).execute().get();
+        nResults = page.size();
+        if (nResults > 0) {
+            results.addAll(pagedResults);
+        }
+    } while (nResults > 0);
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val results = mutableListOf<Item>()
+    do {
+        val page = mTable.skip(results.size).top(500).execute().get()
+        if (page.isNotEmpty()) {
+            results.addAll(page)
+        }
+    } while (page.isNotEmpty())
+    ```
 
 A request for all records using this method creates a minimum of two requests to the Mobile Apps backend.
 
@@ -542,8 +744,26 @@ A request for all records using this method creates a minimum of two requests to
 
 The methods used in querying backend tables can be concatenated. Chaining query methods allows you to select specific columns of filtered rows that are sorted and paged. You can create complex logical filters.  Each query method returns a Query object. To end the series of methods and actually run the query, call the **execute** method. For example:
 
-```java
-List<ToDoItem> results = mToDoTable
+=== "Java"
+
+    ``` java
+    List<ToDoItem> results = mTable
+            .where()
+            .year("due").eq(2013)
+            .and(
+                startsWith("text", "PRI0").or().field("duration").gt(10)
+            )
+            .orderBy(duration, QueryOrder.Ascending)
+            .select("id", "complete", "text", "duration")
+            .skip(200).top(100)
+            .execute()
+            .get();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val results = mTable
         .where()
         .year("due").eq(2013)
         .and(
@@ -554,7 +774,7 @@ List<ToDoItem> results = mToDoTable
         .skip(200).top(100)
         .execute()
         .get();
-```
+    ```
 
 The chained query methods must be ordered as follows:
 
@@ -578,12 +798,12 @@ In our sample code, we return the data from the Mobile Apps SQL Azure table **To
 The layout is defined by several snippets of XML code. Given an existing layout, the following code represents the **ListView** we want to populate with our server data.
 
 ```xml
-    <ListView
-        android:id="@+id/listViewToDo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        tools:listitem="@layout/row_list_to_do" >
-    </ListView>
+<ListView
+    android:id="@+id/listViewToDo"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:listitem="@layout/row_list_to_do" >
+</ListView>
 ```
 
 In the preceding code, the *listitem* attribute specifies the id of the layout for an individual row in the list. This code specifies a check box and its associated text and gets instantiated once for each item in the list. This layout does not display the **id** field, and a more complex layout would specify additional fields in the display. This code is in the **row_list_to_do.xml** file.
@@ -603,16 +823,29 @@ In the preceding code, the *listitem* attribute specifies the id of the layout f
 ```
 
 #### <a name="adapter"></a>Define the adapter
-Since the data source of our view is an array of **ToDoItem**, we subclass our adapter from an **ArrayAdapter&lt;ToDoItem&gt;** class. This subclass produces a View for every **ToDoItem** using the **row_list_to_do** layout.  In our code, we define the following class that is an extension of the **ArrayAdapter&lt;E&gt;** class:
 
-```java
-public class ToDoItemAdapter extends ArrayAdapter<ToDoItem> {
-}
-```
+Since the data source of our view is an array of **TodoItem**, we subclass our adapter from an **ArrayAdapter&lt;TodoItem&gt;** class. This subclass produces a View for every **TodoItem** using the **list_item** layout.  In our code, we define the following class that is an extension of the **ArrayAdapter&lt;E&gt;** class:
+
+=== "Java"
+
+    ``` java
+    public class TodoItemAdapter extends ArrayAdapter<TodoItem> {
+        // Implementation
+    }
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    class TodoItemAdapter : ArrayAdapter<TodoItem> {
+        // Implementation
+    }
 
 Override the adapters **getView** method. For example:
 
-```java
+=== "Java"
+
+    ```java
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View row = convertView;
@@ -621,11 +854,11 @@ Override the adapters **getView** method. For example:
 
         if (row == null) {
             LayoutInflater inflater = ((Activity) mContext).getLayoutInflater();
-            row = inflater.inflate(R.layout.row_list_to_do, parent, false);
+            row = inflater.inflate(R.layout.list_item, parent, false);
         }
         row.setTag(currentItem);
 
-        final CheckBox checkBox = (CheckBox) row.findViewById(R.id.checkToDoItem);
+        final CheckBox checkBox = (CheckBox) row.findViewById(R.id.list_item_checkbox);
         checkBox.setText(currentItem.getText());
         checkBox.setChecked(false);
         checkBox.setEnabled(true);
@@ -635,36 +868,85 @@ Override the adapters **getView** method. For example:
             public void onClick(View arg0) {
                 if (checkBox.isChecked()) {
                     checkBox.setEnabled(false);
-                    if (mContext instanceof ToDoActivity) {
-                        ToDoActivity activity = (ToDoActivity) mContext;
-                        activity.checkItem(currentItem);
-                    }
+                    ToDoActivity activity = (ToDoActivity) mContext;
+                    activity.checkItem(currentItem);
                 }
             }
         });
         return row;
     }
-```
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    override fun getView(position: Int, convertView: View, parent: ViewGroup): View {
+        val item = getItem(position)
+        val inflater = (mContext as Activity).getLayoutInflater()
+        val row = convertView ?? inflater.inflate(R.layout.list_item, parent, false)
+        row.tag = item
+
+        val chkbox = row.findViewById<CheckBox>(R.id.list_item_checkbox)
+        chkbox.apply {
+            text = item.text
+            isChecked = false
+            isEnabled = true
+        }
+        chkbox.setOnClickListener(object : View.OnClickListener {
+            override fun onClick(view: View) {
+                if (chkbox.isChecked) {
+                    chkbox.isEnabled = false
+                    (mContext as TodoActivity).checkItem(item)
+                }
+            }
+        })
+
+        return row
+    }
+    ```
 
 We create an instance of this class in our Activity as follows:
 
-```java
-    ToDoItemAdapter mAdapter;
-    mAdapter = new ToDoItemAdapter(this, R.layout.row_list_to_do);
-```
+=== "Java"
 
+    ``` java
+    TodoItemAdapter mAdapter;
+
+    // In onCreate()
+    mAdapter = new TodoItemAdapter(this, R.layout.list_item);
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    private lateinit var mAdapter: TodoItemAdapter
+    
+    // In onCreate()
+    mAdapter = TodoItemAdapter(this, R.layout.list_item)
+    ```
+    
 The second parameter to the ToDoItemAdapter constructor is a reference to the layout. We can now instantiate the **ListView** and assign the adapter to the **ListView**.
 
-```java
+=== "Java"
+
+    ``` java
     ListView listViewToDo = (ListView) findViewById(R.id.listViewToDo);
     listViewToDo.setAdapter(mAdapter);
-```
+    ```
 
+=== "Kotlin"
+
+    ``` kotlin
+    val listView = findViewById<ListView>(R.id.listViewToDo)
+    listView.adapter = mAdapter
+    ```
 #### <a name="use-adapter"></a>Use the Adapter to Bind to the UI
 
 You are now ready to use data binding. The following code shows how to get items in the table and fills the local adapter with the returned items.
 
-```java
+=== "Java"
+
+    ``` java
     public void showAll(View view) {
         AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>(){
             @Override
@@ -689,7 +971,27 @@ You are now ready to use data binding. The following code shows how to get items
         };
         runAsyncTask(task);
     }
-```
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    fun showAll(view: View) {
+        val task = object : AsyncTask<Void, Void, Void>() {
+            override fun doInBackground(params: Void...) {
+                try {
+                    val results = mTable.execute().get()
+                    runOnUiThread {
+                        mAdapter.clear()
+                        mAdapter.addAll(results)
+                    }
+                } catch (exception: Exception) {
+                    createAndShowDialog(exception, "Error")
+                }
+            }
+        }
+    }
+    ```
 
 Call the adapter any time you modify the **ToDoItem** table. Since modifications are done on a record by record basis, you handle a single row instead of a collection. When you insert an item, call the **add** method on the adapter; when deleting, call the **remove** method.
 
@@ -697,73 +999,99 @@ You can find a complete example in the [Android Quickstart Project][21].
 
 ## <a name="inserting"></a>Insert data into the backend
 
-Instantiate an instance of the *ToDoItem* class and set its properties.
+Instantiate an instance of the *TodoItem* class and set its properties, just as you normally would.  Then use **insert()** to insert an object.
 
-```java
-ToDoItem item = new ToDoItem();
-item.text = "Test Program";
-item.complete = false;
-```
+=== "Java"
 
-Then use **insert()** to insert an object:
+    ``` java
+    TodoItem item = new TodoItem("Text Content", false);
+    TodoItem entity = mTable.insert(item).get();
+    ```
 
-```java
-ToDoItem entity = mToDoTable
-    .insert(item)       // Returns a ListenableFuture<ToDoItem>
-    .get();
-```
+=== "Kotlin"
+
+    ``` kotlin
+    val item = TodoItem("Text Content", false)
+    val entity = mTable.insert(item).get()
+    ```
 
 The returned entity matches the data inserted into the backend table, included the ID and any other values (such as the `createdAt`, `updatedAt`, and `version` fields) set on the backend.
 
 Mobile Apps tables require a primary key column named **id**. This column must be a string. The default value of the ID column is a GUID.  You can provide other unique values, such as email addresses or usernames. When a string ID value is not provided for an inserted record, the backend generates a new GUID.
 
-String ID values provide the following advantages:
+GUID ID values provide the following advantages:
 
 * IDs can be generated without making a round trip to the database.
 * Records are easier to merge from different tables or databases.
 * ID values integrate better with an application's logic.
 
-String ID values are **REQUIRED** for offline sync support.  You cannot change an Id once it is stored in the backend database.
+String ID values are **REQUIRED** for offline sync support.  You cannot change an id once it is stored in the backend database.
 
 ## <a name="updating"></a>Update data in a mobile app
 
 To update data in a table, pass the new object to the **update()** method.
 
-```java
-mToDoTable
-    .update(item)   // Returns a ListenableFuture<ToDoItem>
-    .get();
-```
+=== "Java"
 
-In this example, *item* is a reference to a row in the *ToDoItem* table, which has had some changes made to it.  The row with the same **id** is updated.
+    ``` java
+    mTable.update(entity).get();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    mTable.update(entity).get()
+    ```
+
+In this example, *entity* is a reference to a row in the *TodoItem* table (such as an entity returned from a previous insert operation or query), which has had some changes made to it  The row with the same **id** is updated.  `.update(entity)` returns a `ListenableFuture<Entity>`, and `.get()` converts the listenable future into a synchronous operation.
 
 ## <a name="deleting"></a>Delete data in a mobile app
 
 The following code shows how to delete data from a table by specifying the data object.
 
-```java
-mToDoTable
-    .delete(item);
-```
+=== "Java"
+
+    ``` java
+    mTable.delete(item).get();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    mTable.delete(item).get()
+    ```
 
 You can also delete an item by specifying the **id** field of the row to delete.
 
-```java
-String myRowId = "2FA404AB-E458-44CD-BC1B-3BC847EF0902";
-mToDoTable
-    .delete(myRowId);
-```
+=== "Java"
+
+    ``` java
+    String myRowId = "2FA404AB-E458-44CD-BC1B-3BC847EF0902";
+    mTable.delete(myRowId).get();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val myRowId = "2FA404AB-E458-44CD-BC1B-3BC847EF0902"
+    mTable.delete(myRowId).get()
+    ```
 
 ## <a name="lookup"></a>Look up a specific item by Id
 
 Look up an item with a specific **id** field with the **lookUp()** method:
 
-```java
-ToDoItem result = mToDoTable
-    .lookUp("0380BAFB-BCFF-443C-B7D5-30199F730335")
-    .get();
-```
+=== "Java"
 
+    ```java
+    TodoItem result = mTable.lookUp(myRowId).get()
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val result = mTable.lookUp(myRowId).get()
+    ```
 ## <a name="untyped"></a>How to: Work with untyped data
 
 The untyped programming model gives you exact control over JSON serialization.  There are some common scenarios where you may wish to use an untyped programming model. For example, if your backend table contains many columns and you only need to reference a subset of the columns.  The typed model requires you to define all the columns defined in the Mobile Apps backend in your data class.  Most of the API calls for accessing data are similar to the typed programming calls. The main difference is that in the untyped model you invoke methods on the **MobileServiceJsonTable** object, instead of the **MobileServiceTable** object.
