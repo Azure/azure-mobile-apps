@@ -1067,14 +1067,14 @@ You can also delete an item by specifying the **id** field of the row to delete.
 
     ``` java
     String myRowId = "2FA404AB-E458-44CD-BC1B-3BC847EF0902";
-    mTable.delete(myRowId).get();
+    mTable.delete(myRowId);
     ```
 
 === "Kotlin"
 
     ``` kotlin
     val myRowId = "2FA404AB-E458-44CD-BC1B-3BC847EF0902"
-    mTable.delete(myRowId).get()
+    mTable.delete(myRowId)
     ```
 
 ## <a name="lookup"></a>Look up a specific item by Id
@@ -1100,86 +1100,168 @@ The untyped programming model gives you exact control over JSON serialization.  
 
 Similar to the typed model, you start by getting a table reference, but in this case it's a **MobileServicesJsonTable** object. Obtain the reference by calling the **getTable** method on an instance of the client:
 
-```java
-private MobileServiceJsonTable mJsonToDoTable;
-//...
-mJsonToDoTable = mClient.getTable("ToDoItem");
-```
+=== "Java"
+
+    ``` java
+    private MobileServiceJsonTable mJsonTable;
+
+    // ... later ...
+    mJsonTable = mClient.getTable("ToDoItem");
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    private lateinit var mJsonTable: MobileServiceJsonTable
+
+    // ... later ...
+    mJsonTable = mClient.getTable("ToDoItem")
+    ```
 
 Once you have created an instance of the **MobileServiceJsonTable**, it has virtually the same API available as with the typed programming model. In some cases, the methods take an untyped parameter instead of a typed parameter.
 
 ### <a name="json_insert"></a>Insert into an untyped table
+
 The following code shows how to do an insert. The first step is to create a [JsonObject][1], which is part of the [gson][3] library.
 
-```java
-JsonObject jsonItem = new JsonObject();
-jsonItem.addProperty("text", "Wake up");
-jsonItem.addProperty("complete", false);
-```
+=== "Java"
+
+    ``` java
+    JsonObject jsonItem = new JsonObject();
+    jsonItem.addProperty("text", "Wake up");
+    jsonItem.addProperty("complete", false);
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val jsonItem= JsonObject().apply {
+        addProperty("text", "Wake up")
+        addProperty("complete", false)
+    }
+    ```
 
 Then, Use **insert()** to insert the untyped object into the table.
 
-```java
-JsonObject insertedItem = mJsonToDoTable
-    .insert(jsonItem)
-    .get();
-```
+=== "Java"
+
+    ``` java
+    JsonObject entity = mJsonTable.insert(jsonItem).get();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val entity = mJsonTable.insert(jsonItem).get()
+    ```
 
 If you need to get the ID of the inserted object, use the **getAsJsonPrimitive()** method.
 
-```java
-String id = insertedItem.getAsJsonPrimitive("id").getAsString();
-```
+=== "Java"
+
+    ``` java
+    String id = entity.getAsJsonPrimitive("id").getAsString();
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val id = entity.getAsJsonPrimitive("id").getAsString()
+    ```
+
 ### <a name="json_delete"></a>Delete from an untyped table
+
 The following code shows how to delete an instance, in this case, the same instance of a **JsonObject** that was created in the prior *insert* example. The code is the same as with the typed case, but the method has a different signature since it references an **JsonObject**.
 
-```java
-mToDoTable
-    .delete(insertedItem);
-```
+=== "Java"
+
+    ```java
+    mJsonTable.delete(entity);
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    mJsonTable.delete(entity)
+    ```
 
 You can also delete an instance directly by using its ID:
 
-```java
-mToDoTable.delete(ID);
-```
+=== "Java"
+
+    ``` java
+    mJsonTable.delete(id);
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    mJsonTable.delete(id)
+    ```
 
 ### <a name="json_get"></a>Return all rows from an untyped table
+
 The following code shows how to retrieve an entire table. Since you are using a JSON Table, you can selectively retrieve only some of the table's columns.
 
-```java
-public void showAllUntyped(View view) {
-    new AsyncTask<Void, Void, Void>() {
-        @Override
-        protected Void doInBackground(Void... params) {
-            try {
-                final JsonElement result = mJsonToDoTable.execute().get();
-                final JsonArray results = result.getAsJsonArray();
-                runOnUiThread(new Runnable() {
+=== "Java"
 
-                    @Override
-                    public void run() {
-                        mAdapter.clear();
-                        for (JsonElement item : results) {
-                            String ID = item.getAsJsonObject().getAsJsonPrimitive("id").getAsString();
-                            String mText = item.getAsJsonObject().getAsJsonPrimitive("text").getAsString();
-                            Boolean mComplete = item.getAsJsonObject().getAsJsonPrimitive("complete").getAsBoolean();
-                            ToDoItem mToDoItem = new ToDoItem();
-                            mToDoItem.setId(ID);
-                            mToDoItem.setText(mText);
-                            mToDoItem.setComplete(mComplete);
-                            mAdapter.add(mToDoItem);
+    ``` java
+    public AsyncTask<Void, Void, Void> showAllUntyped(View view) {
+        return new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    final JsonElement result = mJsonTable.execute().get();
+                    final JsonArray results = result.getAsJsonArray();
+                    runOnUiThread(new Runnable() {
+                        @Override public void run() {
+                            mAdapter.clear();
+                            for (JsonElement item : results) {
+                                JsonObject entity = item.getAsJsonObject()
+                                String ID = entity.getAsJsonPrimitive("id").getAsString();
+                                String mText = entity.getAsJsonPrimitive("text").getAsString();
+                                Boolean mComplete = entity.getAsJsonPrimitive("complete").getAsBoolean();
+                                TodoItem todoItem = new ToDoItem();
+                                todoItem.setId(ID);
+                                todoItem.setText(mText);
+                                todoItem.setComplete(mComplete);
+                                mAdapter.add(todoItem);
+                            }
+                        }
+                    });
+                } catch (Exception exception) {
+                    createAndShowDialog(exception, "Error");
+                }
+                return null;
+            }
+        };
+    }
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    fun showAllUntyped(view: View): AsyncTask<Void, Void, Void> => 
+        object : AsyncTask<Void, Void, Void> {
+            override fun doInBackground(params: Void...): Void {
+                try {
+                    val results = mJsonTable.execute().get().asJsonArray()
+                    runOnUiThread {
+                        mAdapter.clear()
+                        for (item in results) {
+                            val entity = item.getAsJsonObject()
+                            val todoItem = TodoItem.apply {
+                                id = item.getAsJsonPrimitive("id").getAsString()
+                                text = item.getAsJsonPrimitive("text").getAsString()
+                                complete = item.getAsJsonPrimitive("complete").getAsBoolean()
+                            }
+                            mAdapter.add(todoItem)
                         }
                     }
-                });
-            } catch (Exception exception) {
-                createAndShowDialog(exception, "Error");
+                }
             }
-            return null;
         }
-    }.execute();
-}
-```
+    ```
 
 The same set of filtering, filtering and paging methods that are available for the typed model are available for the untyped model.
 
