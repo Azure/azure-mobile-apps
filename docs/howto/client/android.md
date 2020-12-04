@@ -359,16 +359,16 @@ The `id` field is required.  The `updatedAt` field and `version` field are used 
         public String getVersion() { return mVersion; }
         public final void setVersion(String version) { mVersion = version; }
 
-        public ToDoItem() { }
+        public TodoItem() { }
 
-        public ToDoItem(String id, String text) {
+        public TodoItem(String id, String text) {
             this.setId(id);
             this.setText(text);
         }
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof ToDoItem && ((ToDoItem) o).mId == mId;
+            return o instanceof TodoItem && ((TodoItem) o).mId == mId;
         }
 
         @Override
@@ -412,7 +412,7 @@ In the following code, **mClient** is a reference to your MobileServiceClient ob
 === "Java"
 
     ``` java
-    MobileServiceTable<ToDoItem> mTable = mClient.getTable(MyDataTable.class);
+    MobileServiceTable<TodoItem> mTable = mClient.getTable(MyDataTable.class);
     ```
 
 === "Kotlin"
@@ -426,7 +426,7 @@ The second overload is used when the table name is different from the class, The
 === "Java"
 
     ``` java
-    MobileServiceTable<ToDoItem> mTable = mClient.getTable("MyTable", MyDataTable.class);
+    MobileServiceTable<TodoItem> mTable = mClient.getTable("MyTable", MyDataTable.class);
     ```
 
 === "Kotlin"
@@ -476,12 +476,12 @@ The preceding example returns all results (up to the maximum page size set by th
 
 ### <a name="filtering"></a>Filter returned data
 
-The following query execution returns all items from the **ToDoItem** table where **complete** equals **false**.
+The following query execution returns all items from the **TodoItem** table where **complete** equals **false**.
 
 === "Java"
 
     ``` java
-    List<ToDoItem> results = mTable
+    List<TodoItem> results = mTable
         .where()
         .field("complete").eq(false)
         .execute()
@@ -507,7 +507,7 @@ You can filter on dates. The following methods let you compare the entire date f
 === "Java"
 
     ``` java
-    List<ToDoItem> results = mTable
+    List<TodoItem> results = mTable
         .where()
         .year("due").eq(2013)
         .execute()
@@ -529,7 +529,7 @@ The following methods support complex filters on string fields: **startsWith**, 
 === "Java"
 
     ``` java
-    List<ToDoItem> results = mTable
+    List<TodoItem> results = mTable
         .where()
         .startsWith("text", "PRI0")
         .execute()
@@ -551,7 +551,7 @@ The following operator methods are supported on number fields: **add**, **sub**,
 === "Java"
 
     ``` java
-    List<ToDoItem> results = mTable
+    List<TodoItem> results = mTable
         .where()
         .field("duration").mod(2).eq(0)
         .execute()
@@ -573,7 +573,7 @@ You can combine predicates with these logical methods: **and**, **or** and **not
 === "Java"
 
     ``` java
-    List<ToDoItem> results = mTable
+    List<TodoItem> results = mTable
         .where()
         .year("due").eq(2013).and().startsWith("text", "PRI0")
         .execute()
@@ -595,7 +595,7 @@ Group and nest logical operators:
 === "Java"
 
     ``` java
-    List<ToDoItem> results = mTable
+    List<TodoItem> results = mTable
         .where()
         .year("due").eq(2013)
         .and(
@@ -672,12 +672,12 @@ The parameters to the select function are the string names of the table's column
 
 Data is **ALWAYS** returned in pages.  The maximum number of records returned is set by the server.  If the client requests more records, then the server returns the maximum number of records.  By default, the maximum page size on the server is 50 records.
 
-The first example shows how to select the top five items from a table. The query returns the items from a table of **ToDoItems**. **mTable** is the reference to the backend table that you created previously:
+The first example shows how to select the top five items from a table. The query returns the items from a table of **TodoItems**. **mTable** is the reference to the backend table that you created previously:
 
 === "Java"
 
     ``` java
-    List<ToDoItem> results = mTable.top(5).execute().get();
+    List<TodoItem> results = mTable.top(5).execute().get();
     ```
 
 === "Kotlin"
@@ -691,7 +691,7 @@ Here's a query that skips the first five items, and then returns the next five:
 === "Java"
 
     ``` java
-    List<ToDoItem> results = mTable
+    List<TodoItem> results = mTable
         .skip(5).top(5)
         .execute()
         .get();
@@ -747,7 +747,7 @@ The methods used in querying backend tables can be concatenated. Chaining query 
 === "Java"
 
     ``` java
-    List<ToDoItem> results = mTable
+    List<TodoItem> results = mTable
             .where()
             .year("due").eq(2013)
             .and(
@@ -791,7 +791,7 @@ Data binding involves three components:
 * The screen layout
 * The adapter that ties the two together.
 
-In our sample code, we return the data from the Mobile Apps SQL Azure table **ToDoItem** into an array. This activity is a common pattern for data applications.  Database queries often return a collection of rows that the client gets in a list or array. In this sample, the array is the data source.  The code specifies a screen layout that defines the view of the data that appears on the device.  The two are bound together with an adapter, which in this code is an extension of the **ArrayAdapter&lt;ToDoItem&gt;** class.
+In our sample code, we return the data from the Mobile Apps SQL Azure table **TodoItem** into an array. This activity is a common pattern for data applications.  Database queries often return a collection of rows that the client gets in a list or array. In this sample, the array is the data source.  The code specifies a screen layout that defines the view of the data that appears on the device.  The two are bound together with an adapter, which in this code is an extension of the **ArrayAdapter&lt;TodoItem&gt;** class.
 
 #### <a name="layout"></a>Define the Layout
 
@@ -815,7 +815,7 @@ In the preceding code, the *listitem* attribute specifies the id of the layout f
     android:layout_height="match_parent"
     android:orientation="horizontal">
     <CheckBox
-        android:id="@+id/checkToDoItem"
+        android:id="@+id/checkTodoItem"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/checkbox_text" />
@@ -850,7 +850,7 @@ Override the adapters **getView** method. For example:
     public View getView(int position, View convertView, ViewGroup parent) {
         View row = convertView;
 
-        final ToDoItem currentItem = getItem(position);
+        final TodoItem currentItem = getItem(position);
 
         if (row == null) {
             LayoutInflater inflater = ((Activity) mContext).getLayoutInflater();
@@ -925,7 +925,7 @@ We create an instance of this class in our Activity as follows:
     mAdapter = TodoItemAdapter(this, R.layout.list_item)
     ```
     
-The second parameter to the ToDoItemAdapter constructor is a reference to the layout. We can now instantiate the **ListView** and assign the adapter to the **ListView**.
+The second parameter to the TodoItemAdapter constructor is a reference to the layout. We can now instantiate the **ListView** and assign the adapter to the **ListView**.
 
 === "Java"
 
@@ -952,13 +952,13 @@ You are now ready to use data binding. The following code shows how to get items
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    final List<ToDoItem> results = mToDoTable.execute().get();
+                    final List<TodoItem> results = mToDoTable.execute().get();
                     runOnUiThread(new Runnable() {
 
                         @Override
                         public void run() {
                             mAdapter.clear();
-                            for (ToDoItem item : results) {
+                            for (TodoItem item : results) {
                                 mAdapter.add(item);
                             }
                         }
@@ -993,7 +993,7 @@ You are now ready to use data binding. The following code shows how to get items
     }
     ```
 
-Call the adapter any time you modify the **ToDoItem** table. Since modifications are done on a record by record basis, you handle a single row instead of a collection. When you insert an item, call the **add** method on the adapter; when deleting, call the **remove** method.
+Call the adapter any time you modify the **TodoItem** table. Since modifications are done on a record by record basis, you handle a single row instead of a collection. When you insert an item, call the **add** method on the adapter; when deleting, call the **remove** method.
 
 You can find a complete example in the [Android Quickstart Project][21].
 
@@ -1106,7 +1106,7 @@ Similar to the typed model, you start by getting a table reference, but in this 
     private MobileServiceJsonTable mJsonTable;
 
     // ... later ...
-    mJsonTable = mClient.getTable("ToDoItem");
+    mJsonTable = mClient.getTable("TodoItem");
     ```
 
 === "Kotlin"
@@ -1115,7 +1115,7 @@ Similar to the typed model, you start by getting a table reference, but in this 
     private lateinit var mJsonTable: MobileServiceJsonTable
 
     // ... later ...
-    mJsonTable = mClient.getTable("ToDoItem")
+    mJsonTable = mClient.getTable("TodoItem")
     ```
 
 Once you have created an instance of the **MobileServiceJsonTable**, it has virtually the same API available as with the typed programming model. In some cases, the methods take an untyped parameter instead of a typed parameter.
@@ -1221,11 +1221,11 @@ The following code shows how to retrieve an entire table. Since you are using a 
                                 String ID = entity.getAsJsonPrimitive("id").getAsString();
                                 String mText = entity.getAsJsonPrimitive("text").getAsString();
                                 Boolean mComplete = entity.getAsJsonPrimitive("complete").getAsBoolean();
-                                TodoItem todoItem = new ToDoItem();
-                                todoItem.setId(ID);
-                                todoItem.setText(mText);
-                                todoItem.setComplete(mComplete);
-                                mAdapter.add(todoItem);
+                                TodoItem TodoItem = new TodoItem();
+                                TodoItem.setId(ID);
+                                TodoItem.setText(mText);
+                                TodoItem.setComplete(mComplete);
+                                mAdapter.add(TodoItem);
                             }
                         }
                     });
@@ -1250,12 +1250,12 @@ The following code shows how to retrieve an entire table. Since you are using a 
                         mAdapter.clear()
                         for (item in results) {
                             val entity = item.getAsJsonObject()
-                            val todoItem = TodoItem.apply {
+                            val TodoItem = TodoItem.apply {
                                 id = item.getAsJsonPrimitive("id").getAsString()
                                 text = item.getAsJsonPrimitive("text").getAsString()
                                 complete = item.getAsJsonPrimitive("complete").getAsBoolean()
                             }
-                            mAdapter.add(todoItem)
+                            mAdapter.add(TodoItem)
                         }
                     }
                 }
@@ -1276,56 +1276,101 @@ The Azure Mobile Apps Client SDK also implements offline synchronization of data
 
 ### Initialize Offline Sync
 
-Each offline table must be defined in the offline cache before use.  Normally, table definition is done immediately after the creation of the client:
+Each offline table must be defined in the offline cache before use.  Normally, table definition is done immediately after the creation of the client, but it must be done asynchronously.
 
-```java
-AsyncTask<Void, Void, Void> initializeStore(MobileServiceClient mClient)
-    throws MobileServiceLocalStoreException, ExecutionException, InterruptedException
-{
-    AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-        @Override
-        protected void doInBackground(Void... params) {
-            try {
-                MobileServiceSyncContext syncContext = mClient.getSyncContext();
-                if (syncContext.isInitialized()) {
-                    return null;
+=== "Java"
+
+    ``` java
+    private AsyncTask<Void, Void, Void>  initializeStore(MobileServiceClient mClient)
+    {
+        return new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected void doInBackground(Void... params) {
+                try {
+                    MobileServiceSyncContext syncContext = mClient.getSyncContext();
+                    if (syncContext.isInitialized()) {
+                        return null;
+                    }
+
+                    // Create the offline database
+                    SQLiteLocalStore localStore = new SQLiteLocalStore(
+                        mClient.getContext(),       // Application Context
+                        "offlinestore",             // database name
+                        null,                       // cursor factory
+                        1                           // version
+                    );
+
+                    // Define the offline database schema
+                    Map<String, ColumnDataType> tableDefinition = new HashMap<String, ColumnDataType>();
+                    tableDefinition.put("id", ColumnDataType.String);
+                    tableDefinition.put("complete", ColumnDataType.Boolean);
+                    tableDefinition.put("text", ColumnDataType.String);
+                    tableDefinition.put("version", ColumnDataType.String);
+                    tableDefinition.put("updatedAt", ColumnDataType.DateTimeOffset);
+                    localStore.defineTable("TodoItem", tableDefinition);
+
+                    // Specify a sync handler, for conflict resolution
+                    SimpleSyncHandler syncHandler = new SimpleSyncHandler();
+
+                    // Initialize the client sync context
+                    syncContext.initialize(localStore, syncHandler) // ListenableFuture<T>
+                        .get();                                     // convert to sync
+                } catch (Exception err) {
+                    // Handle error
                 }
-                SQLiteLocalStore localStore = new SQLiteLocalStore(mClient.getContext(), "offlineStore", null, 1);
-
-                // Create a table definition.  As a best practice, store this with the model definition and return it via
-                // a static method
-                Map<String, ColumnDataType> toDoItemDefinition = new HashMap<String, ColumnDataType>();
-                toDoItemDefinition.put("id", ColumnDataType.String);
-                toDoItemDefinition.put("complete", ColumnDataType.Boolean);
-                toDoItemDefinition.put("text", ColumnDataType.String);
-                toDoItemDefinition.put("version", ColumnDataType.String);
-                toDoItemDefinition.put("updatedAt", ColumnDataType.DateTimeOffset);
-
-                // Now define the table in the local store
-                localStore.defineTable("ToDoItem", toDoItemDefinition);
-
-                // Specify a sync handler for conflict resolution
-                SimpleSyncHandler handler = new SimpleSyncHandler();
-
-                // Initialize the local store
-                syncContext.initialize(localStore, handler).get();
-            } catch (final Exception e) {
-                createAndShowDialogFromTask(e, "Error");
+                return null;
             }
-            return null;
+        };
+    }
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    private fun initializeStore(mClient: MobileServiceClient): AsyncTask<Void, Void, Void> =>
+        object : AsyncTask<Void, Void, Void>() {
+            override fun doInBackground(params: Void...) {
+                if (mClient.syncContext.isInitialized) {
+                    return null
+                }
+                
+                // Create the database
+                val localStore = SQLiteLocalStore(
+                    mClient.context,            // Application context
+                    "OfflineStore",             // Database filename
+                    null,                       // Cursor factory
+                    1)                          // Version 
+                
+                // Define the SQLite offline database schema
+                val tableDefinition = hashMapOf<String, ColumnDataType>(
+                    "id" to ColumnDataType.String,
+                    "text" to ColumnDataType.String,
+                    "complete" to ColumnDataType.Boolean
+                )
+                localStore.defineTable("TodoItem", tableDefinition)
+
+                // Configure the sync context with a sync conflict handler
+                mClient.syncContext.initialize(localStore, SimpleSyncHandler())
+                    .get()          // sync version from a listenableFuture
+            }
         }
-    };
-    return runAsyncTask(task);
-}
-```
+    ```
 
 ### Obtain a reference to the Offline Cache Table
 
 For an online table, you use `.getTable()`.  For an offline table, use `.getSyncTable()`:
 
-```java
-MobileServiceSyncTable<ToDoItem> mToDoTable = mClient.getSyncTable("ToDoItem", ToDoItem.class);
-```
+=== "Java"
+
+    ``` java
+    MobileServiceSyncTable<TodoItem> mSyncTable = mClient.getSyncTable("TodoItem", TodoItem.class);
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val mSyncTable = mClient.getSyncTable("TodoItem", TodoItem::class.java)
+    ```
 
 All the methods that are available for online tables (including filtering, sorting, paging, inserting data, updating data, and deleting data) work equally well on online and offline tables.
 
@@ -1333,26 +1378,27 @@ All the methods that are available for online tables (including filtering, sorti
 
 Synchronization is within the control of your app.  Here is an example synchronization method:
 
-```java
-private AsyncTask<Void, Void, Void> sync(MobileServiceClient mClient) {
-    AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>(){
-        @Override
-        protected Void doInBackground(Void... params) {
-            try {
-                MobileServiceSyncContext syncContext = mClient.getSyncContext();
-                syncContext.push().get();
-                mToDoTable.pull(null, "todoitem").get();
-            } catch (final Exception e) {
-                createAndShowDialogFromTask(e, "Error");
-            }
-            return null;
-        }
-    };
-    return runAsyncTask(task);
-}
-```
+=== "Java"
 
-If a query name is provided to the `.pull(query, queryname)` method, then incremental sync is used to return only records that have been created or changed since the last successfully completed pull.
+    ``` java
+    public void syncItems() {
+        mClient.getSyncContext().push().get();
+        mSyncTable.pull(null, "tableIncrementalSync").get();
+    }
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    private func syncItems() {
+        mClient.syncContext.push().get()
+        mSyncTable.pull(null, "tableIncrementalSync").get()
+    }
+    ```
+
+If a query name is provided to the `.pull(query, queryname)` method, then incremental sync is used to return only records that have been created or changed since the last successfully completed pull.  If no query name is provided, then all records are pulled.  
+
+Although this method is shown as a syncrhonous method, you should execute synchronization asynchronously.  Android requires that network requests execute on an async thread.
 
 ### Handle Conflicts during Offline Synchronization
 
@@ -1370,23 +1416,41 @@ A custom API enables you to define custom endpoints that expose server functiona
 
 From an Android client, you call the **invokeApi** method to call the custom API endpoint. The following example shows how to call an API endpoint named **completeAll**, which returns a collection class named **MarkAllResult**.
 
-```java
-public void completeItem(View view) {
-    ListenableFuture<MarkAllResult> result = mClient.invokeApi("completeAll", MarkAllResult.class);
-    Futures.addCallback(result, new FutureCallback<MarkAllResult>() {
-        @Override
-        public void onFailure(Throwable exc) {
-            createAndShowDialog((Exception) exc, "Error");
-        }
+=== "Java"
 
-        @Override
-        public void onSuccess(MarkAllResult result) {
-            createAndShowDialog(result.getCount() + " item(s) marked as complete.", "Completed Items");
-            refreshItemsFromTable();
-        }
-    });
-}
-```
+    ``` java
+    public void completeItem(View view) {
+        ListenableFuture<MarkAllResult> result = mClient.invokeApi("completeAll", MarkAllResult.class);
+        Futures.addCallback(result, new FutureCallback<MarkAllResult>() {
+            @Override
+            public void onFailure(Throwable exc) {
+                // Handle error
+            }
+
+            @Override
+            public void onSuccess(MarkAllResult result) {
+                // Handle result
+            }
+        });
+    }
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    fun completeItem(view: View) {
+        val task = mClient.invokeApi("completeAll", MarkAllResult::class.java);
+        task.addListener({
+            try {
+                val result: MarkAllResult = task.get()
+                // Handle result
+            } catch (err: Exception) {
+                // Handle error
+            }
+        }, executor)
+    }
+    ```
+
 
 The **invokeApi** method is called on the client, which sends a POST request to the new custom API. The result returned by the custom API is displayed in a message dialog, as are any errors. Other versions of **invokeApi** let you optionally send an object in the request body, specify the HTTP method, and send query parameters with the request. Untyped versions of **invokeApi** are provided as well.
 
@@ -1394,7 +1458,7 @@ The **invokeApi** method is called on the client, which sends a POST request to 
 
 Tutorials already describe in detail how to add these features.
 
-App Service supports [authenticating app users](app-service-mobile-android-get-started-users.md) using various external identity providers: Facebook, Google, Microsoft Account, Twitter, and Azure Active Directory. You can set permissions on tables to restrict access for specific operations to only authenticated users. You can also use the identity of authenticated users to implement authorization rules in your backend.
+App Service supports [authenticating app users](https://docs.microsoft.com/azure/app-service/app-service-authentication-how-to) using various external identity providers: Facebook, Google, Microsoft Account, Twitter, and Azure Active Directory. You can set permissions on tables to restrict access for specific operations to only authenticated users. You can also use the identity of authenticated users to implement authorization rules in your backend.
 
 Two authentication flows are supported: a **server** flow and a **client** flow. The server flow provides the simplest authentication experience, as it relies on the identity providers web interface.  No additional SDKs are required to implement server flow authentication. Server flow authentication does not provide a deep integration into the mobile device and is only recommended for proof of concept scenarios.
 
@@ -1410,6 +1474,8 @@ Four steps are required to enable authentication in your app:
 You can set permissions on tables to restrict access for specific operations to only authenticated users. You can also use the SID of an authenticated user to modify requests.  For more information, review [Get started with authentication] and the Server SDK HOWTO documentation.
 
 ### <a name="caching"></a>Authentication: Server Flow
+
+TODO: Code, then login initiation, then handling the response, then cautions.
 
 The following code starts a server flow login process using the Google provider.  Additional configuration is required because of the security requirements for the Google provider:
 
