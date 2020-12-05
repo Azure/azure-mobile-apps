@@ -249,6 +249,87 @@ In a similar way, you can adjust the connect and read timeout if you expect your
     ```
 
 You can use this method to add additional headers.  This provides a mechanism for adding additional authentication mechanisms that use the `Authorization` header, as an example.
+
+## Implement a Progress Filter
+
+You can implement an intercept of every request by implementing a `ServiceFilter`.  For example, the following updates a pre-created progress bar:
+
+=== "Java"
+
+    ``` java
+    private class ProgressFilter implements ServiceFilter {
+        @Override
+        public ListenableFuture<ServiceFilterResponse> handleRequest(ServiceFilterRequest request, NextServiceFilterCallback next) {
+            final SettableFuture<ServiceFilterResponse> resultFuture = SettableFuture.create();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mProgressBar != null) mProgressBar.setVisibility(ProgressBar.VISIBLE);
+                }
+            });
+
+            ListenableFuture<ServiceFilterResponse> future = next.onNext(request);
+            Futures.addCallback(future, new FutureCallback<ServiceFilterResponse>() {
+                @Override
+                public void onFailure(Throwable e) {
+                    resultFuture.setException(e);
+                }
+                @Override
+                public void onSuccess(ServiceFilterResponse response) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mProgressBar != null)
+                                mProgressBar.setVisibility(ProgressBar.GONE);
+                        }
+                    });
+                    resultFuture.set(response);
+                }
+            });
+            return resultFuture;
+        }
+    }
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    private class ProgressFilter : ServiceFilter {
+        override fun handleRequest(
+            request: ServiceFilterRequest?, 
+            next: NextServiceFilterCallback
+        ): ListenableFuture<ServiceFilterResponse> {
+            val resultFuture = SettableFuture.create()
+            runOnUiThread  { mProgressBar?.setVisibility(ProgressBar.VISIBLE) }
+
+            val future = next.onNext(request)
+            future.addListener({
+                try {
+                    val response = future.get()
+                    resultFuture.set(response)
+                } catch (ex: Exception) {
+                    resultFuture.setException(ex)
+                }
+            }, executor)
+
+            return resultFuture
+        }
+    }
+    ```
+
+You can attach this filter to the client as follows:
+
+=== "Java"
+
+    ``` java
+    mClient = new MobileServiceClient(applicationUrl, this).withFilter(new ProgressFilter());
+    ```
+
+=== "Kotlin"
+
+    ``` java
+    mClient = MobileServiceClient(applicationUrl, this).withFilter(ProgressFilter());
+    ```
 ## Data Operations
 
 The core of the Azure Mobile Apps SDK is to provide access to data stored within SQL Azure on the Mobile App backend.  You can access this data using strongly typed classes (preferred) or untyped queries (not recommended).  The bulk of this section deals with using strongly typed classes.
@@ -1471,99 +1552,126 @@ Four steps are required to enable authentication in your app:
 * Restrict table permissions to authenticated users only on the App Service backend.
 * Add authentication code to your app.
 
-You can set permissions on tables to restrict access for specific operations to only authenticated users. You can also use the SID of an authenticated user to modify requests.  For more information, review [Get started with authentication] and the Server SDK HOWTO documentation.
+You can set permissions on tables to restrict access for specific operations to only authenticated users. You can also use the SID of an authenticated user to modify requests.  
 
 ### <a name="caching"></a>Authentication: Server Flow
 
-TODO: Code, then login initiation, then handling the response, then cautions.
+To use the server flow login process, you must:
 
-The following code starts a server flow login process using the Google provider.  Additional configuration is required because of the security requirements for the Google provider:
+* Define a callback to handle the response from the server.
+* Initiate the login process.
 
-```java
-MobileServiceUser user = mClient.login(MobileServiceAuthenticationProvider.Google, "{url_scheme_of_your_app}", GOOGLE_LOGIN_REQUEST_CODE);
-```
+> **NOTE**: Microsoft Account is now done via Azure Active Directory.  Do not use the in-built Microsoft Account support for Azure App Service Authentication and Authorization.
 
-In addition, add the following method to the main Activity class:
+The process is the same, irrespective of the provider used.  To define the callback, add the following to your entry activity (such as `MainActivity`):
 
-```java
-// You can choose any unique number here to differentiate auth providers from each other. Note this is the same code at login() and onActivityResult().
-public static final int GOOGLE_LOGIN_REQUEST_CODE = 1;
+=== "Java"
 
-@Override
-protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    // When request completes
-    if (resultCode == RESULT_OK) {
-        // Check the request code matches the one we send in the login request
-        if (requestCode == GOOGLE_LOGIN_REQUEST_CODE) {
+    ``` java
+    public static final int LOGIN_REQUEST_CODE = 1;    // Pick a unique request code
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == LOGIN_REQUEST_CODE && resultCode == RESULT_OK) {
             MobileServiceActivityResult result = mClient.onActivityResult(data);
             if (result.isLoggedIn()) {
-                // login succeeded
-                createAndShowDialog(String.format("You are now logged in - %1$2s", mClient.getCurrentUser().getUserId()), "Success");
-                createTable();
+                // Handle a successful login
             } else {
-                // login failed, check the error message
-                String errorMessage = result.getErrorMessage();
-                createAndShowDialog(errorMessage, "Error");
+                // Handle a failed login
             }
         }
     }
-}
-```
+    ```
 
-The `GOOGLE_LOGIN_REQUEST_CODE` defined in your main Activity is used for the `login()` method and within the `onActivityResult()` method.  You can choose any unique number, as long as the same number is used within the `login()` method and the `onActivityResult()` method.  If you abstract the client code into a service adapter (as shown earlier), you should call the appropriate methods on the service adapter.
+=== "Kotlin"
+
+    ``` kotlin
+    companion object {
+        const val LOGIN_REQUEST_CODE = 1
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+        if (requestCode == LOGIN_REQUEST_CODE && resultCode == RESULT_OK) {
+            val result = mClient.onActivityResult(data)
+            if (result.isLoggedIn) {
+                // Handle a successful login
+            } else {
+                // Handle a failed login
+            }
+        }
+    }
+    ```
+
+You should not perform a service operation (such as downloading the latest data or synchronizing data) until you have performed a successful login.
+
+To initiate a login process, use the following:
+
+=== "Java"
+
+    ``` java
+    MobileServiceUser user = mClient.login(
+        "aad",                  // Auth provider 
+        "zumoauth",             // URL scheme for the response
+        LOGIN_REQUEST_CODE);    // The request code
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val user = mClient.login(
+        "aad",                  // Auth provider 
+        "zumoauth",             // URL scheme for the response
+        LOGIN_REQUEST_CODE)     // The request code
+    ```
+
+The auth provider can either be a string or a member of the `MobileServiceAuthenticationProvider` enum.  If using custom authentication, use a string.
 
 You also need to configure the project for customtabs.  First specify a redirect-URL.  Add the following snippet to `AndroidManifest.xml`:
 
-```xml
+``` xml
 <activity android:name="com.microsoft.windowsazure.mobileservices.authentication.RedirectUrlActivity">
     <intent-filter>
         <action android:name="android.intent.action.VIEW" />
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
-        <data android:scheme="{url_scheme_of_your_app}" android:host="easyauth.callback"/>
+        <data android:scheme="zumoauth" android:host="easyauth.callback"/>
     </intent-filter>
 </activity>
 ```
 
-Add the **redirectUriScheme** to the `build.gradle` file for your application:
+Ensure that the `android:scheme` matches the URL scheme you use within the `.login()` call and within the Authentication configuration for Azure App Service.  Then, add the **redirectUriScheme** to the `build.gradle` file for your application:
 
 ```gradle
 android {
     buildTypes {
         release {
             // … …
-            manifestPlaceholders = ['redirectUriScheme': '{url_scheme_of_your_app}://easyauth.callback']
+            manifestPlaceholders = ['redirectUriScheme': 'zumoauth://easyauth.callback']
         }
         debug {
             // … …
-            manifestPlaceholders = ['redirectUriScheme': '{url_scheme_of_your_app}://easyauth.callback']
+            manifestPlaceholders = ['redirectUriScheme': 'zumoauth://easyauth.callback']
         }
     }
 }
 ```
 
+Again, the `redirectUriScheme` must match the scheme in `AndroidManifest.xml` and that is configured within your Azure App Service Authentication configuration.
+
 Finally, add `com.android.support:customtabs:28.0.0` to the dependencies list in the `build.gradle` file:
 
 ```gradle
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.google.code.gson:gson:2.3'
-    implementation 'com.google.guava:guava:18.0'
+    // Other dependencies
     implementation 'com.android.support:customtabs:28.0.0'
-    implementation 'com.squareup.okhttp:okhttp:2.5.0'
-    implementation 'com.microsoft.azure:azure-mobile-android:3.4.0@aar'
-    implementation 'com.microsoft.azure:azure-notifications-handler:1.0.1@jar'
 }
 ```
 
-Obtain the ID of the logged-in user from a **MobileServiceUser** using the **getUserId** method. For an example of how to use Futures to call the asynchronous login APIs, see [Get started with authentication].
-
-> [!WARNING]
-> The URL Scheme mentioned is case-sensitive.  Ensure that all occurrences of `{url_scheme_of_you_app}` match case.
+Obtain the ID of the logged-in user from a **MobileServiceUser** using the **getUserId** method. 
 
 ### <a name="caching"></a>Cache authentication tokens
 
-Caching authentication tokens requires you to store the User ID and authentication token locally on the device. The next time the app starts, you check the cache, and if these values are present, you can skip the log in procedure and rehydrate the client with this data. However this data is sensitive, and it should be stored encrypted for safety in case the phone gets stolen.  You can see a complete example of how to cache authentication tokens in [Cache authentication tokens section][7].
+Caching authentication tokens requires you to store the User ID and authentication token locally on the device. The next time the app starts, you check the cache, and if these values are present, you can skip the log in procedure and rehydrate the client with this data. However this data is sensitive, and it should be stored encrypted for safety in case the phone gets stolen.
 
 When you try to use an expired token, you receive a *401 unauthorized* response. You can handle authentication errors using filters.  Filters intercept requests to the App Service backend. The filter code tests the response for a 401, triggers the sign-in process, and then resumes the request that generated the 401.
 
@@ -1575,37 +1683,45 @@ You can also register the provider to use Refresh Tokens.  A Refresh Token is no
 
 * For **Azure Active Directory**, configure a client secret for the Azure Active Directory App.  Specify the client secret in the Azure App Service when configuring Azure Active Directory Authentication.  When calling `.login()`, pass `response_type=code id_token` as a parameter:
 
-    ```java
-    HashMap<String, String> parameters = new HashMap<String, String>();
-    parameters.put("response_type", "code id_token");
-    MobileServiceUser user = mClient.login
-        MobileServiceAuthenticationProvider.AzureActiveDirectory,
-        "{url_scheme_of_your_app}",
-        AAD_LOGIN_REQUEST_CODE,
-        parameters);
-    ```
+    === "Java"
+
+        ``` java
+        HashMap<String, String> parameters = new HashMap<String, String>();
+        parameters.put("response_type", "code id_token");
+        MobileServiceUser user = mClient.login
+            MobileServiceAuthenticationProvider.AzureActiveDirectory,
+            "{url_scheme_of_your_app}",
+            AAD_LOGIN_REQUEST_CODE,
+            parameters);
+        ```
+
+    === "Kotlin"
+
+        ``` kotlin
+        val parameters = hashMapOf<String, String>("response_type", "code id_token")
+        val user = mClient.login("aad", "zumoauth", LOGIN_REQUEST_CODE, parameters)
+        ```
 
 * For **Google**, pass the `access_type=offline` as a parameter:
 
-    ```java
-    HashMap<String, String> parameters = new HashMap<String, String>();
-    parameters.put("access_type", "offline");
-    MobileServiceUser user = mClient.login
-        MobileServiceAuthenticationProvider.Google,
-        "{url_scheme_of_your_app}",
-        GOOGLE_LOGIN_REQUEST_CODE,
-        parameters);
-    ```
+    === "Java"
 
-* For **Microsoft Account**, select the `wl.offline_access` scope.
+        ``` java
+        HashMap<String, String> parameters = new HashMap<String, String>();
+        parameters.put("access_type", "offline");
+        MobileServiceUser user = mClient.login
+            MobileServiceAuthenticationProvider.Google,
+            "{url_scheme_of_your_app}",
+            GOOGLE_LOGIN_REQUEST_CODE,
+            parameters);
+        ```
 
-To refresh a token, call `.refreshUser()`:
+    === "Kotlin"
 
-```java
-MobileServiceUser user = mClient
-    .refreshUser()  // async - returns a ListenableFuture<MobileServiceUser>
-    .get();
-```
+        ``` kotlin
+        val parameters = hashMapOf<String, String>("access_type", "offline")
+        val user = mClient.login("aad", "zumoauth", LOGIN_REQUEST_CODE, parameters)
+        ```
 
 As a best practice, create a filter that detects a 401 response from the server and tries to refresh the user token.
 
@@ -1617,7 +1733,9 @@ The general process for logging in with client-flow authentication is as follows
 * Integrate the authentication provider SDK for authentication to produce an access token.
 * Call the `.login()` method as follows (`result` should be an `AuthenticationResult`):
 
-    ```java
+=== "Java"
+
+    ``` java
     JSONObject payload = new JSONObject();
     payload.put("access_token", result.getAccessToken());
     ListenableFuture<MobileServiceUser> mLogin = mClient.login("{provider}", payload.toString());
@@ -1633,181 +1751,21 @@ The general process for logging in with client-flow authentication is as follows
     });
     ```
 
-See the complete code example in the next section.
+=== "Kotlin"
 
-Replace the `onSuccess()` method with whatever code you wish to use on a successful login.  The `{provider}` string is a valid provider: **aad** (Azure Active Directory), **facebook**, **google**, **microsoftaccount**, or **twitter**.  If you have implemented custom authentication, then you can also use the custom authentication provider tag.
-
-### <a name="adal"></a>Authenticate users with the Active Directory Authentication Library (ADAL)
-
-You can use the Active Directory Authentication Library (ADAL) to sign users into your application using Azure Active Directory. Using a client flow login is often preferable to using the `loginAsync()` methods as it provides a more native UX feel and allows for additional customization.
-
-1. Configure your mobile app backend for AAD sign-in by following the [How to configure App Service for Active Directory login][22] tutorial. Make sure to complete the optional step of registering a native client application.
-2. Install ADAL by modifying your build.gradle file to include the following definitions:
-
-    ```gradle
-    repositories {
-        mavenCentral()
-        flatDir {
-            dirs 'libs'
+    ``` kotlin
+    val payload = JSONObject().apply { put("access_token", result.accessToken) }
+    val loginTask = mClient.login("aad", payload.toString())
+    loginTask.addListener({
+        try {
+            val user = loginTask.get()
+            // Handle success
+        } catch (ex: Exception) {
+            // Handle error
         }
-        maven {
-            url "YourLocalMavenRepoPath\\.m2\\repository"
-        }
-    }
-    packagingOptions {
-        exclude 'META-INF/MSFTSIG.RSA'
-        exclude 'META-INF/MSFTSIG.SF'
-    }
-    dependencies {
-        implementation fileTree(dir: 'libs', include: ['*.jar'])
-        implementation('com.microsoft.aad:adal:1.16.1') {
-            exclude group: 'com.android.support'
-        } // Recent version is 1.16.1
-        implementation 'com.android.support:support-v4:28.0.0'
-    }
+    }, executor)
     ```
 
-3. Add the following code to your application, making the following replacements:
-
-    * Replace **INSERT-AUTHORITY-HERE** with the name of the tenant in which you provisioned your application. The format should be https://login.microsoftonline.com/contoso.onmicrosoft.com.
-    * Replace **INSERT-RESOURCE-ID-HERE** with the client ID for your mobile app backend. You can obtain the client ID from the **Advanced** tab under **Azure Active Directory Settings** in the portal.
-    * Replace **INSERT-CLIENT-ID-HERE** with the client ID you copied from the native client application.
-    * Replace **INSERT-REDIRECT-URI-HERE** with your site's */.auth/login/done* endpoint, using the HTTPS scheme. This value should be similar to *https://contoso.azurewebsites.net/.auth/login/done*.
-
-```java
-private AuthenticationContext mContext;
-
-private void authenticate() {
-    String authority = "INSERT-AUTHORITY-HERE";
-    String resourceId = "INSERT-RESOURCE-ID-HERE";
-    String clientId = "INSERT-CLIENT-ID-HERE";
-    String redirectUri = "INSERT-REDIRECT-URI-HERE";
-    try {
-        mContext = new AuthenticationContext(this, authority, true);
-        mContext.acquireToken(this, resourceId, clientId, redirectUri, PromptBehavior.Auto, "", callback);
-    } catch (Exception exc) {
-        exc.printStackTrace();
-    }
-}
-
-private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
-    @Override
-    public void onError(Exception exc) {
-        if (exc instanceof AuthenticationException) {
-            Log.d(TAG, "Cancelled");
-        } else {
-            Log.d(TAG, "Authentication error:" + exc.getMessage());
-        }
-    }
-
-    @Override
-    public void onSuccess(AuthenticationResult result) {
-        if (result == null || result.getAccessToken() == null
-                || result.getAccessToken().isEmpty()) {
-            Log.d(TAG, "Token is empty");
-        } else {
-            try {
-                JSONObject payload = new JSONObject();
-                payload.put("access_token", result.getAccessToken());
-                ListenableFuture<MobileServiceUser> mLogin = mClient.login("aad", payload.toString());
-                Futures.addCallback(mLogin, new FutureCallback<MobileServiceUser>() {
-                    @Override
-                    public void onFailure(Throwable exc) {
-                        exc.printStackTrace();
-                    }
-                    @Override
-                    public void onSuccess(MobileServiceUser user) {
-                        Log.d(TAG, "Login Complete");
-                    }
-                });
-            }
-            catch (Exception exc){
-                Log.d(TAG, "Authentication error:" + exc.getMessage());
-            }
-        }
-    }
-};
-
-@Override
-protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    super.onActivityResult(requestCode, resultCode, data);
-    if (mContext != null) {
-        mContext.onActivityResult(requestCode, resultCode, data);
-    }
-}
-```
-
-## <a name="filters"></a>Adjust the Client-Server Communication
-
-The Client connection is normally a basic HTTP connection using the underlying HTTP library supplied with the Android SDK.  There are several reasons why you would want to change that:
-
-* You wish to use an alternate HTTP library to adjust timeouts.
-* You wish to provide a progress bar.
-* You wish to add a custom header to support API management functionality.
-* You wish to intercept a failed response so that you can implement reauthentication.
-* You wish to log backend requests to an analytics service.
-
-### Using an alternate HTTP Library
-
-Call the `.setAndroidHttpClientFactory()` method immediately after creating your client reference.  For example, to set the connection timeout to 60 seconds (instead of the default 10 seconds):
-
-```java
-mClient = new MobileServiceClient("https://myappname.azurewebsites.net");
-mClient.setAndroidHttpClientFactory(new OkHttpClientFactory() {
-    @Override
-    public OkHttpClient createOkHttpClient() {
-        OkHttpClient client = new OkHttpClient();
-        client.setReadTimeout(60, TimeUnit.SECONDS);
-        client.setWriteTimeout(60, TimeUnit.SECONDS);
-        return client;
-    }
-});
-```
-
-### Implement a Progress Filter
-
-You can implement an intercept of every request by implementing a `ServiceFilter`.  For example, the following updates a pre-created progress bar:
-
-```java
-private class ProgressFilter implements ServiceFilter {
-    @Override
-    public ListenableFuture<ServiceFilterResponse> handleRequest(ServiceFilterRequest request, NextServiceFilterCallback next) {
-        final SettableFuture<ServiceFilterResponse> resultFuture = SettableFuture.create();
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mProgressBar != null) mProgressBar.setVisibility(ProgressBar.VISIBLE);
-            }
-        });
-
-        ListenableFuture<ServiceFilterResponse> future = next.onNext(request);
-        Futures.addCallback(future, new FutureCallback<ServiceFilterResponse>() {
-            @Override
-            public void onFailure(Throwable e) {
-                resultFuture.setException(e);
-            }
-            @Override
-            public void onSuccess(ServiceFilterResponse response) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mProgressBar != null)
-                            mProgressBar.setVisibility(ProgressBar.GONE);
-                    }
-                });
-                resultFuture.set(response);
-            }
-        });
-        return resultFuture;
-    }
-}
-```
-
-You can attach this filter to the client as follows:
-
-```java
-mClient = new MobileServiceClient(applicationUrl).withFilter(new ProgressFilter());
-```
 
 ### Customize Request Headers
 
@@ -1838,50 +1796,49 @@ private class CustomHeaderFilter implements ServiceFilter {
 
 You can specify a conversion strategy that applies to every column by using the [gson][3] API. The Android client library uses [gson][3] behind the scenes to serialize Java objects to JSON data before the data is sent to Azure App Service.  The following code uses the **setFieldNamingStrategy()** method to set the strategy. This example will delete the initial character (an "m"), and then lower-case the next character, for every field name. For example, it would turn "mId" into "id."  Implement a conversion strategy to reduce the need for `SerializedName()` annotations on most fields.
 
-```java
-FieldNamingStrategy namingStrategy = new FieldNamingStrategy() {
-    public String translateName(File field) {
-        String name = field.getName();
-        return Character.toLowerCase(name.charAt(1)) + name.substring(2);
-    }
-}
+=== "Java"
 
-client.setGsonBuilder(
-    MobileServiceClient
-        .createMobileServiceGsonBuilder()
-        .setFieldNamingStrategy(namingStrategy)
-);
-```
+    ```java
+    FieldNamingStrategy namingStrategy = new FieldNamingStrategy() {
+        public String translateName(File field) {
+            String name = field.getName();
+            return Character.toLowerCase(name.charAt(1)) + name.substring(2);
+        }
+    }
+
+    mClient.setGsonBuilder(
+        MobileServiceClient
+            .createMobileServiceGsonBuilder()
+            .setFieldNamingStrategy(namingStrategy)
+    );
+    ```
+
+=== "Kotlin"
+
+    ``` kotlin
+    val namingStrategy = object : FieldNamingStrategy() {
+        fun translateName(field: File): String =>
+            Character.toLowerCase(field.name.charAt(1)) + name.substring(2)
+    }
+    mClient.setGsonBuilder(
+        MobileServiceClient.createMobileServiceGsonBuilder()
+            .setFieldNamingStrategy(namingStrategy)
+    )
+    ```
 
 This code must be executed before creating a mobile client reference using the **MobileServiceClient**.
 
 <!-- URLs. -->
-[Get started with Azure Mobile Apps]: app-service-mobile-android-get-started.md
-[ASCII control codes C0 and C1]: https://en.wikipedia.org/wiki/Data_link_escape_character#C1_set
-[Mobile Services SDK for Android]: https://go.microsoft.com/fwlink/p/?LinkID=717033
-[Azure portal]: https://portal.azure.com
-[Get started with authentication]: app-service-mobile-android-get-started-users.md
 [1]: https://static.javadoc.io/com.google.code.gson/gson/2.8.5/com/google/gson/JsonObject.html
-[2]: https://hashtagfail.com/post/44606137082/mobile-services-android-serialization-gson
 [3]: https://www.javadoc.io/doc/com.google.code.gson/gson/2.8.5
-[4]: https://go.microsoft.com/fwlink/p/?LinkId=296840
-[5]: app-service-mobile-android-get-started-push.md
-[6]: ../notification-hubs/notification-hubs-push-notification-overview.md#integration-with-app-service-mobile-apps
-[7]: app-service-mobile-android-get-started-users.md#cache-tokens
 [8]: https://azure.github.io/azure-mobile-apps-android-client/com/microsoft/windowsazure/mobileservices/table/MobileServiceTable.html
 [9]: https://azure.github.io/azure-mobile-apps-android-client/com/microsoft/windowsazure/mobileservices/MobileServiceClient.html
-[10]: app-service-mobile-dotnet-backend-how-to-use-server-sdk.md
-[11]: app-service-mobile-node-backend-how-to-use-server-sdk.md
 [12]: https://azure.github.io/azure-mobile-apps-android-client/
-[13]: app-service-mobile-android-get-started.md#create-a-new-azure-mobile-app-backend
 [14]: https://go.microsoft.com/fwlink/p/?LinkID=717034
-[15]: app-service-mobile-dotnet-backend-how-to-use-server-sdk.md#define-table-controller
-[16]: app-service-mobile-node-backend-how-to-use-server-sdk.md#TableOperations
 [17]: https://developer.android.com/reference/java/util/UUID.html
 [18]: https://github.com/google/guava/wiki/ListenableFutureExplained
 [19]: https://www.odata.org/documentation/odata-version-3-0/
-[20]: https://hashtagfail.com/post/46493261719/mobile-services-android-querying
 [21]: https://github.com/Azure-Samples/azure-mobile-apps-android-quickstart
-[22]: ../app-service/configure-authentication-provider-aad.md
 [Future]: https://developer.android.com/reference/java/util/concurrent/Future.html
 [AsyncTask]: https://developer.android.com/reference/android/os/AsyncTask.html
+[OkHttp]: https://square.github.io/okhttp/
