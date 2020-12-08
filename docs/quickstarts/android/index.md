@@ -30,7 +30,7 @@ Once downloaded, open a Terminal and change directory to the location of the fil
 
 ## Configure the Android quickstart project
 
-Open the Android project in Android Studio (located at `samples/android`).  Edit the `Configuration.java` file to replace the `BackendUrl` with your backend URL.  For example, if your backend URL was `https://zumo-abcd1234.azurewebsites.net`, then the file would look like this:
+Open the Android project in Android Studio (located at `samples/android`).  Edit the `Constants` class to replace the `BackendUrl` with your backend URL.  For example, if your backend URL was `https://zumo-abcd1234.azurewebsites.net`, then the file would look like this:
 
 ```kotlin
 package com.azure.mobile.zumoquickstart
