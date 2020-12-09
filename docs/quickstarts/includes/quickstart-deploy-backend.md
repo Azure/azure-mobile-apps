@@ -18,7 +18,7 @@ Type the following to create a resource group:
 az group create -l westus -n zumo-quickstart
 ```
 
-This will create a resource group called _zumo-quickstart_ to hold all the resources we create. You can select a region closer to you by replacing `westus` with the region to deploy resources.
+This will create a resource group called _zumo-quickstart_ to hold all the resources we create. Replace `westus` with another region if you do not have access to the westus region or you prefer a region closer to you.
 
 ### Deploy the backend to Azure
 
@@ -52,7 +52,7 @@ Finally, deploy the Azure Mobile Apps server to the created App Service:
 az webapp deployment source config-zip -g zumo-quickstart --name zumo-XXXXXXXX --src ./zumoserver.zip
 ```
 
-Replace `zumo-XXXXXXXX` with the name of your App Service; shown in the list of outputs.  Within 2-3 minutes, your Azure Mobile Apps server will be ready to use.  You can use a web browser to confirm this.  Point your web browser to your public endpoint with `/tables/TodoItem` appended to it (e.g. `https://zumo-XXXXXXXX.azurewebsites.net/tables.TodoItem`).  The browser will display an error about a missing X-ZUMO-VERSION parameter if the server is working properly.
+Replace `zumo-XXXXXXXX` with the name of your App Service; shown in the list of outputs.  Within 2-3 minutes, your Azure Mobile Apps server will be ready to use.  You can use a web browser to confirm this.  Point your web browser to your public endpoint with `/tables/TodoItem` appended to it (e.g. `https://zumo-XXXXXXXX.azurewebsites.net/tables/TodoItem`).  The browser will display an error about a missing X-ZUMO-VERSION parameter if the server is working properly.
 
 > **Deleting the resources**
 >
