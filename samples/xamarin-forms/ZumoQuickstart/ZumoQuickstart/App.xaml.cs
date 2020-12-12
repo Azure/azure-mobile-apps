@@ -6,11 +6,18 @@ namespace ZumoQuickstart
 {
     public partial class App : Application
     {
-        public App()
-        {
-            InitializeComponent();
+        public IAppContext AppContext { get; }
 
-            MainPage = new MainPage();
+        public TodoService TodoService { get; }
+
+        public App(IAppContext context)
+        {
+            // Stores the app context
+            AppContext = context;
+            TodoService = new TodoService(context);
+
+            InitializeComponent();
+            MainPage = new NavigationPage(new TodoListPage(TodoService));
         }
 
         protected override void OnStart()

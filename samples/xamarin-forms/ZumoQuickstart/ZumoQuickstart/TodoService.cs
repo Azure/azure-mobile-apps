@@ -39,6 +39,12 @@ namespace ZumoQuickstart
 
         private MobileServiceClient mClient;
         private IMobileServiceTable<TodoItem> mTable;
+        private readonly IAppContext mContext;
+
+        public TodoService(IAppContext context)
+        {
+            mContext = context;
+        }
 
         private async Task InitializeAsync()
         {
