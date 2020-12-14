@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Xamarin.Forms;
@@ -54,8 +56,12 @@ namespace ZumoQuickstart
         /// <summary>
         /// Displays a pop-up alert message.
         /// </summary>
-        private Task DisplayAlert(string title, string message, string button)
-            => App.Current.MainPage.DisplayAlert(Title, message, button);
+        private void DisplayAlert(string title, string message, string button)
+        {
+            Device.BeginInvokeOnMainThread(new Action(async () =>
+                await App.Current.MainPage.DisplayAlert(title, message, button).ConfigureAwait(false)
+            ));
+        }
 
         #region Bindable Properties
         public string Title
@@ -107,14 +113,12 @@ namespace ZumoQuickstart
             {
                 var item = new TodoItem { Text = control.Text };
                 await TodoService.AddTodoItemAsync(item).ConfigureAwait(false);
-
-                // Cleans the Add Item EntryBox
                 control.Text = string.Empty;
                 control.Unfocus();
             }
             catch (Exception error)
             {
-                await DisplayAlert("Error", error.Message, "OK");
+                DisplayAlert("Error", error.Message, "OK");
             }
         }
 
@@ -125,10 +129,9 @@ namespace ZumoQuickstart
         /// <returns></returns>
         private async Task RefreshItemsAsync(bool syncItems = false)
         {
+            IsRefreshing = true;
             try
             {
-                IsRefreshing = true;
-
                 if (syncItems)
                 {
                     await TodoService.SynchronizeAsync().ConfigureAwait(false);
@@ -136,11 +139,14 @@ namespace ZumoQuickstart
 
                 var enumerable = await TodoService.GetTodoItemsAsync().ConfigureAwait(false);
                 Items = new ObservableCollection<TodoItem>(enumerable);
-                IsRefreshing = false;
             }
             catch (Exception error)
             {
-                await DisplayAlert("Error", error.Message, "OK");
+                DisplayAlert("Error", error.Message, "OK");
+            }
+            finally
+            {
+                IsRefreshing = false;
             }
         }
 
@@ -153,7 +159,7 @@ namespace ZumoQuickstart
             }
             catch (Exception error)
             {
-                await DisplayAlert("Error", error.Message, "OK");
+                DisplayAlert("Error", error.Message, "OK");
             }
         }
     }
