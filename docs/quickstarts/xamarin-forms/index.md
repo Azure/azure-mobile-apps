@@ -9,18 +9,19 @@ Completing this tutorial is a prerequisite for all other Xamarin Forms tutorials
 To complete this tutorial, you need the following:
 
 * An appropriate IDE:
-  * For Windows: install [Visual Studio 2019](https://docs.microsoft.com/xamarin/get-started/installation/windows).
-  * For Mac: install [Visual Studio for Mac](https://docs.microsoft.com/visualstudio/mac/installation).  
+    * For Windows: install [Visual Studio 2019](https://docs.microsoft.com/xamarin/get-started/installation/windows).
+    * For Mac: install [Visual Studio for Mac](https://docs.microsoft.com/visualstudio/mac/installation).
+
 * An [Azure account](https://azure.microsoft.com/pricing/free-trial).
 * The [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli).
     * [Log into your Azure account](https://docs.microsoft.com/cli/azure/authenticate-azure-cli) and [select a subscription](https://docs.microsoft.com/cli/azure/manage-azure-subscriptions-azure-cli) using the Azure CLI.
 * An [Android Virtual Device](https://developer.android.com/studio/run/managing-avds), with the following settings:
-  * Phone: Pixel 4 (includes Play Store)
-  * System Image: Oreo (API 27, x86, Google Play)
+    * Phone: Pixel 4 (includes Play Store)
+    * System Image: Oreo (API 27, x86, Google Play)
 * If compiling for iOS, you must have an available Mac.
-  * Install [XCode](https://itunes.apple.com/us/app/xcode/id497799835?mt=12)
-  * You must manually open Xcode after installing so that it can add any additional components.
-  * If completing the tutorial on Windows, follow the guide to [Pair to Mac](https://docs.microsoft.com/xamarin/ios/get-started/installation/windows/connecting-to-mac/).
+    * Install [XCode](https://itunes.apple.com/us/app/xcode/id497799835?mt=12)
+    * You must manually open Xcode after installing so that it can add any additional components.
+    * If completing the tutorial on Windows, follow the guide to [Pair to Mac](https://docs.microsoft.com/xamarin/ios/get-started/installation/windows/connecting-to-mac/).
 
 You can complete this tutorial on Mac or Windows.  If you wish to compile for the Universal Windows Platform (UWP), then you must use Windows.  If you wish to compile for iOS, then a Mac must be available.
 
@@ -34,7 +35,7 @@ Once downloaded, open a Terminal and change directory to the location of the fil
 
 ## Configure the Xamarin.Forms quickstart project
 
-Open the `ZumoQuickstart` solution in Visual Studio (located at `samples/xamarin-forms`).  Locate the shared `ZumoQuickstart` project. Edit the `Constants` class to replace the `BackendUrl` with your backend URL.  For example, if your backend URL was `https://zumo-abcd1234.azurewebsites.net`, then the file would look like this:
+Open the `ZumoQuickstart` solution in Visual Studio (located at `samples/xamarin-forms`).  Locate the shared `ZumoQuickstart` project. Edit the `Constants.cs` class to replace the `BackendUrl` with your backend URL.  For example, if your backend URL was `https://zumo-abcd1234.azurewebsites.net`, then the file would look like this:
 
 ``` csharp
 namespace ZumoQuickstart
@@ -52,11 +53,13 @@ namespace ZumoQuickstart
 }
 ```
 
-Save the file, then build your application.
+Save the file.
 
 ## Run the Android app
 
-TODO
+Right-click the `ZumoQuickStart.Android` project and select **Set as StartUp Project**.  The "start" button in the top ribbon will show an Android emulator.  Press F5 to build and run the project.  The Android emulator will start, then Visual Studio will install the app, and finally the app will start.
+
+Enter some text in the **Add New Item** field, then press enter or click the add item button.  This will add the item to the list.  Click on the item to set or clear the "completed" flag.
 
 ![Quickstart Android](./media/startup-android.png)
 

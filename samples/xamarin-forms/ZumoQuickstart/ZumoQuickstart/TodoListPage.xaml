@@ -20,8 +20,8 @@
                     <DataTemplate>
                         <ViewCell>
                             <StackLayout Padding="10,5,10,5" Orientation="Horizontal">
-                                <Label Style="{StaticResource listItemTitle}" Text="{Binding Title}" />
-                                <Image IsVisible="{Binding Completed}" Style="{StaticResource listItemIcon}" />
+                                <Label Style="{StaticResource listItemTitle}" Text="{Binding Text}" />
+                                <Image IsVisible="{Binding Complete}" Style="{StaticResource listItemIcon}" />
                             </StackLayout>
                         </ViewCell>
                     </DataTemplate>

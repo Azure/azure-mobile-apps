@@ -113,8 +113,10 @@ namespace ZumoQuickstart
             {
                 var item = new TodoItem { Text = control.Text };
                 await TodoService.AddTodoItemAsync(item).ConfigureAwait(false);
-                control.Text = string.Empty;
-                control.Unfocus();
+                Device.BeginInvokeOnMainThread(new Action(() => {
+                    control.Text = string.Empty;
+                    control.Unfocus();
+                }));
             }
             catch (Exception error)
             {
