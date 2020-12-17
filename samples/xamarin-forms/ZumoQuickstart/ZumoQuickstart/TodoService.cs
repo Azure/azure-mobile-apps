@@ -1,4 +1,6 @@
 ﻿using Microsoft.WindowsAzure.MobileServices;
+using Microsoft.WindowsAzure.MobileServices.SQLiteStore;
+using Microsoft.WindowsAzure.MobileServices.Sync;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -39,6 +41,7 @@ namespace ZumoQuickstart
 
         private MobileServiceClient mClient;
         private IMobileServiceTable<TodoItem> mTable;
+        // private IMobileServiceSyncTable<TodoItem> mTable;
         private readonly IAppContext mContext;
 
         public TodoService(IAppContext context)
@@ -54,6 +57,7 @@ namespace ZumoQuickstart
                 {
                     mClient = new MobileServiceClient(Constants.BackendUrl, new LoggingHandler());
                     mTable = mClient.GetTable<TodoItem>();
+                    // mTable = mClient.GetSyncTable<TodoItem>();
                     isInitialized = true;
                 }
             }
