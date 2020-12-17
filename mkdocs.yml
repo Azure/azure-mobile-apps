@@ -68,10 +68,7 @@ nav:
       - Android: howto/client/android.md
       - Apache Cordova: howto/client/cordova.md
       - iOS: howto/client/ios.md
-      - Windows (UWP): howto/client/uwp.md
-      - Xamarin.Android: howto/client/xamarin-android.md
-      - Xamarin.Forms: howto/client/xamarin-forms.md
-      - Xamarin.iOS: howto/client/xamarin-ios.md
+      - .NET: howto/client/dotnet.md
     - Work with the Server SDK:
       - ASP.NET Framework: howto/server/dotnet-framework.md
       - Node.js: howto/server/nodejs.md

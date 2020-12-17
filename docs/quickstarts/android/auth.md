@@ -1,6 +1,6 @@
 # Add Authentication
 
-In this tutorial, you add Microsoft authentication to the quickstart project on Android by using a supported identity provider. Before completing this tutorial, ensure you have [created the project](index.md) and [enabled offline sync](offline.md).
+In this tutorial, you add Microsoft authentication to the quickstart project on Android using Azure Active Directory. Before completing this tutorial, ensure you have [created the project](index.md) and [enabled offline sync](offline.md).
 
 {!quickstarts/includes/quickstart-configure-auth.md!}
 

@@ -5,6 +5,8 @@ using System.Linq;
 using Foundation;
 using UIKit;
 
+using Microsoft.WindowsAzure.MobileServices;
+
 namespace ZumoQuickstart.iOS
 {
     // The UIApplicationDelegate for the application. This class is responsible for launching the
@@ -22,6 +24,9 @@ namespace ZumoQuickstart.iOS
         //
         public override bool FinishedLaunching(UIApplication app, NSDictionary options)
         {
+            // Azure Mobile Apps
+            CurrentPlatform.Init();
+
             global::Xamarin.Forms.Forms.Init();
             LoadApplication(new App(this));
 

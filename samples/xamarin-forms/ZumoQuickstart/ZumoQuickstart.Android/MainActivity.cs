@@ -2,6 +2,8 @@
 using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
+using Microsoft.WindowsAzure.MobileServices;
+using System;
 
 namespace ZumoQuickstart.Droid
 {
@@ -14,6 +16,9 @@ namespace ZumoQuickstart.Droid
             ToolbarResource = Resource.Layout.Toolbar;
 
             base.OnCreate(savedInstanceState);
+
+            // Azure Mobile Apps
+            CurrentPlatform.Init();
 
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);
