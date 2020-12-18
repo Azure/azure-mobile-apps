@@ -93,28 +93,32 @@ You can now run the Android app in the emulator.  It will prompt you for a Micro
 
 Open the `AppDelegate.cs` class in the `ZumoQuickstart.iOS` project.  Add the following code to the end of the class:
 
-> **TODO** This code doesn't work yet.
-
 ``` csharp linenums="38"
     public override bool OpenUrl(UIApplication app, NSUrl url, NSDictionary options)
         => Xamarin.Essentials.Platform.OpenUrl(app, url, options);
 
-    public async Task<bool> AuthenticateAsync(MobileServiceClient client)
+    public Task<bool> AuthenticateAsync(MobileServiceClient client)
     {
+        var tcs = new TaskCompletionSource<bool>();
         var view = UIApplication.SharedApplication.KeyWindow.RootViewController;
-        try
+
+        Device.BeginInvokeOnMainThread(async () =>
         {
-            // This fails!
-            var user = await client.LoginAsync(view, "aad", "zumoquickstart").ConfigureAwait(false);
-            return user != null;
-        }
-        catch (Exception error)
-        {
-            var alert = UIAlertController.Create("Sign-in result", error.Message, UIAlertControllerStyle.Alert);
-            alert.AddAction(UIAlertAction.Create("OK", UIAlertActionStyle.Default, null));
-            view.PresentViewController(alert, true, null);
-            return false;
-        }
+            try
+            {
+                var user = await client.LoginAsync(view, "aad", "zumoquickstart");
+                tcs.TrySetResult(user != null);
+            }
+            catch (Exception error)
+            {
+                var alert = UIAlertController.Create("Sign-in result", error.Message, UIAlertControllerStyle.Alert);
+                alert.AddAction(UIAlertAction.Create("OK", UIAlertActionStyle.Default, null));
+                view.PresentViewController(alert, true, null);
+                tcs.TrySetResult(false);
+            }
+        });
+
+        return tcs.Task;
     }
 ```
 
@@ -139,6 +143,61 @@ Right-click on the `Info.plist` file, then select **Open with...**.  Select the 
 This redirects the response from the authentication web view back into the application.  You can now build and run the application.  When it runs, the login process will be triggered prior to the list of items being displayed.
 
 ### Add authentication to the UWP app
+
+Open the `App.xaml.cs` file within the `ZumoQuickstart.UWP` project.  Add the following code to the end of the class:
+
+``` csharp linenums="97"
+    public static MobileServiceClient CurrentClient { get; set; } = null;
+
+    protected override void OnActivated(IActivatedEventArgs args)
+    {
+        base.OnActivated(args);
+        if (args.Kind == ActivationKind.Protocol)
+        {
+            MobileServiceClientExtensions.ResumeWithURL(CurrentClient, (args as ProtocolActivatedEventArgs).Uri);
+        }
+    }
+```
+
+This calls the response handler within Azure Mobile Apps when the response from the authentication service is received.
+
+Open the `MainPage.xaml.cs` file and add the following code to the end of the class:
+
+``` csharp linenums="18"
+    public Task<bool> AuthenticateAsync(MobileServiceClient client)
+    {
+        var tcs = new TaskCompletionSource<bool>();
+        Device.BeginInvokeOnMainThread(async () =>
+        {
+            try
+            {
+                var user = await client.LoginAsync("aad", "zumoquickstart");
+                tcs.TrySetResult(user != null);
+            }
+            catch (Exception error)
+            {
+                var dialog = new MessageDialog(error.Message, "Sign-in error");
+                await dialog.ShowAsync();
+                tcs.TrySetResult(false);
+            }
+        });
+
+        return tcs.Task;
+    }
+```
+
+Finally, register the "zumoquickstart" protocol:
+
+* Open the `Package.appxmanifest` file.
+* Select the **Declarations** tab.
+* Under **Available Declarations**, select **Protocol** and then press **Add**.
+* Fill in the form as follows:
+    * Display name: _Authentication Response_
+    * Name: _zumoquickstart_
+    * ExecutableOrStartPageIsRequired: checked
+  All other fields can be left blank.
+
+You can now build and run the application.  When it runs, the login process will be triggered prior to the list of items being displayed.
 
 ## Test the app
 

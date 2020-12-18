@@ -117,6 +117,7 @@
   <ItemGroup>
     <BundleResource Include="additem.png" />
     <BundleResource Include="completed.png" />
+    <BundleResource Include="refresh.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

@@ -76,6 +76,7 @@
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\additem.png" />
     <AndroidResource Include="Resources\drawable\completed.png" />
+    <AndroidResource Include="Resources\drawable\refresh.png" />
     <AndroidResource Include="Resources\layout\Tabbar.xml" />
     <AndroidResource Include="Resources\layout\Toolbar.xml" />
     <AndroidResource Include="Resources\values\styles.xml" />
