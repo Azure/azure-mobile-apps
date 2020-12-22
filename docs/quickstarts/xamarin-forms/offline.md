@@ -12,11 +12,12 @@ In online operation, you read to and write from a `MobileServiceTable`.  When us
 
 In the `TodoService.cs` class:
 
-1. Update the definition of the `mTable` variable.  Comment out the current definition, and uncomment the offline sync version.
+1. Update the definition of the `mTable` variable, and add a definition for the local store.  Comment out the current definition, and uncomment the offline sync version.
 
     ``` csharp linenums="37"
     // private IMobileServiceTable<TodoItem> mTable;
     private IMobileServiceSyncTable<TodoItem> mTable;
+    private MobileServiceSQLiteStore mStore;
     ```
 
    Ensure you add relevant imports using Alt+Enter.

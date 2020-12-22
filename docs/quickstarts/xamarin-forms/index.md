@@ -94,8 +94,3 @@ Press F5 to build and run the project.  If you select
 
 ![Quickstart UWP](./media/uwp-startup.png)
 
-## Troubleshooting
-
-If you have problems building the solution, run the NuGet package manager and update to the latest version of `Xamarin.Forms` and `Microsoft.Azure.Mobile.Client` packages. Quickstart projects might not always include the latest versions.
-
-Please note that all the support packages referenced in your Android project must have the same version. The [Azure Mobile Apps NuGet package](https://www.nuget.org/packages/Microsoft.Azure.Mobile.Client/) has `Xamarin.Android.Support.CustomTabs` dependency for Android platform, so if your project uses newer support packages you need to install this package with required version directly to avoid conflicts.

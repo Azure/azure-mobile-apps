@@ -62,9 +62,3 @@ Press F5 to build and run the project.  The Android emulator will start, then Vi
 Enter some text in the **Add New Item** field, then press enter or click the add item button.  This will add the item to the list.  Click on the item to set or clear the "completed" flag.
 
 ![Quickstart Android](./media/android-startup.png)
-
-## Troubleshooting
-
-If you have problems building the solution, run the NuGet package manager and update to the latest version of the `Microsoft.Azure.Mobile.Client` packages. Quickstart projects might not always include the latest versions.
-
-Please note that all the support packages referenced in your Android project must have the same version. The [Azure Mobile Apps NuGet package](https://www.nuget.org/packages/Microsoft.Azure.Mobile.Client/) has `Xamarin.Android.Support.CustomTabs` dependency for Android platform, so if your project uses newer support packages you need to install this package with required version directly to avoid conflicts.
