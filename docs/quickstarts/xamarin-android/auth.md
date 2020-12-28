@@ -27,7 +27,7 @@ Update the `TodoService.cs` class so that it initiates a login process when init
 
 Then, edit the `InitializeAsync()` method to add the login call:
 
-``` csharp linenums="54" hl_lines="68-69"
+``` csharp linenums="54" hl_lines="15-16"
     private async Task InitializeAsync()
     {
         using (await initializationLock.LockAsync())
@@ -55,7 +55,7 @@ Then, edit the `InitializeAsync()` method to add the login call:
 
 Edit the `MainActivity.cs` file to pass the context into the service within the `OnCreate()` method:
 
-``` csharp linenums="33" hl_lines="35"
+``` csharp linenums="33" hl_lines="3"
     // Azure Mobile Apps
     CurrentPlatform.Init();
     todoService = new TodoService(this);
