@@ -69,6 +69,7 @@ namespace ZumoQuickstart
 
         public void BindItem(TodoItem item)
         {
+            mItem = item;
             mCheckbox.Text = item.Text;
             mCheckbox.Checked = item.Complete;
             mCheckbox.SetOnCheckedChangeListener(this);
