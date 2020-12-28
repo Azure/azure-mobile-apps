@@ -54,6 +54,7 @@ namespace ZumoQuickstart
         protected async override void OnResume()
         {
             base.OnResume();
+            Xamarin.Essentials.Platform.OnResume();
             await RefreshItemsAsync().ConfigureAwait(false);
         }
 
