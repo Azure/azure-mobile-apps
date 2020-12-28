@@ -16,7 +16,7 @@ To complete this tutorial, you will need to know the Backend URL for your applic
 2. Select **Azure Active Directory** > **App registrations** > **New registration**.
 3. In the **Register an application** page, enter `zumoquickstart` in the **Name** field.
 4. Under **Supported account types**, select **Accounts in any organizational directory (Any Azure AD directory - multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)**.
-5. In **Redirect URI**, select **Web** and type `<backend-url>/.auth/login/aad/callback`.  For example, if your backend URL is `https://web-abcd1234.azurewebsites.net`, you would enter `https://web-abcd1234.azurewebsites.net/.auth/login/aad/callback`.
+5. In **Redirect URI**, select **Web** and type `<backend-url>/.auth/login/aad/callback`.  For example, if your backend URL is `https://zumo-abcd1234.azurewebsites.net`, you would enter `https://zumo-abcd1234.azurewebsites.net/.auth/login/aad/callback`.
 6. Press the **Register** button at the bottom of the form.
 7. Copy the **Application (client) ID**.  You will need it later.
 8. From the left pane, select **Certificates & secrets** > **New client secret**.  Enter a suitable description, select a validity duration, then select **Add**.
