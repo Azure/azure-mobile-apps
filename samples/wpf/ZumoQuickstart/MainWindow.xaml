@@ -1,0 +1,31 @@
+﻿<Window
+    x:Class="ZumoQuickstart.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Azure Mobile Apps Quickstart"
+    Width="450"
+    Height="800">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+    <Grid>
+        <ProgressBar
+            x:Name="isRefreshingControl"
+            Margin="10,0"
+            IsEnabled="{Binding IsRefreshing}"
+            IsIndeterminate="True"
+            Maximum="100"
+            Minimum="0"
+            Visibility="{Binding Path=IsRefreshing, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        <ListView
+            x:Name="itemlist"
+            Margin="10"
+            ItemsSource="{Binding Items}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <CheckBox Content="{Binding Text}" IsChecked="{Binding Complete}" />
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</Window>
