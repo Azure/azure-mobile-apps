@@ -6,7 +6,7 @@ In this tutorial, you add Microsoft authentication to the quickstart project on 
 
 ## Test that authentication is being requested
 
-* Open your project in Android Studio. 
+* Open your project in Visual Studio
 * From the **Run** menu, click **Run app**.
 * Verify that an unhandled exception with a status code of 401 (Unauthorized) is raised after the app starts.
 
@@ -105,6 +105,7 @@ You can also do a Quick Start for another platform using the same backend server
 * [Android](../android/index.md)
 * [Apache Cordova](../cordova/index.md)
 * [iOS](../ios/index.md)
-* [UWP](../uwp/index.md)
+* [Windows (UWP)](../uwp/index.md)
+* [Windows (WPF)](../wpf/index.md)
 * [Xamarin.Forms](../xamarin-forms/index.md)
 * [Xamarin.iOS](../xamarin-ios/index.md)

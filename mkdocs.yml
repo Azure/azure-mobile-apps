@@ -49,6 +49,10 @@ nav:
       - Introduction: quickstarts/uwp/index.md
       - Add Offline Sync: quickstarts/uwp/offline.md
       - Add Authentication: quickstarts/uwp/auth.md
+    - Windows (WPF):
+      - Introduction: quickstarts/wpf/index.md
+      - Add Offline Sync: quickstarts/wpf/offline.md
+      - Add Authentication: quickstarts/wpf/auth.md
     - Xamarin.Android: 
       - Introduction: quickstarts/xamarin-android/index.md
       - Add Offline Sync: quickstarts/xamarin-android/offline.md

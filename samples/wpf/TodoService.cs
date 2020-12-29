@@ -174,7 +174,7 @@ namespace ZumoQuickstart
 
                 HttpResponseMessage response = await base.SendAsync(request, token).ConfigureAwait(false);
 
-                Debug.WriteLine($"[HTTP] <<< {response.StatusCode} {response.ReasonPhrase}");
+                Debug.WriteLine($"[HTTP] <<< {response}");
                 if (response.Content != null)
                 {
                     Debug.WriteLine($"[HTTP] <<< {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
