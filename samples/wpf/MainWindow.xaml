@@ -7,25 +7,78 @@
     Height="800">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        <Style x:Key="ImageButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <ContentPresenter />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="10" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <ProgressBar
             x:Name="isRefreshingControl"
-            Margin="10,0"
             IsEnabled="{Binding IsRefreshing}"
             IsIndeterminate="True"
             Maximum="100"
             Minimum="0"
             Visibility="{Binding Path=IsRefreshing, Converter={StaticResource BooleanToVisibilityConverter}}" />
         <ListView
-            x:Name="itemlist"
+            x:Name="itemlistControl"
+            Grid.Row="1"
             Margin="10"
-            ItemsSource="{Binding Items}">
+            ItemsSource="{Binding Items}"
+            ScrollViewer.CanContentScroll="True"
+            ScrollViewer.VerticalScrollBarVisibility="Auto"
+            SelectedIndex="-1"
+            SelectionChanged="itemListSelectionChangedHandler"
+            SelectionMode="Single">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <CheckBox Content="{Binding Text}" IsChecked="{Binding Complete}" />
+                    <CheckBox
+                        Margin="10"
+                        Content="{Binding Text}"
+                        IsChecked="{Binding Complete}" />
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+        <Grid Grid.Row="2" Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Row="0">
+                <TextBlock
+                    Margin="5,2"
+                    FontSize="20"
+                    Foreground="Gray"
+                    Text="Enter some text..."
+                    Visibility="{Binding ElementName=textboxControl, Path=Text.IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <TextBox
+                    x:Name="textboxControl"
+                    Background="Transparent"
+                    BorderBrush="Indigo"
+                    FontSize="20"
+                    KeyDown="textboxKeyDownHandler" />
+            </Grid>
+            <Button
+                Grid.Column="1"
+                Margin="4"
+                Click="additemClickHandler"
+                Style="{StaticResource ImageButtonStyle}">
+                <Image
+                    Width="24"
+                    Height="24"
+                    Source="/Images/additem.png" />
+            </Button>
+        </Grid>
     </Grid>
 </Window>

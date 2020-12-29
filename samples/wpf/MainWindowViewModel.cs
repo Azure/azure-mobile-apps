@@ -6,17 +6,17 @@ using System.Windows;
 
 namespace ZumoQuickstart
 {
-    public class MainWindowViewModel : INotifyPropertyChanged, IAppContext
+    public class MainWindowViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         private ObservableCollection<TodoItem> _items;
         private readonly TodoService _service;
         private bool _isRefreshing = false;
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(IAppContext appContext)
         {
             _items = new ObservableCollection<TodoItem>();
-            _service = new TodoService(this);
+            _service = new TodoService(appContext);
         }
 
         public async void OnActivated()
@@ -107,6 +107,42 @@ namespace ZumoQuickstart
             finally
             {
                 IsRefreshing = false;
+            }
+        }
+
+        /// <summary>
+        /// Adds an item to the list of items in the store.
+        /// </summary>
+        /// <param name="text">The text of the new item</param>
+        /// <returns></returns>
+        public async Task AddItemAsync(string text)
+        {
+            try
+            {
+                var item = new TodoItem { Text = text };
+                await _service.AddTodoItemAsync(item).ConfigureAwait(false);
+            }
+            catch (Exception error)
+            {
+                DisplayAlert("Add Item Error", error.Message);
+            }
+        }
+
+        /// <summary>
+        /// Called when an item is selected within the list.
+        /// </summary>
+        /// <param name="item">The item that was selected</param>
+        /// <returns></returns>
+        public async Task SelectItemAsync(TodoItem item)
+        {
+            try
+            {
+                item.Complete = !item.Complete;
+                await _service.SaveTodoItemAsync(item).ConfigureAwait(false);
+            }
+            catch (Exception error)
+            {
+                DisplayAlert("Error", error.Message);
             }
         }
     }
