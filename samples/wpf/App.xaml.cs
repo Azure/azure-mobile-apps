@@ -13,5 +13,7 @@ namespace ZumoQuickstart
     /// </summary>
     public partial class App : Application
     {
+        internal static void RunOnUiThread(Action p)
+            => App.Current.Dispatcher.Invoke(p);
     }
 }

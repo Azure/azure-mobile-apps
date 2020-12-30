@@ -95,11 +95,8 @@ When you add data items, they are held in the local SQLite store, but not synced
 
 When you refresh the data, a new background task starts. It first pushes all changes made to the local store using synchronization context, then pulls all changed data from Azure to the local table.
 
-### Offline testing
-
-1. Place your Windows system in *Airplane Mode*. This creates an offline scenario.
-2. Add some Todo items, or mark some items as complete. Close and restart the app. Verify that your changes have been persisted on the device because they are held in the local SQLite store.  
-3. Close the app again, then turn off *Airplane Mode* on your Windows system.
-4. View the contents of the Azure *TodoItem* table either with a SQL tool such as *SQL Server Management Studio*, or a REST client such as *Fiddler* or *Postman*. Verify that the new items have *not* been synced to the server
-4. Restart the app.  This will refresh the data in the offline cache and push any changes to the server.
-5. View the TodoItem data again in the Azure portal. The new and changed TodoItems should now appear.
+1. Open the app.  This will automatically refresh the data from the server.
+2. Make some changes to the data through the app.  Add an item, or change the completion state.
+3. View the data through the Azure Portal, SQL Server Manager, or another app that is viewing the data without offline capabilities.  Note that the changes have not been pushed to the service.
+4. Click on the _Refresh_ button to push the changes to the server.
+5. View the data again.  Note that the changes have been pushed to the service.

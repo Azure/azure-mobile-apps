@@ -13,15 +13,15 @@ namespace ZumoQuickstart
         private readonly TodoService _service;
         private bool _isRefreshing = false;
 
-        public MainWindowViewModel(IAppContext appContext)
+        public MainWindowViewModel(TodoService todoService)
         {
             _items = new ObservableCollection<TodoItem>();
-            _service = new TodoService(appContext);
+            _service = todoService;
         }
 
         public async void OnActivated()
         {
-            await RefreshItemsAsync().ConfigureAwait(false);
+            await RefreshItemsAsync(true).ConfigureAwait(false);
             _service.TodoListUpdated += OnServiceUpdated;
         }
 
@@ -55,18 +55,21 @@ namespace ZumoQuickstart
         /// <param name="e"></param>
         private void OnServiceUpdated(object sender, TodoListEventArgs e)
         {
-            switch (e.Action)
+            App.RunOnUiThread(() =>
             {
-                case TodoListAction.Add:
-                    Items.Add(e.Item);
-                    break;
-                case TodoListAction.Delete:
-                    Items.RemoveIf(m => m.Id == e.Item.Id);
-                    break;
-                case TodoListAction.Update:
-                    Items.ReplaceIf(m => m.Id == e.Item.Id, e.Item);
-                    break;
-            }
+                switch (e.Action)
+                {
+                    case TodoListAction.Add:
+                        Items.Add(e.Item);
+                        break;
+                    case TodoListAction.Delete:
+                        Items.RemoveIf(m => m.Id == e.Item.Id);
+                        break;
+                    case TodoListAction.Update:
+                        Items.ReplaceIf(m => m.Id == e.Item.Id, e.Item);
+                        break;
+                }
+            });
         }
 
         #region Bindable Properties
@@ -88,7 +91,7 @@ namespace ZumoQuickstart
         /// </summary>
         /// <param name="syncItems">If true, synchronize with the backend store prior to fetch</param>
         /// <returns></returns>
-        private async Task RefreshItemsAsync(bool syncItems = false)
+        public async Task RefreshItemsAsync(bool syncItems = false)
         {
             IsRefreshing = true;
             try
@@ -129,15 +132,17 @@ namespace ZumoQuickstart
         }
 
         /// <summary>
-        /// Called when an item is selected within the list.
+        /// Called when an item is to be updated in the list.
         /// </summary>
-        /// <param name="item">The item that was selected</param>
+        /// <param name="itemId">The ID of the item</param>
+        /// <param name="isComplete">The state of the complete flag</param>
         /// <returns></returns>
-        public async Task SelectItemAsync(TodoItem item)
+        public async Task UpdateItemAsync(string itemId, bool isComplete)
         {
             try
             {
-                item.Complete = !item.Complete;
+                var item = Items.Where(m => m.Id == itemId).Single();
+                item.Complete = isComplete;
                 await _service.SaveTodoItemAsync(item).ConfigureAwait(false);
             }
             catch (Exception error)

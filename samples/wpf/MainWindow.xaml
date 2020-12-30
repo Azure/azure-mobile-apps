@@ -37,16 +37,15 @@
             Margin="10"
             ItemsSource="{Binding Items}"
             ScrollViewer.CanContentScroll="True"
-            ScrollViewer.VerticalScrollBarVisibility="Auto"
-            SelectedIndex="-1"
-            SelectionChanged="itemListSelectionChangedHandler"
-            SelectionMode="Single">
+            ScrollViewer.VerticalScrollBarVisibility="Auto">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <CheckBox
                         Margin="10"
+                        Click="CheckboxClickHandler"
                         Content="{Binding Text}"
-                        IsChecked="{Binding Complete}" />
+                        IsChecked="{Binding Complete}"
+                        Tag="{Binding Id}" />
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
@@ -54,30 +53,51 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Grid Grid.Row="0">
                 <TextBlock
                     Margin="5,2"
                     FontSize="20"
                     Foreground="Gray"
-                    Text="Enter some text..."
-                    Visibility="{Binding ElementName=textboxControl, Path=Text.IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Text="Enter some text...">
+                    <TextBlock.Style>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Text, ElementName=textboxControl}" Value="">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
                 <TextBox
                     x:Name="textboxControl"
                     Background="Transparent"
                     BorderBrush="Indigo"
                     FontSize="20"
-                    KeyDown="textboxKeyDownHandler" />
+                    KeyDown="TextboxKeyDownHandler" />
             </Grid>
             <Button
                 Grid.Column="1"
                 Margin="4"
-                Click="additemClickHandler"
+                Click="AddItemClickHandler"
                 Style="{StaticResource ImageButtonStyle}">
                 <Image
                     Width="24"
                     Height="24"
                     Source="/Images/additem.png" />
+            </Button>
+            <Button
+                Grid.Column="2"
+                Margin="4"
+                Click="RefreshItemsClickHandler"
+                Style="{StaticResource ImageButtonStyle}">
+                <Image
+                    Width="24"
+                    Height="24"
+                    Source="/Images/refresh.png" />
             </Button>
         </Grid>
     </Grid>
