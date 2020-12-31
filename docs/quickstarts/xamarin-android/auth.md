@@ -97,7 +97,7 @@ From the **Run** menu, click **Run app** to start the app.  You will be prompted
 
 Take a look at the HOW TO sections:
 
-* Server ([Node.js](../../howto/server/nodejs.md) or [ASP.NET Framework](../../howto/server/dotnet-framework.md)
+* Server ([Node.js](../../howto/server/nodejs.md) or [ASP.NET Framework](../../howto/server/dotnet-framework.md))
 * [.NET Client](../../howto/client/dotnet.md)
 
 You can also do a Quick Start for another platform using the same backend server:

@@ -141,7 +141,7 @@ namespace ZumoQuickstart
         {
             try
             {
-                var item = Items.Where(m => m.Id == itemId).Single();
+                var item = Items.Single(m => m.Id == itemId);
                 item.Complete = isComplete;
                 await _service.SaveTodoItemAsync(item).ConfigureAwait(false);
             }

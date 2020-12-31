@@ -25,7 +25,7 @@ namespace ZumoQuickstart.Droid
             LoadApplication(new App(this));
         }
 
-        protected async override void OnResume()
+        protected override void OnResume()
         {
             base.OnResume();
             Xamarin.Essentials.Platform.OnResume();
