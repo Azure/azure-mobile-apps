@@ -43,7 +43,6 @@ namespace ZumoQuickstart
         /// </summary>
         /// <param name="title"></param>
         /// <param name="message"></param>
-        /// <param name="button"></param>
         private void DisplayAlert(string title, string message)
             => MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Exclamation);
 

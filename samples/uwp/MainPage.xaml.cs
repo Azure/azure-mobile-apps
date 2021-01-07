@@ -1,19 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using Windows.System;
+using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
 namespace ZumoQuickstart
 {
@@ -22,9 +12,26 @@ namespace ZumoQuickstart
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        private static readonly TodoService _service = new TodoService();
+
         public MainPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
+        }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            // _viewModel.OnActivated();
+        }
+
+        private void TextboxKeyDownHandler(object sender, Windows.UI.Xaml.Input.KeyRoutedEventArgs e)
+        {
+            if (e.Key == VirtualKey.Enter || e.Key == VirtualKey.Accept)
+            {
+                // Execute the async action in the viewModel for adding an item
+                throw new System.NotImplementedException();
+            }
         }
     }
 }

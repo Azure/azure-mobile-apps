@@ -9,7 +9,7 @@ namespace ZumoQuickstart
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window, IAppContext
+    public partial class MainWindow : Window
     {
         private readonly MainWindowViewModel _viewModel;
         private static readonly TodoService _service = new TodoService();
