@@ -8,7 +8,7 @@
         /// <summary>
         /// The base URL of the backend service within Azure.
         /// </summary>
-        public static string BackendUrl { get; } = "https://ZUMOAPPNAME.azurewebsites.net";
+        public static string BackendUrl { get; } = "https://zumo-nnufwob7xsvby.azurewebsites.net";
     }
 }
 

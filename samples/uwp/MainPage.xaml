@@ -7,6 +7,17 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     mc:Ignorable="d">
+    <Page.Resources>
+        <Style x:Key="ImageButtonStyle" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="10" />
@@ -24,11 +35,11 @@
             Grid.Row="0"
             Grid.Column="0"
             Grid.ColumnSpan="3"
-            IsEnabled="{Binding IsRefreshing}"
+            IsEnabled="{x:Bind IsRefreshing}"
             IsIndeterminate="True"
             Maximum="100"
             Minimum="0"
-            Visibility="{Binding IsRefreshing, Mode=OneWay}" />
+            Visibility="{x:Bind IsRefreshing, Mode=OneWay}" />
 
         <ListView
             x:Name="itemListControl"
@@ -36,16 +47,16 @@
             Grid.Column="0"
             Grid.ColumnSpan="3"
             Margin="10"
-            ItemsSource="{Binding Items}">
+            ItemsSource="{x:Bind Items}">
 
             <ListView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="local:TodoItem">
                     <CheckBox
                         Margin="10"
-                        Command="{Binding UpdateItemCommand}"
-                        Content="{Binding Text}"
-                        IsChecked="{Binding Complete}"
-                        Tag="{Binding Id}" />
+                        Checked="CheckboxCheckedHandler"
+                        Content="{x:Bind Text}"
+                        IsChecked="{x:Bind Complete}"
+                        Tag="{x:Bind Id}" />
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
@@ -58,14 +69,14 @@
             FontSize="20"
             KeyDown="TextboxKeyDownHandler"
             PlaceholderText="Enter some text..."
-            Text="{Binding TextBoxContext, Mode=TwoWay}" />
+            Text="{x:Bind Path=TextBoxContent, Mode=TwoWay}" />
 
         <Button
             x:Name="addItemButtonControl"
             Grid.Row="2"
             Grid.Column="1"
             Margin="4"
-            Command="{Binding AddItemCommand}"
+            Click="AddItemClickedHandler"
             Style="{StaticResource ImageButtonStyle}">
             <Image
                 Width="24"
@@ -78,7 +89,7 @@
             Grid.Row="2"
             Grid.Column="2"
             Margin="4"
-            Command="{Binding RefreshItemsCommand}"
+            Click="RefreshItemsClickedHandler"
             Style="{StaticResource ImageButtonStyle}">
             <Image
                 Width="24"
