@@ -1,7 +1,7 @@
 ﻿using Microsoft.WindowsAzure.MobileServices;
 using System;
 
-namespace ZumoQuickstart
+namespace ZumoQuickstart.Models
 {
     /// <summary>
     /// Model for a single TodoItem

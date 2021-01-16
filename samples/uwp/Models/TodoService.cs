@@ -9,7 +9,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ZumoQuickstart
+namespace ZumoQuickstart.Models
 {
     /// <summary>
     /// The possible actions for a list change.
@@ -36,6 +36,11 @@ namespace ZumoQuickstart
     /// </summary>
     public class TodoService
     {
+        /// <summary>
+        /// Simplified Singleton
+        /// </summary>
+        public static readonly TodoService Instance = new TodoService();
+
         private bool isInitialized = false;
         private readonly AsyncLock initializationLock = new AsyncLock();
 
@@ -73,9 +78,9 @@ namespace ZumoQuickstart
         public async Task AddTodoItemAsync(TodoItem item)
         {
             EnsureNotNull(item, nameof(item));
-            await InitializeAsync().ConfigureAwait(false);
+            await InitializeAsync();
 
-            await mTable.InsertAsync(item).ConfigureAwait(false);
+            await mTable.InsertAsync(item);
             OnTodoListChanged(TodoListAction.Add, item);
         }
 
@@ -86,14 +91,14 @@ namespace ZumoQuickstart
         public async Task DeleteTodoItemAsync(TodoItem item)
         {
             EnsureNotNull(item, nameof(item));
-            await InitializeAsync().ConfigureAwait(false);
+            await InitializeAsync();
 
             if (item.Id == null)
             {
                 throw new ArgumentException("Item has not yet been added", nameof(item));
             }
 
-            await mTable.DeleteAsync(item).ConfigureAwait(false);
+            await mTable.DeleteAsync(item);
             OnTodoListChanged(TodoListAction.Delete, item);
         }
 
@@ -102,8 +107,8 @@ namespace ZumoQuickstart
         /// </summary>
         public async Task<IEnumerable<TodoItem>> GetTodoItemsAsync()
         {
-            await InitializeAsync().ConfigureAwait(false);
-            return await mTable.ToEnumerableAsync().ConfigureAwait(false);
+            await InitializeAsync();
+            return await mTable.ToEnumerableAsync();
         }
 
         /// <summary>
@@ -118,7 +123,7 @@ namespace ZumoQuickstart
         /// </summary>
         public async Task SynchronizeAsync()
         {
-            await InitializeAsync().ConfigureAwait(false);
+            await InitializeAsync();
         }
 
         /// <summary>
@@ -128,13 +133,13 @@ namespace ZumoQuickstart
         public async Task UpdateTodoItemAsync(TodoItem item)
         {
             EnsureNotNull(item, nameof(item));
-            await InitializeAsync().ConfigureAwait(false);
+            await InitializeAsync();
             if (item.Id == null)
             {
                 throw new ArgumentException("Item has not been added", nameof(item));
             }
 
-            await mTable.UpdateAsync(item).ConfigureAwait(false);
+            await mTable.UpdateAsync(item);
             OnTodoListChanged(TodoListAction.Update, item);
         }
 
@@ -164,15 +169,15 @@ namespace ZumoQuickstart
                 Debug.WriteLine($"[HTTP] >>> {request}");
                 if (request.Content != null)
                 {
-                    Debug.WriteLine($"[HTTP] >>> {await request.Content.ReadAsStringAsync().ConfigureAwait(false)}");
+                    Debug.WriteLine($"[HTTP] >>> {await request.Content.ReadAsStringAsync()}");
                 }
 
-                HttpResponseMessage response = await base.SendAsync(request, token).ConfigureAwait(false);
+                HttpResponseMessage response = await base.SendAsync(request, token);
 
                 Debug.WriteLine($"[HTTP] <<< {response}");
                 if (response.Content != null)
                 {
-                    Debug.WriteLine($"[HTTP] <<< {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
+                    Debug.WriteLine($"[HTTP] <<< {await response.Content.ReadAsStringAsync()}");
                 }
 
                 return response;
