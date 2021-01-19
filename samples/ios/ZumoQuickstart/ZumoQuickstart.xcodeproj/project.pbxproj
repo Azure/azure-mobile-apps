@@ -7,12 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3A3EB5C225B67F460069F51C /* TodoListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A3EB5C125B67F460069F51C /* TodoListView.swift */; };
 		3AE6314025B66CAB008D56E3 /* ZumoQuickstartApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AE6313F25B66CAB008D56E3 /* ZumoQuickstartApp.swift */; };
 		3AE6314425B66CAE008D56E3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3AE6314325B66CAE008D56E3 /* Assets.xcassets */; };
 		3AE6314725B66CAE008D56E3 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3AE6314625B66CAE008D56E3 /* Preview Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3A3EB5C125B67F460069F51C /* TodoListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoListView.swift; sourceTree = "<group>"; };
 		3AE6313C25B66CAB008D56E3 /* ZumoQuickstart.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZumoQuickstart.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AE6313F25B66CAB008D56E3 /* ZumoQuickstartApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZumoQuickstartApp.swift; sourceTree = "<group>"; };
 		3AE6314325B66CAE008D56E3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -31,6 +33,35 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3A3EB5BD25B67F1A0069F51C /* Services */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		3A3EB5BE25B67F240069F51C /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		3A3EB5BF25B67F2D0069F51C /* Models */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		3A3EB5C025B67F330069F51C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				3A3EB5C125B67F460069F51C /* TodoListView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
 		3AE6313325B66CAB008D56E3 = {
 			isa = PBXGroup;
 			children = (
@@ -50,6 +81,10 @@
 		3AE6313E25B66CAB008D56E3 /* ZumoQuickstart */ = {
 			isa = PBXGroup;
 			children = (
+				3A3EB5C025B67F330069F51C /* Views */,
+				3A3EB5BF25B67F2D0069F51C /* Models */,
+				3A3EB5BE25B67F240069F51C /* ViewModels */,
+				3A3EB5BD25B67F1A0069F51C /* Services */,
 				3AE6315825B66DC3008D56E3 /* App */,
 				3AE6314325B66CAE008D56E3 /* Assets.xcassets */,
 				3AE6314D25B66CAE008D56E3 /* Info.plist */,
@@ -143,6 +178,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3A3EB5C225B67F460069F51C /* TodoListView.swift in Sources */,
 				3AE6314025B66CAB008D56E3 /* ZumoQuickstartApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
