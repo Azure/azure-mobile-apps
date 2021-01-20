@@ -3,12 +3,13 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		3A06BD5125B791EF005C32C8 /* TodoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A06BD5025B791EF005C32C8 /* TodoService.swift */; };
 		3A06BD5425B7932B005C32C8 /* TodoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A06BD5325B7932B005C32C8 /* TodoItem.swift */; };
+		3A06BD5A25B8CE0C005C32C8 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A06BD5925B8CE0C005C32C8 /* Constants.swift */; };
 		3A3EB5C225B67F460069F51C /* TodoListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A3EB5C125B67F460069F51C /* TodoListView.swift */; };
 		3AE6314025B66CAB008D56E3 /* ZumoQuickstartApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AE6313F25B66CAB008D56E3 /* ZumoQuickstartApp.swift */; };
 		3AE6314425B66CAE008D56E3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3AE6314325B66CAE008D56E3 /* Assets.xcassets */; };
@@ -19,6 +20,7 @@
 /* Begin PBXFileReference section */
 		3A06BD5025B791EF005C32C8 /* TodoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoService.swift; sourceTree = "<group>"; };
 		3A06BD5325B7932B005C32C8 /* TodoItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoItem.swift; sourceTree = "<group>"; };
+		3A06BD5925B8CE0C005C32C8 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		3A3EB5C125B67F460069F51C /* TodoListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoListView.swift; sourceTree = "<group>"; };
 		3AE6313C25B66CAB008D56E3 /* ZumoQuickstart.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZumoQuickstart.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AE6313F25B66CAB008D56E3 /* ZumoQuickstartApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZumoQuickstartApp.swift; sourceTree = "<group>"; };
@@ -102,6 +104,7 @@
 				3AE6314325B66CAE008D56E3 /* Assets.xcassets */,
 				3AE6314D25B66CAE008D56E3 /* Info.plist */,
 				3AE6314525B66CAE008D56E3 /* Preview Content */,
+				3A06BD5925B8CE0C005C32C8 /* Constants.swift */,
 			);
 			path = ZumoQuickstart;
 			sourceTree = "<group>";
@@ -136,7 +139,6 @@
 				A5F36E0197364CFE4C724A2B /* Pods-ZumoQuickstart.debug.xcconfig */,
 				97772A5CB7A87D59C0A96BB4 /* Pods-ZumoQuickstart.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -253,6 +255,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3A06BD5A25B8CE0C005C32C8 /* Constants.swift in Sources */,
 				3A06BD5125B791EF005C32C8 /* TodoService.swift in Sources */,
 				3A3EB5C225B67F460069F51C /* TodoListView.swift in Sources */,
 				3A06BD5425B7932B005C32C8 /* TodoItem.swift in Sources */,
