@@ -1,0 +1,16 @@
+PODS:
+  - MicrosoftAzureMobile (3.4.0)
+
+DEPENDENCIES:
+  - MicrosoftAzureMobile (~> 3.4)
+
+SPEC REPOS:
+  trunk:
+    - MicrosoftAzureMobile
+
+SPEC CHECKSUMS:
+  MicrosoftAzureMobile: 82719f7f9e1e3389d5c2fe5f6be034c344004e12
+
+PODFILE CHECKSUM: a4fda470822860735b6b1a62a98f377890c1d627
+
+COCOAPODS: 1.10.1
