@@ -8,16 +8,15 @@
 import SwiftUI
 
 struct TodoListView: View {
+    func refreshData() -> Void {
+        // Refresh data
+    }
+    
     var body: some View {
         VStack {
-            // Header
-            Text("Header")
-            
-            // Scrollable List Items
-            Text("List Items")
+            Header()
+            TodoItemList()
             Spacer()
-            
-            // Entry Area
             Text("Entry Area")
         }
     }
