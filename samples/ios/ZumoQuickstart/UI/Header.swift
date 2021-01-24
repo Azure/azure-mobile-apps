@@ -29,7 +29,11 @@ struct HeaderBackground: View {
 }
 
 struct Header: View {
-    let onRefresh: (() -> Void)? = nil
+    let onRefresh: (() -> Void)?
+    
+    init(onRefresh: (() -> Void)? = nil) {
+        self.onRefresh = onRefresh
+    }
     
     func triggerOnRefresh() {
         if let trigger = self.onRefresh {

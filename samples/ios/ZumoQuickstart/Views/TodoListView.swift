@@ -2,26 +2,28 @@ import SwiftUI
 
 struct TodoListView: View {
     @ObservedObject var repository = TodoService.shared
-    @State var isAlerting = false
-    @State var alertText = ""
     
     var body: some View {
         VStack {
-            Header()
+            Header(onRefresh: { repository.getTodoItems() })
+            if (repository.isBusy) {
+                ActivityIndicator(shouldAnimate: $repository.isBusy)
+            }
             List(repository.items) { todoItem in
-                Text(todoItem.text)
+                HStack {
+                    CheckItem(todoItem.complete, onChange: { repository.toggleCompletion(todoItem) })
+                        .disabled(repository.isBusy)
+                    Text(todoItem.text)
+                }
             }
             Spacer()
             AddItemControl() { text in
-                repository.addTodoItem(text) { error in
-                    if error != nil {
-                        self.isAlerting = true
-                    }
-                }
-            }
-        }.alert(isPresented: $isAlerting, content: {
-            Alert(title: Text("Error"))
-        })
+                repository.addTodoItem(text)
+            }.disabled(repository.isBusy)
+        }.alert(
+            isPresented: $repository.hasError,
+            content: { Alert(title: Text(repository.errorMessage)) }
+        )
     }
 }
 
