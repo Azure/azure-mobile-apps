@@ -24,8 +24,8 @@ class TodoService: ObservableObject {
     }
     
     private func setErrorCondition(_ error: Error) {
-        self.hasError = true
         self.errorMessage = error.localizedDescription
+        self.hasError = true
         self.isBusy = false
     }
     
@@ -37,11 +37,19 @@ class TodoService: ObservableObject {
             if let initError = initError {
                 self.setErrorCondition(initError)
             } else {
-                table.query().read { (queryResult, readError) in
+                table.read() { (result, readError) in
                     if let readError = readError {
                         self.setErrorCondition(readError)
+                    } else if let serverItems = result?.items {
+                        var fromServer = [TodoItem]()
+                        for serverItem in serverItems {
+                            fromServer.append(TodoItem(serverItem: serverItem))
+                        }
+                        self.items = fromServer
+                        self.isBusy = false
                     } else {
-                        // Convert the queryResult to the items and store
+                        self.errorMessage = "Result not returned"
+                        self.hasError = true
                         self.isBusy = false
                     }
                 }
@@ -54,8 +62,17 @@ class TodoService: ObservableObject {
             if let initError = initError {
                 self.setErrorCondition(initError)
             } else {
-                // Create item, convert to AnyHashable, store, then returned item to items
-                items.append(TodoItem(text: text))
+                let clientItem = TodoItem(text: text)
+                self.table.insert(clientItem.toDictionary()) { (result, insertError) in
+                    if let insertError = insertError {
+                        self.setErrorCondition(insertError)
+                    } else if let serverItem = result {
+                        self.items.append(TodoItem(serverItem: serverItem))
+                    } else {
+                        self.errorMessage = "Invalid response from server on insert"
+                        self.hasError = true
+                    }
+                }
             }
         }
     }
@@ -65,12 +82,27 @@ class TodoService: ObservableObject {
     }
     
     func saveTodoItem(_ item: TodoItem) {
-        // Create item, convert to AnyHashable, store, then fix up items
-        if let index = items.firstIndex(where: { $0.id == item.id }) {
-            items[index] = item
-        } else {
-            hasError = true
-            errorMessage = "Item \(item.id) is not found"
+        initialize { initError in
+            if let initError = initError {
+                self.setErrorCondition(initError)
+            } else {
+                self.table.update(item.toDictionary()) { (result, updateError) in
+                    if let updateError = updateError {
+                        self.setErrorCondition(updateError)
+                    } else if let serverItem = result {
+                        let clientItem = TodoItem(serverItem: serverItem)
+                        if let index = self.items.firstIndex(where: { $0.id == clientItem.id }) {
+                            self.items[index] = clientItem
+                        } else {
+                            self.errorMessage = "Item with id \(clientItem.id) does not exist"
+                            self.hasError = true
+                        }
+                    } else {
+                        self.errorMessage = "Invalid response from server on update"
+                        self.hasError = true
+                    }
+                }
+            }
         }
     }
 }

@@ -25,4 +25,24 @@ struct TodoItem: Codable, Identifiable {
         self.text = text
         self.complete = complete
     }
+    
+    /**
+     Initialize a TodoItem with data from the server
+     */
+    init(serverItem: [AnyHashable: Any]) {
+        self.id = serverItem["id"] as! String
+        self.text = serverItem["Text"] as! String
+        self.complete = serverItem["Complete"] as! Bool
+    }
+    
+    /**
+     Convert a TodoItem to the AnyHashable dictionary form required by the server.
+     */
+    func toDictionary() -> [String: Any] {
+        var serverItem = [String: Any]()
+        serverItem["id"] = self.id
+        serverItem["Text"] = self.text
+        serverItem["Complete"] = self.complete
+        return serverItem
+    }
 }
