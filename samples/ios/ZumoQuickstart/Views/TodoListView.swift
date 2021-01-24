@@ -1,29 +1,34 @@
-//
-//  TodoListView.swift
-//  ZumoQuickstart
-//
-//  Created by Adrian Hall on 1/23/21.
-//
-
 import SwiftUI
 
 struct TodoListView: View {
-    func refreshData() -> Void {
-        // Refresh data
+    @State var todoItems: [TodoItem] = [
+        TodoItem(text: "Item 1"),
+        TodoItem(text: "Item 2"),
+        TodoItem(text: "Item 3")
+    ]
+    
+    func addNewItem(_ text: String) {
+        if (!text.isEmpty) {
+            self.todoItems.append(TodoItem(text: text))
+        }
     }
     
     var body: some View {
         VStack {
             Header()
-            TodoItemList()
+            List(todoItems) { todoItem in
+                Text(todoItem.text)
+            }
             Spacer()
-            Text("Entry Area")
+            AddItemControl() { text in addNewItem(text) }
         }
     }
 }
 
+#if DEBUG
 struct TodoListView_Previews: PreviewProvider {
     static var previews: some View {
         TodoListView()
     }
 }
+#endif

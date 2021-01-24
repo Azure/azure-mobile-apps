@@ -11,6 +11,7 @@ func ColorFromRGB(_ rgb: UInt) -> Color {
 
 struct Palette {
     /* Put all your colors here */
+    static let border = ColorFromRGB(0x3867D5)
     
     /* And your gradients */
     static let headerGradient = Gradient(colors: [
