@@ -1,27 +1,27 @@
 import SwiftUI
 
 struct TodoListView: View {
-    @State var todoItems: [TodoItem] = [
-        TodoItem(text: "Item 1"),
-        TodoItem(text: "Item 2"),
-        TodoItem(text: "Item 3")
-    ]
-    
-    func addNewItem(_ text: String) {
-        if (!text.isEmpty) {
-            self.todoItems.append(TodoItem(text: text))
-        }
-    }
+    @ObservedObject var repository = TodoService.shared
+    @State var isAlerting = false
+    @State var alertText = ""
     
     var body: some View {
         VStack {
             Header()
-            List(todoItems) { todoItem in
+            List(repository.items) { todoItem in
                 Text(todoItem.text)
             }
             Spacer()
-            AddItemControl() { text in addNewItem(text) }
-        }
+            AddItemControl() { text in
+                repository.addTodoItem(text) { error in
+                    if error != nil {
+                        self.isAlerting = true
+                    }
+                }
+            }
+        }.alert(isPresented: $isAlerting, content: {
+            Alert(title: Text("Error"))
+        })
     }
 }
 
