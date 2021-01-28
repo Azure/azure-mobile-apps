@@ -11,15 +11,18 @@ class TodoService: ObservableObject {
     @Published var errorMessage = ""
     
     private let client: MSClient
-    private let table: MSTable
+    private var store: MSCoreDataStore?
+    
+    private var table: MSTable?
+    // private var table: MSSyncTable?
     
     private init() {
         client = MSClient(applicationURLString: Constants.BackendURL)
-        table = client.table(withName: "TodoItem")
         getTodoItems()
     }
     
     private func initialize(completion: (Error?) -> Void) {
+        table = client.table(withName: "TodoItem")
         completion(nil)
     }
     
@@ -37,7 +40,7 @@ class TodoService: ObservableObject {
             if let initError = initError {
                 self.setErrorCondition(initError)
             } else {
-                table.read() { (result, readError) in
+                table?.read() { (result, readError) in
                     if let readError = readError {
                         self.setErrorCondition(readError)
                     } else if let serverItems = result?.items {
