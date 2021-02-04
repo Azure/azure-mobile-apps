@@ -33,18 +33,10 @@ plugins:
 nav:
   - Home: index.md
   - Quickstarts:
-    - Android: 
-      - Introduction: quickstarts/android/index.md
-      - Add Offline Sync: quickstarts/android/offline.md
-      - Add Authentication: quickstarts/android/auth.md
     - Apache Cordova: 
       - Introduction: quickstarts/cordova/index.md
       - Add Offline Sync: quickstarts/cordova/offline.md
       - Add Authentication: quickstarts/cordova/auth.md
-    - iOS: 
-      - Introduction: quickstarts/ios/index.md
-      - Add Offline Sync: quickstarts/ios/offline.md
-      - Add Authentication: quickstarts/ios/auth.md
     - Windows (UWP): 
       - Introduction: quickstarts/uwp/index.md
       - Add Offline Sync: quickstarts/uwp/offline.md
@@ -69,9 +61,7 @@ nav:
     - Authentication: howto/auth.md
     - Offline Data Sync: howto/datasync.md
     - Work with the Client SDK:
-      - Android: howto/client/android.md
       - Apache Cordova: howto/client/cordova.md
-      - iOS: howto/client/ios.md
       - .NET: howto/client/dotnet.md
     - Work with the Server SDK:
       - ASP.NET Framework: howto/server/dotnet-framework.md
