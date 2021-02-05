@@ -49,10 +49,10 @@ Save the file.
 
 Ensure that the _Any CPU_ configuration is selected, and the _ZumoQuickstart_ target is shown:
 
-![Android Configuration](./media/wpf-configuration.png)
+![WPF Configuration](./media/wpf-configuration.png)
 
 Press F5 to build and run the project. 
 
 Enter some text in the **Add New Item** field, then press enter or click the add item icon.  This will add the item to the list.  Click on the item to set or clear the "completed" flag.
 
-![Quickstart Android](./media/wpf-startup.png)
+![WPF Android](./media/wpf-startup.png)
