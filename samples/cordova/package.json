@@ -19,5 +19,8 @@
       "cordova-plugin-whitelist": {},
       "cordova-plugin-ms-azure-mobile-apps": {}
     }
+  },
+  "dependencies": {
+    "q": "^1.5.1"
   }
 }

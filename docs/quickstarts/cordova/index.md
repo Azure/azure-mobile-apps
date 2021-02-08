@@ -9,13 +9,16 @@ Completing this tutorial is a prerequisite for all other Apache Cordova tutorial
 To complete this tutorial, you need the following:
 
 * [A working Apache Cordova installation](https://cordova.apache.org/docs/en/latest/).
-    * Ensure that the `node`, `adb`, and `cordova` commands are available on your PATH.
+    * Run `cordova requirements` to ensure all requirements are met.
 * A text editor (such as [Visual Studio Code](https://visualstudio.com/code)).
 * An [Azure account](https://azure.microsoft.com/pricing/free-trial).
 * The [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli).
     * [Log into your Azure account](https://docs.microsoft.com/cli/azure/authenticate-azure-cli) and [select a subscription](https://docs.microsoft.com/cli/azure/manage-azure-subscriptions-azure-cli) using the Azure CLI.
 
 This tutorial can be completed on either Windows or Mac systems.  The iOS version of the app can only be run on a Mac.  This tutorial uses Windows (with the app running on Android) only.
+
+> **Gradle**
+> The most common error when configuring Apache Cordova on Windows is the Gradle requirement.  This is installed by default using Android Studio but is not available for normal usage.  Download and unpack the [latest release](https://gradle.org/releases/), then add the `bin` directory to your PATH manually.
 
 ## Download the Apache Cordova quickstart project
 
