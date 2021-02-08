@@ -8,12 +8,15 @@ Completing this tutorial is a prerequisite for all other Apache Cordova tutorial
 
 To complete this tutorial, you need the following:
 
-* [A working Apache Cordova installation](https://cordova.apache.org/docs/en/latest/).
+* [A working Apache Cordova 8.1.2 installation](https://cordova.apache.org/docs/en/latest/).
     * Run `cordova requirements` to ensure all requirements are met.
 * A text editor (such as [Visual Studio Code](https://visualstudio.com/code)).
 * An [Azure account](https://azure.microsoft.com/pricing/free-trial).
 * The [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli).
     * [Log into your Azure account](https://docs.microsoft.com/cli/azure/authenticate-azure-cli) and [select a subscription](https://docs.microsoft.com/cli/azure/manage-azure-subscriptions-azure-cli) using the Azure CLI.
+
+> **Apache Cordova 8.1.2 or earlier required**
+> Apache Cordova released an incompatible change to the tool in v9.0.0.  If you have Apache Cordova v9.0.0 or later installed, the plugin will not work, complaining of a dependency problem with the `q` module.
 
 This tutorial can be completed on either Windows or Mac systems.  The iOS version of the app can only be run on a Mac.  This tutorial uses Windows (with the app running on Android) only.
 
@@ -62,6 +65,9 @@ Run the following command:
 ``` bash
 cordova emulate android
 ```
+
+> **Visual Studio Code**
+> There is an [Apache Cordova extension](https://marketplace.visualstudio.com/items?itemName=Msjsdiag.cordova-tools) for Visual Studio Code that allows you to run the application with debugging.  Visual Studio Code is highly recommended for Apache Cordova development.
 
 Once the initial startup is complete, you can add and delete items from the list.  They will be stored within the Azure SQL instance connected to your Azure Mobile Apps backend.
 
