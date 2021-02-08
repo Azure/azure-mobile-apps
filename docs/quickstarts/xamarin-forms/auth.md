@@ -216,9 +216,7 @@ Take a look at the HOW TO sections:
 
 You can also do a Quick Start for another platform using the same backend server:
 
-* [Android](../android/index.md)
 * [Apache Cordova](../cordova/index.md)
-* [iOS](../ios/index.md)
 * [Windows (UWP)](../uwp/index.md)
 * [Windows (WPF)](../wpf/index.md)
 * [Xamarin.Android](../xamarin-android/index.md)

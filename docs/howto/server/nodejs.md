@@ -66,9 +66,7 @@ Every Azure Mobile Apps Node.js back end starts as an [Express](http://expressjs
 
 This application creates a mobile-optimized Web API with a single endpoint (`/tables/TodoItem`) that provides unauthenticated access to an underlying SQL data store by using a dynamic schema. It is suitable for following the client library quickstarts:
 
-* [Android](../../quickstarts/android/index.md)
 * [Apache Cordova](../../quickstarts/cordova/index.md)
-* [iOS](../../quickstarts/ios/index.md)
 * [Windows (UWP)](../../quickstarts/uwp/index.md)
 * [Windows (WPF)](../../quickstarts/wpf/index.md)
 * [Xamarin.Android](../../quickstarts/xamarin-android/index.md)

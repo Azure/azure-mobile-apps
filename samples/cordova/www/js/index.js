@@ -52,22 +52,20 @@
     }
 
     function createTodoItem(item) {
-        const button='<button class="item-delete">Delete</button>';
-        const checked = item.complete ? ' checked' : '';
-        const checkbox=`<input type="checkbox" class="item-complete"${checked}/>`;
-        const text = `<div><input class="item-text">${item.text}</input></div>`;
-        return `<li data-todoitem-id="${item.id}">${button}${checkbox}${text}</li>`;
+        console.log(item);
+        const checkbox=`<input type="checkbox" data-todoitem-id="${item.id}" class="item-complete"${item.Complete ? ' checked' : ''}/>`;
+        const text = `<div><input data-todoitem-id="${item.id}" class="item-text" value="${item.Text}"/></div>`;
+        const el = document.createElement('li');
+        el.innerHTML = `${checkbox}${text}`;
+        return el;
     }
 
     function createTodoItemList(items) {
         itemListEl.innerHTML = "";
-        items.map((item) => itemListEl.append(createTodoItem(item)));
+        items.map((item) => itemListEl.appendChild(createTodoItem(item)));
         updateSummaryMessage(`${items.length} item(s)`);
 
         // Wire up the event handlers
-        var deleteEls = document.querySelectorAll('.item-delete');
-        deleteEls.forEach((el) => el.addEventListener('click', deleteItemHandler));
-
         var textEls = document.querySelectorAll('.item-text');
         textEls.forEach((el) => el.addEventListener('change', updateItemTextHandler));
 
@@ -79,10 +77,6 @@
         var text = error + (error.request ? ' - ' + error.request.status : '');
         console.error(text);
         errorLogEl.append(`<li>${text}</li>`);
-    }
-
-    function getTodoItemId(el) {
-        return el.parentElement.dataset['todoitemId'];
     }
 
     function addItemHandler(event) {
@@ -97,32 +91,22 @@
         event.preventDefault();
     }
 
-    function deleteItemHandler(event) {
-        var itemId = getTodoItemId(event.currentTarget);
-
-        updateSummaryMessage('Deleting item in Azure');
-        todoTable.del({ id: itemId })
-            .then(displayItems, handleError);
-        event.preventDefault();
-    }
-
     function updateItemTextHandler(event) {
-        var itemId = getTodoItemId(event.currentTarget),
+        var itemId = event.currentTarget.dataset['todoitemId'],
             newText = event.currentTarget.value;
 
         updateSummaryMessage('Updating item in Azure');
-        todoTable.update({ id: itemId, text: newText })
+        todoTable.update({ id: itemId, Text: newText })
             .then(displayItems, handleError);
         event.preventDefault();
     }
 
     function updateItemCompleteHandler(event) {
-        var itemId = getTodoItemId(event.currentTarget),
+        var itemId = event.currentTarget.dataset['todoitemId'],
             isComplete = event.currentTarget.checked;
 
         updateSummaryMessage('Updating item in Azure');
-        todoTable.update({ id: itemId, complete: isComplete })
+        todoTable.update({ id: itemId, Complete: isComplete })
             .then(displayItems, handleError);
     }
 })();
-

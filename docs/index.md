@@ -27,7 +27,7 @@ The following features are important to cloud-enabled mobile development:
 
 * **Push notifications**: The client SDKs integrate seamlessly with the registration capabilities of Azure Notification Hubs, so you can send push notifications to millions of users simultaneously.
 
-* **Client SDKs**: There is a complete set of client SDKs that cover native development ([iOS](howto/client/ios.md), [Android](howto/client/android.md), and cross-platform development ([.NET](howto/client/dotnet.md), and [Apache Cordova](howto/client/cordova.md)). Each client SDK is available with an MIT license and is open-source.
+* **Client SDKs**: There is a complete set of client SDKs that cover cross-platform development ([.NET](howto/client/dotnet.md), and [Apache Cordova](howto/client/cordova.md)). Each client SDK is available with an MIT license and is open-source.
 
 ## Azure App Service features
 

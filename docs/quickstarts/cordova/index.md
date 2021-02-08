@@ -18,6 +18,9 @@ To complete this tutorial, you need the following:
 > **Apache Cordova 8.1.2 or earlier required**
 > Apache Cordova released an incompatible change to the tool in v9.0.0.  If you have Apache Cordova v9.0.0 or later installed, the plugin will not work, complaining of a dependency problem with the `q` module.
 
+> **Visual Studio Code**
+> There is an [Apache Cordova extension](https://marketplace.visualstudio.com/items?itemName=Msjsdiag.cordova-tools) for Visual Studio Code that allows you to run the application with debugging.  Visual Studio Code is highly recommended for Apache Cordova development.
+
 This tutorial can be completed on either Windows or Mac systems.  The iOS version of the app can only be run on a Mac.  This tutorial uses Windows (with the app running on Android) only.
 
 > **Gradle**
@@ -32,6 +35,8 @@ Once downloaded, open a Terminal and change directory to the location of the fil
 {!quickstarts/includes/quickstart-deploy-backend.md!}
 
 ## Configure the Apache Cordova quickstart project
+
+Run `npm install` to install all the dependencies for this project.
 
 Open the `www/js/index.js` file in a text editor.  Edit the definition of `BackendUrl` to show your backend URL.  For example, if your backend URL was `https://zumo-abcd1234.azurewebsites.net`, then the Backend URL would look like this:
 
@@ -60,17 +65,25 @@ cordova build
 
 ## Run the app
 
+> **Enable CORS Support**
+> If running from a browser (using `cordova platform add browser`), then you must enable CORS support within Azure App Service.  To do this, run the following command:
+> 
+> ```bash
+> az webapp cors add -g zumo-quickstart --name ZUMOAPPNAME --allowed-origins "*"
+> ```
+>
+> Replace the `ZUMPAPPNAME` with the name of your Azure App Service mobile backend.
+
 Run the following command:
 
 ``` bash
 cordova emulate android
 ```
 
-> **Visual Studio Code**
-> There is an [Apache Cordova extension](https://marketplace.visualstudio.com/items?itemName=Msjsdiag.cordova-tools) for Visual Studio Code that allows you to run the application with debugging.  Visual Studio Code is highly recommended for Apache Cordova development.
+
 
 Once the initial startup is complete, you can add and delete items from the list.  They will be stored within the Azure SQL instance connected to your Azure Mobile Apps backend.
 
-![UWP Android](./media/cordova-startup.png)
+![Apache Cordova App](./media/cordova-android-startup.png)
 
 

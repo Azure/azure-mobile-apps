@@ -14,9 +14,7 @@ Offline sync has several benefits:
 
 The following tutorials show how to add offline sync to your mobile clients using Azure Mobile Apps:
 
-* [Android: Enable offline sync](../quickstarts/android/offline.md)
 * [Apache Cordova: Enable offline sync](../quickstarts/cordova/offline.md)
-* [iOS: Enable offline sync](../quickstarts/ios/offline.md)
 * [Windows (UWP): Enable offline sync](../quickstarts/uwp/offline.md)
 * [Windows (WPF): Enable offline sync](../quickstarts/wpf/offline.md)
 * [Xamarin.Android: Enable offline sync](../quickstarts/xamarin-android/offline.md)
