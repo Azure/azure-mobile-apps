@@ -39,7 +39,7 @@ namespace ZumoQuickstart
         private bool isInitialized = false;
         private readonly AsyncLock initializationLock = new AsyncLock();
 
-        private MobileServiceClient mClient;
+        private MobileServiceClient mClient = new MobileServiceClient(Constants.BackendUrl, new LoggingHandler());
         private IMobileServiceTable<TodoItem> mTable;
         // private IMobileServiceSyncTable<TodoItem> mTable;
         // private MobileServiceSQLiteStore mStore;
@@ -50,7 +50,6 @@ namespace ZumoQuickstart
             {
                 if (!isInitialized)
                 {
-                    mClient = new MobileServiceClient(Constants.BackendUrl, new LoggingHandler());
                     mTable = mClient.GetTable<TodoItem>();
                     // mTable = mClient.GetSyncTable<TodoItem>();
                     isInitialized = true;

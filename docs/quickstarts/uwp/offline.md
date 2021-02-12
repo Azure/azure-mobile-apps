@@ -8,7 +8,7 @@ To learn more about the offline sync feature, see the topic [Offline Data Sync i
 
 In online operation, you read to and write from a `MobileServiceTable`.  When using offline sync, you read to and write from a `MobileServiceSyncTable` instead.  The `MobileServiceSyncTable` is backed by an on-device SQLite database, and synchronized with the backend database.
 
-In the `TodoService.cs` class:
+In the `DataModel/TodoService.cs` class:
 
 1. Update the definition of the `mTable` variable, and add a definition for the local store.  Comment out the current definition, and uncomment the offline sync version.
 
@@ -29,9 +29,6 @@ In the `TodoService.cs` class:
         {
             if (!isInitialized)
             {
-                // Create the client.
-                mClient = new MobileServiceClient(Constants.BackendUrl, new LoggingHandler());
-
                 // Define the offline store.
                 mStore = new MobileServiceSQLiteStore("todoitems.db");
                 mStore.DefineTable<TodoItem>();

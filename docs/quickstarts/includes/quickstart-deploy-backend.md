@@ -29,7 +29,7 @@ The service is comprised of the following resources:
 * An Azure SQL server.
 * An Azure SQL database in the Basic tier (incurs cost).
 
-Tthe Azure SQL database is the only resource that incurs cost.  For details, see [Pricing](https://azure.microsoft.com/en-us/pricing/details/sql-database/single/).
+The Azure SQL database is the only resource that incurs cost.  For details, see [Pricing](https://azure.microsoft.com/en-us/pricing/details/sql-database/single/).
 
 To deploy the resources, type the following:
 
