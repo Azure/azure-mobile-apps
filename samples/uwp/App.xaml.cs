@@ -23,10 +23,6 @@ namespace ZumoQuickstart
     /// </summary>
     public sealed partial class App : Application
     {
-        // This MobileServiceClient has been configured to communicate with the Azure Mobile App.
-        // You're all set to start working with your mobile app!
-        public static MobileServiceClient MobileService = new MobileServiceClient(Constants.BackendUrl);
-
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().

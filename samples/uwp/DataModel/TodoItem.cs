@@ -1,4 +1,4 @@
-﻿namespace ZumoQuickstart.DataModel
+﻿namespace ZumoQuickstart
 {
     public class TodoItem
     {

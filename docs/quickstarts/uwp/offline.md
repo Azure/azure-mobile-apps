@@ -6,45 +6,57 @@ Prior to starting this tutorial, you should have completed the [UWP Quickstart T
 
 To learn more about the offline sync feature, see the topic [Offline Data Sync in Azure Mobile Apps](../../howto/datasync.md).
 
-## Update the app to support offline sync
-
 In online operation, you read to and write from a `MobileServiceTable`.  When using offline sync, you read to and write from a `MobileServiceSyncTable` instead.  The `MobileServiceSyncTable` is backed by an on-device SQLite database, and synchronized with the backend database.
 
-In the `MainPage.xaml.cs` class:
+In the `TodoService.cs` class:
 
-1. Update the definition of the `todoTable` variable.  Comment out the current definition, and uncomment the offline sync version.
+1. Update the definition of the `mTable` variable, and add a definition for the local store.  Comment out the current definition, and uncomment the offline sync version.
 
-    ``` csharp linenums="31"
-        // private readonly IMobileServiceTable<TodoItem> todoTable = App.MobileService.GetTable<TodoItem>();
-        private readonly IMobileServiceSyncTable<TodoItem> todoTable = App.MobileService.GetSyncTable<TodoItem>();
+    ``` csharp linenums="37"
+    // private IMobileServiceTable<TodoItem> mTable;
+    private IMobileServiceSyncTable<TodoItem> mTable;
+    private MobileServiceSQLiteStore mStore;
     ```
 
-2. Update the `InitializeOfflineStore()` method to define the offline version of the table :
+   Ensure you add relevant imports using Alt+Enter.
 
-    ``` csharp linenums="131"
-    private async Task InitializeOfflineStoreAsync()
+2. Update the `InitializeAsync()` method to define the offline version of the table :
+
+    ``` csharp linenums="53"
+    private async Task InitializeAsync()
     {
-        if (!App.MobileService.SyncContext.IsInitialized) 
+        using (await initializationLock.LockAsync())
         {
-            var store = new MobileServiceSQLiteStore("quickstart.db");
-            store.DefineTable<TodoItem>();
-            await App.MobileService.SyncContext.InitializeAsync(store);
-        }
+            if (!isInitialized)
+            {
+                // Create the client.
+                mClient = new MobileServiceClient(Constants.BackendUrl, new LoggingHandler());
 
-        await SyncAsync();
+                // Define the offline store.
+                mStore = new MobileServiceSQLiteStore("todoitems.db");
+                mStore.DefineTable<TodoItem>();
+                await mClient.SyncContext.InitializeAsync(mStore).ConfigureAwait(false);
+
+                // Get a reference to the table.
+                mTable = mClient.GetSyncTable<TodoItem>();
+                isInitialized = true;
+            }
+        }
     }
     ```
 
-3. Replace the `SyncAsync()` method that will synchronize the data in the offline store with the online store:
+3. Replace the `SynchronizeAsync()` method that will synchronize the data in the offline store with the online store:
 
-    ``` csharp linenums="140"
-    public async Task SyncAsync()
+    ``` csharp linenums="132"
+    public async Task SynchronizeAsync()
     {
+        await InitializeAsync().ConfigureAwait(false);
+
         IReadOnlyCollection<MobileServiceTableOperationError> syncErrors = null;
         try
         {
-            await App.MobileService.SyncContext.PushAsync();
-            await todoTable.PullAsync("todoitems", mTable.CreateQuery());
+            await mClient.SyncContext.PushAsync().ConfigureAwait(false);
+            await mTable.PullAsync("todoitems", mTable.CreateQuery()).ConfigureAwait(false);
         }
         catch (MobileServicePushFailedException error)
         {
@@ -54,7 +66,6 @@ In the `MainPage.xaml.cs` class:
             }
         }
 
-        // Conflict Resolution
         if (syncErrors != null)
         {
             foreach (var syncError in syncErrors)
@@ -62,12 +73,12 @@ In the `MainPage.xaml.cs` class:
                 if (syncError.OperationKind == MobileServiceTableOperationKind.Update && syncError.Result != null)
                 {
                     // Prefer server copy
-                    await syncError.CancelAndUpdateItemAsync(syncError.Result);
+                    await syncError.CancelAndUpdateItemAsync(syncError.Result).ConfigureAwait(false);
                 }
                 else
                 {
                     // Discard local copy
-                    await syncError.CancelAndDiscardItemAsync();
+                    await syncError.CancelAndDiscardItemAsync().ConfigureAwait(false);
                 }
             }
         }

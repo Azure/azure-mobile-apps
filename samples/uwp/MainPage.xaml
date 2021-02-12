@@ -4,148 +4,72 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Width="450"
+    Height="800"
+    Background="White"
     IsTabStop="false"
     mc:Ignorable="d">
 
-    <Grid Background="White">
-        <Grid Margin="50,50,10,10">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="10" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ProgressBar
+            x:Name="isRefreshingControl"
+            IsEnabled="{Binding IsRefreshing}"
+            IsIndeterminate="True"
+            Maximum="100"
+            Minimum="0"
+            Visibility="{Binding Path=RefreshVisibility}" />
+        <ListView
+            x:Name="itemlistControl"
+            Grid.Row="1"
+            Margin="10"
+            ItemsSource="{Binding Items}"
+            ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <CheckBox
+                        Margin="10"
+                        Click="CheckboxClickHandler"
+                        Content="{Binding Text}"
+                        IsChecked="{Binding Complete}"
+                        Tag="{Binding Id}" />
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Grid Grid.Row="2" Margin="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <Grid
-                Grid.Row="0"
-                Grid.ColumnSpan="2"
-                Margin="0,0,0,20">
-                <StackPanel>
-                    <TextBlock
-                        Margin="0,0,0,6"
-                        FontFamily="Segoe UI Light"
-                        Foreground="#0094ff">
-                        MICROSOFT AZURE MOBILE APPS
-                    </TextBlock>
-                    <TextBlock
-                        FontFamily="Segoe UI Light"
-                        FontSize="45"
-                        Foreground="Gray">
-                        QUICKSTART
-                    </TextBlock>
-                </StackPanel>
-            </Grid>
-
-            <Grid Grid.Row="1">
-                <StackPanel>
-                    <Grid VerticalAlignment="Top">
-                        <StackPanel Orientation="Horizontal">
-                            <Border
-                                MinWidth="70"
-                                Margin="0,10"
-                                BorderBrush="DarkGray"
-                                BorderThickness="0,0,1,0">
-                                <TextBlock
-                                    Margin="20,0"
-                                    FontSize="45"
-                                    Foreground="DarkGray"
-                                    Text="1" />
-                            </Border>
-                            <StackPanel>
-                                <TextBlock
-                                    Margin="10,10,0,0"
-                                    FontSize="16"
-                                    FontWeight="Bold">
-                                    Insert a TodoItem
-                                </TextBlock>
-                                <TextBlock
-                                    MaxWidth="500"
-                                    Margin="10,0,0,0"
-                                    TextWrapping="WrapWholeWords">
-                                    Enter some text below and click Save to insert a new todo item into your database
-                                </TextBlock>
-                            </StackPanel>
-                        </StackPanel>
-                    </Grid>
-                    <StackPanel Margin="72,0,0,0" Orientation="Horizontal">
-                        <TextBox
-                            Name="TextInput"
-                            MinWidth="300"
-                            Margin="5" />
-                        <Button
-                            Name="ButtonSave"
-                            Click="ButtonSave_Click"
-                            IsEnabled="False">
-                            Save
-                        </Button>
-                    </StackPanel>
-                </StackPanel>
-            </Grid>
-
-            <Grid Grid.Row="1" Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
-                <StackPanel>
-                    <Grid VerticalAlignment="Top">
-                        <StackPanel Orientation="Horizontal">
-                            <Border
-                                MinWidth="70"
-                                Margin="0,10"
-                                BorderBrush="DarkGray"
-                                BorderThickness="0,0,1,0">
-                                <TextBlock
-                                    Margin="20,0"
-                                    FontSize="45"
-                                    Foreground="DarkGray"
-                                    Text="2" />
-                            </Border>
-                            <StackPanel>
-                                <TextBlock
-                                    Margin="10,10,0,0"
-                                    FontSize="16"
-                                    FontWeight="Bold">
-                                    Query and Update Data
-                                </TextBlock>
-                                <TextBlock
-                                    MaxWidth="500"
-                                    Margin="10,0,0,0"
-                                    TextWrapping="WrapWholeWords">
-                                    Click refresh below to load the unfinished TodoItems from your database. Use the checkbox to complete and update your TodoItems
-                                </TextBlock>
-                            </StackPanel>
-                        </StackPanel>
-                    </Grid>
-                    <Button
-                        Name="ButtonRefresh"
-                        Margin="72,0,0,0"
-                        Click="ButtonRefresh_Click">
-                        Refresh
-                    </Button>
-                </StackPanel>
-
-                <ListView
-                    Name="ListItems"
-                    Grid.Row="1"
-                    Margin="62,10,0,0">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <CheckBox
-                                    Name="CheckBoxComplete"
-                                    Margin="10,5"
-                                    VerticalAlignment="Center"
-                                    Checked="CheckBoxComplete_Checked"
-                                    Content="{Binding Text}"
-                                    IsChecked="{Binding Complete, Mode=TwoWay}" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </Grid>
+            <TextBox
+                x:Name="textboxControl"
+                Background="Transparent"
+                BorderBrush="Indigo"
+                FontSize="20"
+                PlaceholderText="Enter new todo item" />
+            <Button
+                Grid.Column="1"
+                Margin="4"
+                Click="AddItemClickHandler">
+                <Image
+                    Width="24"
+                    Height="24"
+                    Source="/Assets/additem.png" />
+            </Button>
+            <Button
+                Grid.Column="2"
+                Margin="4"
+                Click="RefreshItemsClickHandler">
+                <Image
+                    Width="24"
+                    Height="24"
+                    Source="/Assets/refresh.png" />
+            </Button>
         </Grid>
     </Grid>
 </Page>
