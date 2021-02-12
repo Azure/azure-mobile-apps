@@ -9,7 +9,6 @@ Completing this tutorial is a prerequisite for all other Apache Cordova tutorial
 To complete this tutorial, you need the following:
 
 * [A working Apache Cordova 8.1.2 installation](https://cordova.apache.org/docs/en/latest/).
-    * Run `cordova requirements` to ensure all requirements are met.
 * A text editor (such as [Visual Studio Code](https://visualstudio.com/code)).
 * An [Azure account](https://azure.microsoft.com/pricing/free-trial).
 * The [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli).
@@ -30,13 +29,21 @@ This tutorial can be completed on either Windows or Mac systems.  The iOS versio
 
 The Apache Cordova quickstart project is located in the `samples/cordova` folder of the [azure/azure-mobile-apps](https://github.com/azure/azure-mobile-apps) GitHub repository.  You can [download the repository as a ZIP file](https://github.com/Azure/azure-mobile-apps/archive/master.zip), then unpack it.  The files will be created in the `azure-mobile-apps-master` folder.
 
-Once downloaded, open a Terminal and change directory to the location of the files.
+Once downloaded, open a Terminal and change directory to the location of the files.  
 
 {!quickstarts/includes/quickstart-deploy-backend.md!}
 
 ## Configure the Apache Cordova quickstart project
 
-Run `npm install` to install all the dependencies for this project.
+Run `npm install` to install all dependencies.
+
+Add a platform to the project.  For example, to add the Android platform, use:
+
+``` bash
+cordova platform add android
+```
+
+You can add `browser`, `android`, and `ios` as needed.  However, note that the `browser` platform will not work with offline sync enabled. Once you have added all the platforms you wish to use, run `cordova requirements` to ensure all requirements have been met.
 
 Open the `www/js/index.js` file in a text editor.  Edit the definition of `BackendUrl` to show your backend URL.  For example, if your backend URL was `https://zumo-abcd1234.azurewebsites.net`, then the Backend URL would look like this:
 
@@ -49,12 +56,6 @@ Save the file.  Open the `www/index.html` file in a text editor.  Edit the `Cont
 ``` html linenums="5"
 <meta http-equiv="Content-Security-Policy" 
     content="default-src 'self' data: gap: https://zumo-abcd1234.azurewebsites.net; style-src 'self'; media-src *;">
-```
-
-Add the platforms that you want to use.  For example, to add support for Android, use the following:
-
-``` bash
-cordova platform add android
 ```
 
 To build the app, use the following:
@@ -77,10 +78,12 @@ cordova build
 Run the following command:
 
 ``` bash
-cordova emulate android
+cordova run android
 ```
 
-
+> **What to do if the emulator does not start?**
+>
+> On Windows, this is a common problem.  Start Android Studio, then select **Configure** > **AVD Manager**.  This will allow you to start the device manually.  If you run `adb devices -l`, you should see your selected emulated device.  This allows you to run `cordova run android` successfully.
 
 Once the initial startup is complete, you can add and delete items from the list.  They will be stored within the Azure SQL instance connected to your Azure Mobile Apps backend.
 

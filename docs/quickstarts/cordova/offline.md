@@ -53,7 +53,7 @@ In the `www/js/index.js` file:
 
 2. Update the `setup()` method to use the offline version of the table:
 
-    ``` javascript linenums="31" hl_lines="2'
+    ``` javascript linenums="31" hl_lines="2"
     function setup() {
         todoTable = client.getSyncTable('todoitem');
         refreshDisplay();
@@ -86,6 +86,12 @@ This builds the Android edition of the app cleanly.  You can now run the app wit
 ``` bash
 cordova run android
 ```
+
+> **Test within Visual Studio Code**
+>
+> You can use the debugger within Visual Studio Code if you have the [Cordova Tools](https://marketplace.visualstudio.com/items?itemName=msjsdiag.cordova-tools) extension installed.  Click on the debugger, then create a `launch.json` file.  When prompted, select **Cordova**, then select the configurations (such as _Run Android on emulator_).
+>
+> Now that you have a `launch.json`, you can run the app in the debugger.  It will launch on your emulator of choice.  However, you will now be able to see the debug output in your debug console.
 
 ## Test the app
 
