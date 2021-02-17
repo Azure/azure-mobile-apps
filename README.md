@@ -1,30 +1,22 @@
 # Azure Mobile Apps
 
-Building a cloud backend for your mobile application is easy with Azure Mobile Apps. For more information see [What are Mobile Apps?](https://azure.microsoft.com/en-us/documentation/articles/app-service-mobile-value-prop-preview/) on MSDN.
+Azure Mobile Apps is a set of client and server libraries for adding authenticated data access and offline synchronization to your mobile applications.  The server side is a Node.js or ASP.NET Framework web API that runs on [Azure App Service](https://azure.microsoft.com/services/app-service/).  The client side contains everything necessary to provide offline sync for your Android, iOS, UWP, or Xamarin application.
 
-## Getting Started
+To get started, take a look at [our documentation](https://azure.github.io/azure-mobile-apps).
 
-Getting started with Azure Mobile Apps couldn't be easier - you don't even need an Azure account - [try it out now](https://tryappservice.azure.com/?appServiceName=mobile)! 
-If you already have an Azure account, start with [this tutorial](https://azure.microsoft.com/en-us/documentation/articles/app-service-mobile-dotnet-backend-xamarin-ios-get-started-preview/) and pick the client platform of your choice.
+## Generating the documentation
 
-## Repositories
+This project uses [mkdocs](https://mkdocs.org) for documentation.  Documentation is written in Markdown.  To install the pre-requisites, use the following:
 
-### Client SDKs
-* [azure-mobile-apps-net-client](https://github.com/azure/azure-mobile-apps-net-client) - Client SDK for .NET platforms - Windows, Windows Phone, Xamarin.iOS, Xamarin.Android, .NET 4.5
-* [azure-mobile-apps-js-client](https://github.com/azure/azure-mobile-apps-js-client) - Client SDK for JavaScript platforms - Browser, Cordova, WinJS
-* [azure-mobile-apps-ios-client](https://github.com/azure/azure-mobile-apps-ios-client) - Client SDK for iOS
-* [azure-mobile-apps-android-client](https://github.com/azure/azure-mobile-apps-android-client) - Client SDK for Android
+```bash
+pip install mkdocs mkdocs-material pymdown-extensions markdown-include
+```
 
-### Server SDKs
-* [azure-mobile-apps-net-server](https://github.com/azure/azure-mobile-apps-net-server) - .NET based server SDK
-* [azure-mobile-apps-node](https://github.com/azure/azure-mobile-apps-node) - Node.JS based server SDK
+To host the documentation locally, use:
 
-### Misc
-* [azure-mobile-apps-quickstarts](https://github.com/Azure/azure-mobile-apps-quickstarts) - Client and server project templates used in the Azure Portal for getting started quickly with Mobile Apps
-
-## Future of Azure Mobile Apps
- 
-Microsoft is committed to fully supporting Azure Mobile Apps, including **support for the latest OS release, bug fixes, documentation improvements, and community PR reviews**. Please note that the product team is **not currently investing in any new feature work** for Azure Mobile Apps. We highly appreciate community contributions to all areas of Azure Mobile Apps. 
+```bash
+mkdocs serve
+```
 
 ## Contributing
 

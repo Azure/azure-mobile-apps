@@ -1,0 +1,68 @@
+site_name: Azure Mobile Apps
+site_url: https://azure.github.io/azure-mobile-apps/
+repo_url: https://github.com/azure/azure-mobile-apps
+edit_uri: blob/master/docs/
+copyright: Copyright &copy; Microsoft, Inc.  All Rights Reserved.
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/azure/azure-mobile-apps
+theme:
+  icon:
+    repo: fontawesome/brands/github-alt
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - search.suggest
+    - search.highlight
+  name: material
+  palette:
+    scheme: preference
+markdown_extensions:
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - markdown_include.include:
+      base_path: docs
+plugins:
+  - search
+nav:
+  - Home: index.md
+  - Quickstarts:
+    - Apache Cordova: 
+      - Introduction: quickstarts/cordova/index.md
+      - Add Offline Sync: quickstarts/cordova/offline.md
+      - Add Authentication: quickstarts/cordova/auth.md
+    - Windows (UWP): 
+      - Introduction: quickstarts/uwp/index.md
+      - Add Offline Sync: quickstarts/uwp/offline.md
+      - Add Authentication: quickstarts/uwp/auth.md
+    - Windows (WPF):
+      - Introduction: quickstarts/wpf/index.md
+      - Add Offline Sync: quickstarts/wpf/offline.md
+      - Add Authentication: quickstarts/wpf/auth.md
+    - Xamarin.Android: 
+      - Introduction: quickstarts/xamarin-android/index.md
+      - Add Offline Sync: quickstarts/xamarin-android/offline.md
+      - Add Authentication: quickstarts/xamarin-android/auth.md
+    - Xamarin.Forms: 
+      - Introduction: quickstarts/xamarin-forms/index.md
+      - Add Offline Sync: quickstarts/xamarin-forms/offline.md
+      - Add Authentication: quickstarts/xamarin-forms/auth.md
+    - Xamarin.iOS: 
+      - Introduction: quickstarts/xamarin-ios/index.md
+      - Add Offline Sync: quickstarts/xamarin-ios/offline.md
+      - Add Authentication: quickstarts/xamarin-ios/auth.md
+  - How to:
+    - Authentication: howto/auth.md
+    - Offline Data Sync: howto/datasync.md
+    - Work with the Client SDK:
+      - Apache Cordova: howto/client/cordova.md
+      - .NET: howto/client/dotnet.md
+    - Work with the Server SDK:
+      - ASP.NET Framework: howto/server/dotnet-framework.md
+      - Node.js: howto/server/nodejs.md

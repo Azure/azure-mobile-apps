@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ZUMOAPPNAME.azurewebsites.net; style-src 'self'; media-src *;">
+        <meta name="format-detection" content="telephone=no">
+        <meta name="msapplication-tap-highlight" content="no">
+        <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
+        <meta name="color-scheme" content="light dark">
+        <link rel="stylesheet" href="css/index.css">
+        <title>Azure Mobile Apps Quickstart</title>
+    </head>
+    <body>
+        <div id="wrapper">
+            <article>
+                <header>
+                    <h2>Azure</h2>
+                    <h1>Mobile Apps</h1>
+
+                    <form id="add-item">
+                        <button type="button" id="refresh">Refresh</button>
+                        <button type="submit">+</button>
+                        <div>
+                            <input type="text" id="new-item-text" placeholder="Enter new task" />
+                        </div>
+                    </form>
+                </header>
+
+                <ul id="todo-items"></ul>
+
+                <p id="summary">Initializing...</p>
+            </article>
+
+            <footer>
+                <ul id="errorlog"></ul>
+            </footer>
+        </div>
+        <script src="cordova.js"></script>
+        <script src="js/index.js"></script>
+    </body>
+</html>
