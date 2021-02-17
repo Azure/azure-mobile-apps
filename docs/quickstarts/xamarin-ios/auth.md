@@ -14,27 +14,66 @@ This exception happens because the app attempts to access the back end as an una
 
 ## Add authentication to the app
 
-Open the `TodoService.cs` class.  Edit the `InitializeAsync()` method to request authentication prior to marking initialization as complete:
+Open the `TodoService.cs` class.  Add the `AuthenticateAsync()` method to the class:
 
-``` csharp linenums="67" hl_lines="4-6"
+``` csharp linenums="62"
+private Task<bool> AuthenticateAsync()
+{
+  var tcs = new TaskCompletionSource<bool>();
+  Xamarin.Essentials.MainThread.BeginInvokeOnMainThread(async () =>
+  {
+    var rootController = UIApplication.SharedApplication.KeyWindow.RootViewController;
+    try
+    {
+      var user = await mClient.LoginAsync(rootController, "aad", "zumoquickstart");
+      tcs.TrySetResult(user != null);
+    }
+    catch (Exception error)
+    {
+      var alert = UIAlertController.Create("Sign-in result", error.Message, UIAlertControllerStyle.Alert);
+      alert.AddAction(UIAlertAction.Create("OK", UIAlertActionStyle.Default, null));
+      rootController.PresentViewController(alert, true, null);
+      tcs.TrySetResult(false);
+    }
+  });
+
+  return tcs.Task;
+}
+```
+
+Use _Alt+Enter_ to add the required package (UIKit). Edit the `InitializeAsync()` method to request authentication prior to marking initialization as complete:
+
+``` csharp linenums="51" hl_lines="4"
     // Get a reference to the table.
     mTable = mClient.GetSyncTable<TodoItem>();
 
-    // Authenticate
-    var rootController = UIApplication.SharedApplication.KeyWindow.RootViewController;
-    await mClient.LoginAsync(rootController, "aad", "zumoquickstart");
+    await AuthenticateAsync();
 
     isInitialized = true;
 ```
 
-Use _Alt+Enter_ to add the required package (UIKit).
 
-Open the `AppDelegate.cs` class.  Add the following code to the end of the class:
+
+Open the `SceneDelegate.cs` class.  Add the following code to the end of the class:
 
 ``` csharp linenums="38"
-    public override bool OpenUrl(UIApplication app, NSUrl url, NSDictionary options)
-        => Xamarin.Essentials.Platform.OpenUrl(app, url, options);
+[Export("scene:openURLContexts:")]
+public void OpenUrlContexts(UIScene scene, NSSet<UIOpenUrlContext> urlContexts)
+{
+  var context = urlContexts.AnyObject;
+  if (context == null) return;
+  var url = context.Url;
+  var options = context.Options == null ? null : new UIApplicationOpenUrlOptions
+  {
+    Annotation = context.Options.Annotation,
+    OpenInPlace = context.Options.OpenInPlace,
+    SourceApplication = context.Options.SourceApplication
+  };
+  Xamarin.Essentials.Platform.OpenUrl(UIApplication.SharedApplication, url, options.Dictionary);
+}
 ```
+
+This handles the callback from the web authenticator for iOS 13 and later.  For other iOS versions, follow the instructions in the [Xamarin.Essentials documentation](https://docs.microsoft.com/en-us/xamarin/essentials/web-authenticator?context=xamarin%2Fios&tabs=ios).
 
 Right-click on the `Info.plist` file, then select **Open with...**.  Select the **XML (Text) Editor**.  Add the following to the file right before the final `</dict>` line.
 
