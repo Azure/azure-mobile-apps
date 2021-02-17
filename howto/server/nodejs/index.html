@@ -1,0 +1,1969 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://azure.github.io/azure-mobile-apps/howto/server/nodejs/">
+      
+      
+      <link rel="shortcut icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.1.3">
+    
+    
+      
+        <title>Node.js - Azure Mobile Apps</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.2cb7adb3.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.f0267088.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="preference" data-md-color-primary="" data-md-color-accent="">
+      
+        <script>matchMedia("(prefers-color-scheme: dark)").matches&&document.body.setAttribute("data-md-color-scheme","slate")</script>
+      
+  
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-to-use-the-nodejs-backend-server-sdk" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="https://azure.github.io/azure-mobile-apps/" title="Azure Mobile Apps" class="md-header-nav__button md-logo" aria-label="Azure Mobile Apps">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Azure Mobile Apps
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              Node.js
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/azure/azure-mobile-apps/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+
+  
+
+<nav class="md-tabs md-tabs--active" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  <li class="md-tabs__item">
+    
+      <a href="../../.." class="md-tabs__link">
+        Home
+      </a>
+    
+  </li>
+
+      
+        
+  
+  
+    
+    
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../../../quickstarts/cordova/" class="md-tabs__link">
+          Quickstarts
+        </a>
+      
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../../auth/" class="md-tabs__link md-tabs__link--active">
+          How to
+        </a>
+      
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://azure.github.io/azure-mobile-apps/" title="Azure Mobile Apps" class="md-nav__button md-logo" aria-label="Azure Mobile Apps">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Azure Mobile Apps
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/azure/azure-mobile-apps/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../.." class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Quickstarts
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Quickstarts" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon"></span>
+        Quickstarts
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-1" type="checkbox" id="nav-2-1">
+    
+    <label class="md-nav__link" for="nav-2-1">
+      Apache Cordova
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Apache Cordova" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-1">
+        <span class="md-nav__icon md-icon"></span>
+        Apache Cordova
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/cordova/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/cordova/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/cordova/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-2" type="checkbox" id="nav-2-2">
+    
+    <label class="md-nav__link" for="nav-2-2">
+      Windows (UWP)
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Windows (UWP)" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-2">
+        <span class="md-nav__icon md-icon"></span>
+        Windows (UWP)
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/uwp/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/uwp/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/uwp/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-3" type="checkbox" id="nav-2-3">
+    
+    <label class="md-nav__link" for="nav-2-3">
+      Windows (WPF)
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Windows (WPF)" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-3">
+        <span class="md-nav__icon md-icon"></span>
+        Windows (WPF)
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/wpf/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/wpf/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/wpf/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-4" type="checkbox" id="nav-2-4">
+    
+    <label class="md-nav__link" for="nav-2-4">
+      Xamarin.Android
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Xamarin.Android" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-4">
+        <span class="md-nav__icon md-icon"></span>
+        Xamarin.Android
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-android/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-android/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-android/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-5" type="checkbox" id="nav-2-5">
+    
+    <label class="md-nav__link" for="nav-2-5">
+      Xamarin.Forms
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Xamarin.Forms" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-5">
+        <span class="md-nav__icon md-icon"></span>
+        Xamarin.Forms
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-forms/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-forms/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-forms/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-6" type="checkbox" id="nav-2-6">
+    
+    <label class="md-nav__link" for="nav-2-6">
+      Xamarin.iOS
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Xamarin.iOS" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-6">
+        <span class="md-nav__icon md-icon"></span>
+        Xamarin.iOS
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-ios/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-ios/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-ios/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
+    
+    <label class="md-nav__link" for="nav-3">
+      How to
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="How to" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon"></span>
+        How to
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/" class="md-nav__link">
+      Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../datasync/" class="md-nav__link">
+      Offline Data Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3-3" type="checkbox" id="nav-3-3">
+    
+    <label class="md-nav__link" for="nav-3-3">
+      Work with the Client SDK
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Work with the Client SDK" data-md-level="2">
+      <label class="md-nav__title" for="nav-3-3">
+        <span class="md-nav__icon md-icon"></span>
+        Work with the Client SDK
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../client/cordova/" class="md-nav__link">
+      Apache Cordova
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../client/dotnet/" class="md-nav__link">
+      .NET
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3-4" type="checkbox" id="nav-3-4" checked>
+    
+    <label class="md-nav__link" for="nav-3-4">
+      Work with the Server SDK
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Work with the Server SDK" data-md-level="2">
+      <label class="md-nav__title" for="nav-3-4">
+        <span class="md-nav__icon md-icon"></span>
+        Work with the Server SDK
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../dotnet-framework/" class="md-nav__link">
+      ASP.NET Framework
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Node.js
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="./" class="md-nav__link md-nav__link--active">
+      Node.js
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    Introduction
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-platforms" class="md-nav__link">
+    Supported platforms
+  </a>
+  
+    <nav class="md-nav" aria-label="Supported platforms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-a-basic-node-back-end-by-using-the-command-line" class="md-nav__link">
+    Create a basic Node back end by using the command line
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-a-home-page-for-your-application" class="md-nav__link">
+    Enable a home page for your application
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-operations" class="md-nav__link">
+    Table operations
+  </a>
+  
+    <nav class="md-nav" aria-label="Table operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#define-tables-by-using-a-dynamic-schema" class="md-nav__link">
+    Define tables by using a dynamic schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#define-tables-by-using-a-static-schema" class="md-nav__link">
+    Define tables by using a static schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-sql-server-express-as-a-development-data-store-on-your-local-machine" class="md-nav__link">
+    Use SQL Server Express as a development data store on your local machine
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-your-project-for-local-development" class="md-nav__link">
+    Configure your project for local development
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-app-settings-for-your-mobile-app" class="md-nav__link">
+    Configure app settings for your mobile app
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-azure-sql-as-your-production-data-store" class="md-nav__link">
+    Use Azure SQL as your production data store
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#require-authentication-for-access-to-tables" class="md-nav__link">
+    Require authentication for access to tables
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-authentication-claims-with-your-tables" class="md-nav__link">
+    Use authentication claims with your tables
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disable-access-to-specific-table-operations" class="md-nav__link">
+    Disable access to specific table operations
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adjust-the-query-that-is-used-with-table-operations" class="md-nav__link">
+    Adjust the query that is used with table operations
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-a-soft-delete-on-a-table" class="md-nav__link">
+    Configure a soft delete on a table
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seed-your-database-with-data" class="md-nav__link">
+    Seed your database with data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-swagger-support" class="md-nav__link">
+    Enable Swagger support
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-apis" class="md-nav__link">
+     Custom APIs
+  </a>
+  
+    <nav class="md-nav" aria-label=" Custom APIs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#define-a-custom-api" class="md-nav__link">
+    Define a custom API
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#require-authentication-for-access-to-a-custom-api" class="md-nav__link">
+    Require authentication for access to a custom API
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handle-large-file-uploads" class="md-nav__link">
+    Handle large file uploads
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute-custom-sql-statements" class="md-nav__link">
+    Execute custom SQL statements
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugging" class="md-nav__link">
+    Debugging
+  </a>
+  
+    <nav class="md-nav" aria-label="Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#debug-diagnose-and-troubleshoot-azure-mobile-apps" class="md-nav__link">
+    Debug, diagnose, and troubleshoot Azure Mobile Apps
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    Introduction
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-platforms" class="md-nav__link">
+    Supported platforms
+  </a>
+  
+    <nav class="md-nav" aria-label="Supported platforms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-a-basic-node-back-end-by-using-the-command-line" class="md-nav__link">
+    Create a basic Node back end by using the command line
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-a-home-page-for-your-application" class="md-nav__link">
+    Enable a home page for your application
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-operations" class="md-nav__link">
+    Table operations
+  </a>
+  
+    <nav class="md-nav" aria-label="Table operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#define-tables-by-using-a-dynamic-schema" class="md-nav__link">
+    Define tables by using a dynamic schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#define-tables-by-using-a-static-schema" class="md-nav__link">
+    Define tables by using a static schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-sql-server-express-as-a-development-data-store-on-your-local-machine" class="md-nav__link">
+    Use SQL Server Express as a development data store on your local machine
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-your-project-for-local-development" class="md-nav__link">
+    Configure your project for local development
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-app-settings-for-your-mobile-app" class="md-nav__link">
+    Configure app settings for your mobile app
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-azure-sql-as-your-production-data-store" class="md-nav__link">
+    Use Azure SQL as your production data store
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#require-authentication-for-access-to-tables" class="md-nav__link">
+    Require authentication for access to tables
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-authentication-claims-with-your-tables" class="md-nav__link">
+    Use authentication claims with your tables
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disable-access-to-specific-table-operations" class="md-nav__link">
+    Disable access to specific table operations
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adjust-the-query-that-is-used-with-table-operations" class="md-nav__link">
+    Adjust the query that is used with table operations
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-a-soft-delete-on-a-table" class="md-nav__link">
+    Configure a soft delete on a table
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seed-your-database-with-data" class="md-nav__link">
+    Seed your database with data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-swagger-support" class="md-nav__link">
+    Enable Swagger support
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-apis" class="md-nav__link">
+     Custom APIs
+  </a>
+  
+    <nav class="md-nav" aria-label=" Custom APIs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#define-a-custom-api" class="md-nav__link">
+    Define a custom API
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#require-authentication-for-access-to-a-custom-api" class="md-nav__link">
+    Require authentication for access to a custom API
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handle-large-file-uploads" class="md-nav__link">
+    Handle large file uploads
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute-custom-sql-statements" class="md-nav__link">
+    Execute custom SQL statements
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugging" class="md-nav__link">
+    Debugging
+  </a>
+  
+    <nav class="md-nav" aria-label="Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#debug-diagnose-and-troubleshoot-azure-mobile-apps" class="md-nav__link">
+    Debug, diagnose, and troubleshoot Azure Mobile Apps
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/azure/azure-mobile-apps/blob/master/docs/howto/server/nodejs.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="how-to-use-the-nodejs-backend-server-sdk">How to use the Node.js backend Server SDK<a class="headerlink" href="#how-to-use-the-nodejs-backend-server-sdk" title="Permanent link">&para;</a></h1>
+<p>This article provides detailed information and examples that show how to work with a NodeJS backend for Azure Mobile Apps.</p>
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
+<p>Azure Mobile Apps provides the capability to add a mobile-optimized data access Web API to a web application. The Azure Mobile Apps SDK is provided for ASP.NET Framework and Node.js web applications. The SDK provides the following operations:</p>
+<ul>
+<li>Table operations (read, insert, update, delete) for data access</li>
+<li>Custom API operations</li>
+</ul>
+<p>Both operations provide for authentication across all identity providers that Azure App Service allows. These providers include social identity providers such as Facebook, Twitter, Google, and Microsoft, as well as Azure Active Directory for enterprise identity.</p>
+<h2 id="supported-platforms">Supported platforms<a class="headerlink" href="#supported-platforms" title="Permanent link">&para;</a></h2>
+<p>The Azure Mobile Apps Node.js SDK supports the Node 6.x and later, and has been tested up to Node 12.x. Other versions of Node might work but are not supported.</p>
+<p>The Azure Mobile Apps Node.js SDK supports two database drivers: </p>
+<ul>
+<li>The node-mssql driver supports Azure SQL Database and local SQL Server instances.  </li>
+<li>The sqlite3 driver supports SQLite databases on a single instance only.</li>
+</ul>
+<h3 id="create-a-basic-node-back-end-by-using-the-command-line">Create a basic Node back end by using the command line<a class="headerlink" href="#create-a-basic-node-back-end-by-using-the-command-line" title="Permanent link">&para;</a></h3>
+<p>Every Azure Mobile Apps Node.js back end starts as an <a href="http://expressjs.com">Express</a> application. Express is the most popular web service framework available for Node.js. You can create a basic <a href="https://expressjs.com">Express</a> application as follows:</p>
+<ol>
+<li>
+<p>In a command or PowerShell window, create a directory for your project:</p>
+<div class="highlight"><pre><span></span><code>$ mkdir basicapp
+</code></pre></div>
+</li>
+<li>
+<p>Run <code>npm init</code> to initialize the package structure:</p>
+<div class="highlight"><pre><span></span><code>$ <span class="nb">cd</span> basicapp
+$ npm init
+</code></pre></div>
+</li>
+</ol>
+<p>The <code>npm init</code> command asks a set of questions to initialize the project. See the example output:</p>
+<p><img alt="The npm init output" src="../media/nodejs-npm-init.png" /></p>
+<ol>
+<li>
+<p>Install the <code>express</code> and <code>azure-mobile-apps</code> libraries from the npm repository:</p>
+<div class="highlight"><pre><span></span><code>npm install --save express azure-mobile-apps
+</code></pre></div>
+</li>
+<li>
+<p>Create an <code>app.js</code> file to implement the basic mobile server:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">express</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;express&#39;</span><span class="p">),</span>
+    <span class="nx">azureMobileApps</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;azure-mobile-apps&#39;</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">express</span><span class="p">(),</span>
+    <span class="nx">mobile</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">();</span>
+
+<span class="c1">// Define a TodoItem table.</span>
+<span class="nx">mobile</span><span class="p">.</span><span class="nx">tables</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="s1">&#39;TodoItem&#39;</span><span class="p">);</span>
+
+<span class="c1">// Add the Mobile API so it is accessible as a Web API.</span>
+<span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">mobile</span><span class="p">);</span>
+
+<span class="c1">// Start listening on HTTP.</span>
+<span class="nx">app</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">PORT</span> <span class="o">||</span> <span class="mf">3000</span><span class="p">);</span>
+</code></pre></div>
+</li>
+</ol>
+<p>This application creates a mobile-optimized Web API with a single endpoint (<code>/tables/TodoItem</code>) that provides unauthenticated access to an underlying SQL data store by using a dynamic schema. It is suitable for following the client library quickstarts:</p>
+<ul>
+<li><a href="../../../quickstarts/cordova/">Apache Cordova</a></li>
+<li><a href="../../../quickstarts/uwp/">Windows (UWP)</a></li>
+<li><a href="../../../quickstarts/wpf/">Windows (WPF)</a></li>
+<li><a href="../../../quickstarts/xamarin-android/">Xamarin.Android</a></li>
+<li><a href="../../../quickstarts/xamarin-forms/">Xamarin.Forms</a></li>
+<li><a href="../../../quickstarts/xamarin-ios/">Xamarin.iOS</a></li>
+</ul>
+<p>You can find the code for this basic application in the <a href="https://github.com/azure/azure-mobile-apps/tree/master/samples/nodejs">samples area on GitHub</a>.</p>
+<h3 id="enable-a-home-page-for-your-application">Enable a home page for your application<a class="headerlink" href="#enable-a-home-page-for-your-application" title="Permanent link">&para;</a></h3>
+<p>Many applications are a combination of web and mobile apps. You can use the Express framework to combine the two facets. Sometimes, however, you might want to only implement a mobile interface. It's useful to provide a home page to ensure that the app service is up and running. You can either provide your own home page or enable a temporary home page. To enable a temporary home page, use the following code to instantiate Azure Mobile Apps:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">mobile</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">({</span> <span class="nx">homePage</span><span class="o">:</span> <span class="kc">true</span> <span class="p">});</span>
+</code></pre></div>
+<p>If you only want this option available when developing locally, you can add this setting to the <code>azureMobile.js</code> configuration file:</p>
+<div class="highlight"><pre><span></span><code><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">homePage</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+<span class="p">};</span>
+</code></pre></div>
+<p>You can add other settings to the azureMobile.js file, as required.</p>
+<h2 id="table-operations">Table operations<a class="headerlink" href="#table-operations" title="Permanent link">&para;</a></h2>
+<p>The azure-mobile-apps Node.js Server SDK provides mechanisms to expose data tables stored in Azure SQL Database as a Web API. It provides five operations:</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET /tables/<em>tablename</em></td>
+<td>Get all records in the table.</td>
+</tr>
+<tr>
+<td>GET /tables/<em>tablename</em>/:id</td>
+<td>Get a specific record in the table.</td>
+</tr>
+<tr>
+<td>POST /tables/<em>tablename</em></td>
+<td>Create a record in the table.</td>
+</tr>
+<tr>
+<td>PATCH /tables/<em>tablename</em>/:id</td>
+<td>Update a record in the table.</td>
+</tr>
+<tr>
+<td>DELETE /tables/<em>tablename</em>/:id</td>
+<td>Delete a record in the table.</td>
+</tr>
+</tbody>
+</table>
+<p>This Web API supports <a href="https://www.odata.org">OData v3</a> and extends the table schema to support <a href="../../datasync/">offline data sync</a>.</p>
+<h3 id="define-tables-by-using-a-dynamic-schema">Define tables by using a dynamic schema<a class="headerlink" href="#define-tables-by-using-a-dynamic-schema" title="Permanent link">&para;</a></h3>
+<p>Before you can use a table, you must define it. You can define tables by using a static schema (where you define the columns in the schema) or dynamically (where the SDK controls the schema based on incoming requests). In addition, you can control specific aspects of the Web API by adding JavaScript code to the definition.</p>
+<p>As a best practice, you should define each table in a JavaScript file in the <code>tables</code> directory, and then use the <code>tables.import()</code> method to import the tables. Extending the basic-app sample, you would adjust the app.js file:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">express</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;express&#39;</span><span class="p">),</span>
+    <span class="nx">azureMobileApps</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;azure-mobile-apps&#39;</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">express</span><span class="p">(),</span>
+    <span class="nx">mobile</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">();</span>
+
+<span class="c1">// Define the database schema that is exposed.</span>
+<span class="nx">mobile</span><span class="p">.</span><span class="nx">tables</span><span class="p">.</span><span class="kr">import</span><span class="p">(</span><span class="s1">&#39;./tables&#39;</span><span class="p">);</span>
+
+<span class="c1">// Provide initialization of any tables that are statically defined.</span>
+<span class="nx">mobile</span><span class="p">.</span><span class="nx">tables</span><span class="p">.</span><span class="nx">initialize</span><span class="p">().</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// Add the Mobile API so it is accessible as a Web API.</span>
+    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">mobile</span><span class="p">);</span>
+
+    <span class="c1">// Start listening on HTTP.</span>
+    <span class="nx">app</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">PORT</span> <span class="o">||</span> <span class="mf">3000</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre></div>
+<p>Define the table in ./tables/TodoItem.js:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">azureMobileApps</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;azure-mobile-apps&#39;</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">table</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">.</span><span class="nx">table</span><span class="p">();</span>
+
+<span class="c1">// Additional configuration for the table goes here.</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">table</span><span class="p">;</span>
+</code></pre></div>
+<p>Tables use a dynamic schema by default. </p>
+<h3 id="define-tables-by-using-a-static-schema">Define tables by using a static schema<a class="headerlink" href="#define-tables-by-using-a-static-schema" title="Permanent link">&para;</a></h3>
+<p>You can explicitly define the columns to expose via the Web API. The azure-mobile-apps Node.js SDK automatically adds any extra columns required for offline data sync to the list that you provide. For example, the quickstart client applications require a table with two columns: <code>text</code> (a string) and <code>complete</code> (a Boolean).   The table can be defined in the table definition JavaScript file (located in the <code>tables</code> directory) as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">azureMobileApps</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;azure-mobile-apps&#39;</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">table</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">.</span><span class="nx">table</span><span class="p">();</span>
+
+<span class="c1">// Define the columns within the table.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">columns</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;text&quot;</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;complete&quot;</span><span class="o">:</span> <span class="s2">&quot;boolean&quot;</span>
+<span class="p">};</span>
+
+<span class="c1">// Turn off the dynamic schema.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">dynamicSchema</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">table</span><span class="p">;</span>
+</code></pre></div>
+<p>If you define tables statically, you must also call the <code>tables.initialize()</code> method to create the database schema on startup. The <code>tables.initialize()</code> method returns a <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise">promise</a> so that the web service does not serve requests before the database is initialized.</p>
+<h3 id="use-sql-server-express-as-a-development-data-store-on-your-local-machine">Use SQL Server Express as a development data store on your local machine<a class="headerlink" href="#use-sql-server-express-as-a-development-data-store-on-your-local-machine" title="Permanent link">&para;</a></h3>
+<p>The Azure Mobile Apps Node.js SDK provides three options for serving data out of the box:</p>
+<ul>
+<li>Use the <strong>memory</strong> driver to provide a non-persistent example store.</li>
+<li>Use the <strong>mssql</strong> driver to provide a SQL Server Express data store for development.</li>
+<li>Use the <strong>mssql</strong> driver to provide an Azure SQL Database data store for production.</li>
+</ul>
+<p>The Azure Mobile Apps Node.js SDK uses the <a href="https://www.npmjs.com/package/mssql">mssql Node.js package</a> to establish and use a connection to both SQL Server Express and SQL Database. This package requires that you enable TCP connections on your SQL Server Express instance.</p>
+<blockquote>
+<p>[!TIP]
+The memory driver does not provide a complete set of facilities for testing. If you want to test
+your back end locally, we recommend the use of a SQL Server Express data store and the mssql driver.</p>
+</blockquote>
+<ol>
+<li>Download and install <a href="https://www.microsoft.com/sql-server/sql-server-downloads">Microsoft SQL Server 2019 Developer</a>. </li>
+<li>Run Configuration Manager:</li>
+</ol>
+<p>a. Expand the <strong>SQL Server Network Configuration</strong> node in the tree menu.</p>
+<p>b. Select <strong>Protocols for <instance-name></strong>.</p>
+<p>c. Right-click <strong>TCP/IP</strong> and select <strong>Enable</strong>. Select <strong>OK</strong> in the pop-up dialog box.</p>
+<p>d. Select <strong>SQL Server Services</strong> in the tree menu.</p>
+<p>e. Right-click <strong>SQL Server (<instance-name>)</strong> and select <strong>Restart</strong>.</p>
+<p>j. Close Configuration Manager.</p>
+<p>You will also have to create a username and password that Azure Mobile Apps can use to connect to the database.  Ensure the user you create has the <code>dbcreator</code> server role.  For more information on configuring users, consult the <a href="https://docs.microsoft.com/sql/relational-databases/security/authentication-access/create-a-database-user?view=sql-server-ver15">SQL Server documentation</a></p>
+<p>Be sure to record the username and password that you selected. You  might need to assign additional server roles or permissions, depending on your database requirements.</p>
+<p>The Node.js application reads the <code>SQLCONNSTR_MS_TableConnectionString</code> environment variable for
+the connection string for this database. You can set this variable in your environment. For example, you can use PowerShell to set this environment variable:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">$env:SQLCONNSTR_MS_TableConnectionString</span> <span class="p">=</span> <span class="s2">&quot;Server=127.0.0.1; Database=mytestdatabase; User Id=azuremobile; Password=T3stPa55word;&quot;</span>
+</code></pre></div>
+<p>Access the database through a TCP/IP connection. Provide a username and password for the connection.</p>
+<h3 id="configure-your-project-for-local-development">Configure your project for local development<a class="headerlink" href="#configure-your-project-for-local-development" title="Permanent link">&para;</a></h3>
+<p>Azure Mobile Apps reads a JavaScript file called <code>azureMobile.js</code> from the local file system. Do not use this file to configure the Azure Mobile Apps SDK in production. Instead, use <a href="https://docs.microsoft.com/azure/app-service/configure-common"><strong>App settings</strong> in the Azure portal</a>.</p>
+<p>The azureMobile.js file should export a configuration object. The most common settings are:</p>
+<ul>
+<li>Database settings</li>
+<li>Diagnostic logging settings</li>
+<li>Alternate CORS settings</li>
+</ul>
+<p>This example <strong>azureMobile.js</strong> file implements the preceding database settings:</p>
+<div class="highlight"><pre><span></span><code><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">cors</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">origins</span><span class="o">:</span> <span class="p">[</span> <span class="s1">&#39;localhost&#39;</span> <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="nx">data</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">provider</span><span class="o">:</span> <span class="s1">&#39;mssql&#39;</span><span class="p">,</span>
+        <span class="nx">server</span><span class="o">:</span> <span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span>
+        <span class="nx">database</span><span class="o">:</span> <span class="s1">&#39;mytestdatabase&#39;</span><span class="p">,</span>
+        <span class="nx">user</span><span class="o">:</span> <span class="s1">&#39;azuremobile&#39;</span><span class="p">,</span>
+        <span class="nx">password</span><span class="o">:</span> <span class="s1">&#39;T3stPa55word&#39;</span>
+    <span class="p">},</span>
+    <span class="nx">logging</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">level</span><span class="o">:</span> <span class="s1">&#39;verbose&#39;</span>
+    <span class="p">}</span>
+<span class="p">};</span>
+</code></pre></div>
+<p>We recommend that you add <code>azureMobile.js</code> to your <code>.gitignore</code> file (or other source code control ignore file) to prevent passwords from being stored in the cloud.</p>
+<h3 id="configure-app-settings-for-your-mobile-app">Configure app settings for your mobile app<a class="headerlink" href="#configure-app-settings-for-your-mobile-app" title="Permanent link">&para;</a></h3>
+<p>Most settings in the <code>azureMobile.js</code> file have an equivalent app setting in the <a href="https://portal.azure.com">Azure portal</a>. Use the following list to configure your app in <strong>App settings</strong>:</p>
+<table>
+<thead>
+<tr>
+<th align="left">App setting</th>
+<th align="left">azureMobile.js setting</th>
+<th align="left">Description</th>
+<th align="left">Valid values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>MS_MobileAppName</strong></td>
+<td align="left">name</td>
+<td align="left">Name of the app</td>
+<td align="left">string</td>
+</tr>
+<tr>
+<td align="left"><strong>MS_MobileLoggingLevel</strong></td>
+<td align="left">logging.level</td>
+<td align="left">Minimum log level of messages to log</td>
+<td align="left">error, warning, info, verbose, debug, silly</td>
+</tr>
+<tr>
+<td align="left"><strong>MS_DebugMode</strong></td>
+<td align="left">debug</td>
+<td align="left">Enables or disables debug mode</td>
+<td align="left">true, false</td>
+</tr>
+<tr>
+<td align="left"><strong>MS_TableSchema</strong></td>
+<td align="left">data.schema</td>
+<td align="left">Default schema name for SQL tables</td>
+<td align="left">string (default: dbo)</td>
+</tr>
+<tr>
+<td align="left"><strong>MS_DynamicSchema</strong></td>
+<td align="left">data.dynamicSchema</td>
+<td align="left">Enables or disables debug mode</td>
+<td align="left">true, false</td>
+</tr>
+<tr>
+<td align="left"><strong>MS_DisableVersionHeader</strong></td>
+<td align="left">version (set to undefined)</td>
+<td align="left">Disables the X-ZUMO-Server-Version header</td>
+<td align="left">true, false</td>
+</tr>
+<tr>
+<td align="left"><strong>MS_SkipVersionCheck</strong></td>
+<td align="left">skipversioncheck</td>
+<td align="left">Disables the client API version check</td>
+<td align="left">true, false</td>
+</tr>
+</tbody>
+</table>
+<p>Changing most app settings requires a service restart.</p>
+<h3 id="use-azure-sql-as-your-production-data-store">Use Azure SQL as your production data store<a class="headerlink" href="#use-azure-sql-as-your-production-data-store" title="Permanent link">&para;</a></h3>
+<p>Using Azure SQL Database as a data store is identical across all Azure App Service application types. If you have not done so already, follow these steps to create an Azure App Service back end.  Create an Azure SQL instance, then set the app setting <code>SQLCONNSTR_MS_TableConnectionString</code> to the connection string for the Azure SQL instance you wish to use.  Ensure that the Azure App Service that is running your back end can communicate with your Azure SQL instance.</p>
+<h3 id="require-authentication-for-access-to-tables">Require authentication for access to tables<a class="headerlink" href="#require-authentication-for-access-to-tables" title="Permanent link">&para;</a></h3>
+<p>If you want to use App Service Authentication with the <code>tables</code> endpoint, you must <a href="https://docs.microsoft.com/azure/app-service/app-service-authentication-how-to">configure App Service Authentication in the Azure portal</a> first. For more information, see the configuration guide for the identity provider that you intend to use:</p>
+<ul>
+<li><a href="https://docs.microsoft.com/azure/app-service/configure-authentication-provider-aad">Configure Azure Active Directory authentication</a></li>
+<li><a href="https://docs.microsoft.com/azure/app-service/configure-authentication-provider-facebook">Configure Facebook authentication</a></li>
+<li><a href="https://docs.microsoft.com/azure/app-service/configure-authentication-provider-google">Configure Google authentication</a></li>
+<li><a href="https://docs.microsoft.com/azure/app-service/configure-authentication-provider-microsoft">Configure Microsoft authentication</a></li>
+<li><a href="https://docs.microsoft.com/azure/app-service/configure-authentication-provider-twitter">Configure Twitter authentication</a></li>
+</ul>
+<p>Each table has an access property that you can use to control access to the table. The following sample shows a statically defined table with authentication required.</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">azureMobileApps</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;azure-mobile-apps&#39;</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">table</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">.</span><span class="nx">table</span><span class="p">();</span>
+
+<span class="c1">// Define the columns within the table.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">columns</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;text&quot;</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;complete&quot;</span><span class="o">:</span> <span class="s2">&quot;boolean&quot;</span>
+<span class="p">};</span>
+
+<span class="c1">// Turn off the dynamic schema.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">dynamicSchema</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+
+<span class="c1">// Require authentication to access the table.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">access</span> <span class="o">=</span> <span class="s1">&#39;authenticated&#39;</span><span class="p">;</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">table</span><span class="p">;</span>
+</code></pre></div>
+<p>The access property can take one of three values:</p>
+<ul>
+<li><em>anonymous</em> indicates that the client application is allowed to read data without authentication.</li>
+<li><em>authenticated</em> indicates that the client application must send a valid authentication token with the request.</li>
+<li><em>disabled</em> indicates that this table is currently disabled.</li>
+</ul>
+<p>If the access property is undefined, unauthenticated access is allowed.</p>
+<h3 id="use-authentication-claims-with-your-tables">Use authentication claims with your tables<a class="headerlink" href="#use-authentication-claims-with-your-tables" title="Permanent link">&para;</a></h3>
+<p>You can set up various claims that are requested when authentication is set up. These claims are not normally available through the <code>context.user</code> object. However, you can retrieve them by using the <code>context.user.getIdentity()</code> method. The <code>getIdentity()</code> method returns a promise that resolves to an object. The object is keyed by the authentication method (<code>facebook</code>, <code>google</code>, <code>twitter</code>, <code>microsoftaccount</code>, or <code>aad</code>).</p>
+<blockquote>
+<p><strong>Note</strong> If using Microsoft authentication via Azure Active Directory, the authentication method is <code>aad</code>, not <code>microsoftaccount</code>.</p>
+</blockquote>
+<p>For example, if you set up Azure Active Directory authentication and request the email addresses claim, you can add the email address to the record with the following table controller:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">azureMobileApps</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;azure-mobile-apps&#39;</span><span class="p">);</span>
+
+<span class="c1">// Create a new table definition.</span>
+<span class="kd">var</span> <span class="nx">table</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">.</span><span class="nx">table</span><span class="p">();</span>
+
+<span class="nx">table</span><span class="p">.</span><span class="nx">columns</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;emailAddress&quot;</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;text&quot;</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;complete&quot;</span><span class="o">:</span> <span class="s2">&quot;boolean&quot;</span>
+<span class="p">};</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">dynamicSchema</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">access</span> <span class="o">=</span> <span class="s1">&#39;authenticated&#39;</span><span class="p">;</span>
+
+<span class="cm">/**</span>
+<span class="cm">* Limit the context query to those records with the authenticated user email address</span>
+<span class="cm">* @param {Context} context the operation context</span>
+<span class="cm">* @returns {Promise} context execution Promise</span>
+<span class="cm">*/</span>
+<span class="kd">function</span> <span class="nx">queryContextForEmail</span><span class="p">(</span><span class="nx">context</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">context</span><span class="p">.</span><span class="nx">user</span><span class="p">.</span><span class="nx">getIdentity</span><span class="p">().</span><span class="nx">then</span><span class="p">((</span><span class="nx">data</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{</span>
+        <span class="nx">context</span><span class="p">.</span><span class="nx">query</span><span class="p">.</span><span class="nx">where</span><span class="p">({</span> <span class="nx">emailAddress</span><span class="o">:</span> <span class="nx">data</span><span class="p">.</span><span class="nx">aad</span><span class="p">.</span><span class="nx">claims</span><span class="p">.</span><span class="nx">emailaddress</span> <span class="p">});</span>
+        <span class="k">return</span> <span class="nx">context</span><span class="p">.</span><span class="nx">execute</span><span class="p">();</span>
+    <span class="p">});</span>
+<span class="p">}</span>
+
+<span class="cm">/**</span>
+<span class="cm">* Adds the email address from the claims to the context item - used for</span>
+<span class="cm">* insert operations</span>
+<span class="cm">* @param {Context} context the operation context</span>
+<span class="cm">* @returns {Promise} context execution Promise</span>
+<span class="cm">*/</span>
+<span class="kd">function</span> <span class="nx">addEmailToContext</span><span class="p">(</span><span class="nx">context</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">context</span><span class="p">.</span><span class="nx">user</span><span class="p">.</span><span class="nx">getIdentity</span><span class="p">().</span><span class="nx">then</span><span class="p">((</span><span class="nx">data</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{</span>
+        <span class="nx">context</span><span class="p">.</span><span class="nx">item</span><span class="p">.</span><span class="nx">emailAddress</span> <span class="o">=</span> <span class="nx">data</span><span class="p">.</span><span class="nx">aad</span><span class="p">.</span><span class="nx">claims</span><span class="p">.</span><span class="nx">emailaddress</span><span class="p">;</span>
+        <span class="k">return</span> <span class="nx">context</span><span class="p">.</span><span class="nx">execute</span><span class="p">();</span>
+    <span class="p">});</span>
+<span class="p">}</span>
+
+<span class="c1">// Configure specific code when the client does a request.</span>
+<span class="c1">// READ: only return records that belong to the authenticated user.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">read</span><span class="p">(</span><span class="nx">queryContextForEmail</span><span class="p">);</span>
+
+<span class="c1">// CREATE: add or overwrite the userId based on the authenticated user.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">insert</span><span class="p">(</span><span class="nx">addEmailToContext</span><span class="p">);</span>
+
+<span class="c1">// UPDATE: only allow updating of records that belong to the authenticated user.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="nx">queryContextForEmail</span><span class="p">);</span>
+
+<span class="c1">// DELETE: only allow deletion of records that belong to the authenticated user.</span>
+<span class="nx">table</span><span class="p">.</span><span class="k">delete</span><span class="p">(</span><span class="nx">queryContextForEmail</span><span class="p">);</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">table</span><span class="p">;</span>
+</code></pre></div>
+<p>To see what claims are available, use a web browser to view the <code>/.auth/me</code> endpoint of your site.</p>
+<h3 id="disable-access-to-specific-table-operations">Disable access to specific table operations<a class="headerlink" href="#disable-access-to-specific-table-operations" title="Permanent link">&para;</a></h3>
+<p>In addition to appearing on the table, the access property can be used to control individual operations. There are four operations:</p>
+<ul>
+<li><code>read</code> is the RESTful GET operation on the table.</li>
+<li><code>insert</code> is the RESTful POST operation on the table.</li>
+<li><code>update</code> is the RESTful PATCH operation on the table.</li>
+<li><code>delete</code> is the RESTful DELETE operation on the table.</li>
+</ul>
+<p>For example, you might want to provide a read-only unauthenticated table:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">azureMobileApps</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;azure-mobile-apps&#39;</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">table</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">.</span><span class="nx">table</span><span class="p">();</span>
+
+<span class="c1">// Read-only table. Only allow READ operations.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">read</span><span class="p">.</span><span class="nx">access</span> <span class="o">=</span> <span class="s1">&#39;anonymous&#39;</span><span class="p">;</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">insert</span><span class="p">.</span><span class="nx">access</span> <span class="o">=</span> <span class="s1">&#39;disabled&#39;</span><span class="p">;</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">update</span><span class="p">.</span><span class="nx">access</span> <span class="o">=</span> <span class="s1">&#39;disabled&#39;</span><span class="p">;</span>
+<span class="nx">table</span><span class="p">.</span><span class="k">delete</span><span class="p">.</span><span class="nx">access</span> <span class="o">=</span> <span class="s1">&#39;disabled&#39;</span><span class="p">;</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">table</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="adjust-the-query-that-is-used-with-table-operations">Adjust the query that is used with table operations<a class="headerlink" href="#adjust-the-query-that-is-used-with-table-operations" title="Permanent link">&para;</a></h3>
+<p>A common requirement for table operations is to provide a restricted view of the data. For example, you can provide a table that is tagged with the authenticated user ID such that you can only read or update your own records. The following table definition provides this functionality:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">azureMobileApps</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;azure-mobile-apps&#39;</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">table</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">.</span><span class="nx">table</span><span class="p">();</span>
+
+<span class="c1">// Define a static schema for the table.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">columns</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;userId&quot;</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;text&quot;</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;complete&quot;</span><span class="o">:</span> <span class="s2">&quot;boolean&quot;</span>
+<span class="p">};</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">dynamicSchema</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+
+<span class="c1">// Require authentication for this table.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">access</span> <span class="o">=</span> <span class="s1">&#39;authenticated&#39;</span><span class="p">;</span>
+
+<span class="c1">// Ensure that only records for the authenticated user are retrieved.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">read</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">context</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">context</span><span class="p">.</span><span class="nx">query</span><span class="p">.</span><span class="nx">where</span><span class="p">({</span> <span class="nx">userId</span><span class="o">:</span> <span class="nx">context</span><span class="p">.</span><span class="nx">user</span><span class="p">.</span><span class="nx">id</span> <span class="p">});</span>
+    <span class="k">return</span> <span class="nx">context</span><span class="p">.</span><span class="nx">execute</span><span class="p">();</span>
+<span class="p">});</span>
+
+<span class="c1">// When adding records, add or overwrite the userId with the authenticated user.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">insert</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">context</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">context</span><span class="p">.</span><span class="nx">item</span><span class="p">.</span><span class="nx">userId</span> <span class="o">=</span> <span class="nx">context</span><span class="p">.</span><span class="nx">user</span><span class="p">.</span><span class="nx">id</span><span class="p">;</span>
+    <span class="k">return</span> <span class="nx">context</span><span class="p">.</span><span class="nx">execute</span><span class="p">();</span>
+<span class="p">});</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">table</span><span class="p">;</span>
+</code></pre></div>
+<p>Operations that normally run a query have a query property that you can adjust by using a <code>where</code> clause. The query property is a <a href="https://github.com/Azure/queryjs">QueryJS</a> object that is used to convert an OData query to something that the data back end can process. For simple equality cases (like the preceding one), you can use a map. You can also add specific SQL clauses:</p>
+<div class="highlight"><pre><span></span><code><span class="nx">context</span><span class="p">.</span><span class="nx">query</span><span class="p">.</span><span class="nx">where</span><span class="p">(</span><span class="s1">&#39;myfield eq ?&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="configure-a-soft-delete-on-a-table">Configure a soft delete on a table<a class="headerlink" href="#configure-a-soft-delete-on-a-table" title="Permanent link">&para;</a></h3>
+<p>A soft delete does not actually delete records. Instead it marks them as deleted within the database by setting the deleted column to true. The Azure Mobile Apps SDK automatically removes soft-deleted records from results unless the Mobile Client SDK uses <code>includeDeleted()</code>. To configure a table for a soft delete, set the <code>softDelete</code> property in the table definition file:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">azureMobileApps</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;azure-mobile-apps&#39;</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">table</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">.</span><span class="nx">table</span><span class="p">();</span>
+
+<span class="c1">// Define the columns within the table.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">columns</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;text&quot;</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;complete&quot;</span><span class="o">:</span> <span class="s2">&quot;boolean&quot;</span>
+<span class="p">};</span>
+
+<span class="c1">// Turn off the dynamic schema.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">dynamicSchema</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+
+<span class="c1">// Turn on soft delete.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">softDelete</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+
+<span class="c1">// Require authentication to access the table.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">access</span> <span class="o">=</span> <span class="s1">&#39;authenticated&#39;</span><span class="p">;</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">table</span><span class="p">;</span>
+</code></pre></div>
+<p>You should establish a mechanism for deleting records: a client application, a WebJob, an Azure Function, or a custom API.</p>
+<h3 id="seed-your-database-with-data">Seed your database with data<a class="headerlink" href="#seed-your-database-with-data" title="Permanent link">&para;</a></h3>
+<p>When you're creating a new application, you might want to seed a table with data. You can do this within the table definition JavaScript file as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">azureMobileApps</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;azure-mobile-apps&#39;</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">table</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">.</span><span class="nx">table</span><span class="p">();</span>
+
+<span class="c1">// Define the columns within the table.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">columns</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;text&quot;</span><span class="o">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;complete&quot;</span><span class="o">:</span> <span class="s2">&quot;boolean&quot;</span>
+<span class="p">};</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">seed</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="nx">text</span><span class="o">:</span> <span class="s1">&#39;Example 1&#39;</span><span class="p">,</span> <span class="nx">complete</span><span class="o">:</span> <span class="kc">false</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="nx">text</span><span class="o">:</span> <span class="s1">&#39;Example 2&#39;</span><span class="p">,</span> <span class="nx">complete</span><span class="o">:</span> <span class="kc">true</span> <span class="p">}</span>
+<span class="p">];</span>
+
+<span class="c1">// Turn off the dynamic schema.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">dynamicSchema</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+
+<span class="c1">// Require authentication to access the table.</span>
+<span class="nx">table</span><span class="p">.</span><span class="nx">access</span> <span class="o">=</span> <span class="s1">&#39;authenticated&#39;</span><span class="p">;</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">table</span><span class="p">;</span>
+</code></pre></div>
+<p>Seeding of data happens only when you've used the Azure Mobile Apps SDK to create the table. If the table already exists in the database, no data is injected into the table. If the dynamic schema is turned on, the schema is inferred from the seeded data.</p>
+<p>We recommend that you explicitly call the <code>tables.initialize()</code> method to create the table when the service starts running.</p>
+<h3 id="enable-swagger-support">Enable Swagger support<a class="headerlink" href="#enable-swagger-support" title="Permanent link">&para;</a></h3>
+<p>Azure Mobile Apps comes with built-in <a href="https://swagger.io/">Swagger</a> support. To enable Swagger support, first install swagger-ui as a dependency:</p>
+<div class="highlight"><pre><span></span><code>npm install --save swagger-ui
+</code></pre></div>
+<p>You can then enable Swagger support in the Azure Mobile Apps constructor:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">mobile</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">({</span> <span class="nx">swagger</span><span class="o">:</span> <span class="kc">true</span> <span class="p">});</span>
+</code></pre></div>
+<p>You probably only want to enable Swagger support in development editions. You can do this by using the <code>NODE_ENV</code> app setting:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">mobile</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">({</span> <span class="nx">swagger</span><span class="o">:</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">NODE_ENV</span> <span class="o">!==</span> <span class="s1">&#39;production&#39;</span> <span class="p">});</span>
+</code></pre></div>
+<p>The <code>swagger</code> endpoint is located at http://<em>yoursite</em>.azurewebsites.net/swagger. You can access the Swagger UI via the <code>/swagger/ui</code> endpoint. If you choose to require authentication across your entire application, Swagger produces an error. For best results, choose to allow unauthenticated requests in the Azure App Service Authentication/Authorization settings, and then control authentication by using the <code>table.access</code> property.</p>
+<p>You can also add the Swagger option to your <code>azureMobile.js</code> file if you only want Swagger support for developing locally.</p>
+<h2 id="custom-apis"><a name="CustomAPI"></a> Custom APIs<a class="headerlink" href="#custom-apis" title="Permanent link">&para;</a></h2>
+<p>In addition to the Data Access API via the <code>/tables</code> endpoint, Azure Mobile Apps can provide custom API coverage. Custom APIs are defined in a similar way to the table definitions and can access all the same facilities, including authentication.</p>
+<h3 id="define-a-custom-api"><a name="howto-customapi-basic"></a>Define a custom API<a class="headerlink" href="#define-a-custom-api" title="Permanent link">&para;</a></h3>
+<p>Custom APIs are defined in much the same way as the Tables API:</p>
+<ol>
+<li>Create an <code>api</code> directory.</li>
+<li>Create an API definition JavaScript file in the <code>api</code> directory.</li>
+<li>Use the import method to import the <code>api</code> directory.</li>
+</ol>
+<p>Here is the prototype API definition based on the basic-app sample that we used earlier:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">express</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;express&#39;</span><span class="p">),</span>
+    <span class="nx">azureMobileApps</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;azure-mobile-apps&#39;</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">express</span><span class="p">(),</span>
+    <span class="nx">mobile</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">();</span>
+
+<span class="c1">// Import the custom API.</span>
+<span class="nx">mobile</span><span class="p">.</span><span class="nx">api</span><span class="p">.</span><span class="kr">import</span><span class="p">(</span><span class="s1">&#39;./api&#39;</span><span class="p">);</span>
+
+<span class="c1">// Add the Mobile API so it is accessible as a Web API.</span>
+<span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">mobile</span><span class="p">);</span>
+
+<span class="c1">// Start listening on HTTP</span>
+<span class="nx">app</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">PORT</span> <span class="o">||</span> <span class="mf">3000</span><span class="p">);</span>
+</code></pre></div>
+<p>Let's take an example API that returns the server date by using the <code>Date.now()</code> method. Here is the <code>api/date.js</code> file:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">api</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">get</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">date</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">currentTime</span><span class="o">:</span> <span class="nb">Date</span><span class="p">.</span><span class="nx">now</span><span class="p">()</span> <span class="p">};</span>
+        <span class="nx">res</span><span class="p">.</span><span class="nx">status</span><span class="p">(</span><span class="mf">200</span><span class="p">).</span><span class="nx">type</span><span class="p">(</span><span class="s1">&#39;application/json&#39;</span><span class="p">).</span><span class="nx">send</span><span class="p">(</span><span class="nx">date</span><span class="p">);</span>
+    <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">api</span><span class="p">;</span>
+</code></pre></div>
+<p>Each parameter is one of the standard RESTful verbs: GET, POST, PATCH, or DELETE. The method is a standard <a href="http://expressjs.com/en/guide/using-middleware.html">ExpressJS middleware</a> function that sends the required output.</p>
+<h3 id="require-authentication-for-access-to-a-custom-api">Require authentication for access to a custom API<a class="headerlink" href="#require-authentication-for-access-to-a-custom-api" title="Permanent link">&para;</a></h3>
+<p>The Azure Mobile Apps SDK implements authentication in the same way for both the <code>tables</code> endpoint and custom APIs. To add authentication to the API developed in the previous section, add an <code>access</code> property:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">api</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">get</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">date</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">currentTime</span><span class="o">:</span> <span class="nb">Date</span><span class="p">.</span><span class="nx">now</span><span class="p">()</span> <span class="p">};</span>
+        <span class="nx">res</span><span class="p">.</span><span class="nx">status</span><span class="p">(</span><span class="mf">200</span><span class="p">).</span><span class="nx">type</span><span class="p">(</span><span class="s1">&#39;application/json&#39;</span><span class="p">).</span><span class="nx">send</span><span class="p">(</span><span class="nx">date</span><span class="p">);</span>
+    <span class="p">});</span>
+<span class="p">};</span>
+<span class="c1">// All methods must be authenticated.</span>
+<span class="nx">api</span><span class="p">.</span><span class="nx">access</span> <span class="o">=</span> <span class="s1">&#39;authenticated&#39;</span><span class="p">;</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">api</span><span class="p">;</span>
+</code></pre></div>
+<p>You can also specify authentication on specific operations:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">api</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">get</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">date</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">currentTime</span><span class="o">:</span> <span class="nb">Date</span><span class="p">.</span><span class="nx">now</span><span class="p">()</span> <span class="p">};</span>
+        <span class="nx">res</span><span class="p">.</span><span class="nx">status</span><span class="p">(</span><span class="mf">200</span><span class="p">).</span><span class="nx">type</span><span class="p">(</span><span class="s1">&#39;application/json&#39;</span><span class="p">).</span><span class="nx">send</span><span class="p">(</span><span class="nx">date</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">};</span>
+<span class="c1">// The GET methods must be authenticated.</span>
+<span class="nx">api</span><span class="p">.</span><span class="nx">get</span><span class="p">.</span><span class="nx">access</span> <span class="o">=</span> <span class="s1">&#39;authenticated&#39;</span><span class="p">;</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">api</span><span class="p">;</span>
+</code></pre></div>
+<p>The same token that is used for the <code>tables</code> endpoint must be used for custom APIs that require authentication.</p>
+<h3 id="handle-large-file-uploads">Handle large file uploads<a class="headerlink" href="#handle-large-file-uploads" title="Permanent link">&para;</a></h3>
+<p>The Azure Mobile Apps SDK uses the <a href="https://github.com/expressjs/body-parser">body-parser middleware</a> to accept and decode body content in your submission. You can preconfigure body-parser to accept larger file uploads:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">express</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;express&#39;</span><span class="p">),</span>
+    <span class="nx">bodyParser</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;body-parser&#39;</span><span class="p">),</span>
+    <span class="nx">azureMobileApps</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;azure-mobile-apps&#39;</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">express</span><span class="p">(),</span>
+    <span class="nx">mobile</span> <span class="o">=</span> <span class="nx">azureMobileApps</span><span class="p">();</span>
+
+<span class="c1">// Set up large body content handling.</span>
+<span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">bodyParser</span><span class="p">.</span><span class="nx">json</span><span class="p">({</span> <span class="nx">limit</span><span class="o">:</span> <span class="s1">&#39;50mb&#39;</span> <span class="p">}));</span>
+<span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">bodyParser</span><span class="p">.</span><span class="nx">urlencoded</span><span class="p">({</span> <span class="nx">limit</span><span class="o">:</span> <span class="s1">&#39;50mb&#39;</span><span class="p">,</span> <span class="nx">extended</span><span class="o">:</span> <span class="kc">true</span> <span class="p">}));</span>
+
+<span class="c1">// Import the custom API.</span>
+<span class="nx">mobile</span><span class="p">.</span><span class="nx">api</span><span class="p">.</span><span class="kr">import</span><span class="p">(</span><span class="s1">&#39;./api&#39;</span><span class="p">);</span>
+
+<span class="c1">// Add the Mobile API so it is accessible as a Web API.</span>
+<span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">mobile</span><span class="p">);</span>
+
+<span class="c1">// Start listening on HTTP.</span>
+<span class="nx">app</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">PORT</span> <span class="o">||</span> <span class="mf">3000</span><span class="p">);</span>
+</code></pre></div>
+<p>The file is base-64 encoded before transmission. This encoding increases the size of the actual upload (and the size that you must account for).</p>
+<h3 id="execute-custom-sql-statements">Execute custom SQL statements<a class="headerlink" href="#execute-custom-sql-statements" title="Permanent link">&para;</a></h3>
+<p>The Azure Mobile Apps SDK allows access to the entire context through the request object. You can easily execute parameterized SQL statements to the defined data provider:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">api</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">get</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">response</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// Check for parameters. If not there, pass on to a later API call.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">request</span><span class="p">.</span><span class="nx">params</span><span class="p">.</span><span class="nx">completed</span> <span class="o">===</span> <span class="s1">&#39;undefined&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nx">next</span><span class="p">();</span>
+
+        <span class="c1">// Define the query. Anything that the mssql</span>
+        <span class="c1">// driver can handle is allowed.</span>
+        <span class="kd">var</span> <span class="nx">query</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="nx">sql</span><span class="o">:</span> <span class="s1">&#39;UPDATE TodoItem SET complete=@completed&#39;</span><span class="p">,</span>
+            <span class="nx">parameters</span><span class="o">:</span> <span class="p">[{</span>
+                <span class="nx">completed</span><span class="o">:</span> <span class="nx">request</span><span class="p">.</span><span class="nx">params</span><span class="p">.</span><span class="nx">completed</span>
+            <span class="p">}]</span>
+        <span class="p">};</span>
+
+        <span class="c1">// Execute the query. The context for Azure Mobile Apps is available through</span>
+        <span class="c1">// request.azureMobile. The data object contains the configured data provider.</span>
+        <span class="nx">request</span><span class="p">.</span><span class="nx">azureMobile</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">execute</span><span class="p">(</span><span class="nx">query</span><span class="p">)</span>
+        <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">results</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">(</span><span class="nx">results</span><span class="p">);</span>
+        <span class="p">});</span>
+    <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="nx">api</span><span class="p">.</span><span class="nx">get</span><span class="p">.</span><span class="nx">access</span> <span class="o">=</span> <span class="s1">&#39;authenticated&#39;</span><span class="p">;</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">api</span><span class="p">;</span>
+</code></pre></div>
+<h2 id="debugging">Debugging<a class="headerlink" href="#debugging" title="Permanent link">&para;</a></h2>
+<h3 id="debug-diagnose-and-troubleshoot-azure-mobile-apps">Debug, diagnose, and troubleshoot Azure Mobile Apps<a class="headerlink" href="#debug-diagnose-and-troubleshoot-azure-mobile-apps" title="Permanent link">&para;</a></h3>
+<p>Azure App Service provides several debugging and troubleshooting techniques for Node.js applications. To get started in troubleshooting your Node.js Azure Mobile Apps back end, see the following articles:</p>
+<ul>
+<li><a href="https://docs.microsoft.com/azure/app-service/web-sites-monitor">Monitoring Azure App Service</a></li>
+<li><a href="https://docs.microsoft.com/azure/app-service/troubleshoot-diagnostic-logs">Enable diagnostic logging in Azure App Service</a></li>
+<li><a href="https://docs.microsoft.com/azure/app-service/app-service-web-nodejs-best-practices-and-troubleshoot-guide">Troubleshoot node applications on Azure App Service</a></li>
+</ul>
+<p>Node.js applications have access to a wide range of diagnostic log tools. Internally, the Azure Mobile Apps Node.js SDK uses [Winston] for diagnostic logging. Logging is automatically enabled when you enable debug mode or set the <code>MS_DebugMode</code> app setting to true in the Azure portal. Generated logs appear in the diagnostic logs in the Azure portal.</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../dotnet-framework/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                ASP.NET Framework
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Copyright &copy; Microsoft, Inc.  All Rights Reserved.
+          </div>
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+  <div class="md-footer-social">
+    
+      
+      
+        
+        
+      
+      <a href="https://github.com/azure/azure-mobile-apps" target="_blank" rel="noopener" title="github.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+      </a>
+    
+  </div>
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../../assets/javascripts/vendor.7e0ee788.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.c1ccee15.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      
+      <script>
+        app = initialize({
+          base: "../../..",
+          features: ['navigation.instant', 'navigation.tabs', 'navigation.sections', 'search.suggest', 'search.highlight'],
+          search: Object.assign({
+            worker: "../../../assets/javascripts/worker/search.4ac00218.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>

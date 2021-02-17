@@ -1,0 +1,2248 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://azure.github.io/azure-mobile-apps/howto/client/dotnet/">
+      
+      
+      <link rel="shortcut icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.1.3">
+    
+    
+      
+        <title>.NET - Azure Mobile Apps</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.2cb7adb3.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.f0267088.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="preference" data-md-color-primary="" data-md-color-accent="">
+      
+        <script>matchMedia("(prefers-color-scheme: dark)").matches&&document.body.setAttribute("data-md-color-scheme","slate")</script>
+      
+  
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-to-use-the-azure-mobile-apps-client-library-for-net" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="https://azure.github.io/azure-mobile-apps/" title="Azure Mobile Apps" class="md-header-nav__button md-logo" aria-label="Azure Mobile Apps">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Azure Mobile Apps
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              .NET
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/azure/azure-mobile-apps/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+
+  
+
+<nav class="md-tabs md-tabs--active" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  <li class="md-tabs__item">
+    
+      <a href="../../.." class="md-tabs__link">
+        Home
+      </a>
+    
+  </li>
+
+      
+        
+  
+  
+    
+    
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../../../quickstarts/cordova/" class="md-tabs__link">
+          Quickstarts
+        </a>
+      
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../../auth/" class="md-tabs__link md-tabs__link--active">
+          How to
+        </a>
+      
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://azure.github.io/azure-mobile-apps/" title="Azure Mobile Apps" class="md-nav__button md-logo" aria-label="Azure Mobile Apps">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Azure Mobile Apps
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/azure/azure-mobile-apps/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../.." class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Quickstarts
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Quickstarts" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon"></span>
+        Quickstarts
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-1" type="checkbox" id="nav-2-1">
+    
+    <label class="md-nav__link" for="nav-2-1">
+      Apache Cordova
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Apache Cordova" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-1">
+        <span class="md-nav__icon md-icon"></span>
+        Apache Cordova
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/cordova/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/cordova/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/cordova/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-2" type="checkbox" id="nav-2-2">
+    
+    <label class="md-nav__link" for="nav-2-2">
+      Windows (UWP)
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Windows (UWP)" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-2">
+        <span class="md-nav__icon md-icon"></span>
+        Windows (UWP)
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/uwp/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/uwp/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/uwp/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-3" type="checkbox" id="nav-2-3">
+    
+    <label class="md-nav__link" for="nav-2-3">
+      Windows (WPF)
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Windows (WPF)" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-3">
+        <span class="md-nav__icon md-icon"></span>
+        Windows (WPF)
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/wpf/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/wpf/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/wpf/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-4" type="checkbox" id="nav-2-4">
+    
+    <label class="md-nav__link" for="nav-2-4">
+      Xamarin.Android
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Xamarin.Android" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-4">
+        <span class="md-nav__icon md-icon"></span>
+        Xamarin.Android
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-android/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-android/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-android/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-5" type="checkbox" id="nav-2-5">
+    
+    <label class="md-nav__link" for="nav-2-5">
+      Xamarin.Forms
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Xamarin.Forms" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-5">
+        <span class="md-nav__icon md-icon"></span>
+        Xamarin.Forms
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-forms/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-forms/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-forms/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-6" type="checkbox" id="nav-2-6">
+    
+    <label class="md-nav__link" for="nav-2-6">
+      Xamarin.iOS
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Xamarin.iOS" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-6">
+        <span class="md-nav__icon md-icon"></span>
+        Xamarin.iOS
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-ios/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-ios/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-ios/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
+    
+    <label class="md-nav__link" for="nav-3">
+      How to
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="How to" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon"></span>
+        How to
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/" class="md-nav__link">
+      Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../datasync/" class="md-nav__link">
+      Offline Data Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3-3" type="checkbox" id="nav-3-3" checked>
+    
+    <label class="md-nav__link" for="nav-3-3">
+      Work with the Client SDK
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Work with the Client SDK" data-md-level="2">
+      <label class="md-nav__title" for="nav-3-3">
+        <span class="md-nav__icon md-icon"></span>
+        Work with the Client SDK
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../cordova/" class="md-nav__link">
+      Apache Cordova
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        .NET
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="./" class="md-nav__link md-nav__link--active">
+      .NET
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-platforms" class="md-nav__link">
+    Supported platforms
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup-and-prerequisites" class="md-nav__link">
+    Setup and Prerequisites
+  </a>
+  
+    <nav class="md-nav" aria-label="Setup and Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-the-managed-client-sdk-package" class="md-nav__link">
+    Install the managed client SDK package
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-the-mobile-apps-client" class="md-nav__link">
+    Create the Mobile Apps client
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#work-with-tables" class="md-nav__link">
+    Work with tables
+  </a>
+  
+    <nav class="md-nav" aria-label="Work with tables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-a-table-reference" class="md-nav__link">
+    Create a table reference
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#query-data-from-your-mobile-app" class="md-nav__link">
+    Query data from your Mobile App
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filter-returned-data" class="md-nav__link">
+    Filter returned data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sort-returned-data" class="md-nav__link">
+    Sort returned data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-data-in-pages" class="md-nav__link">
+    Return data in pages
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#select-specific-columns" class="md-nav__link">
+    Select specific columns
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#look-up-data-by-id" class="md-nav__link">
+    Look up data by ID
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute-untyped-queries" class="md-nav__link">
+    Execute untyped queries
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#insert-data-into-a-mobile-app-backend" class="md-nav__link">
+    Insert data into a Mobile App backend
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#working-with-id-values" class="md-nav__link">
+    Working with ID values
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modify-data-in-a-mobile-app-backend" class="md-nav__link">
+    Modify data in a Mobile App backend
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-data-in-a-mobile-app-backend" class="md-nav__link">
+    Delete data in a Mobile App backend
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-optimistic-concurrency-for-conflict-resolution" class="md-nav__link">
+    Use Optimistic Concurrency for conflict resolution
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bind-mobile-apps-data-to-a-windows-user-interface" class="md-nav__link">
+    Bind Mobile Apps data to a Windows user interface
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#change-the-page-size" class="md-nav__link">
+    Change the Page size
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#work-with-offline-tables" class="md-nav__link">
+    Work with Offline Tables
+  </a>
+  
+    <nav class="md-nav" aria-label="Work with Offline Tables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#syncing-an-offline-table" class="md-nav__link">
+    Syncing an Offline Table
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#work-with-a-custom-api" class="md-nav__link">
+    Work with a custom API
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authenticate-users" class="md-nav__link">
+    Authenticate users
+  </a>
+  
+    <nav class="md-nav" aria-label="Authenticate users">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#client-managed-authentication" class="md-nav__link">
+    Client-managed authentication
+  </a>
+  
+    <nav class="md-nav" aria-label="Client-managed authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authenticate-users-with-the-active-directory-authentication-library" class="md-nav__link">
+    Authenticate users with the Active Directory Authentication Library
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#single-sign-on-using-a-token-from-facebook-or-google" class="md-nav__link">
+    Single Sign-On using a token from Facebook or Google
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-managed-authentication" class="md-nav__link">
+    Server-managed authentication
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching-the-authentication-token" class="md-nav__link">
+    Caching the authentication token
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#miscellaneous-topics" class="md-nav__link">
+    Miscellaneous Topics
+  </a>
+  
+    <nav class="md-nav" aria-label="Miscellaneous Topics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#handle-errors" class="md-nav__link">
+    Handle errors
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#customize-request-headers" class="md-nav__link">
+    Customize request headers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-request-logging" class="md-nav__link">
+    Enable request logging
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3-4" type="checkbox" id="nav-3-4">
+    
+    <label class="md-nav__link" for="nav-3-4">
+      Work with the Server SDK
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Work with the Server SDK" data-md-level="2">
+      <label class="md-nav__title" for="nav-3-4">
+        <span class="md-nav__icon md-icon"></span>
+        Work with the Server SDK
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../server/dotnet-framework/" class="md-nav__link">
+      ASP.NET Framework
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../server/nodejs/" class="md-nav__link">
+      Node.js
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-platforms" class="md-nav__link">
+    Supported platforms
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup-and-prerequisites" class="md-nav__link">
+    Setup and Prerequisites
+  </a>
+  
+    <nav class="md-nav" aria-label="Setup and Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-the-managed-client-sdk-package" class="md-nav__link">
+    Install the managed client SDK package
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-the-mobile-apps-client" class="md-nav__link">
+    Create the Mobile Apps client
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#work-with-tables" class="md-nav__link">
+    Work with tables
+  </a>
+  
+    <nav class="md-nav" aria-label="Work with tables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-a-table-reference" class="md-nav__link">
+    Create a table reference
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#query-data-from-your-mobile-app" class="md-nav__link">
+    Query data from your Mobile App
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filter-returned-data" class="md-nav__link">
+    Filter returned data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sort-returned-data" class="md-nav__link">
+    Sort returned data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-data-in-pages" class="md-nav__link">
+    Return data in pages
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#select-specific-columns" class="md-nav__link">
+    Select specific columns
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#look-up-data-by-id" class="md-nav__link">
+    Look up data by ID
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute-untyped-queries" class="md-nav__link">
+    Execute untyped queries
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#insert-data-into-a-mobile-app-backend" class="md-nav__link">
+    Insert data into a Mobile App backend
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#working-with-id-values" class="md-nav__link">
+    Working with ID values
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modify-data-in-a-mobile-app-backend" class="md-nav__link">
+    Modify data in a Mobile App backend
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-data-in-a-mobile-app-backend" class="md-nav__link">
+    Delete data in a Mobile App backend
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-optimistic-concurrency-for-conflict-resolution" class="md-nav__link">
+    Use Optimistic Concurrency for conflict resolution
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bind-mobile-apps-data-to-a-windows-user-interface" class="md-nav__link">
+    Bind Mobile Apps data to a Windows user interface
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#change-the-page-size" class="md-nav__link">
+    Change the Page size
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#work-with-offline-tables" class="md-nav__link">
+    Work with Offline Tables
+  </a>
+  
+    <nav class="md-nav" aria-label="Work with Offline Tables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#syncing-an-offline-table" class="md-nav__link">
+    Syncing an Offline Table
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#work-with-a-custom-api" class="md-nav__link">
+    Work with a custom API
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authenticate-users" class="md-nav__link">
+    Authenticate users
+  </a>
+  
+    <nav class="md-nav" aria-label="Authenticate users">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#client-managed-authentication" class="md-nav__link">
+    Client-managed authentication
+  </a>
+  
+    <nav class="md-nav" aria-label="Client-managed authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authenticate-users-with-the-active-directory-authentication-library" class="md-nav__link">
+    Authenticate users with the Active Directory Authentication Library
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#single-sign-on-using-a-token-from-facebook-or-google" class="md-nav__link">
+    Single Sign-On using a token from Facebook or Google
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-managed-authentication" class="md-nav__link">
+    Server-managed authentication
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching-the-authentication-token" class="md-nav__link">
+    Caching the authentication token
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#miscellaneous-topics" class="md-nav__link">
+    Miscellaneous Topics
+  </a>
+  
+    <nav class="md-nav" aria-label="Miscellaneous Topics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#handle-errors" class="md-nav__link">
+    Handle errors
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#customize-request-headers" class="md-nav__link">
+    Customize request headers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enable-request-logging" class="md-nav__link">
+    Enable request logging
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/azure/azure-mobile-apps/blob/master/docs/howto/client/dotnet.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="how-to-use-the-azure-mobile-apps-client-library-for-net">How to use the Azure Mobile Apps client library for .NET<a class="headerlink" href="#how-to-use-the-azure-mobile-apps-client-library-for-net" title="Permanent link">&para;</a></h1>
+<p>This guide shows you how to perform common scenarios using the .NET client library for Azure Mobile Apps.  Use the .NET client library in Windows (WPF, UWP) or Xamarin (Native or Forms) applications.  If you are new to Azure Mobile Apps, consider first completing the <a href="../../../quickstarts/xamarin-forms/">Quickstart for Xamarin.Forms</a> tutorial.  </p>
+<h2 id="supported-platforms">Supported platforms<a class="headerlink" href="#supported-platforms" title="Permanent link">&para;</a></h2>
+<p>The .NET client library supports .NET Standard 2.0 and the following platforms:</p>
+<ul>
+<li>Xamarin.Android from API level 19 up to API level 30.</li>
+<li>Xamarin.iOS version 8.0 through 14.3.</li>
+<li>Universal Windows Platform builds 16299 and above.</li>
+<li>Any .NET Standard 2.0 application.</li>
+</ul>
+<p>The "server-flow" authentication uses a WebView for the presented UI and may not be available on every platform.  If it isn't available, you must provide a "client-flow" authentication.  This client library is not suitable for watch or IoT form factors when using authentication.</p>
+<h2 id="setup-and-prerequisites">Setup and Prerequisites<a class="headerlink" href="#setup-and-prerequisites" title="Permanent link">&para;</a></h2>
+<p>We assume that you have already created and published your Azure Mobile Apps backend project, which includes at least one table.  In the code used in this topic, the table is named <code>TodoItem</code> and it has a string <code>Id</code>, and <code>Text</code> fields and a boolean <code>Complete</code> column.  This table is the same table created when you complete the <a href="../../../quickstarts/xamarin-forms/">Quickstart</a>.</p>
+<p>The corresponding typed client-side type in C# is this class:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">class</span> <span class="nc">TodoItem</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Id</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+<span class="na">    [JsonProperty(PropertyName = &quot;text&quot;)]</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Text</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+<span class="na">    [JsonProperty(PropertyName = &quot;complete&quot;)]</span>
+    <span class="k">public</span> <span class="kt">bool</span> <span class="n">Complete</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The [JsonPropertyAttribute][6] is used to define the <em>PropertyName</em> mapping between the client field and the table field.</p>
+<p>To learn how to create tables in your Mobile Apps backend, see the <a href="../../server/dotnet-framework/">.NET Server SDK topic</a> the <a href="../../server/nodejs/">Node.js Server SDK topic</a>. </p>
+<h3 id="install-the-managed-client-sdk-package">Install the managed client SDK package<a class="headerlink" href="#install-the-managed-client-sdk-package" title="Permanent link">&para;</a></h3>
+<p>Right-click your project, click <strong>Manage NuGet Packages</strong>, search for the <code>Microsoft.Azure.Mobile.Client</code> package, then click <strong>Install</strong>.  For offline capabilities, install the <code>Microsoft.Azure.Mobile.Client.SQLiteStore</code> package as well.</p>
+<h2 id="create-the-mobile-apps-client">Create the Mobile Apps client<a class="headerlink" href="#create-the-mobile-apps-client" title="Permanent link">&para;</a></h2>
+<p>The following code creates the <a href="https://msdn.microsoft.com/library/azure/microsoft.windowsazure.mobileservices.mobileserviceclient(v=azure.10).aspx">MobileServiceClient</a> object that is used to access your Mobile App backend.</p>
+<div class="highlight"><pre><span></span><code><span class="kt">var</span> <span class="n">client</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MobileServiceClient</span><span class="p">(</span><span class="s">&quot;MOBILE_APP_URL&quot;</span><span class="p">);</span>
+</code></pre></div>
+<p>In the preceding code, replace <code>MOBILE_APP_URL</code> with the URL of the Mobile App backend, which is found in the
+blade for your Mobile App backend in the <a href="https://portal.azure.com">Azure portal</a>. The <code>MobileServiceClient</code> object should be a singleton.</p>
+<h2 id="work-with-tables">Work with tables<a class="headerlink" href="#work-with-tables" title="Permanent link">&para;</a></h2>
+<p>The following section details how to search and retrieve records and modify the data within the table.  The following
+topics are covered:</p>
+<ul>
+<li><a href="#instantiating">Create a table reference</a></li>
+<li><a href="#querying">Query data</a></li>
+<li><a href="#filtering">Filter returned data</a></li>
+<li><a href="#sorting">Sort returned data</a></li>
+<li><a href="#paging">Return data in pages</a></li>
+<li><a href="#selecting">Select specific columns</a></li>
+<li><a href="#lookingup">Look up a record by Id</a></li>
+<li><a href="#untypedqueries">Dealing with untyped queries</a></li>
+<li><a href="#inserting">Inserting data</a></li>
+<li>Updating data</li>
+<li><a href="#deleting">Deleting data</a></li>
+<li><a href="#optimisticconcurrency">Conflict Resolution and Optimistic Concurrency</a></li>
+<li><a href="#binding">Binding to a Windows User Interface</a></li>
+<li><a href="#pagesize">Changing the Page Size</a></li>
+</ul>
+<h3 id="create-a-table-reference"><a name="instantiating"></a>Create a table reference<a class="headerlink" href="#create-a-table-reference" title="Permanent link">&para;</a></h3>
+<p>All the code that accesses or modifies data in a backend table calls functions on the <code>MobileServiceTable</code> object. Obtain a reference to the table by calling the <a href="https://msdn.microsoft.com/library/azure/jj554275(v=azure.10).aspx">GetTable</a> method, as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="n">IMobileServiceTable</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">todoTable</span> <span class="p">=</span> <span class="n">client</span><span class="p">.</span><span class="n">GetTable</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;();</span>
+</code></pre></div>
+<p>The returned object uses the typed serialization model. An untyped serialization model is also supported. The following example <a href="https://msdn.microsoft.com/library/azure/jj554278(v=azure.10).aspx">creates a reference to an untyped table</a>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Get an untyped table reference</span>
+<span class="n">IMobileServiceTable</span> <span class="n">untypedTodoTable</span> <span class="p">=</span> <span class="n">client</span><span class="p">.</span><span class="n">GetTable</span><span class="p">(</span><span class="s">&quot;TodoItem&quot;</span><span class="p">);</span>
+</code></pre></div>
+<p>In untyped queries, you must specify the underlying OData query string.</p>
+<h3 id="query-data-from-your-mobile-app"><a name="querying"></a>Query data from your Mobile App<a class="headerlink" href="#query-data-from-your-mobile-app" title="Permanent link">&para;</a></h3>
+<p>This section describes how to issue queries to the Mobile App backend, which includes the following functionality:</p>
+<ul>
+<li><a href="#filtering">Filter returned data</a></li>
+<li><a href="#sorting">Sort returned data</a></li>
+<li><a href="#paging">Return data in pages</a></li>
+<li><a href="#selecting">Select specific columns</a></li>
+<li><a href="#lookingup">Look up data by ID</a></li>
+</ul>
+<blockquote>
+<p>[!NOTE]
+A server-driven page size is enforced to prevent all rows from being returned.  Paging keeps default requests for large data sets from negatively impacting the service.  To return more than 50 rows, use the <code>Skip</code> and <code>Take</code> method, as described in <a href="#paging">Return data in pages</a>.</p>
+</blockquote>
+<h3 id="filter-returned-data"><a name="filtering"></a>Filter returned data<a class="headerlink" href="#filter-returned-data" title="Permanent link">&para;</a></h3>
+<p>The following code illustrates how to filter data by including a <code>Where</code> clause in a query. It returns all items from <code>todoTable</code> whose <code>Complete</code> property is equal to <code>false</code>. The <a href="https://msdn.microsoft.com/library/azure/dn250579(v=azure.10).aspx">Where</a> function applies a row filtering predicate to the query against the table.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// This query filters out completed TodoItems and items without a timestamp.</span>
+<span class="n">List</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">items</span> <span class="p">=</span> <span class="k">await</span> <span class="n">todoTable</span>
+    <span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">todoItem</span> <span class="p">=&gt;</span> <span class="n">todoItem</span><span class="p">.</span><span class="n">Complete</span> <span class="p">==</span> <span class="k">false</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">ToListAsync</span><span class="p">();</span>
+</code></pre></div>
+<p>You can view the URI of the request sent to the backend by using message inspection software, such as browser developer tools or <a href="https://www.telerik.com/fiddler">Fiddler</a>. If you look at the request URI, notice that the query string is modified:</p>
+<div class="highlight"><pre><span></span><code><span class="n">GET</span> <span class="p">/</span><span class="n">tables</span><span class="p">/</span><span class="n">todoitem</span><span class="p">?</span><span class="err">$</span><span class="n">filter</span><span class="p">=(</span><span class="n">complete</span><span class="p">+</span><span class="n">eq</span><span class="p">+</span><span class="k">false</span><span class="p">)</span> <span class="n">HTTP</span><span class="p">/</span><span class="m">1.1</span>
+</code></pre></div>
+<p>This OData request is translated into an SQL query by the Server SDK:</p>
+<div class="highlight"><pre><span></span><code><span class="n">SELECT</span> <span class="p">*</span>
+    <span class="n">FROM</span> <span class="n">TodoItem</span>
+    <span class="n">WHERE</span> <span class="nf">ISNULL</span><span class="p">(</span><span class="n">complete</span><span class="p">,</span> <span class="m">0</span><span class="p">)</span> <span class="p">=</span> <span class="m">0</span>
+</code></pre></div>
+<p>The function that is passed to the <code>Where</code> method can have an arbitrary number of conditions.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// This query filters out completed TodoItems where Text isn&#39;t null</span>
+<span class="n">List</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">items</span> <span class="p">=</span> <span class="k">await</span> <span class="n">todoTable</span>
+    <span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">todoItem</span> <span class="p">=&gt;</span> <span class="n">todoItem</span><span class="p">.</span><span class="n">Complete</span> <span class="p">==</span> <span class="k">false</span> <span class="p">&amp;&amp;</span> <span class="n">todoItem</span><span class="p">.</span><span class="n">Text</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">ToListAsync</span><span class="p">();</span>
+</code></pre></div>
+<p>This example would be translated into an SQL query by the Server SDK:</p>
+<div class="highlight"><pre><span></span><code><span class="n">SELECT</span> <span class="p">*</span>
+    <span class="n">FROM</span> <span class="n">TodoItem</span>
+    <span class="n">WHERE</span> <span class="nf">ISNULL</span><span class="p">(</span><span class="n">complete</span><span class="p">,</span> <span class="m">0</span><span class="p">)</span> <span class="p">=</span> <span class="m">0</span>
+          <span class="n">AND</span> <span class="nf">ISNULL</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="m">0</span><span class="p">)</span> <span class="p">=</span> <span class="m">0</span>
+</code></pre></div>
+<p>This query can also be split into multiple clauses:</p>
+<div class="highlight"><pre><span></span><code><span class="n">List</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">items</span> <span class="p">=</span> <span class="k">await</span> <span class="n">todoTable</span>
+    <span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">todoItem</span> <span class="p">=&gt;</span> <span class="n">todoItem</span><span class="p">.</span><span class="n">Complete</span> <span class="p">==</span> <span class="k">false</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">todoItem</span> <span class="p">=&gt;</span> <span class="n">todoItem</span><span class="p">.</span><span class="n">Text</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">ToListAsync</span><span class="p">();</span>
+</code></pre></div>
+<p>The two methods are equivalent and may be used interchangeably.  The former option&mdash;of concatenating
+multiple predicates in one query&mdash;is more compact and recommended.</p>
+<p>The <code>Where</code> clause supports operations that be translated into the OData subset. Operations include:</p>
+<ul>
+<li>Relational operators (==, !=, &lt;, &lt;=, &gt;, &gt;=),</li>
+<li>Arithmetic operators (+, -, /, *, %),</li>
+<li>Number precision (Math.Floor, Math.Ceiling),</li>
+<li>String functions (Length, Substring, Replace, IndexOf, StartsWith, EndsWith),</li>
+<li>Date properties (Year, Month, Day, Hour, Minute, Second),</li>
+<li>Access properties of an object, and</li>
+<li>Expressions combining any of these operations.</li>
+</ul>
+<p>When considering what the Server SDK supports, you can consider the <a href="https://www.odata.org/documentation/odata-version-3-0/">OData v3 Documentation</a>.</p>
+<h3 id="sort-returned-data"><a name="sorting"></a>Sort returned data<a class="headerlink" href="#sort-returned-data" title="Permanent link">&para;</a></h3>
+<p>The following code illustrates how to sort data by including an <a href="https://msdn.microsoft.com/library/azure/dn250572(v=azure.10).aspx">OrderBy</a> or <a href="https://msdn.microsoft.com/library/azure/dn250568(v=azure.10).aspx">OrderByDescending</a> function in the query. It returns items from <code>todoTable</code> sorted ascending by the <code>Text</code> field.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Sort items in ascending order by Text field</span>
+<span class="n">MobileServiceTableQuery</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">query</span> <span class="p">=</span> <span class="n">todoTable</span>
+                <span class="p">.</span><span class="n">OrderBy</span><span class="p">(</span><span class="n">todoItem</span> <span class="p">=&gt;</span> <span class="n">todoItem</span><span class="p">.</span><span class="n">Text</span><span class="p">)</span>
+<span class="n">List</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">items</span> <span class="p">=</span> <span class="k">await</span> <span class="n">query</span><span class="p">.</span><span class="n">ToListAsync</span><span class="p">();</span>
+
+<span class="c1">// Sort items in descending order by Text field</span>
+<span class="n">MobileServiceTableQuery</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">query</span> <span class="p">=</span> <span class="n">todoTable</span>
+                <span class="p">.</span><span class="n">OrderByDescending</span><span class="p">(</span><span class="n">todoItem</span> <span class="p">=&gt;</span> <span class="n">todoItem</span><span class="p">.</span><span class="n">Text</span><span class="p">)</span>
+<span class="n">List</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">items</span> <span class="p">=</span> <span class="k">await</span> <span class="n">query</span><span class="p">.</span><span class="n">ToListAsync</span><span class="p">();</span>
+</code></pre></div>
+<h3 id="return-data-in-pages"><a name="paging"></a>Return data in pages<a class="headerlink" href="#return-data-in-pages" title="Permanent link">&para;</a></h3>
+<p>By default, the backend returns only the first 50 rows. You can increase the number of returned rows by calling the <a href="https://msdn.microsoft.com/library/azure/dn250574(v=azure.10).aspx">Take</a> method. Use <code>Take</code> along with the <a href="https://msdn.microsoft.com/library/azure/dn250573(v=azure.10).aspx">Skip</a> method to request a specific "page" of the total dataset returned by the query. The following query, when executed, returns the top three items in the table.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Define a filtered query that returns the top 3 items.</span>
+<span class="n">MobileServiceTableQuery</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">query</span> <span class="p">=</span> <span class="n">todoTable</span><span class="p">.</span><span class="n">Take</span><span class="p">(</span><span class="m">3</span><span class="p">);</span>
+<span class="n">List</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">items</span> <span class="p">=</span> <span class="k">await</span> <span class="n">query</span><span class="p">.</span><span class="n">ToListAsync</span><span class="p">();</span>
+</code></pre></div>
+<p>The following revised query skips the first three results and returns the next three results. This query produces the second "page" of data, where the page size is three items.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Define a filtered query that skips the top 3 items and returns the next 3 items.</span>
+<span class="n">MobileServiceTableQuery</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">query</span> <span class="p">=</span> <span class="n">todoTable</span><span class="p">.</span><span class="n">Skip</span><span class="p">(</span><span class="m">3</span><span class="p">).</span><span class="n">Take</span><span class="p">(</span><span class="m">3</span><span class="p">);</span>
+<span class="n">List</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">items</span> <span class="p">=</span> <span class="k">await</span> <span class="n">query</span><span class="p">.</span><span class="n">ToListAsync</span><span class="p">();</span>
+</code></pre></div>
+<p>The <a href="https://msdn.microsoft.com/library/azure/dn250560(v=azure.10).aspx">IncludeTotalCount</a> method requests the total count for <em>all</em> the records that would have been returned,
+ignoring any paging/limit clause specified:</p>
+<div class="highlight"><pre><span></span><code><span class="n">query</span> <span class="p">=</span> <span class="n">query</span><span class="p">.</span><span class="n">IncludeTotalCount</span><span class="p">();</span>
+</code></pre></div>
+<p>In a real world app, you can use queries similar to the preceding example with a pager control or comparable UI to
+navigate between pages.</p>
+<blockquote>
+<p>[!NOTE]
+To override the 50-row limit in a Mobile App backend, you must also apply the <a href="https://msdn.microsoft.com/library/system.web.http.odata.enablequeryattribute.aspx">EnableQueryAttribute</a> to the public GET method and specify the paging behavior. When applied to the method, the following sets the maximum returned rows to 1000:</p>
+<p><code>[EnableQuery(MaxTop=1000)]</code></p>
+</blockquote>
+<h3 id="select-specific-columns"><a name="selecting"></a>Select specific columns<a class="headerlink" href="#select-specific-columns" title="Permanent link">&para;</a></h3>
+<p>You can specify which set of properties to include in the results by adding a <a href="https://msdn.microsoft.com/library/azure/dn250569(v=azure.10).aspx">Select</a> clause to your query. For example, the following code shows how to select just one field and also how to select and format multiple fields:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Select one field -- just the Text</span>
+<span class="n">MobileServiceTableQuery</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">query</span> <span class="p">=</span> <span class="n">todoTable</span>
+                <span class="p">.</span><span class="n">Select</span><span class="p">(</span><span class="n">todoItem</span> <span class="p">=&gt;</span> <span class="n">todoItem</span><span class="p">.</span><span class="n">Text</span><span class="p">);</span>
+<span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">items</span> <span class="p">=</span> <span class="k">await</span> <span class="n">query</span><span class="p">.</span><span class="n">ToListAsync</span><span class="p">();</span>
+
+<span class="c1">// Select multiple fields -- both Complete and Text info</span>
+<span class="n">MobileServiceTableQuery</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">query</span> <span class="p">=</span> <span class="n">todoTable</span>
+                <span class="p">.</span><span class="n">Select</span><span class="p">(</span><span class="n">todoItem</span> <span class="p">=&gt;</span> <span class="kt">string</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="s">&quot;{0} -- {1}&quot;</span><span class="p">,</span>
+                    <span class="n">todoItem</span><span class="p">.</span><span class="n">Text</span><span class="p">.</span><span class="n">PadRight</span><span class="p">(</span><span class="m">30</span><span class="p">),</span> <span class="n">todoItem</span><span class="p">.</span><span class="n">Complete</span> <span class="p">?</span>
+                    <span class="s">&quot;Now complete!&quot;</span> <span class="p">:</span> <span class="s">&quot;Incomplete!&quot;</span><span class="p">));</span>
+<span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">items</span> <span class="p">=</span> <span class="k">await</span> <span class="n">query</span><span class="p">.</span><span class="n">ToListAsync</span><span class="p">();</span>
+</code></pre></div>
+<p>All the functions described so far are additive, so we can keep chaining them. Each chained call affects more of the query. One more example:</p>
+<div class="highlight"><pre><span></span><code><span class="n">MobileServiceTableQuery</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">query</span> <span class="p">=</span> <span class="n">todoTable</span>
+                <span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">todoItem</span> <span class="p">=&gt;</span> <span class="n">todoItem</span><span class="p">.</span><span class="n">Complete</span> <span class="p">==</span> <span class="k">false</span><span class="p">)</span>
+                <span class="p">.</span><span class="n">Select</span><span class="p">(</span><span class="n">todoItem</span> <span class="p">=&gt;</span> <span class="n">todoItem</span><span class="p">.</span><span class="n">Text</span><span class="p">)</span>
+                <span class="p">.</span><span class="n">Skip</span><span class="p">(</span><span class="m">3</span><span class="p">).</span>
+                <span class="p">.</span><span class="n">Take</span><span class="p">(</span><span class="m">3</span><span class="p">);</span>
+<span class="n">List</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">items</span> <span class="p">=</span> <span class="k">await</span> <span class="n">query</span><span class="p">.</span><span class="n">ToListAsync</span><span class="p">();</span>
+</code></pre></div>
+<h3 id="look-up-data-by-id"><a name="lookingup"></a>Look up data by ID<a class="headerlink" href="#look-up-data-by-id" title="Permanent link">&para;</a></h3>
+<p>The <a href="https://msdn.microsoft.com/library/azure/jj871654(v=azure.10).aspx">LookupAsync</a> function can be used to look up objects from the database with a particular ID.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// This query filters out the item with the ID of 37BBF396-11F0-4B39-85C8-B319C729AF6D</span>
+<span class="n">TodoItem</span> <span class="n">item</span> <span class="p">=</span> <span class="k">await</span> <span class="n">todoTable</span><span class="p">.</span><span class="n">LookupAsync</span><span class="p">(</span><span class="s">&quot;37BBF396-11F0-4B39-85C8-B319C729AF6D&quot;</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="execute-untyped-queries"><a name="untypedqueries"></a>Execute untyped queries<a class="headerlink" href="#execute-untyped-queries" title="Permanent link">&para;</a></h3>
+<p>When executing a query using an untyped table object, you must explicitly specify the OData query string by calling <a href="https://msdn.microsoft.com/library/azure/mt691741(v=azure.10).aspx">ReadAsync</a>, as in the following example:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Lookup untyped data using OData</span>
+<span class="n">JToken</span> <span class="n">untypedItems</span> <span class="p">=</span> <span class="k">await</span> <span class="n">untypedTodoTable</span><span class="p">.</span><span class="n">ReadAsync</span><span class="p">(</span><span class="s">&quot;$filter=complete eq 0&amp;$orderby=text&quot;</span><span class="p">);</span>
+</code></pre></div>
+<p>You get back JSON values that you can use like a property bag. For more information on JToken and Newtonsoft Json, see the <a href="https://www.newtonsoft.com/json">Newtonsoft JSON</a> site.</p>
+<h3 id="insert-data-into-a-mobile-app-backend"><a name="inserting"></a>Insert data into a Mobile App backend<a class="headerlink" href="#insert-data-into-a-mobile-app-backend" title="Permanent link">&para;</a></h3>
+<p>All client types must contain a member named <strong>Id</strong>, which is by default a string. This <strong>Id</strong> is required to perform CRUD operations and for offline sync. The following code illustrates how to use the <a href="https://msdn.microsoft.com/library/azure/dn296400(v=azure.10).aspx">InsertAsync</a> method to insert new rows into a table. The parameter contains the data to be inserted as a .NET object.</p>
+<div class="highlight"><pre><span></span><code><span class="k">await</span> <span class="n">todoTable</span><span class="p">.</span><span class="n">InsertAsync</span><span class="p">(</span><span class="n">todoItem</span><span class="p">);</span>
+</code></pre></div>
+<p>If a unique custom ID value is not included in the <code>todoItem</code> during an insert, a GUID is generated by the server. You can retrieve the generated Id by inspecting the object after the call returns.</p>
+<p>To insert untyped data, you may take advantage of Json.NET:</p>
+<div class="highlight"><pre><span></span><code><span class="n">JObject</span> <span class="n">jo</span> <span class="p">=</span> <span class="k">new</span> <span class="n">JObject</span><span class="p">();</span>
+<span class="n">jo</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;Text&quot;</span><span class="p">,</span> <span class="s">&quot;Hello World&quot;</span><span class="p">);</span>
+<span class="n">jo</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;Complete&quot;</span><span class="p">,</span> <span class="k">false</span><span class="p">);</span>
+<span class="kt">var</span> <span class="n">inserted</span> <span class="p">=</span> <span class="k">await</span> <span class="n">table</span><span class="p">.</span><span class="n">InsertAsync</span><span class="p">(</span><span class="n">jo</span><span class="p">);</span>
+</code></pre></div>
+<p>Here is an example using an email address as a unique string id:</p>
+<div class="highlight"><pre><span></span><code><span class="n">JObject</span> <span class="n">jo</span> <span class="p">=</span> <span class="k">new</span> <span class="n">JObject</span><span class="p">();</span>
+<span class="n">jo</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">,</span> <span class="s">&quot;myemail@emaildomain.com&quot;</span><span class="p">);</span>
+<span class="n">jo</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;Text&quot;</span><span class="p">,</span> <span class="s">&quot;Hello World&quot;</span><span class="p">);</span>
+<span class="n">jo</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;Complete&quot;</span><span class="p">,</span> <span class="k">false</span><span class="p">);</span>
+<span class="kt">var</span> <span class="n">inserted</span> <span class="p">=</span> <span class="k">await</span> <span class="n">table</span><span class="p">.</span><span class="n">InsertAsync</span><span class="p">(</span><span class="n">jo</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="working-with-id-values">Working with ID values<a class="headerlink" href="#working-with-id-values" title="Permanent link">&para;</a></h3>
+<p>Mobile Apps supports unique custom string values for the table's <strong>id</strong> column. A string value allows applications to use custom values such as email addresses or user names for the ID.  String IDs provide you with the following benefits:</p>
+<ul>
+<li>IDs are generated without making a round trip to the database.</li>
+<li>Records are easier to merge from different tables or databases.</li>
+<li>IDs values can integrate better with an application's logic.</li>
+</ul>
+<p>When a string ID value is not set on an inserted record, the Mobile App backend generates a unique value for the ID. You can use the <a href="https://msdn.microsoft.com/library/system.guid.newguid(v=vs.110).aspx">Guid.NewGuid</a> method to generate your own ID values, either on the client or in the backend.</p>
+<div class="highlight"><pre><span></span><code><span class="n">JObject</span> <span class="n">jo</span> <span class="p">=</span> <span class="k">new</span> <span class="n">JObject</span><span class="p">();</span>
+<span class="n">jo</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">,</span> <span class="n">Guid</span><span class="p">.</span><span class="n">NewGuid</span><span class="p">().</span><span class="n">ToString</span><span class="p">(</span><span class="s">&quot;N&quot;</span><span class="p">));</span>
+</code></pre></div>
+<h3 id="modify-data-in-a-mobile-app-backend"><a name="modifying"></a>Modify data in a Mobile App backend<a class="headerlink" href="#modify-data-in-a-mobile-app-backend" title="Permanent link">&para;</a></h3>
+<p>The following code illustrates how to use the <a href="https://msdn.microsoft.com/library/azure/dn250536.(v=azure.10)aspx">UpdateAsync</a> method to update an existing record with the same ID with new information. The parameter contains the data to be updated as a .NET object.</p>
+<div class="highlight"><pre><span></span><code><span class="k">await</span> <span class="n">todoTable</span><span class="p">.</span><span class="n">UpdateAsync</span><span class="p">(</span><span class="n">todoItem</span><span class="p">);</span>
+</code></pre></div>
+<p>To update untyped data, you may take advantage of <a href="https://www.newtonsoft.com/json">Newtonsoft JSON</a> as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="n">JObject</span> <span class="n">jo</span> <span class="p">=</span> <span class="k">new</span> <span class="n">JObject</span><span class="p">();</span>
+<span class="n">jo</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">,</span> <span class="s">&quot;37BBF396-11F0-4B39-85C8-B319C729AF6D&quot;</span><span class="p">);</span>
+<span class="n">jo</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;Text&quot;</span><span class="p">,</span> <span class="s">&quot;Hello World&quot;</span><span class="p">);</span>
+<span class="n">jo</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;Complete&quot;</span><span class="p">,</span> <span class="k">false</span><span class="p">);</span>
+<span class="kt">var</span> <span class="n">inserted</span> <span class="p">=</span> <span class="k">await</span> <span class="n">table</span><span class="p">.</span><span class="n">UpdateAsync</span><span class="p">(</span><span class="n">jo</span><span class="p">);</span>
+</code></pre></div>
+<p>An <code>id</code> field must be specified when making an update. The backend uses the <code>id</code> field to identify which row to update. The <code>id</code> field can be obtained from the result of the <code>InsertAsync</code> call. An <code>ArgumentException</code> is raised if you try to update an item without providing the <code>id</code> value.</p>
+<h3 id="delete-data-in-a-mobile-app-backend"><a name="deleting"></a>Delete data in a Mobile App backend<a class="headerlink" href="#delete-data-in-a-mobile-app-backend" title="Permanent link">&para;</a></h3>
+<p>The following code illustrates how to use the <a href="https://msdn.microsoft.com/library/azure/dn296407(v=azure.10).aspx">DeleteAsync</a> method to delete an existing instance. The instance is identified by the <code>id</code> field set on the <code>todoItem</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="k">await</span> <span class="n">todoTable</span><span class="p">.</span><span class="n">DeleteAsync</span><span class="p">(</span><span class="n">todoItem</span><span class="p">);</span>
+</code></pre></div>
+<p>To delete untyped data, you may take advantage of Json.NET as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="n">JObject</span> <span class="n">jo</span> <span class="p">=</span> <span class="k">new</span> <span class="n">JObject</span><span class="p">();</span>
+<span class="n">jo</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">,</span> <span class="s">&quot;37BBF396-11F0-4B39-85C8-B319C729AF6D&quot;</span><span class="p">);</span>
+<span class="k">await</span> <span class="n">table</span><span class="p">.</span><span class="n">DeleteAsync</span><span class="p">(</span><span class="n">jo</span><span class="p">);</span>
+</code></pre></div>
+<p>When you make a delete request, an ID must be specified. Other properties are not passed to the service or are ignored at the service. The result of a <code>DeleteAsync</code> call is usually <code>null</code>. The ID to pass in can be obtained from the result of the <code>InsertAsync</code> call. A <code>MobileServiceInvalidOperationException</code> is thrown when you try to delete an item without specifying the <code>id</code> field.</p>
+<h3 id="use-optimistic-concurrency-for-conflict-resolution"><a name="optimisticconcurrency"></a>Use Optimistic Concurrency for conflict resolution<a class="headerlink" href="#use-optimistic-concurrency-for-conflict-resolution" title="Permanent link">&para;</a></h3>
+<p>Two or more clients may write changes to the same item at the same time. Without conflict detection, the last write would overwrite any previous updates. <strong>Optimistic concurrency control</strong> assumes that each transaction can commit and therefore does not use any resource locking.  Before committing a transaction, optimistic concurrency control verifies that no other transaction has modified the data. If the data has been modified, the committing transaction is rolled back.</p>
+<p>Mobile Apps supports optimistic concurrency control by tracking changes to each item using the <code>version</code> system property column that is defined for each table in your Mobile App backend. Each time a record is updated, Mobile Apps sets the <code>version</code> property for that record to a new value. During each update request, the <code>version</code> property of the record included with the request is compared to the same property for the record on the server. If the version passed with the request does not match the backend, then the client library raises a <code>MobileServicePreconditionFailedException&lt;T&gt;</code> exception. The type included with the exception is the record from the backend containing the servers version of the record. The application can then use this information to decide whether to execute the update request again with the correct <code>version</code> value from the backend to commit changes.</p>
+<p>Define a column on the table class for the <code>version</code> system property to enable optimistic concurrency. For example:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">class</span> <span class="nc">TodoItem</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Id</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+<span class="na">    [JsonProperty(PropertyName = &quot;text&quot;)]</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Text</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+<span class="na">    [JsonProperty(PropertyName = &quot;complete&quot;)]</span>
+    <span class="k">public</span> <span class="kt">bool</span> <span class="n">Complete</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="c1">// *** Enable Optimistic Concurrency *** //</span>
+<span class="na">    [JsonProperty(PropertyName = &quot;version&quot;)]</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Version</span> <span class="p">{</span> <span class="k">set</span><span class="p">;</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Applications using untyped tables enable optimistic concurrency by setting the <code>Version</code> flag on the <code>SystemProperties</code> of the table as follows.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">//Enable optimistic concurrency by retrieving version</span>
+<span class="n">todoTable</span><span class="p">.</span><span class="n">SystemProperties</span> <span class="p">|=</span> <span class="n">MobileServiceSystemProperties</span><span class="p">.</span><span class="n">Version</span><span class="p">;</span>
+</code></pre></div>
+<p>In addition to enabling optimistic concurrency, you must also catch the <code>MobileServicePreconditionFailedException&lt;T&gt;</code> exception in your code when calling <a href="https://msdn.microsoft.com/library/azure/dn250536.(v=azure.10)aspx">UpdateAsync</a>.  Resolve the conflict by applying the correct <code>version</code> to the updated record and call <a href="https://msdn.microsoft.com/library/azure/dn250536.(v=azure.10)aspx">UpdateAsync</a> with the resolved record. The following code shows how to resolve a write conflict once detected:</p>
+<div class="highlight"><pre><span></span><code><span class="k">private</span> <span class="k">async</span> <span class="k">void</span> <span class="nf">UpdateToDoItem</span><span class="p">(</span><span class="n">TodoItem</span> <span class="n">item</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">MobileServicePreconditionFailedException</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">exception</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+
+    <span class="k">try</span>
+    <span class="p">{</span>
+        <span class="c1">//update at the remote table</span>
+        <span class="k">await</span> <span class="n">todoTable</span><span class="p">.</span><span class="n">UpdateAsync</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">catch</span> <span class="p">(</span><span class="n">MobileServicePreconditionFailedException</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">writeException</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">exception</span> <span class="p">=</span> <span class="n">writeException</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">exception</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// Conflict detected, the item has changed since the last query</span>
+        <span class="c1">// Resolve the conflict between the local and server item</span>
+        <span class="k">await</span> <span class="nf">ResolveConflict</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">exception</span><span class="p">.</span><span class="n">Item</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+
+<span class="k">private</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">ResolveConflict</span><span class="p">(</span><span class="n">TodoItem</span> <span class="n">localItem</span><span class="p">,</span> <span class="n">TodoItem</span> <span class="n">serverItem</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">//Ask user to choose the resolution between versions</span>
+    <span class="n">MessageDialog</span> <span class="n">msgDialog</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MessageDialog</span><span class="p">(</span>
+        <span class="n">String</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="s">&quot;Server Text: \&quot;{0}\&quot; \nLocal Text: \&quot;{1}\&quot;\n&quot;</span><span class="p">,</span>
+        <span class="n">serverItem</span><span class="p">.</span><span class="n">Text</span><span class="p">,</span> <span class="n">localItem</span><span class="p">.</span><span class="n">Text</span><span class="p">),</span>
+        <span class="s">&quot;CONFLICT DETECTED - Select a resolution:&quot;</span><span class="p">);</span>
+
+    <span class="n">UICommand</span> <span class="n">localBtn</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UICommand</span><span class="p">(</span><span class="s">&quot;Commit Local Text&quot;</span><span class="p">);</span>
+    <span class="n">UICommand</span> <span class="n">ServerBtn</span> <span class="p">=</span> <span class="k">new</span> <span class="n">UICommand</span><span class="p">(</span><span class="s">&quot;Leave Server Text&quot;</span><span class="p">);</span>
+    <span class="n">msgDialog</span><span class="p">.</span><span class="n">Commands</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">localBtn</span><span class="p">);</span>
+    <span class="n">msgDialog</span><span class="p">.</span><span class="n">Commands</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">ServerBtn</span><span class="p">);</span>
+
+    <span class="n">localBtn</span><span class="p">.</span><span class="n">Invoked</span> <span class="p">=</span> <span class="k">async</span> <span class="p">(</span><span class="n">IUICommand</span> <span class="n">command</span><span class="p">)</span> <span class="p">=&gt;</span>
+    <span class="p">{</span>
+        <span class="c1">// To resolve the conflict, update the version of the item being committed. Otherwise, you will keep</span>
+        <span class="c1">// catching a MobileServicePreConditionFailedException.</span>
+        <span class="n">localItem</span><span class="p">.</span><span class="n">Version</span> <span class="p">=</span> <span class="n">serverItem</span><span class="p">.</span><span class="n">Version</span><span class="p">;</span>
+
+        <span class="c1">// Updating recursively here just in case another change happened while the user was making a decision</span>
+        <span class="n">UpdateToDoItem</span><span class="p">(</span><span class="n">localItem</span><span class="p">);</span>
+    <span class="p">};</span>
+
+    <span class="n">ServerBtn</span><span class="p">.</span><span class="n">Invoked</span> <span class="p">=</span> <span class="k">async</span> <span class="p">(</span><span class="n">IUICommand</span> <span class="n">command</span><span class="p">)</span> <span class="p">=&gt;</span>
+    <span class="p">{</span>
+        <span class="n">RefreshTodoItems</span><span class="p">();</span>
+    <span class="p">};</span>
+
+    <span class="k">await</span> <span class="n">msgDialog</span><span class="p">.</span><span class="n">ShowAsync</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>For more information, see the <a href="../../datasync/">Offline Data Sync in Azure Mobile Apps</a> topic.</p>
+<h3 id="bind-mobile-apps-data-to-a-windows-user-interface"><a name="binding"></a>Bind Mobile Apps data to a Windows user interface<a class="headerlink" href="#bind-mobile-apps-data-to-a-windows-user-interface" title="Permanent link">&para;</a></h3>
+<p>This section shows how to display returned data objects using UI elements in a Windows app.  The following example code binds to the source of the list with a query for incomplete items. The <a href="https://msdn.microsoft.com/library/azure/dn250636(v=azure.10).aspx">MobileServiceCollection</a> creates a Mobile Apps-aware binding collection.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// This query filters out completed TodoItems.</span>
+<span class="n">MobileServiceCollection</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">,</span> <span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">items</span> <span class="p">=</span> <span class="k">await</span> <span class="n">todoTable</span>
+    <span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">todoItem</span> <span class="p">=&gt;</span> <span class="n">todoItem</span><span class="p">.</span><span class="n">Complete</span> <span class="p">==</span> <span class="k">false</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">ToCollectionAsync</span><span class="p">();</span>
+
+<span class="c1">// itemsControl is an IEnumerable that could be bound to a UI list control</span>
+<span class="n">IEnumerable</span> <span class="n">itemsControl</span>  <span class="p">=</span> <span class="n">items</span><span class="p">;</span>
+
+<span class="c1">// Bind this to a ListBox</span>
+<span class="n">ListBox</span> <span class="n">lb</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ListBox</span><span class="p">();</span>
+<span class="n">lb</span><span class="p">.</span><span class="n">ItemsSource</span> <span class="p">=</span> <span class="n">items</span><span class="p">;</span>
+</code></pre></div>
+<p>Some controls in the managed runtime support an interface called <a href="https://msdn.microsoft.com/library/windows/apps/Hh701916.aspx">ISupportIncrementalLoading</a>. This interface allows controls to request extra data when the user scrolls. There is built-in support for this interface for universal Windows apps via <a href="https://msdn.microsoft.com/library/azure/dn268408(v=azure.10).aspx">MobileServiceIncrementalLoadingCollection</a>, which automatically handles the calls from the controls. Use <code>MobileServiceIncrementalLoadingCollection</code> in Windows apps as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="n">MobileServiceIncrementalLoadingCollection</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">,</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">items</span><span class="p">;</span>
+<span class="n">items</span> <span class="p">=</span> <span class="n">todoTable</span><span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">todoItem</span> <span class="p">=&gt;</span> <span class="n">todoItem</span><span class="p">.</span><span class="n">Complete</span> <span class="p">==</span> <span class="k">false</span><span class="p">).</span><span class="n">ToIncrementalLoadingCollection</span><span class="p">();</span>
+
+<span class="n">ListBox</span> <span class="n">lb</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ListBox</span><span class="p">();</span>
+<span class="n">lb</span><span class="p">.</span><span class="n">ItemsSource</span> <span class="p">=</span> <span class="n">items</span><span class="p">;</span>
+</code></pre></div>
+<p>To use the new collection on Windows Phone 8 and "Silverlight" apps, use the <code>ToCollection</code> extension methods on <code>IMobileServiceTableQuery&lt;T&gt;</code> and <code>IMobileServiceTable&lt;T&gt;</code>. To load data, call <code>LoadMoreItemsAsync()</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="n">MobileServiceCollection</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">,</span> <span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">items</span> <span class="p">=</span> <span class="n">todoTable</span><span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">todoItem</span> <span class="p">=&gt;</span> <span class="n">todoItem</span><span class="p">.</span><span class="n">Complete</span><span class="p">==</span><span class="k">false</span><span class="p">).</span><span class="n">ToCollection</span><span class="p">();</span>
+<span class="k">await</span> <span class="n">items</span><span class="p">.</span><span class="n">LoadMoreItemsAsync</span><span class="p">();</span>
+</code></pre></div>
+<p>When you use the collection created by calling <code>ToCollectionAsync</code> or <code>ToCollection</code>, you get a collection that can be bound to UI controls.  This collection is paging-aware.  Since the collection is loading data from the network, loading sometimes fails. To handle such failures, override the <code>OnException</code> method on <code>MobileServiceIncrementalLoadingCollection</code> to handle exceptions resulting from calls to <code>LoadMoreItemsAsync</code>.</p>
+<p>Consider if your table has many fields but you only want to display some of them in your control. You may use the guidance in the preceding section "<a href="#selecting">Select specific columns</a>" to select specific columns to display in the UI.</p>
+<h3 id="change-the-page-size"><a name="pagesize"></a>Change the Page size<a class="headerlink" href="#change-the-page-size" title="Permanent link">&para;</a></h3>
+<p>Azure Mobile Apps returns a maximum of 50 items per request by default.  You can change the paging size by increasing the maximum page size on both the client and server.  To increase the requested page size, specify <code>PullOptions</code> when using <code>PullAsync()</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">PullOptions</span> <span class="n">pullOptions</span> <span class="p">=</span> <span class="k">new</span> <span class="n">PullOptions</span>
+    <span class="p">{</span>
+        <span class="n">MaxPageSize</span> <span class="p">=</span> <span class="m">100</span>
+    <span class="p">};</span>
+</code></pre></div>
+<p>Assuming you have made the <code>PageSize</code> equal to or greater than 100 within the server, a request returns up to 100 items.</p>
+<h2 id="work-with-offline-tables"><a name="#offlinesync"></a>Work with Offline Tables<a class="headerlink" href="#work-with-offline-tables" title="Permanent link">&para;</a></h2>
+<p>Offline tables use a local SQLite store to store data for use when offline.  All table operations are done against the local SQLite store instead of the remote server store.  To create an offline table, first prepare your project.</p>
+<ul>
+<li>In Visual Studio, right-click the solution &gt; <strong>Manage NuGet Packages for Solution...</strong>, then search for and install the
+   <strong>Microsoft.Azure.Mobile.Client.SQLiteStore</strong> NuGet package for all projects in the solution.</li>
+<li>For Windows devices, click <strong>References</strong> &gt; <strong>Add Reference...</strong>, expand the <strong>Windows</strong> folder &gt; <strong>Extensions</strong>, then enable the appropriate <strong>SQLite for Windows</strong> SDK along with the <strong>Visual C++ 2013 Runtime for Windows</strong> SDK. The SQLite SDK names vary slightly with each Windows platform.</li>
+</ul>
+<p>Before a table reference can be created, the local store must be prepared:</p>
+<div class="highlight"><pre><span></span><code><span class="kt">var</span> <span class="n">store</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MobileServiceSQLiteStore</span><span class="p">(</span><span class="n">Constants</span><span class="p">.</span><span class="n">OfflineDbPath</span><span class="p">);</span>
+<span class="n">store</span><span class="p">.</span><span class="n">DefineTable</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;();</span>
+
+<span class="c1">//Initializes the SyncContext using the default IMobileServiceSyncHandler.</span>
+<span class="k">await</span> <span class="k">this</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">SyncContext</span><span class="p">.</span><span class="n">InitializeAsync</span><span class="p">(</span><span class="n">store</span><span class="p">);</span>
+</code></pre></div>
+<p>Store initialization is normally done immediately after the client is created.  The <strong>OfflineDbPath</strong> should be a filename suitable for use on all platforms that you support.  If the path is a fully qualified path (that is, it starts with a slash), then that path is used.  If the path is not fully qualified, the file is placed in a platform-specific location.</p>
+<ul>
+<li>For iOS and Android devices, the default path is the "Personal Files" folder.</li>
+<li>For Windows devices, the default path is the application-specific "AppData" folder.</li>
+</ul>
+<p>A table reference can be obtained using the <code>GetSyncTable&lt;&gt;</code> method:</p>
+<div class="highlight"><pre><span></span><code><span class="kt">var</span> <span class="n">table</span> <span class="p">=</span> <span class="n">client</span><span class="p">.</span><span class="n">GetSyncTable</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;();</span>
+</code></pre></div>
+<p>You do not need to authenticate to use an offline table.  You only need to authenticate when you are communicating with the backend service.</p>
+<h3 id="syncing-an-offline-table"><a name="syncoffline"></a>Syncing an Offline Table<a class="headerlink" href="#syncing-an-offline-table" title="Permanent link">&para;</a></h3>
+<p>Offline tables are not synchronized with the backend by default.  Synchronization is split into two pieces.  You can push changes separately from downloading new items.  Here is a typical sync method:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">SyncAsync</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">ReadOnlyCollection</span><span class="p">&lt;</span><span class="n">MobileServiceTableOperationError</span><span class="p">&gt;</span> <span class="n">syncErrors</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+
+    <span class="k">try</span>
+    <span class="p">{</span>
+        <span class="k">await</span> <span class="k">this</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">SyncContext</span><span class="p">.</span><span class="n">PushAsync</span><span class="p">();</span>
+
+        <span class="k">await</span> <span class="k">this</span><span class="p">.</span><span class="n">todoTable</span><span class="p">.</span><span class="n">PullAsync</span><span class="p">(</span>
+            <span class="c1">//The first parameter is a query name that is used internally by the client SDK to implement incremental sync.</span>
+            <span class="c1">//Use a different query name for each unique query in your program</span>
+            <span class="s">&quot;allTodoItems&quot;</span><span class="p">,</span>
+            <span class="k">this</span><span class="p">.</span><span class="n">todoTable</span><span class="p">.</span><span class="n">CreateQuery</span><span class="p">());</span>
+    <span class="p">}</span>
+    <span class="k">catch</span> <span class="p">(</span><span class="n">MobileServicePushFailedException</span> <span class="n">exc</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">exc</span><span class="p">.</span><span class="n">PushResult</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">syncErrors</span> <span class="p">=</span> <span class="n">exc</span><span class="p">.</span><span class="n">PushResult</span><span class="p">.</span><span class="n">Errors</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Simple error/conflict handling. A real application would handle the various errors like network conditions,</span>
+    <span class="c1">// server conflicts and others via the IMobileServiceSyncHandler.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">syncErrors</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">error</span> <span class="k">in</span> <span class="n">syncErrors</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">.</span><span class="n">OperationKind</span> <span class="p">==</span> <span class="n">MobileServiceTableOperationKind</span><span class="p">.</span><span class="n">Update</span> <span class="p">&amp;&amp;</span> <span class="n">error</span><span class="p">.</span><span class="n">Result</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="c1">//Update failed, reverting to server&#39;s copy.</span>
+                <span class="k">await</span> <span class="n">error</span><span class="p">.</span><span class="n">CancelAndUpdateItemAsync</span><span class="p">(</span><span class="n">error</span><span class="p">.</span><span class="n">Result</span><span class="p">);</span>
+            <span class="p">}</span>
+            <span class="k">else</span>
+            <span class="p">{</span>
+                <span class="c1">// Discard local change.</span>
+                <span class="k">await</span> <span class="n">error</span><span class="p">.</span><span class="n">CancelAndDiscardItemAsync</span><span class="p">();</span>
+            <span class="p">}</span>
+
+            <span class="n">Debug</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">@&quot;Error executing sync operation. Item: {0} ({1}). Operation discarded.&quot;</span><span class="p">,</span> <span class="n">error</span><span class="p">.</span><span class="n">TableName</span><span class="p">,</span> <span class="n">error</span><span class="p">.</span><span class="n">Item</span><span class="p">[</span><span class="s">&quot;id&quot;</span><span class="p">]);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>If the first argument to <code>PullAsync</code> is null, then incremental sync is not used.  Each sync operation retrieves all records.</p>
+<p>The SDK performs an implicit <code>PushAsync()</code> before pulling records.</p>
+<p>Conflict handling happens on a <code>PullAsync()</code> method.  You can deal with conflicts in the same way as online tables.  The conflict is produced when <code>PullAsync()</code> is called instead of during the insert, update, or delete. If multiple conflicts happen, they are bundled into a single MobileServicePushFailedException.  Handle each failure separately.</p>
+<h2 id="work-with-a-custom-api"><a name="#customapi"></a>Work with a custom API<a class="headerlink" href="#work-with-a-custom-api" title="Permanent link">&para;</a></h2>
+<p>A custom API enables you to define custom endpoints that expose server functionality that does not map to an insert, update, delete, or read operation. By using a custom API, you can have more control over messaging, including reading and setting HTTP message headers and defining a message body format other than JSON.</p>
+<p>You call a custom API by calling one of the <a href="https://msdn.microsoft.com/library/azure/dn268343(v=azure.10).aspx">InvokeApiAsync</a> methods on the client. For example, the following line of code sends a POST request to the <strong>completeAll</strong> API on the backend:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">client</span><span class="p">.</span><span class="nx">InvokeApiAsync</span><span class="o">&lt;</span><span class="nx">MarkAllResult</span><span class="o">&gt;</span><span class="p">(</span><span class="s2">&quot;completeAll&quot;</span><span class="p">,</span> <span class="nx">System</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">Http</span><span class="p">.</span><span class="nx">HttpMethod</span><span class="p">.</span><span class="nx">Post</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span>
+</code></pre></div>
+<p>This form is a typed method call and requires that the <strong>MarkAllResult</strong> return type is defined. Both typed and untyped methods are supported.</p>
+<p>The InvokeApiAsync() method prepends '/api/' to the API that you wish to call unless the API starts with a '/'. For example:</p>
+<ul>
+<li><code>InvokeApiAsync("completeAll",...)</code> calls /api/completeAll on the backend</li>
+<li><code>InvokeApiAsync("/.auth/me",...)</code> calls /.auth/me on the backend</li>
+</ul>
+<p>You can use InvokeApiAsync to call any WebAPI, including those WebAPIs that are not defined with Azure Mobile Apps.  When you use InvokeApiAsync(), the appropriate headers, including authentication headers, are sent with the request.</p>
+<h2 id="authenticate-users"><a name="authentication"></a>Authenticate users<a class="headerlink" href="#authenticate-users" title="Permanent link">&para;</a></h2>
+<p>Mobile Apps supports authenticating and authorizing app users using various external identity providers: Facebook, Google, Microsoft Account, Twitter, and Azure Active Directory. You can set permissions on tables to restrict access for specific operations to only authenticated users. You can also use the identity of authenticated users to implement authorization rules in server scripts. </p>
+<p>Two authentication flows are supported: <em>client-managed</em> and <em>server-managed</em> flow. The server-managed flow provides the simplest authentication experience, as it relies on the provider's web authentication interface. The client-managed flow allows for deeper integration with device-specific capabilities as it relies on provider-specific device-specific SDKs.</p>
+<blockquote>
+<p>[!NOTE]
+We recommend using a client-managed flow in your production apps.</p>
+</blockquote>
+<p>To set up authentication, you must register your app with one or more identity providers.  The identity provider generates a client ID and a client secret for your app.  These values are then set in your backend to enable Azure App Service authentication/authorization.  </p>
+<p>The following topics are covered in this section:</p>
+<ul>
+<li><a href="#clientflow">Client-managed authentication</a></li>
+<li><a href="#serverflow">Server-managed authentication</a></li>
+<li><a href="#caching">Caching the authentication token</a></li>
+</ul>
+<h3 id="client-managed-authentication"><a name="clientflow"></a>Client-managed authentication<a class="headerlink" href="#client-managed-authentication" title="Permanent link">&para;</a></h3>
+<p>Your app can independently contact the identity provider and then provide the returned token during login with your backend. This client flow enables you to provide a single sign-on experience for users or to retrieve additional user data from the identity provider. Client flow authentication is preferred to using a server flow as the identity provider SDK provides a more native UX feel and allows for additional customization.</p>
+<p>Examples are provided for the following client-flow authentication patterns:</p>
+<ul>
+<li><a href="#adal">Active Directory Authentication Library</a></li>
+<li><a href="#client-facebook">Facebook or Google</a></li>
+</ul>
+<h4 id="authenticate-users-with-the-active-directory-authentication-library"><a name="adal"></a>Authenticate users with the Active Directory Authentication Library<a class="headerlink" href="#authenticate-users-with-the-active-directory-authentication-library" title="Permanent link">&para;</a></h4>
+<p>You can use the Active Directory Authentication Library (ADAL) to initiate user authentication from the client using Azure Active Directory authentication.</p>
+<ol>
+<li>Configure your mobile app backend for AAD sign-on by following the [How to configure App Service for Active Directory login](https://docs.microsoft.com/azure/app-service/configure-authentication-provider-aadtutorial. Make sure to complete the optional step of registering a native client application.</li>
+<li>In Visual Studio, open your project and add a reference to the <code>Microsoft.IdentityModel.Clients.ActiveDirectory</code> NuGet package. When searching, include pre-release versions.</li>
+<li>
+<p>Add the following code to your application, according to the platform you are using. In each, make the following replacements:</p>
+</li>
+<li>
+<p>Replace <strong>INSERT-AUTHORITY-HERE</strong> with the name of the tenant in which you provisioned your application. The format should be https://login.microsoftonline.com/contoso.onmicrosoft.com. This value can be copied from the Domain tab in your Azure Active Directory in the [Azure portal].</p>
+</li>
+<li>Replace <strong>INSERT-RESOURCE-ID-HERE</strong> with the client ID for your mobile app backend. You can obtain the client ID from the <strong>Advanced</strong> tab under <strong>Azure Active Directory Settings</strong> in the portal.</li>
+<li>Replace <strong>INSERT-CLIENT-ID-HERE</strong> with the client ID you copied from the native client application.</li>
+<li>
+<p>Replace <strong>INSERT-REDIRECT-URI-HERE</strong> with your site's <em>/.auth/login/done</em> endpoint, using the HTTPS scheme. This value should be similar to <em>https://contoso.azurewebsites.net/.auth/login/done</em>.</p>
+<p>The code needed for each platform follows:</p>
+<p><strong>Windows:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">private</span> <span class="n">MobileServiceUser</span> <span class="n">user</span><span class="p">;</span>
+<span class="k">private</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">AuthenticateAsync</span><span class="p">()</span>
+<span class="p">{</span>
+
+   <span class="kt">string</span> <span class="n">authority</span> <span class="p">=</span> <span class="s">&quot;INSERT-AUTHORITY-HERE&quot;</span><span class="p">;</span>
+   <span class="kt">string</span> <span class="n">resourceId</span> <span class="p">=</span> <span class="s">&quot;INSERT-RESOURCE-ID-HERE&quot;</span><span class="p">;</span>
+   <span class="kt">string</span> <span class="n">clientId</span> <span class="p">=</span> <span class="s">&quot;INSERT-CLIENT-ID-HERE&quot;</span><span class="p">;</span>
+   <span class="kt">string</span> <span class="n">redirectUri</span> <span class="p">=</span> <span class="s">&quot;INSERT-REDIRECT-URI-HERE&quot;</span><span class="p">;</span>
+   <span class="k">while</span> <span class="p">(</span><span class="n">user</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
+   <span class="p">{</span>
+       <span class="kt">string</span> <span class="n">message</span><span class="p">;</span>
+       <span class="k">try</span>
+       <span class="p">{</span>
+           <span class="n">AuthenticationContext</span> <span class="n">ac</span> <span class="p">=</span> <span class="k">new</span> <span class="n">AuthenticationContext</span><span class="p">(</span><span class="n">authority</span><span class="p">);</span>
+           <span class="n">AuthenticationResult</span> <span class="n">ar</span> <span class="p">=</span> <span class="k">await</span> <span class="n">ac</span><span class="p">.</span><span class="n">AcquireTokenAsync</span><span class="p">(</span><span class="n">resourceId</span><span class="p">,</span> <span class="n">clientId</span><span class="p">,</span>
+               <span class="k">new</span> <span class="nf">Uri</span><span class="p">(</span><span class="n">redirectUri</span><span class="p">),</span> <span class="k">new</span> <span class="n">PlatformParameters</span><span class="p">(</span><span class="n">PromptBehavior</span><span class="p">.</span><span class="n">Auto</span><span class="p">,</span> <span class="k">false</span><span class="p">)</span> <span class="p">);</span>
+           <span class="n">JObject</span> <span class="n">payload</span> <span class="p">=</span> <span class="k">new</span> <span class="n">JObject</span><span class="p">();</span>
+           <span class="n">payload</span><span class="p">[</span><span class="s">&quot;access_token&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="n">ar</span><span class="p">.</span><span class="n">AccessToken</span><span class="p">;</span>
+           <span class="n">user</span> <span class="p">=</span> <span class="k">await</span> <span class="n">App</span><span class="p">.</span><span class="n">MobileService</span><span class="p">.</span><span class="n">LoginAsync</span><span class="p">(</span>
+               <span class="n">MobileServiceAuthenticationProvider</span><span class="p">.</span><span class="n">WindowsAzureActiveDirectory</span><span class="p">,</span> <span class="n">payload</span><span class="p">);</span>
+           <span class="n">message</span> <span class="p">=</span> <span class="kt">string</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="s">&quot;You are now logged in - {0}&quot;</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="n">UserId</span><span class="p">);</span>
+       <span class="p">}</span>
+       <span class="k">catch</span> <span class="p">(</span><span class="n">InvalidOperationException</span><span class="p">)</span>
+       <span class="p">{</span>
+           <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;You must log in. Login Required&quot;</span><span class="p">;</span>
+       <span class="p">}</span>
+       <span class="kt">var</span> <span class="n">dialog</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MessageDialog</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+       <span class="n">dialog</span><span class="p">.</span><span class="n">Commands</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">UICommand</span><span class="p">(</span><span class="s">&quot;OK&quot;</span><span class="p">));</span>
+       <span class="k">await</span> <span class="n">dialog</span><span class="p">.</span><span class="n">ShowAsync</span><span class="p">();</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>Xamarin.iOS</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">private</span> <span class="n">MobileServiceUser</span> <span class="n">user</span><span class="p">;</span>
+<span class="k">private</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">AuthenticateAsync</span><span class="p">(</span><span class="n">UIViewController</span> <span class="n">view</span><span class="p">)</span>
+<span class="p">{</span>
+
+   <span class="kt">string</span> <span class="n">authority</span> <span class="p">=</span> <span class="s">&quot;INSERT-AUTHORITY-HERE&quot;</span><span class="p">;</span>
+   <span class="kt">string</span> <span class="n">resourceId</span> <span class="p">=</span> <span class="s">&quot;INSERT-RESOURCE-ID-HERE&quot;</span><span class="p">;</span>
+   <span class="kt">string</span> <span class="n">clientId</span> <span class="p">=</span> <span class="s">&quot;INSERT-CLIENT-ID-HERE&quot;</span><span class="p">;</span>
+   <span class="kt">string</span> <span class="n">redirectUri</span> <span class="p">=</span> <span class="s">&quot;INSERT-REDIRECT-URI-HERE&quot;</span><span class="p">;</span>
+   <span class="k">try</span>
+   <span class="p">{</span>
+       <span class="n">AuthenticationContext</span> <span class="n">ac</span> <span class="p">=</span> <span class="k">new</span> <span class="n">AuthenticationContext</span><span class="p">(</span><span class="n">authority</span><span class="p">);</span>
+       <span class="n">AuthenticationResult</span> <span class="n">ar</span> <span class="p">=</span> <span class="k">await</span> <span class="n">ac</span><span class="p">.</span><span class="n">AcquireTokenAsync</span><span class="p">(</span><span class="n">resourceId</span><span class="p">,</span> <span class="n">clientId</span><span class="p">,</span>
+           <span class="k">new</span> <span class="nf">Uri</span><span class="p">(</span><span class="n">redirectUri</span><span class="p">),</span> <span class="k">new</span> <span class="n">PlatformParameters</span><span class="p">(</span><span class="n">view</span><span class="p">));</span>
+       <span class="n">JObject</span> <span class="n">payload</span> <span class="p">=</span> <span class="k">new</span> <span class="n">JObject</span><span class="p">();</span>
+       <span class="n">payload</span><span class="p">[</span><span class="s">&quot;access_token&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="n">ar</span><span class="p">.</span><span class="n">AccessToken</span><span class="p">;</span>
+       <span class="n">user</span> <span class="p">=</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">LoginAsync</span><span class="p">(</span>
+           <span class="n">MobileServiceAuthenticationProvider</span><span class="p">.</span><span class="n">WindowsAzureActiveDirectory</span><span class="p">,</span> <span class="n">payload</span><span class="p">);</span>
+   <span class="p">}</span>
+   <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span>
+   <span class="p">{</span>
+       <span class="n">Console</span><span class="p">.</span><span class="n">Error</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">@&quot;ERROR - AUTHENTICATION FAILED {0}&quot;</span><span class="p">,</span> <span class="n">ex</span><span class="p">.</span><span class="n">Message</span><span class="p">);</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>Xamarin.Android</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">private</span> <span class="n">MobileServiceUser</span> <span class="n">user</span><span class="p">;</span>
+<span class="k">private</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">AuthenticateAsync</span><span class="p">()</span>
+<span class="p">{</span>
+
+   <span class="kt">string</span> <span class="n">authority</span> <span class="p">=</span> <span class="s">&quot;INSERT-AUTHORITY-HERE&quot;</span><span class="p">;</span>
+   <span class="kt">string</span> <span class="n">resourceId</span> <span class="p">=</span> <span class="s">&quot;INSERT-RESOURCE-ID-HERE&quot;</span><span class="p">;</span>
+   <span class="kt">string</span> <span class="n">clientId</span> <span class="p">=</span> <span class="s">&quot;INSERT-CLIENT-ID-HERE&quot;</span><span class="p">;</span>
+   <span class="kt">string</span> <span class="n">redirectUri</span> <span class="p">=</span> <span class="s">&quot;INSERT-REDIRECT-URI-HERE&quot;</span><span class="p">;</span>
+   <span class="k">try</span>
+   <span class="p">{</span>
+       <span class="n">AuthenticationContext</span> <span class="n">ac</span> <span class="p">=</span> <span class="k">new</span> <span class="n">AuthenticationContext</span><span class="p">(</span><span class="n">authority</span><span class="p">);</span>
+       <span class="n">AuthenticationResult</span> <span class="n">ar</span> <span class="p">=</span> <span class="k">await</span> <span class="n">ac</span><span class="p">.</span><span class="n">AcquireTokenAsync</span><span class="p">(</span><span class="n">resourceId</span><span class="p">,</span> <span class="n">clientId</span><span class="p">,</span>
+           <span class="k">new</span> <span class="nf">Uri</span><span class="p">(</span><span class="n">redirectUri</span><span class="p">),</span> <span class="k">new</span> <span class="n">PlatformParameters</span><span class="p">(</span><span class="k">this</span><span class="p">));</span>
+       <span class="n">JObject</span> <span class="n">payload</span> <span class="p">=</span> <span class="k">new</span> <span class="n">JObject</span><span class="p">();</span>
+       <span class="n">payload</span><span class="p">[</span><span class="s">&quot;access_token&quot;</span><span class="p">]</span> <span class="p">=</span> <span class="n">ar</span><span class="p">.</span><span class="n">AccessToken</span><span class="p">;</span>
+       <span class="n">user</span> <span class="p">=</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">LoginAsync</span><span class="p">(</span>
+           <span class="n">MobileServiceAuthenticationProvider</span><span class="p">.</span><span class="n">WindowsAzureActiveDirectory</span><span class="p">,</span> <span class="n">payload</span><span class="p">);</span>
+   <span class="p">}</span>
+   <span class="k">catch</span> <span class="p">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span>
+   <span class="p">{</span>
+       <span class="n">AlertDialog</span><span class="p">.</span><span class="n">Builder</span> <span class="n">builder</span> <span class="p">=</span> <span class="k">new</span> <span class="n">AlertDialog</span><span class="p">.</span><span class="n">Builder</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+       <span class="n">builder</span><span class="p">.</span><span class="n">SetMessage</span><span class="p">(</span><span class="n">ex</span><span class="p">.</span><span class="n">Message</span><span class="p">);</span>
+       <span class="n">builder</span><span class="p">.</span><span class="n">SetTitle</span><span class="p">(</span><span class="s">&quot;You must log in. Login Required&quot;</span><span class="p">);</span>
+       <span class="n">builder</span><span class="p">.</span><span class="n">Create</span><span class="p">().</span><span class="n">Show</span><span class="p">();</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">protected</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">OnActivityResult</span><span class="p">(</span><span class="kt">int</span> <span class="n">requestCode</span><span class="p">,</span> <span class="n">Result</span> <span class="n">resultCode</span><span class="p">,</span> <span class="n">Intent</span> <span class="n">data</span><span class="p">)</span>
+<span class="p">{</span>
+
+   <span class="k">base</span><span class="p">.</span><span class="n">OnActivityResult</span><span class="p">(</span><span class="n">requestCode</span><span class="p">,</span> <span class="n">resultCode</span><span class="p">,</span> <span class="n">data</span><span class="p">);</span>
+   <span class="n">AuthenticationAgentContinuationHelper</span><span class="p">.</span><span class="n">SetAuthenticationAgentContinuationEventArgs</span><span class="p">(</span><span class="n">requestCode</span><span class="p">,</span> <span class="n">resultCode</span><span class="p">,</span> <span class="n">data</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+</li>
+</ol>
+<h4 id="single-sign-on-using-a-token-from-facebook-or-google"><a name="client-facebook"></a>Single Sign-On using a token from Facebook or Google<a class="headerlink" href="#single-sign-on-using-a-token-from-facebook-or-google" title="Permanent link">&para;</a></h4>
+<p>You can use the client flow as shown in this snippet for Facebook or Google.</p>
+<div class="highlight"><pre><span></span><code><span class="kt">var</span> <span class="n">token</span> <span class="p">=</span> <span class="k">new</span> <span class="n">JObject</span><span class="p">();</span>
+<span class="c1">// Replace access_token_value with actual value of your access token obtained</span>
+<span class="c1">// using the Facebook or Google SDK.</span>
+<span class="n">token</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;access_token&quot;</span><span class="p">,</span> <span class="s">&quot;access_token_value&quot;</span><span class="p">);</span>
+
+<span class="k">private</span> <span class="n">MobileServiceUser</span> <span class="n">user</span><span class="p">;</span>
+<span class="k">private</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">AuthenticateAsync</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">user</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="kt">string</span> <span class="n">message</span><span class="p">;</span>
+        <span class="k">try</span>
+        <span class="p">{</span>
+            <span class="c1">// Change MobileServiceAuthenticationProvider.Facebook</span>
+            <span class="c1">// to MobileServiceAuthenticationProvider.Google if using Google auth.</span>
+            <span class="n">user</span> <span class="p">=</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">LoginAsync</span><span class="p">(</span><span class="n">MobileServiceAuthenticationProvider</span><span class="p">.</span><span class="n">Facebook</span><span class="p">,</span> <span class="n">token</span><span class="p">);</span>
+            <span class="n">message</span> <span class="p">=</span> <span class="kt">string</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="s">&quot;You are now logged in - {0}&quot;</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="n">UserId</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">catch</span> <span class="p">(</span><span class="n">InvalidOperationException</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;You must log in. Login Required&quot;</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="kt">var</span> <span class="n">dialog</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MessageDialog</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+        <span class="n">dialog</span><span class="p">.</span><span class="n">Commands</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">UICommand</span><span class="p">(</span><span class="s">&quot;OK&quot;</span><span class="p">));</span>
+        <span class="k">await</span> <span class="n">dialog</span><span class="p">.</span><span class="n">ShowAsync</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="server-managed-authentication"><a name="serverflow"></a>Server-managed authentication<a class="headerlink" href="#server-managed-authentication" title="Permanent link">&para;</a></h3>
+<p>Once you have registered your identity provider, call the <a href="https://msdn.microsoft.com/library/azure/dn296411(v=azure.10).aspx">LoginAsync</a> method on the MobileServiceClient with the <a href="https://msdn.microsoft.com/library/windowsazure/microsoft.windowsazure.mobileservices.mobileserviceauthenticationprovider(v=azure.10).aspx">MobileServiceAuthenticationProvider</a> value of your provider. For example, the following code initiates a server flow sign-in by using Facebook.</p>
+<div class="highlight"><pre><span></span><code><span class="k">private</span> <span class="n">MobileServiceUser</span> <span class="n">user</span><span class="p">;</span>
+<span class="k">private</span> <span class="k">async</span> <span class="n">System</span><span class="p">.</span><span class="n">Threading</span><span class="p">.</span><span class="n">Tasks</span><span class="p">.</span><span class="n">Task</span> <span class="n">Authenticate</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">user</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="kt">string</span> <span class="n">message</span><span class="p">;</span>
+        <span class="k">try</span>
+        <span class="p">{</span>
+            <span class="n">user</span> <span class="p">=</span> <span class="k">await</span> <span class="n">client</span>
+                <span class="p">.</span><span class="n">LoginAsync</span><span class="p">(</span><span class="n">MobileServiceAuthenticationProvider</span><span class="p">.</span><span class="n">Facebook</span><span class="p">);</span>
+            <span class="n">message</span> <span class="p">=</span>
+                <span class="kt">string</span><span class="p">.</span><span class="n">Format</span><span class="p">(</span><span class="s">&quot;You are now logged in - {0}&quot;</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="n">UserId</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">catch</span> <span class="p">(</span><span class="n">InvalidOperationException</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">message</span> <span class="p">=</span> <span class="s">&quot;You must log in. Login Required&quot;</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="kt">var</span> <span class="n">dialog</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MessageDialog</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+        <span class="n">dialog</span><span class="p">.</span><span class="n">Commands</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">UICommand</span><span class="p">(</span><span class="s">&quot;OK&quot;</span><span class="p">));</span>
+        <span class="k">await</span> <span class="n">dialog</span><span class="p">.</span><span class="n">ShowAsync</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>If you are using an identity provider other than Facebook, change the value of MobileServiceAuthenticationProvider to the value for your provider.</p>
+<p>In a server flow, Azure App Service manages the OAuth authentication flow by displaying the sign-in page of the selected provider.  Once the identity provider returns, Azure App Service generates an App Service authentication token. The <a href="https://msdn.microsoft.com/library/azure/dn296411(v=azure.10).aspx">LoginAsync</a> method returns a <a href="https://msdn.microsoft.com/library/windowsazure/microsoft.windowsazure.mobileservices.mobileserviceuser(v=azure.10).aspx">MobileServiceUser</a>, which provides both the UserId of the authenticated user and the MobileServiceAuthenticationToken, as a JSON web token (JWT). This token can be cached and reused until it expires. For more information, see <a href="#caching">Caching the authentication token</a>.</p>
+<blockquote>
+<p>Under the covers, Azure Mobile Apps uses a <a href="https://docs.microsoft.com/en-us/xamarin/essentials/web-authenticator?tabs=ios">Xamarin.Essentials</a> WebAuthenticator to do the work.  You must handle the response from the service by calling back into Xamarin.Essentials, as per the documentation for WebAuthenticator.</p>
+</blockquote>
+<h3 id="caching-the-authentication-token"><a name="caching"></a>Caching the authentication token<a class="headerlink" href="#caching-the-authentication-token" title="Permanent link">&para;</a></h3>
+<p>In some cases, the call to the login method can be avoided after the first successful authentication by storing the authentication token from the provider.  Microsoft Store and UWP apps can use <a href="https://msdn.microsoft.com/library/windows/apps/windows.security.credentials.passwordvault.aspx">PasswordVault</a> to cache the current authentication token after a successful sign-in, as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">LoginAsync</span><span class="p">(</span><span class="n">MobileServiceAuthenticationProvider</span><span class="p">.</span><span class="n">Facebook</span><span class="p">);</span>
+
+<span class="n">PasswordVault</span> <span class="n">vault</span> <span class="p">=</span> <span class="k">new</span> <span class="n">PasswordVault</span><span class="p">();</span>
+<span class="n">vault</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">PasswordCredential</span><span class="p">(</span><span class="s">&quot;Facebook&quot;</span><span class="p">,</span> <span class="n">client</span><span class="p">.</span><span class="n">currentUser</span><span class="p">.</span><span class="n">UserId</span><span class="p">,</span>
+    <span class="n">client</span><span class="p">.</span><span class="n">currentUser</span><span class="p">.</span><span class="n">MobileServiceAuthenticationToken</span><span class="p">));</span>
+</code></pre></div>
+<p>The UserId value is stored as the UserName of the credential and the token is the stored as the Password. On subsequent start-ups, you can check the <strong>PasswordVault</strong> for cached credentials. The following example uses cached credentials when they are found, and otherwise attempts to authenticate again with the backend:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Try to retrieve stored credentials.</span>
+<span class="kt">var</span> <span class="n">creds</span> <span class="p">=</span> <span class="n">vault</span><span class="p">.</span><span class="n">FindAllByResource</span><span class="p">(</span><span class="s">&quot;Facebook&quot;</span><span class="p">).</span><span class="n">FirstOrDefault</span><span class="p">();</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">creds</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// Create the current user from the stored credentials.</span>
+    <span class="n">client</span><span class="p">.</span><span class="n">currentUser</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MobileServiceUser</span><span class="p">(</span><span class="n">creds</span><span class="p">.</span><span class="n">UserName</span><span class="p">);</span>
+    <span class="n">client</span><span class="p">.</span><span class="n">currentUser</span><span class="p">.</span><span class="n">MobileServiceAuthenticationToken</span> <span class="p">=</span>
+        <span class="n">vault</span><span class="p">.</span><span class="n">Retrieve</span><span class="p">(</span><span class="s">&quot;Facebook&quot;</span><span class="p">,</span> <span class="n">creds</span><span class="p">.</span><span class="n">UserName</span><span class="p">).</span><span class="n">Password</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">else</span>
+<span class="p">{</span>
+    <span class="c1">// Regular login flow and cache the token as shown above.</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>When you sign out a user, you must also remove the stored credential, as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="n">client</span><span class="p">.</span><span class="n">Logout</span><span class="p">();</span>
+<span class="n">vault</span><span class="p">.</span><span class="n">Remove</span><span class="p">(</span><span class="n">vault</span><span class="p">.</span><span class="n">Retrieve</span><span class="p">(</span><span class="s">&quot;Facebook&quot;</span><span class="p">,</span> <span class="n">client</span><span class="p">.</span><span class="n">currentUser</span><span class="p">.</span><span class="n">UserId</span><span class="p">));</span>
+</code></pre></div>
+<p>When you use client-managed authentication, you can also cache the access token obtained from your provider such as Facebook or Twitter. This token can be supplied to request a new authentication token from the backend, as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="kt">var</span> <span class="n">token</span> <span class="p">=</span> <span class="k">new</span> <span class="n">JObject</span><span class="p">();</span>
+<span class="c1">// Replace &lt;your_access_token_value&gt; with actual value of your access token</span>
+<span class="n">token</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;access_token&quot;</span><span class="p">,</span> <span class="s">&quot;&lt;your_access_token_value&gt;&quot;</span><span class="p">);</span>
+
+<span class="c1">// Authenticate using the access token.</span>
+<span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">LoginAsync</span><span class="p">(</span><span class="n">MobileServiceAuthenticationProvider</span><span class="p">.</span><span class="n">Facebook</span><span class="p">,</span> <span class="n">token</span><span class="p">);</span>
+</code></pre></div>
+<h2 id="miscellaneous-topics"><a name="misc"></a>Miscellaneous Topics<a class="headerlink" href="#miscellaneous-topics" title="Permanent link">&para;</a></h2>
+<h3 id="handle-errors"><a name="errors"></a>Handle errors<a class="headerlink" href="#handle-errors" title="Permanent link">&para;</a></h3>
+<p>When an error occurs in the backend, the client SDK raises a <code>MobileServiceInvalidOperationException</code>.  The following example shows how to handle an exception that is returned by the backend:</p>
+<div class="highlight"><pre><span></span><code><span class="k">private</span> <span class="k">async</span> <span class="k">void</span> <span class="nf">InsertTodoItem</span><span class="p">(</span><span class="n">TodoItem</span> <span class="n">todoItem</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// This code inserts a new TodoItem into the database. When the operation completes</span>
+    <span class="c1">// and App Service has assigned an Id, the item is added to the CollectionView</span>
+    <span class="k">try</span>
+    <span class="p">{</span>
+        <span class="k">await</span> <span class="n">todoTable</span><span class="p">.</span><span class="n">InsertAsync</span><span class="p">(</span><span class="n">todoItem</span><span class="p">);</span>
+        <span class="n">items</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">todoItem</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">catch</span> <span class="p">(</span><span class="n">MobileServiceInvalidOperationException</span> <span class="n">e</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// Handle error</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="customize-request-headers"><a name="headers"></a>Customize request headers<a class="headerlink" href="#customize-request-headers" title="Permanent link">&para;</a></h3>
+<p>To support your specific app scenario, you might need to customize communication with the Mobile App backend. For example, you may want to add a custom header to every outgoing request or even change responses status codes. You can use a custom <a href="https://msdn.microsoft.com/library/system.net.http.delegatinghandler(v=vs.110).aspx">DelegatingHandler</a>, as in the following example:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">CallClientWithHandler</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">MobileServiceClient</span> <span class="n">client</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MobileServiceClient</span><span class="p">(</span><span class="s">&quot;AppUrl&quot;</span><span class="p">,</span> <span class="k">new</span> <span class="n">MyHandler</span><span class="p">());</span>
+    <span class="n">IMobileServiceTable</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">todoTable</span> <span class="p">=</span> <span class="n">client</span><span class="p">.</span><span class="n">GetTable</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;();</span>
+    <span class="kt">var</span> <span class="n">newItem</span> <span class="p">=</span> <span class="k">new</span> <span class="n">TodoItem</span> <span class="p">{</span> <span class="n">Text</span> <span class="p">=</span> <span class="s">&quot;Hello world&quot;</span><span class="p">,</span> <span class="n">Complete</span> <span class="p">=</span> <span class="k">false</span> <span class="p">};</span>
+    <span class="k">await</span> <span class="n">todoTable</span><span class="p">.</span><span class="n">InsertAsync</span><span class="p">(</span><span class="n">newItem</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">MyHandler</span> <span class="p">:</span> <span class="n">DelegatingHandler</span>
+<span class="p">{</span>
+    <span class="k">protected</span> <span class="k">override</span> <span class="k">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">HttpResponseMessage</span><span class="p">&gt;</span>
+        <span class="n">SendAsync</span><span class="p">(</span><span class="n">HttpRequestMessage</span> <span class="n">request</span><span class="p">,</span> <span class="n">CancellationToken</span> <span class="n">cancellationToken</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// Change the request-side here based on the HttpRequestMessage</span>
+        <span class="n">request</span><span class="p">.</span><span class="n">Headers</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;x-my-header&quot;</span><span class="p">,</span> <span class="s">&quot;my value&quot;</span><span class="p">);</span>
+
+        <span class="c1">// Do the request</span>
+        <span class="kt">var</span> <span class="n">response</span> <span class="p">=</span> <span class="k">await</span> <span class="k">base</span><span class="p">.</span><span class="n">SendAsync</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">cancellationToken</span><span class="p">);</span>
+
+        <span class="c1">// Change the response-side here based on the HttpResponseMessage</span>
+
+        <span class="c1">// Return the modified response</span>
+        <span class="k">return</span> <span class="n">response</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="enable-request-logging">Enable request logging<a class="headerlink" href="#enable-request-logging" title="Permanent link">&para;</a></h3>
+<p>You can also use a DelegatingHandler to add request logging:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">class</span> <span class="nc">LoggingHandler</span> <span class="p">:</span> <span class="n">DelegatingHandler</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="nf">LoggingHandler</span><span class="p">()</span> <span class="p">:</span> <span class="k">base</span><span class="p">()</span> <span class="p">{</span> <span class="p">}</span>
+    <span class="k">public</span> <span class="nf">LoggingHandler</span><span class="p">(</span><span class="n">HttpMessageHandler</span> <span class="n">innerHandler</span><span class="p">)</span> <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="n">innerHandler</span><span class="p">)</span> <span class="p">{</span> <span class="p">}</span>
+
+    <span class="k">protected</span> <span class="k">override</span> <span class="k">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">HttpResponseMessage</span><span class="p">&gt;</span> <span class="n">SendAsync</span><span class="p">(</span><span class="n">HttpRequestMessage</span> <span class="n">request</span><span class="p">,</span> <span class="n">CancellationToken</span> <span class="n">token</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">Debug</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="err">$</span><span class="s">&quot;[HTTP] &gt;&gt;&gt; {request.Method} {request.RequestUri}&quot;</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="n">Content</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Debug</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="err">$</span><span class="s">&quot;[HTTP] &gt;&gt;&gt; {await request.Content.ReadAsStringAsync().ConfigureAwait(false)}&quot;</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="n">HttpResponseMessage</span> <span class="n">response</span> <span class="p">=</span> <span class="k">await</span> <span class="k">base</span><span class="p">.</span><span class="n">SendAsync</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">token</span><span class="p">).</span><span class="n">ConfigureAwait</span><span class="p">(</span><span class="k">false</span><span class="p">);</span>
+
+        <span class="n">Debug</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="err">$</span><span class="s">&quot;[HTTP] &lt;&lt;&lt; {response.StatusCode} {response.ReasonPhrase}&quot;</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">Content</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">Debug</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="err">$</span><span class="s">&quot;[HTTP] &lt;&lt;&lt; {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}&quot;</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">response</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../cordova/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Apache Cordova
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../../server/dotnet-framework/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                ASP.NET Framework
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Copyright &copy; Microsoft, Inc.  All Rights Reserved.
+          </div>
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+  <div class="md-footer-social">
+    
+      
+      
+        
+        
+      
+      <a href="https://github.com/azure/azure-mobile-apps" target="_blank" rel="noopener" title="github.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+      </a>
+    
+  </div>
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../../assets/javascripts/vendor.7e0ee788.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.c1ccee15.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      
+      <script>
+        app = initialize({
+          base: "../../..",
+          features: ['navigation.instant', 'navigation.tabs', 'navigation.sections', 'search.suggest', 'search.highlight'],
+          search: Object.assign({
+            worker: "../../../assets/javascripts/worker/search.4ac00218.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1618 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://azure.github.io/azure-mobile-apps/howto/server/dotnet-framework/">
+      
+      
+      <link rel="shortcut icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-6.1.3">
+    
+    
+      
+        <title>ASP.NET Framework - Azure Mobile Apps</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.2cb7adb3.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.f0267088.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="preference" data-md-color-primary="" data-md-color-accent="">
+      
+        <script>matchMedia("(prefers-color-scheme: dark)").matches&&document.body.setAttribute("data-md-color-scheme","slate")</script>
+      
+  
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-to-use-the-aspnet-framework-backend-server-sdk" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="https://azure.github.io/azure-mobile-apps/" title="Azure Mobile Apps" class="md-header-nav__button md-logo" aria-label="Azure Mobile Apps">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Azure Mobile Apps
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              ASP.NET Framework
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/azure/azure-mobile-apps/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+
+  
+
+<nav class="md-tabs md-tabs--active" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  <li class="md-tabs__item">
+    
+      <a href="../../.." class="md-tabs__link">
+        Home
+      </a>
+    
+  </li>
+
+      
+        
+  
+  
+    
+    
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../../../quickstarts/cordova/" class="md-tabs__link">
+          Quickstarts
+        </a>
+      
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../../auth/" class="md-tabs__link md-tabs__link--active">
+          How to
+        </a>
+      
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://azure.github.io/azure-mobile-apps/" title="Azure Mobile Apps" class="md-nav__button md-logo" aria-label="Azure Mobile Apps">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 003-3 3 3 0 00-3-3 3 3 0 00-3 3 3 3 0 003 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Azure Mobile Apps
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/azure/azure-mobile-apps/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../.." class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Quickstarts
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Quickstarts" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon"></span>
+        Quickstarts
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-1" type="checkbox" id="nav-2-1">
+    
+    <label class="md-nav__link" for="nav-2-1">
+      Apache Cordova
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Apache Cordova" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-1">
+        <span class="md-nav__icon md-icon"></span>
+        Apache Cordova
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/cordova/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/cordova/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/cordova/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-2" type="checkbox" id="nav-2-2">
+    
+    <label class="md-nav__link" for="nav-2-2">
+      Windows (UWP)
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Windows (UWP)" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-2">
+        <span class="md-nav__icon md-icon"></span>
+        Windows (UWP)
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/uwp/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/uwp/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/uwp/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-3" type="checkbox" id="nav-2-3">
+    
+    <label class="md-nav__link" for="nav-2-3">
+      Windows (WPF)
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Windows (WPF)" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-3">
+        <span class="md-nav__icon md-icon"></span>
+        Windows (WPF)
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/wpf/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/wpf/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/wpf/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-4" type="checkbox" id="nav-2-4">
+    
+    <label class="md-nav__link" for="nav-2-4">
+      Xamarin.Android
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Xamarin.Android" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-4">
+        <span class="md-nav__icon md-icon"></span>
+        Xamarin.Android
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-android/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-android/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-android/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-5" type="checkbox" id="nav-2-5">
+    
+    <label class="md-nav__link" for="nav-2-5">
+      Xamarin.Forms
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Xamarin.Forms" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-5">
+        <span class="md-nav__icon md-icon"></span>
+        Xamarin.Forms
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-forms/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-forms/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-forms/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2-6" type="checkbox" id="nav-2-6">
+    
+    <label class="md-nav__link" for="nav-2-6">
+      Xamarin.iOS
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Xamarin.iOS" data-md-level="2">
+      <label class="md-nav__title" for="nav-2-6">
+        <span class="md-nav__icon md-icon"></span>
+        Xamarin.iOS
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-ios/" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-ios/offline/" class="md-nav__link">
+      Add Offline Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../../quickstarts/xamarin-ios/auth/" class="md-nav__link">
+      Add Authentication
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
+    
+    <label class="md-nav__link" for="nav-3">
+      How to
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="How to" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon"></span>
+        How to
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/" class="md-nav__link">
+      Authentication
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../datasync/" class="md-nav__link">
+      Offline Data Sync
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3-3" type="checkbox" id="nav-3-3">
+    
+    <label class="md-nav__link" for="nav-3-3">
+      Work with the Client SDK
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Work with the Client SDK" data-md-level="2">
+      <label class="md-nav__title" for="nav-3-3">
+        <span class="md-nav__icon md-icon"></span>
+        Work with the Client SDK
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../client/cordova/" class="md-nav__link">
+      Apache Cordova
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../client/dotnet/" class="md-nav__link">
+      .NET
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3-4" type="checkbox" id="nav-3-4" checked>
+    
+    <label class="md-nav__link" for="nav-3-4">
+      Work with the Server SDK
+      <span class="md-nav__icon md-icon"></span>
+    </label>
+    <nav class="md-nav" aria-label="Work with the Server SDK" data-md-level="2">
+      <label class="md-nav__title" for="nav-3-4">
+        <span class="md-nav__icon md-icon"></span>
+        Work with the Server SDK
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        ASP.NET Framework
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+    
+    <a href="./" class="md-nav__link md-nav__link--active">
+      ASP.NET Framework
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#create-an-azure-mobile-apps-aspnet-framework-backend" class="md-nav__link">
+    Create an Azure Mobile Apps ASP.NET Framework backend
+  </a>
+  
+    <nav class="md-nav" aria-label="Create an Azure Mobile Apps ASP.NET Framework backend">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#download-and-initialize-the-sdk" class="md-nav__link">
+    Download and initialize the SDK.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#initialize-the-server-project" class="md-nav__link">
+    Initialize the server project
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sdk-extensions" class="md-nav__link">
+    SDK extensions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publish-the-server-project" class="md-nav__link">
+    Publish the server project
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#define-a-table-controller" class="md-nav__link">
+    Define a table controller
+  </a>
+  
+    <nav class="md-nav" aria-label="Define a table controller">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adjust-the-table-paging-size" class="md-nav__link">
+    Adjust the table paging size
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#define-a-custom-api-controller" class="md-nav__link">
+    Define a custom API controller
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#work-with-authentication" class="md-nav__link">
+    Work with authentication
+  </a>
+  
+    <nav class="md-nav" aria-label="Work with authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#add-authentication-to-a-server-project" class="md-nav__link">
+    Add authentication to a server project
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-custom-authentication-for-your-application" class="md-nav__link">
+    Use custom authentication for your application
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retrieve-authenticated-user-information" class="md-nav__link">
+    Retrieve authenticated user information
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restrict-data-access-for-authorized-users" class="md-nav__link">
+    Restrict data access for authorized users
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debug-and-troubleshoot-the-net-server-sdk" class="md-nav__link">
+    Debug and troubleshoot the .NET Server SDK
+  </a>
+  
+    <nav class="md-nav" aria-label="Debug and troubleshoot the .NET Server SDK">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    Logging
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#local-debugging-with-authentication" class="md-nav__link">
+    Local debugging with authentication
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../nodejs/" class="md-nav__link">
+      Node.js
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#create-an-azure-mobile-apps-aspnet-framework-backend" class="md-nav__link">
+    Create an Azure Mobile Apps ASP.NET Framework backend
+  </a>
+  
+    <nav class="md-nav" aria-label="Create an Azure Mobile Apps ASP.NET Framework backend">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#download-and-initialize-the-sdk" class="md-nav__link">
+    Download and initialize the SDK.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#initialize-the-server-project" class="md-nav__link">
+    Initialize the server project
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sdk-extensions" class="md-nav__link">
+    SDK extensions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publish-the-server-project" class="md-nav__link">
+    Publish the server project
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#define-a-table-controller" class="md-nav__link">
+    Define a table controller
+  </a>
+  
+    <nav class="md-nav" aria-label="Define a table controller">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adjust-the-table-paging-size" class="md-nav__link">
+    Adjust the table paging size
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#define-a-custom-api-controller" class="md-nav__link">
+    Define a custom API controller
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#work-with-authentication" class="md-nav__link">
+    Work with authentication
+  </a>
+  
+    <nav class="md-nav" aria-label="Work with authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#add-authentication-to-a-server-project" class="md-nav__link">
+    Add authentication to a server project
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-custom-authentication-for-your-application" class="md-nav__link">
+    Use custom authentication for your application
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retrieve-authenticated-user-information" class="md-nav__link">
+    Retrieve authenticated user information
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restrict-data-access-for-authorized-users" class="md-nav__link">
+    Restrict data access for authorized users
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debug-and-troubleshoot-the-net-server-sdk" class="md-nav__link">
+    Debug and troubleshoot the .NET Server SDK
+  </a>
+  
+    <nav class="md-nav" aria-label="Debug and troubleshoot the .NET Server SDK">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    Logging
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#local-debugging-with-authentication" class="md-nav__link">
+    Local debugging with authentication
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/azure/azure-mobile-apps/blob/master/docs/howto/server/dotnet-framework.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="how-to-use-the-aspnet-framework-backend-server-sdk">How to use the ASP.NET Framework backend server SDK<a class="headerlink" href="#how-to-use-the-aspnet-framework-backend-server-sdk" title="Permanent link">&para;</a></h1>
+<p>This topic shows you how to use the .NET backend server SDK in key Azure App Service Mobile Apps scenarios. The Azure Mobile Apps SDK helps you work with mobile clients from your ASP.NET application.</p>
+<h2 id="create-an-azure-mobile-apps-aspnet-framework-backend">Create an Azure Mobile Apps ASP.NET Framework backend<a class="headerlink" href="#create-an-azure-mobile-apps-aspnet-framework-backend" title="Permanent link">&para;</a></h2>
+<p>You can create an ASP.NET Framework app using Visual Studio 2019.  </p>
+<ul>
+<li>Choose the <strong>ASP.NET Web Application (.NET Framework)</strong> template.  If you are having trouble locating this template, select <strong>C#</strong>, <strong>All platforms</strong>, and <strong>Web</strong>.</li>
+<li>After selecting a name and location for the application, select the <strong>Web API</strong> project template.  This installs the correct collection of base services for your application.</li>
+</ul>
+<h3 id="download-and-initialize-the-sdk">Download and initialize the SDK.<a class="headerlink" href="#download-and-initialize-the-sdk" title="Permanent link">&para;</a></h3>
+<p>To SDK is available on <a href="https://nuget.org">NuGet.org</a>, and provides the base functionality required to get started using Azure Mobile Apps.  To install the package:</p>
+<ul>
+<li>Right-click on the project, then select <strong>Manage NuGet Packages...</strong>.  </li>
+<li>In the <strong>Browse</strong> tab, enter <code>Microsoft.Azure.Mobile.Server</code> in the search box, then press Enter.</li>
+<li>Select the <code>Microsoft.Azure.Mobile.Server.Quickstart</code> package.</li>
+<li>Click <strong>Install</strong>.</li>
+<li>Follow the prompts to complete installation.</li>
+</ul>
+<p>Repeat the process to install <code>Microsoft.Owin.Host.SystemWeb</code> as well.</p>
+<blockquote>
+<p><strong>NOTE</strong> Do not update the packages that are used as dependencies, such as Newtonsoft.JSON or System.IdentityModel.Jwt.  The APIs of these packages have, in many cases, changed and are now incompatible with Azure Mobile Apps for ASP.NET Framework. </p>
+</blockquote>
+<h3 id="initialize-the-server-project">Initialize the server project<a class="headerlink" href="#initialize-the-server-project" title="Permanent link">&para;</a></h3>
+<p>An Azure Mobile Apps server project is initialized similar to other ASP.NET Framework projects; by including an OWIN Startup class.  To add an OWIN Startup class:</p>
+<ul>
+<li>Right-click on the project, then select <strong>Add</strong> &gt; <strong>New Item</strong></li>
+<li>Select <strong>Web</strong> &gt; <strong>General</strong>, then select the <strong>OWIN Startup class</strong> template.</li>
+<li>Enter the name <code>Startup.cs</code> as the startup name.  (It can be named anything, but this is convention).</li>
+<li>
+<p>The contents of the <code>Startup.cs</code> file should be similar to this:</p>
+<div class="highlight"><pre><span></span><code><span class="k">using</span> <span class="nn">Microsoft.Azure.Mobile.Server.Config</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">Microsoft.Owin</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">Owin</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Web.Http</span><span class="p">;</span>
+
+<span class="na">[assembly: OwinStartup(typeof(WebApplication1.Startup))]</span>
+<span class="k">namespace</span> <span class="nn">WebApplication1</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">Startup</span>
+    <span class="p">{</span>
+        <span class="k">public</span> <span class="k">void</span> <span class="nf">Configuration</span><span class="p">(</span><span class="n">IAppBuilder</span> <span class="n">app</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">HttpConfiguration</span> <span class="n">config</span> <span class="p">=</span> <span class="k">new</span> <span class="n">HttpConfiguration</span><span class="p">();</span>
+            <span class="k">new</span> <span class="nf">MobileAppConfiguration</span><span class="p">()</span>
+                <span class="c1">// no added features</span>
+                <span class="p">.</span><span class="n">ApplyTo</span><span class="p">(</span><span class="n">config</span><span class="p">);</span>
+            <span class="n">app</span><span class="p">.</span><span class="n">UseWebApi</span><span class="p">(</span><span class="n">config</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The <code>OwinStartup</code>, namespace, and class name will be different, depending on your project.  Specifically, you should replace the contents of the <code>Configuration()</code> method, and adjust the <code>using</code> directives accordingly.</p>
+</li>
+</ul>
+<p>To enable individual features, you must call extension methods on the <strong>MobileAppConfiguration</strong> object before calling <strong>ApplyTo</strong>. For example, the following code adds the default routes to all API controllers that have the attribute <code>[MobileAppController]</code> during initialization:</p>
+<div class="highlight"><pre><span></span><code><span class="k">new</span> <span class="nf">MobileAppConfiguration</span><span class="p">()</span>
+    <span class="p">.</span><span class="n">MapApiControllers</span><span class="p">()</span>
+    <span class="p">.</span><span class="n">ApplyTo</span><span class="p">(</span><span class="n">config</span><span class="p">);</span>
+</code></pre></div>
+<p>The following setup is considered a "normal" usage that enables both table and API controllers using Entity Framework to access a SQL service.</p>
+<div class="highlight"><pre><span></span><code><span class="k">new</span> <span class="nf">MobileAppConfiguration</span><span class="p">()</span>
+    <span class="p">.</span><span class="n">AddMobileAppHomeController</span><span class="p">()</span>
+    <span class="p">.</span><span class="n">MapApiControllers</span><span class="p">()</span>
+    <span class="p">.</span><span class="n">AddTables</span><span class="p">(</span>
+        <span class="k">new</span> <span class="nf">MobileAppTableConfiguration</span><span class="p">()</span>
+            <span class="p">.</span><span class="n">MapTableControllers</span><span class="p">()</span>
+            <span class="p">.</span><span class="n">AddEntityFramework</span><span class="p">()</span>
+    <span class="p">)</span>
+    <span class="p">.</span><span class="n">MapLegacyCrossDomainController</span><span class="p">()</span>
+    <span class="p">.</span><span class="n">ApplyTo</span><span class="p">(</span><span class="n">config</span><span class="p">);</span>
+</code></pre></div>
+<p>The extension methods used are:</p>
+<ul>
+<li><code>AddMobileAppHomeController()</code> provides the default Azure Mobile Apps home page.</li>
+<li><code>MapApiControllers()</code> provides custom API capabilities for WebAPI controllers decorated with the <code>[MobileAppController]</code> attribute.</li>
+<li><code>AddTables()</code> provides a mapping of the <code>/tables</code> endpoints to table controllers.</li>
+<li><code>AddTablesWithEntityFramework()</code> is a short-hand for mapping the <code>/tables</code> endpoints using Entity Framework based controllers.</li>
+<li><code>MapLegacyCrossDomainController()</code> provides standard CORS headers for local development.</li>
+</ul>
+<h3 id="sdk-extensions">SDK extensions<a class="headerlink" href="#sdk-extensions" title="Permanent link">&para;</a></h3>
+<p>The following NuGet-based extension packages provide various mobile features that can be used by your application. You enable extensions during initialization by using the <strong>MobileAppConfiguration</strong> object.</p>
+<ul>
+<li><a href="https://www.nuget.org/packages/Microsoft.Azure.Mobile.Server.Quickstart/">Microsoft.Azure.Mobile.Server.Quickstart</a>
+    Supports the basic Mobile Apps setup. Added to the configuration by calling the <strong>UseDefaultConfiguration</strong> extension method during initialization. This extension includes following extensions: Notifications, Authentication, Entity, Tables, Cross-domain, and Home packages. </li>
+<li><a href="https://www.nuget.org/packages/Microsoft.Azure.Mobile.Server.Home/">Microsoft.Azure.Mobile.Server.Home</a>
+    Implements the default <em>this mobile app is up and running page</em> for the web site root. Add to the configuration by calling the <strong>AddMobileAppHomeController</strong> extension method.</li>
+<li><a href="https://www.nuget.org/packages/Microsoft.Azure.Mobile.Server.Tables/">Microsoft.Azure.Mobile.Server.Tables</a>
+    includes classes for working with data and sets-up the data pipeline. Add to the configuration by calling the <strong>AddTables</strong> extension method.</li>
+<li><a href="https://www.nuget.org/packages/Microsoft.Azure.Mobile.Server.Entity/">Microsoft.Azure.Mobile.Server.Entity</a>
+    Enables the Entity Framework to access data in the SQL Database. Add to the configuration by calling the <strong>AddTablesWithEntityFramework</strong> extension method.</li>
+<li><a href="https://www.nuget.org/packages/Microsoft.Azure.Mobile.Server.Authentication/">Microsoft.Azure.Mobile.Server.Authentication</a>
+    Enables authentication and sets-up the OWIN middleware used to validate tokens. Add to the configuration by calling the <strong>AddAppServiceAuthentication</strong> and <strong>IAppBuilder</strong>.<strong>UseAppServiceAuthentication</strong> extension methods.</li>
+<li><a href="https://www.nuget.org/packages/Microsoft.Azure.Mobile.Server.Notifications/">Microsoft.Azure.Mobile.Server.Notifications</a>
+    Enables push notifications and defines a push registration endpoint. Add to the configuration by calling the <strong>AddPushNotifications</strong> extension method.</li>
+<li><a href="https://www.nuget.org/packages/Microsoft.Azure.Mobile.Server.CrossDomain/">Microsoft.Azure.Mobile.Server.CrossDomain</a>
+    Creates a controller that serves data to legacy web browsers from your Mobile App. Add to the configuration by calling the <strong>MapLegacyCrossDomainController</strong> extension method.</li>
+<li><a href="https://www.nuget.org/packages/Microsoft.Azure.Mobile.Server.Login/">Microsoft.Azure.Mobile.Server.Login</a>
+    Provides the AppServiceLoginHandler.CreateToken() method, which is a static method used during custom authentication scenarios.</li>
+</ul>
+<h2 id="publish-the-server-project">Publish the server project<a class="headerlink" href="#publish-the-server-project" title="Permanent link">&para;</a></h2>
+<p>This section shows you how to publish your .NET backend project from Visual Studio.  There are other methods by which you can publish your application.  Consult the <a href="https://docs.microsoft.com/azure/app-service/deploy-continuous-deployment#:~:text=Authorize%20Azure%20App%20Service%201%20In%20the%20Azure,service%20if%20necessary,%20and%20follow%20the%20authorization%20prompts.">Azure App Service documentation</a> for more details.</p>
+<ol>
+<li>In Visual Studio, rebuild the project to restore NuGet packages.</li>
+<li>In Solution Explorer, right-click the project, click <strong>Publish</strong>.</li>
+<li>If you have not published this project before, you will configure publishing.
+    a. Select <strong>Azure</strong> for the target.
+    b. Select <strong>Azure App Service (Windows) for the specific target.
+    c. Select the app service instance you wish to deploy to.  If you don't have one, use the </strong>+<strong> to create one.
+    d. Click </strong>Finish**.</li>
+<li>If you have not linked a SQL database before, click <strong>Configure</strong> next to the SQL Database.
+    a. Select <strong>Azure SQL Database</strong>
+    b. Select your database.  If you don't have one or wish to use a different one, click the <strong>+</strong> to create a new database and server.
+    c. Enter <code>MS_TableConnectionString</code> as the Database connection string name.  Fill in the username and password in the boxes provided.
+    d. Click <strong>Finish</strong></li>
+<li>Click <strong>Publish</strong></li>
+</ol>
+<p>It takes some time to publish to Azure.  For more details about publishing web projects to Azure from Visual Studio, consult <a href="https://docs.microsoft.com/visualstudio/deployment/quickstart-deploy-to-azure?view=vs-2019">the documentation</a>.</p>
+<h2 id="define-a-table-controller">Define a table controller<a class="headerlink" href="#define-a-table-controller" title="Permanent link">&para;</a></h2>
+<p>Define a Table Controller to expose a SQL table to mobile clients.  Configuring a Table Controller requires three steps:</p>
+<ol>
+<li>Create a Data Transfer Object (DTO) class.</li>
+<li>Configure a table reference in the Mobile DbContext class.</li>
+<li>Create a table controller.</li>
+</ol>
+<p>A Data Transfer Object (DTO) is a plain C# object that inherits from <code>EntityData</code>.  For example:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">class</span> <span class="nc">TodoItem</span> <span class="p">:</span> <span class="n">EntityData</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Text</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">public</span> <span class="kt">bool</span> <span class="n">Complete</span> <span class="p">{</span><span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The DTO is used to define the table within the SQL database.  To create the database entry, add a <code>DbSet&lt;&gt;</code> property to the <code>DbContext</code> you are using:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">class</span> <span class="nc">MobileServiceContext</span> <span class="p">:</span> <span class="n">DbContext</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">const</span> <span class="kt">string</span> <span class="n">connectionStringName</span> <span class="p">=</span> <span class="s">&quot;Name=MS_TableConnectionString&quot;</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">MobileServiceContext</span><span class="p">()</span> <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="n">connectionStringName</span><span class="p">)</span>
+    <span class="p">{</span>
+
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="n">DbSet</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">TodoItems</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="k">protected</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">OnModelCreating</span><span class="p">(</span><span class="n">DbModelBuilder</span> <span class="n">modelBuilder</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">modelBuilder</span><span class="p">.</span><span class="n">Conventions</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span>
+            <span class="k">new</span> <span class="n">AttributeToColumnAnnotationConvention</span><span class="p">&lt;</span><span class="n">TableColumnAttribute</span><span class="p">,</span> <span class="kt">string</span><span class="p">&gt;(</span>
+                <span class="s">&quot;ServiceColumnTable&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">property</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">attributes</span><span class="p">.</span><span class="n">Single</span><span class="p">().</span><span class="n">ColumnType</span><span class="p">.</span><span class="n">ToString</span><span class="p">()));</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>If this is the first DTO, ensure you add or modify the <code>OnModelCreating()</code> method to add the Azure Mobile Apps column handling as well.</p>
+<p>Finally, create a new controller:</p>
+<ul>
+<li>Right-click on the <code>Controllers</code> folder.</li>
+<li>Select <strong>Web API</strong> &gt; <strong>Web API 2 Controller - Empty</strong></li>
+<li>Enter a name for the controller.</li>
+<li>
+<p>Replace the contents of the new controller with the following:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">class</span> <span class="nc">TodoItemController</span> <span class="p">:</span> <span class="n">TableController</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">protected</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">Initialize</span><span class="p">(</span><span class="n">HttpControllerContext</span> <span class="n">controllerContext</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">base</span><span class="p">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">controllerContext</span><span class="p">);</span>
+        <span class="n">ZUMOAPPNAMEContext</span> <span class="n">context</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ZUMOAPPNAMEContext</span><span class="p">();</span>
+        <span class="n">DomainManager</span> <span class="p">=</span> <span class="k">new</span> <span class="n">EntityDomainManager</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;(</span><span class="n">context</span><span class="p">,</span> <span class="n">Request</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// GET tables/TodoItem</span>
+    <span class="k">public</span> <span class="n">IQueryable</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">GetAllTodoItems</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="nf">Query</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="c1">// GET tables/TodoItem/48D68C86-6EA6-4C25-AA33-223FC9A27959</span>
+    <span class="k">public</span> <span class="n">SingleResult</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">GetTodoItem</span><span class="p">(</span><span class="kt">string</span> <span class="n">id</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="nf">Lookup</span><span class="p">(</span><span class="n">id</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// PATCH tables/TodoItem/48D68C86-6EA6-4C25-AA33-223FC9A27959</span>
+    <span class="k">public</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">PatchTodoItem</span><span class="p">(</span><span class="kt">string</span> <span class="n">id</span><span class="p">,</span> <span class="n">Delta</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">patch</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="nf">UpdateAsync</span><span class="p">(</span><span class="n">id</span><span class="p">,</span> <span class="n">patch</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// POST tables/TodoItem</span>
+    <span class="k">public</span> <span class="k">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">IHttpActionResult</span><span class="p">&gt;</span> <span class="n">PostTodoItem</span><span class="p">(</span><span class="n">TodoItem</span> <span class="n">item</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">TodoItem</span> <span class="n">current</span> <span class="p">=</span> <span class="k">await</span> <span class="n">InsertAsync</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+        <span class="k">return</span> <span class="nf">CreatedAtRoute</span><span class="p">(</span><span class="s">&quot;Tables&quot;</span><span class="p">,</span> <span class="k">new</span> <span class="p">{</span> <span class="n">id</span> <span class="p">=</span> <span class="n">current</span><span class="p">.</span><span class="n">Id</span> <span class="p">},</span> <span class="n">current</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// DELETE tables/TodoItem/48D68C86-6EA6-4C25-AA33-223FC9A27959</span>
+    <span class="k">public</span> <span class="n">Task</span> <span class="nf">DeleteTodoItem</span><span class="p">(</span><span class="kt">string</span> <span class="n">id</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="nf">DeleteAsync</span><span class="p">(</span><span class="n">id</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+</li>
+</ul>
+<p>This is the standard form for a <code>TableController</code>.</p>
+<h3 id="adjust-the-table-paging-size">Adjust the table paging size<a class="headerlink" href="#adjust-the-table-paging-size" title="Permanent link">&para;</a></h3>
+<p>By default, Azure Mobile Apps returns 50 records per request.  Paging ensures that the client does not tie up their UI thread nor the server for too long, ensuring a good user experience. To change the table paging size, increase the server side "allowed query size" and the client-side page size The server side "allowed query size" is adjusted using the <code>EnableQuery</code> attribute:</p>
+<div class="highlight"><pre><span></span><code><span class="na">[EnableQuery(PageSize = 500)]</span>
+</code></pre></div>
+<p>Ensure the PageSize is the same or larger than the size requested by the client.  Refer to the specific client HOWTO documentation for details on changing the client page size.</p>
+<h2 id="define-a-custom-api-controller">Define a custom API controller<a class="headerlink" href="#define-a-custom-api-controller" title="Permanent link">&para;</a></h2>
+<p>The custom API controller provides the most basic functionality to your Mobile App backend by exposing an endpoint. You can register a mobile-specific API controller using the [MobileAppController] attribute. The <code>MobileAppController</code> attribute registers the route, sets up the Mobile Apps JSON serializer, and turns on client version checking.</p>
+<p>The contents of the Custom API controller are:</p>
+<div class="highlight"><pre><span></span><code><span class="na">[MobileAppController]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">CustomAPIController</span> <span class="p">:</span> <span class="n">ApiController</span>
+<span class="p">{</span>
+    <span class="c1">// Content here</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Once configured with the <code>MobileAppController</code> attribute, you can define the custom API in the same way as any other Web API.</p>
+<h2 id="work-with-authentication">Work with authentication<a class="headerlink" href="#work-with-authentication" title="Permanent link">&para;</a></h2>
+<p>Azure Mobile Apps uses App Service Authentication / Authorization to secure your mobile backend.  This section shows you how to perform the following authentication-related tasks in your .NET backend server project:</p>
+<ul>
+<li><a href="#add-auth">Add authentication to a server project</a></li>
+<li><a href="#custom-auth">Use custom authentication for your application</a></li>
+<li><a href="#user-info">Retrieve authenticated user information</a></li>
+<li><a href="#authorize">Restrict data access for authorized users</a></li>
+</ul>
+<h3 id="add-authentication-to-a-server-project"><a name="add-auth"></a>Add authentication to a server project<a class="headerlink" href="#add-authentication-to-a-server-project" title="Permanent link">&para;</a></h3>
+<p>You can add authentication to your server project by extending the <strong>MobileAppConfiguration</strong> object and configuring OWIN middleware. </p>
+<ol>
+<li>In Visual Studio, install the <a href="https://www.nuget.org/packages/Microsoft.Azure.Mobile.Server.Authentication/">Microsoft.Azure.Mobile.Server.Authentication</a> package.</li>
+<li>
+<p>In the <code>Startup.cs</code> project file, add the following line of code at the beginning of the <strong>Configuration</strong> method:</p>
+<div class="highlight"><pre><span></span><code><span class="n">app</span><span class="p">.</span><span class="n">UseAppServiceAuthentication</span><span class="p">(</span><span class="n">config</span><span class="p">);</span>
+</code></pre></div>
+<p>This OWIN middleware component validates tokens issued by the associated App Service gateway.
+3. Add the <code>[Authorize]</code> attribute to any controller or method that requires authentication.</p>
+</li>
+</ol>
+<h3 id="use-custom-authentication-for-your-application"><a name="custom-auth"></a>Use custom authentication for your application<a class="headerlink" href="#use-custom-authentication-for-your-application" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>IMPORTANT</strong>
+In order to enable custom authentication, you must first enable App Service Authentication without selecting a provider for your App Service in the Azure portal. This will enable the <code>WEBSITE_AUTH_SIGNING_KEY</code> environment variable when hosted.</p>
+<p>If you do not wish to use one of the App Service Authentication/Authorization providers, you can implement your own login system. Install the <a href="https://www.nuget.org/packages/Microsoft.Azure.Mobile.Server.Login/">Microsoft.Azure.Mobile.Server.Login</a> package to assist with authentication token generation.  Provide your own code for validating user credentials. For example, you might check against salted and hashed passwords in a database. In the example below, the <code>isValidAssertion()</code> method (defined elsewhere) is responsible for these checks.</p>
+</blockquote>
+<p>The custom authentication is exposed by creating an ApiController and exposing <code>register</code> and <code>login</code> actions. The client should use a custom UI to collect the information from the user.  The information is then submitted to the API with a standard HTTP POST call. Once the server validates the assertion, a token is issued using the <code>AppServiceLoginHandler.CreateToken()</code> method.  The ApiController <strong>should not</strong> use the <code>[MobileAppController]</code> attribute.</p>
+<p>An example <code>login</code> action:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="n">IHttpActionResult</span> <span class="nf">Post</span><span class="p">([</span><span class="n">FromBody</span><span class="p">]</span> <span class="n">JObject</span> <span class="n">assertion</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">isValidAssertion</span><span class="p">(</span><span class="n">assertion</span><span class="p">))</span> <span class="c1">// user-defined function, checks against a database</span>
+    <span class="p">{</span>
+        <span class="n">JwtSecurityToken</span> <span class="n">token</span> <span class="p">=</span> <span class="n">AppServiceLoginHandler</span><span class="p">.</span><span class="n">CreateToken</span><span class="p">(</span><span class="k">new</span> <span class="n">Claim</span><span class="p">[]</span> <span class="p">{</span> <span class="k">new</span> <span class="n">Claim</span><span class="p">(</span><span class="n">JwtRegisteredClaimNames</span><span class="p">.</span><span class="n">Sub</span><span class="p">,</span> <span class="n">assertion</span><span class="p">[</span><span class="s">&quot;username&quot;</span><span class="p">])</span> <span class="p">},</span>
+            <span class="n">mySigningKey</span><span class="p">,</span>
+            <span class="n">myAppURL</span><span class="p">,</span>
+            <span class="n">myAppURL</span><span class="p">,</span>
+            <span class="n">TimeSpan</span><span class="p">.</span><span class="n">FromHours</span><span class="p">(</span><span class="m">24</span><span class="p">)</span> <span class="p">);</span>
+        <span class="k">return</span> <span class="nf">Ok</span><span class="p">(</span><span class="k">new</span> <span class="n">LoginResult</span><span class="p">()</span>
+        <span class="p">{</span>
+            <span class="n">AuthenticationToken</span> <span class="p">=</span> <span class="n">token</span><span class="p">.</span><span class="n">RawData</span><span class="p">,</span>
+            <span class="n">User</span> <span class="p">=</span> <span class="k">new</span> <span class="n">LoginResultUser</span><span class="p">()</span> <span class="p">{</span> <span class="n">UserId</span> <span class="p">=</span> <span class="n">userName</span><span class="p">.</span><span class="n">ToString</span><span class="p">()</span> <span class="p">}</span>
+        <span class="p">});</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="c1">// user assertion was not valid</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">CreateUnauthorizedResponse</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>In the preceding example, <code>LoginResult</code> and <code>LoginResultUser</code> are serializable objects exposing required properties. The client expects login responses to be returned as JSON objects of the form:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;authenticationToken&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;token&gt;&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;user&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;userId&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;userId&gt;&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The <code>AppServiceLoginHandler.CreateToken()</code> method includes an <em>audience</em> and an <em>issuer</em> parameter. Both of these parameters are set to the URL of your application root, using the HTTPS scheme. Similarly you should set <em>secretKey</em> to be the value of your application's signing key. Do not distribute the signing key in a client as it can be used to mint keys and impersonate users. You can obtain the signing key while hosted in App Service by referencing the <code>WEBSITE_AUTH_SIGNING_KEY</code> environment variable. If needed in a local debugging context, follow the instructions in the <a href="#local-debug">Local debugging with authentication</a> section to retrieve the key and store it as an application setting.</p>
+<p>The issued token may also include other claims and an expiry date.  Minimally, the issued token must include a subject (<strong>sub</strong>) claim.</p>
+<p>You can support the standard client <code>loginAsync()</code> method by overloading the authentication route.  If the client calls <code>client.loginAsync('custom');</code> to log in, your route must be <code>/.auth/login/custom</code>.  You can set the route for the custom authentication controller using <code>MapHttpRoute()</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">config</span><span class="p">.</span><span class="n">Routes</span><span class="p">.</span><span class="n">MapHttpRoute</span><span class="p">(</span><span class="s">&quot;custom&quot;</span><span class="p">,</span> <span class="s">&quot;.auth/login/custom&quot;</span><span class="p">,</span> <span class="k">new</span> <span class="p">{</span> <span class="n">controller</span> <span class="p">=</span> <span class="s">&quot;CustomAuth&quot;</span> <span class="p">});</span>
+</code></pre></div>
+<blockquote>
+<p>[!TIP]
+Using the <code>loginAsync()</code> approach ensures that the authentication token is attached to every subsequent call to the service.</p>
+</blockquote>
+<h3 id="retrieve-authenticated-user-information"><a name="user-info"></a>Retrieve authenticated user information<a class="headerlink" href="#retrieve-authenticated-user-information" title="Permanent link">&para;</a></h3>
+<p>When a user is authenticated by App Service, you can access the assigned user ID and other information in your .NET backend code. The user information can be used for making authorization decisions in the backend. The following code obtains the user ID associated with a request:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Get the SID of the current user.</span>
+<span class="kt">var</span> <span class="n">claimsPrincipal</span> <span class="p">=</span> <span class="k">this</span><span class="p">.</span><span class="n">User</span> <span class="k">as</span> <span class="n">ClaimsPrincipal</span><span class="p">;</span>
+<span class="kt">string</span> <span class="n">sid</span> <span class="p">=</span> <span class="n">claimsPrincipal</span><span class="p">.</span><span class="n">FindFirst</span><span class="p">(</span><span class="n">ClaimTypes</span><span class="p">.</span><span class="n">NameIdentifier</span><span class="p">).</span><span class="n">Value</span><span class="p">;</span>
+</code></pre></div>
+<p>The SID is derived from the provider-specific user ID and is static for a given user and login provider.  The SID is null for invalid authentication tokens.</p>
+<p>App Service also lets you request specific claims from your login provider. Each identity provider can provide more information using the identity provider SDK.  For example, you can use the Facebook Graph API for friends information.  You can specify claims that are requested in the provider blade in the Azure portal. Some claims require additional configuration with the identity provider.</p>
+<p>The following code calls the <strong>GetAppServiceIdentityAsync</strong> extension method to get the login credentials, which include the access token needed to make requests against the Facebook Graph API:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Get the credentials for the logged-in user.</span>
+<span class="kt">var</span> <span class="n">credentials</span> <span class="p">=</span> <span class="k">await</span> <span class="k">this</span><span class="p">.</span><span class="n">User</span><span class="p">.</span><span class="n">GetAppServiceIdentityAsync</span><span class="p">&lt;</span><span class="n">FacebookCredentials</span><span class="p">&gt;(</span><span class="k">this</span><span class="p">.</span><span class="n">Request</span><span class="p">);</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="n">credentials</span><span class="p">.</span><span class="n">Provider</span> <span class="p">==</span> <span class="s">&quot;Facebook&quot;</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// Create a query string with the Facebook access token.</span>
+    <span class="kt">var</span> <span class="n">fbRequestUrl</span> <span class="p">=</span> <span class="s">&quot;https://graph.facebook.com/me/feed?access_token=&quot;</span>
+        <span class="p">+</span> <span class="n">credentials</span><span class="p">.</span><span class="n">AccessToken</span><span class="p">;</span>
+
+    <span class="c1">// Create an HttpClient request.</span>
+    <span class="kt">var</span> <span class="n">client</span> <span class="p">=</span> <span class="k">new</span> <span class="n">System</span><span class="p">.</span><span class="n">Net</span><span class="p">.</span><span class="n">Http</span><span class="p">.</span><span class="n">HttpClient</span><span class="p">();</span>
+
+    <span class="c1">// Request the current user info from Facebook.</span>
+    <span class="kt">var</span> <span class="n">resp</span> <span class="p">=</span> <span class="k">await</span> <span class="n">client</span><span class="p">.</span><span class="n">GetAsync</span><span class="p">(</span><span class="n">fbRequestUrl</span><span class="p">);</span>
+    <span class="n">resp</span><span class="p">.</span><span class="n">EnsureSuccessStatusCode</span><span class="p">();</span>
+
+    <span class="c1">// Do something here with the Facebook user information.</span>
+    <span class="kt">var</span> <span class="n">fbInfo</span> <span class="p">=</span> <span class="k">await</span> <span class="n">resp</span><span class="p">.</span><span class="n">Content</span><span class="p">.</span><span class="n">ReadAsStringAsync</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Add a using statement for <code>System.Security.Principal</code> to provide the <strong>GetAppServiceIdentityAsync</strong> extension method.</p>
+<h3 id="restrict-data-access-for-authorized-users"><a name="authorize"></a>Restrict data access for authorized users<a class="headerlink" href="#restrict-data-access-for-authorized-users" title="Permanent link">&para;</a></h3>
+<p>In the previous section, we showed how to retrieve the user ID of an authenticated user. You can restrict access to data and other resources based on this value. For example, adding a userId column to tables and filtering the query results by the user ID is a simple way to limit returned data only to authorized users. The following code returns data rows only when the SID matches the value in the UserId column on the TodoItem table:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Get the SID of the current user.</span>
+<span class="kt">var</span> <span class="n">claimsPrincipal</span> <span class="p">=</span> <span class="k">this</span><span class="p">.</span><span class="n">User</span> <span class="k">as</span> <span class="n">ClaimsPrincipal</span><span class="p">;</span>
+<span class="kt">string</span> <span class="n">sid</span> <span class="p">=</span> <span class="n">claimsPrincipal</span><span class="p">.</span><span class="n">FindFirst</span><span class="p">(</span><span class="n">ClaimTypes</span><span class="p">.</span><span class="n">NameIdentifier</span><span class="p">).</span><span class="n">Value</span><span class="p">;</span>
+
+<span class="c1">// Only return data rows that belong to the current user.</span>
+<span class="k">return</span> <span class="nf">Query</span><span class="p">().</span><span class="n">Where</span><span class="p">(</span><span class="n">t</span> <span class="p">=&gt;</span> <span class="n">t</span><span class="p">.</span><span class="n">UserId</span> <span class="p">==</span> <span class="n">sid</span><span class="p">);</span>
+</code></pre></div>
+<p>The <code>Query()</code> method returns an <code>IQueryable</code> that can be manipulated by LINQ to handle filtering.</p>
+<h2 id="debug-and-troubleshoot-the-net-server-sdk">Debug and troubleshoot the .NET Server SDK<a class="headerlink" href="#debug-and-troubleshoot-the-net-server-sdk" title="Permanent link">&para;</a></h2>
+<p>Azure App Service provides several debugging and troubleshooting techniques for ASP.NET applications:</p>
+<ul>
+<li><a href="https://docs.microsoft.com/azure/app-service/web-sites-monitor">Monitoring Azure App Service</a></li>
+<li><a href="https://docs.microsoft.com/azure/app-service/troubleshoot-diagnostic-logs">Enable diagnostic logging in Azure App Service</a></li>
+<li><a href="https://docs.microsoft.com/azure/app-service/troubleshoot-dotnet-visual-studio">Troubleshoot an Azure App Service in Visual Studio</a></li>
+</ul>
+<h3 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h3>
+<p>You can write to App Service diagnostic logs by using the standard ASP.NET trace writing. Before you can write to the logs, you must enable diagnostics in your Azure Mobile Apps backend.</p>
+<p>To enable diagnostics and write to the logs:</p>
+<ol>
+<li>Follow the steps in <a href="https://docs.microsoft.com/azure/app-service/troubleshoot-diagnostic-logs">Enable application logging (Windows)</a>.</li>
+<li>Add the following using statement in your code file:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="k">using</span> <span class="nn">System.Web.Http.Tracing</span><span class="p">;</span>
+</code></pre></div>
+<ol>
+<li>Create a trace writer to write from the .NET backend to the diagnostic logs, as follows:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="n">ITraceWriter</span> <span class="n">traceWriter</span> <span class="p">=</span> <span class="k">this</span><span class="p">.</span><span class="n">Configuration</span><span class="p">.</span><span class="n">Services</span><span class="p">.</span><span class="n">GetTraceWriter</span><span class="p">();</span>
+<span class="n">traceWriter</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">&quot;Hello, World&quot;</span><span class="p">);</span>
+</code></pre></div>
+<ol>
+<li>Republish your server project, and access the Azure Mobile Apps backend to execute the code path with the logging.</li>
+<li>Download and evaluate the logs, as described in <a href="https://docs.microsoft.com/en-us/azure/app-service/troubleshoot-dotnet-visual-studio#webserverlogs">Access log files</a>.</li>
+</ol>
+<h3 id="local-debugging-with-authentication"><a name="local-debug"></a>Local debugging with authentication<a class="headerlink" href="#local-debugging-with-authentication" title="Permanent link">&para;</a></h3>
+<p>You can run your application locally to test changes before publishing them to the cloud. For most Azure Mobile Apps backends, press <em>F5</em> while in Visual Studio. However, there are some additional considerations when using authentication.</p>
+<p>You must have a cloud-based mobile app with App Service Authentication/Authorization configured, and your client must have the cloud endpoint specified as the alternate login host. See the documentation for your client platform for the specific steps required.</p>
+<p>Ensure that your mobile backend has <a href="https://www.nuget.org/packages/Microsoft.Azure.Mobile.Server.Authentication/">Microsoft.Azure.Mobile.Server.Authentication</a> installed. Then, in your application's OWIN startup class, add the following, after <code>MobileAppConfiguration</code> has been applied to your <code>HttpConfiguration</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">app</span><span class="p">.</span><span class="n">UseAppServiceAuthentication</span><span class="p">(</span><span class="k">new</span> <span class="n">AppServiceAuthenticationOptions</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">SigningKey</span> <span class="p">=</span> <span class="n">ConfigurationManager</span><span class="p">.</span><span class="n">AppSettings</span><span class="p">[</span><span class="s">&quot;authSigningKey&quot;</span><span class="p">],</span>
+    <span class="n">ValidAudiences</span> <span class="p">=</span> <span class="k">new</span><span class="p">[]</span> <span class="p">{</span> <span class="n">ConfigurationManager</span><span class="p">.</span><span class="n">AppSettings</span><span class="p">[</span><span class="s">&quot;authAudience&quot;</span><span class="p">]</span> <span class="p">},</span>
+    <span class="n">ValidIssuers</span> <span class="p">=</span> <span class="k">new</span><span class="p">[]</span> <span class="p">{</span> <span class="n">ConfigurationManager</span><span class="p">.</span><span class="n">AppSettings</span><span class="p">[</span><span class="s">&quot;authIssuer&quot;</span><span class="p">]</span> <span class="p">},</span>
+    <span class="n">TokenHandler</span> <span class="p">=</span> <span class="n">config</span><span class="p">.</span><span class="n">GetAppServiceTokenHandler</span><span class="p">()</span>
+<span class="p">});</span>
+</code></pre></div>
+<p>In the preceding example, you should configure the <em>authAudience</em> and <em>authIssuer</em> application settings within your Web.config file to each be the URL of your application root, using the HTTPS scheme. Similarly you should set <em>authSigningKey</em> to be the value of your application's signing key. </p>
+<p>To obtain the signing key:</p>
+<ol>
+<li>Navigate to your app within the <a href="https://portal.azure.com">Azure portal</a></li>
+<li>Click <strong>Tools</strong> &gt; <strong>Kudu</strong> &gt; <strong>Go</strong>.</li>
+<li>In the Kudu Management site, click <strong>Environment</strong>.</li>
+<li>Find the value for <code>WEBSITE_AUTH_SIGNING_KEY</code>.</li>
+</ol>
+<p>Use the signing key for the <em>authSigningKey</em> parameter in your local application config.  Your mobile backend is now equipped to validate tokens when running locally, which the client obtains the token from the cloud-based endpoint.</p>
+<!-- Links -->
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../../client/dotnet/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                .NET
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../nodejs/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Node.js
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Copyright &copy; Microsoft, Inc.  All Rights Reserved.
+          </div>
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+  <div class="md-footer-social">
+    
+      
+      
+        
+        
+      
+      <a href="https://github.com/azure/azure-mobile-apps" target="_blank" rel="noopener" title="github.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+      </a>
+    
+  </div>
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../../assets/javascripts/vendor.7e0ee788.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.c1ccee15.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      
+      <script>
+        app = initialize({
+          base: "../../..",
+          features: ['navigation.instant', 'navigation.tabs', 'navigation.sections', 'search.suggest', 'search.highlight'],
+          search: Object.assign({
+            worker: "../../../assets/javascripts/worker/search.4ac00218.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>
