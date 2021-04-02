@@ -1,0 +1,89 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.6.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{81138015-8205-4410-AFB3-4BA5E949B9C1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AzureMobile.Server", "src\Microsoft.AzureMobile.Server\Microsoft.AzureMobile.Server.csproj", "{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AzureMobile.Server.InMemory", "src\Microsoft.AzureMobile.Server.InMemory\Microsoft.AzureMobile.Server.InMemory.csproj", "{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8E70DD2F-2182-439E-888F-4B6F73CCE95A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AzureMobile.Common.Test", "test\Microsoft.AzureMobile.Common.Test\Microsoft.AzureMobile.Common.Test.csproj", "{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AzureMobile.WebService.Test", "test\Microsoft.AzureMobile.WebService.Test\Microsoft.AzureMobile.WebService.Test.csproj", "{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}.Debug|x64.Build.0 = Debug|Any CPU
+		{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}.Debug|x86.Build.0 = Debug|Any CPU
+		{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}.Release|x64.ActiveCfg = Release|Any CPU
+		{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}.Release|x64.Build.0 = Release|Any CPU
+		{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}.Release|x86.ActiveCfg = Release|Any CPU
+		{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}.Release|x86.Build.0 = Release|Any CPU
+		{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}.Debug|x64.Build.0 = Debug|Any CPU
+		{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}.Debug|x86.Build.0 = Debug|Any CPU
+		{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}.Release|x64.ActiveCfg = Release|Any CPU
+		{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}.Release|x64.Build.0 = Release|Any CPU
+		{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}.Release|x86.ActiveCfg = Release|Any CPU
+		{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}.Release|x86.Build.0 = Release|Any CPU
+		{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}.Debug|x64.Build.0 = Debug|Any CPU
+		{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}.Debug|x86.Build.0 = Debug|Any CPU
+		{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}.Release|x64.ActiveCfg = Release|Any CPU
+		{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}.Release|x64.Build.0 = Release|Any CPU
+		{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}.Release|x86.ActiveCfg = Release|Any CPU
+		{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}.Release|x86.Build.0 = Release|Any CPU
+		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Debug|x64.Build.0 = Debug|Any CPU
+		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Debug|x86.Build.0 = Debug|Any CPU
+		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Release|x64.ActiveCfg = Release|Any CPU
+		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Release|x64.Build.0 = Release|Any CPU
+		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Release|x86.ActiveCfg = Release|Any CPU
+		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2E5EAA65-ABFB-4693-9814-9EBCB25EB059} = {81138015-8205-4410-AFB3-4BA5E949B9C1}
+		{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D} = {81138015-8205-4410-AFB3-4BA5E949B9C1}
+		{D3ED00B8-C924-46D0-BB9E-C246142D9E3F} = {8E70DD2F-2182-439E-888F-4B6F73CCE95A}
+		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A} = {8E70DD2F-2182-439E-888F-4B6F73CCE95A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D1B5BA0C-B5E0-4E9B-BAD8-5E7C6841D6A2}
+	EndGlobalSection
+EndGlobal
