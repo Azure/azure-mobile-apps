@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AzureMobile.Common.Test.Models;
@@ -15,6 +16,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace Microsoft.AzureMobile.WebService.Test
 {
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class Startup
     {
         /// <summary>

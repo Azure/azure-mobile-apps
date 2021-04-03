@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,7 @@ namespace Microsoft.AzureMobile.WebService.Test.Controllers
     /// data set.  The data set is a collection of 248 movies.
     /// </summary>
     [Route("tables/movies")]
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class MovieController : TableController<InMemoryMovie>
     {
         public MovieController(IRepository<InMemoryMovie> repository) : base(repository)
@@ -26,6 +28,7 @@ namespace Microsoft.AzureMobile.WebService.Test.Controllers
     /// An adjusted movies controller that has a limited page size.
     /// </summary>
     [Route("tables/movies_pagesize")]
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class MovieWithPageSizeController : TableController<InMemoryMovie>
     {
         public MovieWithPageSizeController(IRepository<InMemoryMovie> repository) : base(repository)
@@ -35,6 +38,7 @@ namespace Microsoft.AzureMobile.WebService.Test.Controllers
     }
 
     [Route("tables/movies_rated")]
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class RRatedMoviesController : TableController<InMemoryMovie>, IAccessControlProvider<InMemoryMovie>
     {
         public RRatedMoviesController(IRepository<InMemoryMovie> repository) : base(repository)

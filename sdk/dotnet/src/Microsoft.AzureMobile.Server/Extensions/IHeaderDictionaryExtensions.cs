@@ -17,13 +17,18 @@ namespace Microsoft.AzureMobile.Server.Extensions
         /// <param name="entity">The entity to use as source for the headers.</param>
         internal static void AddFromEntity(this IHeaderDictionary headers, ITableData entity)
         {
-            if (entity.HasValidVersion())
+            if (entity != null)
             {
-                headers.Add(HeaderNames.ETag, entity.GetETag());
-            }
-            if (entity.UpdatedAt != default)
-            {
-                headers.Add(HeaderNames.LastModified, entity.UpdatedAt.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern));
+                if (entity.HasValidVersion())
+                {
+                    headers.Remove(HeaderNames.ETag);
+                    headers.Add(HeaderNames.ETag, entity.GetETag());
+                }
+                if (entity.UpdatedAt != default)
+                {
+                    headers.Remove(HeaderNames.LastModified);
+                    headers.Add(HeaderNames.LastModified, entity.UpdatedAt.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern));
+                }
             }
         }
     }

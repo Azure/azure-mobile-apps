@@ -1,12 +1,14 @@
 // Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.AzureMobile.WebService.Test
 {
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public static class Program
     {
         /// <summary>
