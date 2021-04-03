@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.AzureMobile.Common.Test.Models
 {
     /// <summary>
@@ -8,6 +10,7 @@ namespace Microsoft.AzureMobile.Common.Test.Models
     /// class is used to provide the same functionality more easily for testing
     /// purposes.
     /// </summary>
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class PatchOperation
     {
         public PatchOperation(string op, string path, object value = null)

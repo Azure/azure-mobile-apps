@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Microsoft.AzureMobile.Common.Test.Extensions
 {
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public static class HttpResponseMessageExtensions
     {
         /// <summary>

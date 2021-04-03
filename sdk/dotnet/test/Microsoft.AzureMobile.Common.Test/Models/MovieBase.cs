@@ -2,12 +2,14 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AzureMobile.Common.Test.Models
 {
     /// <summary>
     /// The base class for the Movie data.  This implements <see cref="IMovie"/>
     /// </summary>
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class MovieBase : IMovie
     {
         /// <summary>

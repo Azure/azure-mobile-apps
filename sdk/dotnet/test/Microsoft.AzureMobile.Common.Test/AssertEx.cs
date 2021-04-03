@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Http;
+using Microsoft.AzureMobile.Server;
 using Xunit;
 
 namespace Microsoft.AzureMobile.Common.Test
@@ -12,6 +14,7 @@ namespace Microsoft.AzureMobile.Common.Test
     /// <summary>
     /// A set of additional assertions used within the unit test projects.
     /// </summary>
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public static class AssertEx
     {
         public static void CloseTo(DateTimeOffset expected, DateTimeOffset actual, int interval = 1000)
@@ -29,6 +32,18 @@ namespace Microsoft.AzureMobile.Common.Test
             Assert.NotNull(headerValues);
             Assert.True(headerValues.Count() == 1, $"There are {headerValues.Count()} values for header {headerName}");
             Assert.Equal(expected, headerValues.Single());
+        }
+
+        public static void SystemPropertiesSet(ITableData entity)
+        {
+            AssertEx.CloseTo(DateTimeOffset.Now, entity.UpdatedAt);
+            Assert.Equal(16, entity.Version.Length);
+        }
+
+        public static void SystemPropertiesChanged(ITableData original, ITableData replacement)
+        {
+            Assert.NotEqual(original.UpdatedAt, replacement.UpdatedAt);
+            Assert.NotEqual(original.Version, replacement.Version);
         }
     }
 }

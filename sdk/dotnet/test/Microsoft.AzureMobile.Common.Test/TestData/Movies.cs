@@ -3,11 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AzureMobile.Common.Test.Models;
 using Microsoft.AzureMobile.Server;
 
 namespace Microsoft.AzureMobile.Common.Test.TestData
 {
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public static class Movies
     {
         /// <summary>
@@ -28,6 +30,12 @@ namespace Microsoft.AzureMobile.Common.Test.TestData
 
             return result;
         }
+
+        /// <summary>
+        /// The number of movies in the list.  This must be a const so that it can be
+        /// used in attributes.
+        /// </summary>
+        public const int Count = 248;
 
         /// <summary>
         /// The list of movies.

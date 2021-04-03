@@ -5,15 +5,17 @@ VisualStudioVersion = 16.6.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{81138015-8205-4410-AFB3-4BA5E949B9C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AzureMobile.Server", "src\Microsoft.AzureMobile.Server\Microsoft.AzureMobile.Server.csproj", "{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AzureMobile.Server", "src\Microsoft.AzureMobile.Server\Microsoft.AzureMobile.Server.csproj", "{2E5EAA65-ABFB-4693-9814-9EBCB25EB059}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AzureMobile.Server.InMemory", "src\Microsoft.AzureMobile.Server.InMemory\Microsoft.AzureMobile.Server.InMemory.csproj", "{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AzureMobile.Server.InMemory", "src\Microsoft.AzureMobile.Server.InMemory\Microsoft.AzureMobile.Server.InMemory.csproj", "{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8E70DD2F-2182-439E-888F-4B6F73CCE95A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AzureMobile.Common.Test", "test\Microsoft.AzureMobile.Common.Test\Microsoft.AzureMobile.Common.Test.csproj", "{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AzureMobile.Common.Test", "test\Microsoft.AzureMobile.Common.Test\Microsoft.AzureMobile.Common.Test.csproj", "{D3ED00B8-C924-46D0-BB9E-C246142D9E3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AzureMobile.WebService.Test", "test\Microsoft.AzureMobile.WebService.Test\Microsoft.AzureMobile.WebService.Test.csproj", "{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AzureMobile.WebService.Test", "test\Microsoft.AzureMobile.WebService.Test\Microsoft.AzureMobile.WebService.Test.csproj", "{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AzureMobile.Server.InMemory.Test", "test\Microsoft.AzureMobile.Server.InMemory.Test\Microsoft.AzureMobile.Server.InMemory.Test.csproj", "{F3C16337-ECE5-4F73-9A1E-528232D44C52}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -73,6 +75,18 @@ Global
 		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Release|x64.Build.0 = Release|Any CPU
 		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Release|x86.ActiveCfg = Release|Any CPU
 		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}.Release|x86.Build.0 = Release|Any CPU
+		{F3C16337-ECE5-4F73-9A1E-528232D44C52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3C16337-ECE5-4F73-9A1E-528232D44C52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3C16337-ECE5-4F73-9A1E-528232D44C52}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F3C16337-ECE5-4F73-9A1E-528232D44C52}.Debug|x64.Build.0 = Debug|Any CPU
+		{F3C16337-ECE5-4F73-9A1E-528232D44C52}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F3C16337-ECE5-4F73-9A1E-528232D44C52}.Debug|x86.Build.0 = Debug|Any CPU
+		{F3C16337-ECE5-4F73-9A1E-528232D44C52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3C16337-ECE5-4F73-9A1E-528232D44C52}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3C16337-ECE5-4F73-9A1E-528232D44C52}.Release|x64.ActiveCfg = Release|Any CPU
+		{F3C16337-ECE5-4F73-9A1E-528232D44C52}.Release|x64.Build.0 = Release|Any CPU
+		{F3C16337-ECE5-4F73-9A1E-528232D44C52}.Release|x86.ActiveCfg = Release|Any CPU
+		{F3C16337-ECE5-4F73-9A1E-528232D44C52}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,6 +96,7 @@ Global
 		{23FF8835-11FE-4A0D-95AB-8DC7B36AE11D} = {81138015-8205-4410-AFB3-4BA5E949B9C1}
 		{D3ED00B8-C924-46D0-BB9E-C246142D9E3F} = {8E70DD2F-2182-439E-888F-4B6F73CCE95A}
 		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A} = {8E70DD2F-2182-439E-888F-4B6F73CCE95A}
+		{F3C16337-ECE5-4F73-9A1E-528232D44C52} = {8E70DD2F-2182-439E-888F-4B6F73CCE95A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D1B5BA0C-B5E0-4E9B-BAD8-5E7C6841D6A2}

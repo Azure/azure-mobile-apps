@@ -3,11 +3,13 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AzureMobile.Server.InMemory;
 
 namespace Microsoft.AzureMobile.Common.Test.Models
 {
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class InMemoryMovie : InMemoryTableData, IMovie, IEquatable<IMovie>
     {
         /// <summary>

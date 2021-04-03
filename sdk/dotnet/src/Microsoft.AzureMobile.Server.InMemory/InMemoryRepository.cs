@@ -201,6 +201,11 @@ namespace Microsoft.AzureMobile.Server.InMemory
         /// <exception cref="ConflictException">if the Id representing the entity already exists.</exception>
         internal void CreateEntity(TEntity entity)
         {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
+
             if (string.IsNullOrEmpty(entity.Id))
             {
                 entity.Id = Guid.NewGuid().ToString();
@@ -258,6 +263,10 @@ namespace Microsoft.AzureMobile.Server.InMemory
         /// <exception cref="PreconditionFailedException">if the entity version does not match that which is provided.</exception>
         internal void ReplaceEntity(TEntity entity, byte[] version = null)
         {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
             if (string.IsNullOrEmpty(entity.Id))
             {
                 throw new BadRequestException();
