@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +18,7 @@ namespace Microsoft.AzureMobile.Server.Exceptions
         /// <summary>
         /// Creates a new <see cref="HttpException"/> without any detail.
         /// </summary>
+        [ExcludeFromCodeCoverage(Justification = "Standard exception with no body")]
         public HttpException() : base()
         {
         }
@@ -25,6 +27,7 @@ namespace Microsoft.AzureMobile.Server.Exceptions
         /// Creates a new <see cref="HttpException"/> with a detail message.
         /// </summary>
         /// <param name="message"></param>
+        [ExcludeFromCodeCoverage(Justification = "Standard exception with no body")]
         public HttpException(string message) : base(message)
         {
         }
@@ -34,6 +37,7 @@ namespace Microsoft.AzureMobile.Server.Exceptions
         /// </summary>
         /// <param name="message"></param>
         /// <param name="innerException"></param>
+        [ExcludeFromCodeCoverage(Justification = "Standard exception with no body")]
         public HttpException(string message, Exception innerException) : base(message, innerException)
         {
         }

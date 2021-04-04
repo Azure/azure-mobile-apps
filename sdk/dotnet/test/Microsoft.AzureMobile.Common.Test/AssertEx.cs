@@ -4,9 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
+using Microsoft.AzureMobile.Common.Test.Models;
 using Microsoft.AzureMobile.Server;
+using Microsoft.AzureMobile.Server.Extensions;
+using Microsoft.Net.Http.Headers;
 using Xunit;
 
 namespace Microsoft.AzureMobile.Common.Test
@@ -27,7 +31,10 @@ namespace Microsoft.AzureMobile.Common.Test
 
         public static void ResponseHasHeader(HttpResponseMessage response, string headerName, string expected)
         {
-            var hasHeader = response.Headers.TryGetValues(headerName, out IEnumerable<string> headerValues);
+            IEnumerable<string> headerValues;
+            var hasHeader = (headerName == "Last-Modified")
+                ? response.Content.Headers.TryGetValues(headerName, out headerValues)
+                : response.Headers.TryGetValues(headerName, out headerValues);
             Assert.True(hasHeader, $"The response does not contain header {headerName}");
             Assert.NotNull(headerValues);
             Assert.True(headerValues.Count() == 1, $"There are {headerValues.Count()} values for header {headerName}");
@@ -44,6 +51,26 @@ namespace Microsoft.AzureMobile.Common.Test
         {
             Assert.NotEqual(original.UpdatedAt, replacement.UpdatedAt);
             Assert.NotEqual(original.Version, replacement.Version);
+        }
+
+        /// <summary>
+        /// Compares the server-side data to the client-side data.
+        /// </summary>
+        /// <param name="expected"></param>
+        /// <param name="actual"></param>
+        public static void SystemPropertiesMatch(ITableData expected, ClientTableData actual)
+        {
+            Assert.Equal(expected.Id, actual.Id);
+            Assert.Equal(expected.UpdatedAt, actual.UpdatedAt);
+            Assert.Equal(expected.Deleted, actual.Deleted);
+            Assert.Equal(Convert.ToBase64String(expected.Version), actual.Version);
+        }
+
+        public static void ResponseHasConditionalHeaders(ITableData expected, HttpResponseMessage response)
+        {
+            var lastModified = expected.UpdatedAt.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern);
+            ResponseHasHeader(response, HeaderNames.ETag, expected.GetETag());
+            ResponseHasHeader(response, HeaderNames.LastModified, lastModified);
         }
     }
 }

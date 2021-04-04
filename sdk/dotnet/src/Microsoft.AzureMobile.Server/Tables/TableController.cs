@@ -138,7 +138,7 @@ namespace Microsoft.AzureMobile.Server
         internal Uri CreateNextLink(int skip = 0, int top = 0)
         {
             var builder = new UriBuilder(new Uri(Request.GetDisplayUrl()));
-            List<string> query = (builder.Query == null) ? new()
+            List<string> query = string.IsNullOrEmpty(builder.Query) ? new()
                 : builder.Query.TrimStart('?').Split('&').Where(q => !q.StartsWith("$skip=") && !q.StartsWith("$top=")).ToList();
 
             if (skip > 0)
@@ -150,7 +150,7 @@ namespace Microsoft.AzureMobile.Server
                 query.Add($"$top={top}");
             }
 
-            builder.Query = $"?{string.Join('&', query)}";
+            builder.Query = $"?{string.Join('&', query).TrimStart('&')}";
             return builder.Uri;
         }
 

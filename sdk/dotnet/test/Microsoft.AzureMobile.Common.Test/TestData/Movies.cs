@@ -23,7 +23,7 @@ namespace Microsoft.AzureMobile.Common.Test.TestData
 
             for (var idx = 0; idx < MovieList.Length; idx++)
             {
-                var addition = new T() { Id = string.Format("id-{0:000}", idx) };
+                var addition = new T() { Id = Utils.GetMovieId(idx) };
                 MovieList[idx].CopyTo(addition);
                 result.Add(addition);
             }

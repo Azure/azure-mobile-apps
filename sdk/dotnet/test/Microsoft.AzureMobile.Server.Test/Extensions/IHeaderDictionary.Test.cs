@@ -119,8 +119,10 @@ namespace Microsoft.AzureMobile.Server.Test.Extensions
         public void AddFromEntity_IsAdditive()
         {
             // Arrange
-            var headers = new HeaderDictionary();
-            headers.Add("Host", "Localhost");
+            var headers = new HeaderDictionary
+            {
+                { "Host", "Localhost" }
+            };
             var entity = new Entity { Version = testVersion, UpdatedAt = DateTimeOffset.Parse("2019-01-30T13:30:15Z") };
 
             // Act
@@ -139,9 +141,11 @@ namespace Microsoft.AzureMobile.Server.Test.Extensions
         public void AddFromEntity_ReplacesHeaders()
         {
             // Arrange
-            var headers = new HeaderDictionary();
-            headers.Add("ETag", "Foo");
-            headers.Add("Last-Modified", "Yes");
+            var headers = new HeaderDictionary
+            {
+                { "ETag", "Foo" },
+                { "Last-Modified", "Yes" }
+            };
             var entity = new Entity { Version = testVersion, UpdatedAt = DateTimeOffset.Parse("2019-01-30T13:30:15Z") };
 
             // Act

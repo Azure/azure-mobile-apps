@@ -3,5 +3,6 @@
 
 using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("Microsoft.AzureMobile.Common.Test")]
 [assembly: InternalsVisibleTo("Microsoft.AzureMobile.Server.Test")]
 [assembly: InternalsVisibleTo("Microsoft.AzureMobile.Server.InMemory.Test")]
