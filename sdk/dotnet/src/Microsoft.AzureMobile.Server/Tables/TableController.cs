@@ -116,12 +116,12 @@ namespace Microsoft.AzureMobile.Server
         [NonAction]
         internal static void ValidatePatchDocument(JsonPatchDocument<TEntity> patch)
         {
-            string[] systemProperties = new string[] { "/id", "/createdat", "/updatedat", "/version" };
+            string[] systemProperties = new string[] { "/id", "/updatedat", "/version" };
             string[] allowsOperations = new string[] { "replace", "test" };
 
             foreach (var operation in patch.Operations)
             {
-                if (!allowsOperations.Contains(operation.op) || systemProperties.Contains(operation.path))
+                if (!allowsOperations.Contains(operation.op) || systemProperties.Contains(operation.path.ToLowerInvariant()))
                 {
                     throw new BadRequestException();
                 }
@@ -152,54 +152,6 @@ namespace Microsoft.AzureMobile.Server
 
             builder.Query = $"?{string.Join('&', query).TrimStart('&')}";
             return builder.Uri;
-        }
-
-        /// <summary>
-        /// Determines if the request has met the preconditions within the conditional headers,
-        /// according to RFC 7232 sectuin 5 and 6.
-        /// </summary>
-        /// <param name="entity">The entity to use as comparison</param>
-        /// <param name="version">The version that was requested</param>
-        [NonAction]
-        internal void ParseConditionalRequest(TEntity entity, out byte[] version)
-        {
-            var headers = Request.GetTypedHeaders();
-            var isFetch = Request.Method.Equals("get", StringComparison.InvariantCultureIgnoreCase);
-            var etag = entity.ToEntityTagHeaderValue();
-
-            if (headers.IfMatch.Count > 0)
-            {
-                if (!headers.IfMatch.Any(e => e.Matches(etag)))
-                {
-                    throw new PreconditionFailedException(entity);
-                }
-            }
-
-            if (headers.IfMatch.Count == 0 && headers.IfUnmodifiedSince.HasValue)
-            {
-                if (!(entity != null && entity.UpdatedAt <= headers.IfUnmodifiedSince.Value))
-                {
-                    throw new PreconditionFailedException(entity);
-                }
-            }
-
-            if (headers.IfNoneMatch.Count > 0)
-            {
-                if (headers.IfNoneMatch.Any(e => e.Matches(etag)))
-                {
-                    throw isFetch ? new NotModifiedException() : new PreconditionFailedException(entity);
-                }
-            }
-
-            if (headers.IfNoneMatch.Count == 0 && headers.IfModifiedSince.HasValue)
-            {
-                if (!(entity != null && entity.UpdatedAt > headers.IfModifiedSince.Value))
-                {
-                    throw isFetch ? new NotModifiedException() : new PreconditionFailedException(entity);
-                }
-            }
-
-            version = headers.IfMatch.Count > 0 ? headers.IfMatch.Single().ToByteArray() : null;
         }
         #endregion
 
@@ -245,7 +197,7 @@ namespace Microsoft.AzureMobile.Server
             }
 
             await AuthorizeRequest(TableOperation.Delete, entity, token).ConfigureAwait(false);
-            ParseConditionalRequest(entity, out byte[] version);
+            Request.ParseConditionalRequest(entity, out byte[] version);
             await Repository.DeleteAsync(id, version, token).ConfigureAwait(false);
             return NoContent();
         }
@@ -276,7 +228,7 @@ namespace Microsoft.AzureMobile.Server
             }
 
             await AuthorizeRequest(TableOperation.Update, entity, token).ConfigureAwait(false);
-            ParseConditionalRequest(entity, out byte[] version);
+            Request.ParseConditionalRequest(entity, out byte[] version);
 
             patchDocument.ApplyTo(entity);
             if (!TryValidateModel(entity))
@@ -361,7 +313,7 @@ namespace Microsoft.AzureMobile.Server
             }
 
             await AuthorizeRequest(TableOperation.Delete, entity, token).ConfigureAwait(false);
-            ParseConditionalRequest(entity, out _);
+            Request.ParseConditionalRequest(entity, out _);
             return Ok(entity);
         }
 
@@ -383,7 +335,7 @@ namespace Microsoft.AzureMobile.Server
             }
 
             await AuthorizeRequest(TableOperation.Update, entity, token).ConfigureAwait(false);
-            ParseConditionalRequest(entity, out byte[] version);
+            Request.ParseConditionalRequest(entity, out byte[] version);
             await AccessControlProvider.PreCommitHookAsync(TableOperation.Update, item, token).ConfigureAwait(false);
             await Repository.ReplaceAsync(item, version, token).ConfigureAwait(false);
             return Ok(item);

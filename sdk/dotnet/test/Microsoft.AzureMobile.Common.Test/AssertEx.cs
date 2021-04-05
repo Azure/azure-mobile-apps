@@ -31,9 +31,8 @@ namespace Microsoft.AzureMobile.Common.Test
 
         public static void ResponseHasHeader(HttpResponseMessage response, string headerName, string expected)
         {
-            IEnumerable<string> headerValues;
             var hasHeader = (headerName == "Last-Modified")
-                ? response.Content.Headers.TryGetValues(headerName, out headerValues)
+                ? response.Content.Headers.TryGetValues(headerName, out IEnumerable<string> headerValues)
                 : response.Headers.TryGetValues(headerName, out headerValues);
             Assert.True(hasHeader, $"The response does not contain header {headerName}");
             Assert.NotNull(headerValues);

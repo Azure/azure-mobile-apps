@@ -147,5 +147,15 @@ namespace Microsoft.AzureMobile.Common.Test.Extensions
         /// <returns></returns>
         public static Task<HttpResponseMessage> SendPatch(this TestServer server, string relativeUri, IEnumerable<PatchOperation> content, Dictionary<string, string> headers = null)
             => SendPatch(server, relativeUri, content, "application/json-patch+json", headers);
+
+        /// <summary>
+        /// Alternate form of the patch request with no headers or content type.
+        /// </summary>
+        /// <param name="server"></param>
+        /// <param name="relativeUri"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public static Task<HttpResponseMessage> SendPatch(this TestServer server, string relativeUri, IEnumerable<PatchOperation> content)
+            => SendPatch(server, relativeUri, content, "application/json-patch+json", null);
     }
 }

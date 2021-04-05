@@ -2,9 +2,11 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.Json;
 using Microsoft.AzureMobile.Server.InMemory;
 
 namespace Microsoft.AzureMobile.Common.Test.Models
@@ -81,5 +83,16 @@ namespace Microsoft.AzureMobile.Common.Test.Models
             Title = this.Title,
             Year = this.Year
         };
+
+        /// <summary>
+        /// Converts this object to a dictionary.
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<string,object> ToDictionary()
+        {
+            string json = JsonSerializer.Serialize(this);
+            var result = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+            return result;
+        }
     }
 }

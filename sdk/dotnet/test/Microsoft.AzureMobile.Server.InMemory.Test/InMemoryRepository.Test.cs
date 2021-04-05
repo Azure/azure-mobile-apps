@@ -335,7 +335,7 @@ namespace Microsoft.AzureMobile.Server.InMemory.Test
         {
             // Arrange
             var repository = GetTestRepository();
-            var id = "id-100";
+            var id = Utils.GetMovieId(100);
             var entity = repository.GetEntity(id);
             var version = Guid.NewGuid().ToByteArray();
             entity.Version = null;
