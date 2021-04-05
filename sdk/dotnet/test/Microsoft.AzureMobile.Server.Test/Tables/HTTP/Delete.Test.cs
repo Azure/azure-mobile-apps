@@ -18,36 +18,29 @@ using Xunit;
 namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class Read_Tests
+    public class Delete_Tests
     {
         [Theory, CombinatorialData]
-        public async Task BasicReadTests(
-            [CombinatorialRange(0, Movies.Count)] int index
-        )
+        public async Task BasicDeleteTests([CombinatorialRange(0, Movies.Count)] int index)
         {
             // Arrange
             var server = Program.CreateTestServer();
             var repository = server.GetRepository<InMemoryMovie>();
-            string id = Utils.GetMovieId(index);
-            var expected = repository.GetEntity(id);
+            var entityCount = repository.Entities.Count;
+            var id = Utils.GetMovieId(index);
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Get, $"tables/movies/{id}").ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Delete, $"tables/movies/{id}").ConfigureAwait(false);
 
             // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var actual = response.DeserializeContent<ClientMovie>();
-
-            // Records match the repository
-            Assert.Equal<IMovie>(expected, actual);
-            AssertEx.SystemPropertiesMatch(expected, actual);
-            AssertEx.ResponseHasConditionalHeaders(expected, response);
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.Equal(entityCount - 1, repository.Entities.Count);
+            Assert.Null(repository.GetEntity(id));
         }
 
         [Theory]
         [InlineData("tables/movies/not-found", HttpStatusCode.NotFound)]
-
-        public async Task FailedReadTests(
+        public async Task FailedDeleteTests(
             string relativeUri,
             HttpStatusCode expectedStatusCode,
             string headerName = null,
@@ -55,26 +48,30 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
         {
             // Arrange
             var server = Program.CreateTestServer();
+            var repository = server.GetRepository<InMemoryMovie>();
+            var entityCount = repository.Entities.Count;
+
             Dictionary<string, string> headers = new();
             if (headerName != null && headerValue != null) headers.Add(headerName, headerValue);
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Get, relativeUri, headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Delete, relativeUri, headers).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(expectedStatusCode, response.StatusCode);
+            Assert.Equal(entityCount, repository.Entities.Count);
         }
 
         [Theory, CombinatorialData]
-        public async Task AuthenticatedReadTests(
+        public async Task AuthenticatedDeleteTests(
             [CombinatorialValues(0, 1, 2, 3, 7, 14, 25)] int index,
             [CombinatorialValues(null, "failed", "success")] string userId)
         {
             // Arrange
             var server = Program.CreateTestServer();
             var repository = server.GetRepository<InMemoryMovie>();
+            var expectedCount = repository.Entities.Count;
             string id = Utils.GetMovieId(index);
-            var expected = repository.GetEntity(id);
             Dictionary<string, string> headers = new();
             if (userId != null)
             {
@@ -82,58 +79,61 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             }
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Get, $"tables/movies_rated/{id}", headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Delete, $"tables/movies_rated/{id}", headers).ConfigureAwait(false);
 
             // Assert
             if (userId != "success")
             {
                 Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+                Assert.Equal(expectedCount, repository.Entities.Count);
+                Assert.NotNull(repository.GetEntity(id));
             }
             else
             {
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                var actual = response.DeserializeContent<ClientMovie>();
-
-                // Records match the repository
-                Assert.Equal<IMovie>(expected, actual);
-                AssertEx.SystemPropertiesMatch(expected, actual);
-                AssertEx.ResponseHasConditionalHeaders(expected, response);
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+                Assert.Equal(expectedCount - 1, repository.Entities.Count);
+                Assert.Null(repository.GetEntity(id));
             }
         }
 
         [Theory]
-        [InlineData("If-Match", null, HttpStatusCode.OK)]
+        [InlineData("If-Match", null, HttpStatusCode.NoContent)]
         [InlineData("If-Match", "\"dGVzdA==\"", HttpStatusCode.PreconditionFailed)]
-        [InlineData("If-None-Match", null, HttpStatusCode.NotModified)]
-        [InlineData("If-None-Match", "\"dGVzdA==\"", HttpStatusCode.OK)]
-        [InlineData("If-Modified-Since", "Fri, 01 Mar 2019 15:00:00 GMT", HttpStatusCode.OK)]
-        [InlineData("If-Modified-Since", "Sun, 03 Mar 2019 15:00:00 GMT", HttpStatusCode.NotModified)]
-        [InlineData("If-Unmodified-Since", "Sun, 03 Mar 2019 15:00:00 GMT", HttpStatusCode.OK)]
+        [InlineData("If-None-Match", null, HttpStatusCode.PreconditionFailed)]
+        [InlineData("If-None-Match", "\"dGVzdA==\"", HttpStatusCode.NoContent)]
+        [InlineData("If-Modified-Since", "Fri, 01 Mar 2019 15:00:00 GMT", HttpStatusCode.NoContent)]
+        [InlineData("If-Modified-Since", "Sun, 03 Mar 2019 15:00:00 GMT", HttpStatusCode.PreconditionFailed)]
+        [InlineData("If-Unmodified-Since", "Sun, 03 Mar 2019 15:00:00 GMT", HttpStatusCode.NoContent)]
         [InlineData("If-Unmodified-Since", "Fri, 01 Mar 2019 15:00:00 GMT", HttpStatusCode.PreconditionFailed)]
-        public async Task ConditionalReadTests(string headerName, string headerValue, HttpStatusCode expectedStatusCode)
+        public async Task ConditionalDeleteTests(string headerName, string headerValue, HttpStatusCode expectedStatusCode)
         {
             // Arrange
             var server = Program.CreateTestServer();
             var repository = server.GetRepository<InMemoryMovie>();
+            var expectedCount = repository.Entities.Count;
             const string id = "id-107";
             var expected = repository.GetEntity(id);
             expected.UpdatedAt = DateTimeOffset.Parse("Sat, 02 Mar 2019 15:00:00 GMT");
             Dictionary<string, string> headers = new() { { headerName, headerValue ?? expected.GetETag() } };
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Get, $"tables/movies/{id}", headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Delete, $"tables/movies/{id}", headers).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(expectedStatusCode, response.StatusCode);
 
-            if (expectedStatusCode == HttpStatusCode.OK || expectedStatusCode == HttpStatusCode.PreconditionFailed)
+            switch (expectedStatusCode)
             {
-                var actual = response.DeserializeContent<ClientMovie>();
-
-                // Records match the repository
-                Assert.Equal<IMovie>(expected, actual);
-                AssertEx.SystemPropertiesMatch(expected, actual);
-                AssertEx.ResponseHasConditionalHeaders(expected, response);
+                case HttpStatusCode.NoContent:
+                    Assert.Equal(expectedCount - 1, repository.Entities.Count);
+                    Assert.Null(repository.GetEntity(id));
+                    break;
+                case HttpStatusCode.PreconditionFailed:
+                    var actual = response.DeserializeContent<ClientMovie>();
+                    Assert.Equal<IMovie>(expected, actual);
+                    AssertEx.SystemPropertiesMatch(expected, actual);
+                    AssertEx.ResponseHasConditionalHeaders(expected, response);
+                    break;
             }
         }
     }

@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Microsoft.AzureMobile.Common.Test.Models
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class ClientMovie : ClientTableData, IMovie
+    public class ClientMovie : ClientTableData, IMovie, IEquatable<IMovie>
     {
         /// <summary>
         /// True if the movie won the oscar for Best Picture
@@ -52,5 +52,24 @@ namespace Microsoft.AzureMobile.Common.Test.Models
             && other.ReleaseDate == ReleaseDate
             && other.Title == Title
             && other.Year == Year;
+
+        /// <summary>
+        /// Clones this object into a new object.
+        /// </summary>
+        /// <returns></returns>
+        public ClientMovie Clone()
+            => new()
+            {
+                Id = this.Id,
+                UpdatedAt = this.UpdatedAt,
+                Version = this.Version,
+                Deleted = this.Deleted,
+                BestPictureWinner = this.BestPictureWinner,
+                Duration = this.Duration,
+                Rating = this.Rating,
+                ReleaseDate = this.ReleaseDate,
+                Title = this.Title,
+                Year = this.Year
+            };
     }
 }

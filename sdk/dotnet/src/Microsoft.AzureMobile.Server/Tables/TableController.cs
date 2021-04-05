@@ -191,11 +191,11 @@ namespace Microsoft.AzureMobile.Server
                 }
             }
 
-            if (isFetch && headers.IfNoneMatch.Count == 0 && headers.IfModifiedSince.HasValue)
+            if (headers.IfNoneMatch.Count == 0 && headers.IfModifiedSince.HasValue)
             {
                 if (!(entity != null && entity.UpdatedAt > headers.IfModifiedSince.Value))
                 {
-                    throw new NotModifiedException();
+                    throw isFetch ? new NotModifiedException() : new PreconditionFailedException(entity);
                 }
             }
 
