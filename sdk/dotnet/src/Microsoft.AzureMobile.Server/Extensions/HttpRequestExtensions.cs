@@ -52,7 +52,7 @@ namespace Microsoft.AzureMobile.Server.Extensions
                 //if (!(entity != null && entity.UpdatedAt > headers.IfModifiedSince.Value))
                 if (entity == null || entity.UpdatedAt <= headers.IfModifiedSince.Value)
                 {
-                    throw isFetch ? new NotModifiedException() : new PreconditionFailedException(entity);
+                    throw isFetch && entity != null ? new NotModifiedException() : new PreconditionFailedException(entity);
                 }
             }
 
