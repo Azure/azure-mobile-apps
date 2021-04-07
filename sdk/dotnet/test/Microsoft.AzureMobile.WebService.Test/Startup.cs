@@ -45,6 +45,10 @@ namespace Microsoft.AzureMobile.WebService.Test
             var seedData = Movies.OfType<InMemoryMovie>();
             services.AddSingleton<IRepository<InMemoryMovie>>(new InMemoryRepository<InMemoryMovie>(seedData));
 
+            var softData = Movies.OfType<SoftMovie>();
+            softData.ForEach(m => m.Deleted = m.Rating == "R");
+            services.AddSingleton<IRepository<SoftMovie>>(new InMemoryRepository<SoftMovie>(softData));
+
             // Add the controllers.  Note that we require a specific setup for Newtonsoft.JSON to work.
             // <b>DO NOT USE System.Text.Json IN Azure Mobile Apps APPLICATIONS</b>
             services

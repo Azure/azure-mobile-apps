@@ -136,5 +136,45 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
                     break;
             }
         }
+
+        [Fact]
+        public async Task SoftDeleteItem_SetsDeletedFlag()
+        {
+            // Arrange
+            int index = 24;
+            var server = Program.CreateTestServer();
+            var repository = server.GetRepository<SoftMovie>();
+            var entityCount = repository.Entities.Count;
+            var id = Utils.GetMovieId(index);
+
+            // Act
+            var response = await server.SendRequest(HttpMethod.Delete, $"tables/soft/{id}").ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.Equal(entityCount, repository.Entities.Count);
+            var entity = repository.GetEntity(id);
+            Assert.True(entity.Deleted);
+        }
+
+        [Fact]
+        public async Task SoftDeleteItem_GoneWhenDeleted()
+        {
+            // Arrange
+            int index = 25;
+            var server = Program.CreateTestServer();
+            var repository = server.GetRepository<SoftMovie>();
+            var entityCount = repository.Entities.Count;
+            var id = Utils.GetMovieId(index);
+
+            // Act
+            var response = await server.SendRequest(HttpMethod.Delete, $"tables/soft/{id}").ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
+            Assert.Equal(entityCount, repository.Entities.Count);
+            var entity = repository.GetEntity(id);
+            Assert.True(entity.Deleted);
+        }
     }
 }

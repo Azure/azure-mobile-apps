@@ -11,7 +11,6 @@ using Microsoft.AspNet.OData.Builder;
 using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AzureMobile.Server.Exceptions;
@@ -107,52 +106,6 @@ namespace Microsoft.AzureMobile.Server
             Func<TEntity, bool> dataView = AccessControlProvider.GetDataView();
             return dataView?.Invoke(entity) != false;
         }
-
-        /// <summary>
-        /// Determines if the JSON patch document is a valid document. It is not allowed
-        /// to adjust system properties, and only replace operations are allowed.
-        /// </summary>
-        /// <param name="patch">The patch document</param>
-        [NonAction]
-        internal static void ValidatePatchDocument(JsonPatchDocument<TEntity> patch)
-        {
-            string[] systemProperties = new string[] { "/id", "/updatedat", "/version" };
-            string[] allowsOperations = new string[] { "replace", "test" };
-
-            foreach (var operation in patch.Operations)
-            {
-                if (!allowsOperations.Contains(operation.op) || systemProperties.Contains(operation.path.ToLowerInvariant()))
-                {
-                    throw new BadRequestException();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Creates the NextLink Uri for the next request in a paging request.
-        /// </summary>
-        /// <param name="skip">The skip value</param>
-        /// <param name="top">The top value</param>
-        /// <returns></returns>
-        [NonAction]
-        internal Uri CreateNextLink(int skip = 0, int top = 0)
-        {
-            var builder = new UriBuilder(new Uri(Request.GetDisplayUrl()));
-            List<string> query = string.IsNullOrEmpty(builder.Query) ? new()
-                : builder.Query.TrimStart('?').Split('&').Where(q => !q.StartsWith("$skip=") && !q.StartsWith("$top=")).ToList();
-
-            if (skip > 0)
-            {
-                query.Add($"$skip={skip}");
-            }
-            if (top > 0)
-            {
-                query.Add($"$top={top}");
-            }
-
-            builder.Query = $"?{string.Join('&', query).TrimStart('&')}";
-            return builder.Uri;
-        }
         #endregion
 
         #region HTTP Methods
@@ -173,6 +126,7 @@ namespace Microsoft.AzureMobile.Server
         public virtual async Task<IActionResult> CreateAsync([FromBody] TEntity item, CancellationToken token = default)
         {
             await AuthorizeRequest(TableOperation.Create, item, token).ConfigureAwait(false);
+
             await AccessControlProvider.PreCommitHookAsync(TableOperation.Create, item, token).ConfigureAwait(false);
             await Repository.CreateAsync(item, token).ConfigureAwait(false);
             return CreatedAtAction(nameof(ReadAsync), new { id = item.Id }, item);
@@ -197,8 +151,23 @@ namespace Microsoft.AzureMobile.Server
             }
 
             await AuthorizeRequest(TableOperation.Delete, entity, token).ConfigureAwait(false);
+
+            if (Options.EnableSoftDelete && entity.Deleted)
+            {
+                return StatusCode(StatusCodes.Status410Gone);
+            }
+
             Request.ParseConditionalRequest(entity, out byte[] version);
-            await Repository.DeleteAsync(id, version, token).ConfigureAwait(false);
+
+            if (Options.EnableSoftDelete)
+            {
+                entity.Deleted = true;
+                await Repository.ReplaceAsync(entity, version, token).ConfigureAwait(false);
+            }
+            else
+            {
+                await Repository.DeleteAsync(id, version, token).ConfigureAwait(false);
+            }
             return NoContent();
         }
 
@@ -219,7 +188,10 @@ namespace Microsoft.AzureMobile.Server
         [Consumes("application/json-patch+json")]
         public virtual async Task<IActionResult> PatchAsync([FromRoute] string id, [FromBody] JsonPatchDocument<TEntity> patchDocument, CancellationToken token = default)
         {
-            ValidatePatchDocument(patchDocument);
+            if (patchDocument.ModifiesSystemProperties())
+            {
+                return BadRequest();
+            }
 
             var entity = await Repository.ReadAsync(id, token).ConfigureAwait(false);
             if (entity == null || !EntityIsInView(entity))
@@ -228,6 +200,12 @@ namespace Microsoft.AzureMobile.Server
             }
 
             await AuthorizeRequest(TableOperation.Update, entity, token).ConfigureAwait(false);
+
+            if (Options.EnableSoftDelete && entity.Deleted && !patchDocument.Contains("replace", "/deleted", false))
+            {
+                return StatusCode(StatusCodes.Status410Gone);
+            }
+
             Request.ParseConditionalRequest(entity, out byte[] version);
 
             patchDocument.ApplyTo(entity);
@@ -265,7 +243,8 @@ namespace Microsoft.AzureMobile.Server
             await AuthorizeRequest(TableOperation.Query, null, token).ConfigureAwait(false);
 
             var dataset = Repository.AsQueryable()
-                .ApplyDataView(AccessControlProvider.GetDataView());
+                .ApplyDataView(AccessControlProvider.GetDataView())
+                .ApplyDeletedView(Request, Options.EnableSoftDelete);
             var validationSettings = new ODataValidationSettings() { MaxTop = Options.PageSize };
             var querySettings = new ODataQuerySettings() { PageSize = Options.PageSize, EnsureStableOrdering = true };
             var queryContext = new ODataQueryContext(EdmModel, typeof(TEntity), new ODataPath());
@@ -288,7 +267,7 @@ namespace Microsoft.AzureMobile.Server
             var result = new PagedResult(results)
             {
                 Count = queryOptions.Count != null ? count : null,
-                NextLink = skip >= count ? null : CreateNextLink(skip, queryOptions.Top?.Value ?? 0)
+                NextLink = skip >= count ? null : Request.CreateNextLink(skip, queryOptions.Top?.Value ?? 0)
             };
 
             return Ok(result);
@@ -313,6 +292,12 @@ namespace Microsoft.AzureMobile.Server
             }
 
             await AuthorizeRequest(TableOperation.Delete, entity, token).ConfigureAwait(false);
+
+            if (Options.EnableSoftDelete && entity.Deleted)
+            {
+                return StatusCode(StatusCodes.Status410Gone);
+            }
+
             Request.ParseConditionalRequest(entity, out _);
             return Ok(entity);
         }
@@ -335,6 +320,12 @@ namespace Microsoft.AzureMobile.Server
             }
 
             await AuthorizeRequest(TableOperation.Update, entity, token).ConfigureAwait(false);
+
+            if (Options.EnableSoftDelete && entity.Deleted)
+            {
+                return StatusCode(StatusCodes.Status410Gone);
+            }
+
             Request.ParseConditionalRequest(entity, out byte[] version);
             await AccessControlProvider.PreCommitHookAsync(TableOperation.Update, item, token).ConfigureAwait(false);
             await Repository.ReplaceAsync(item, version, token).ConfigureAwait(false);

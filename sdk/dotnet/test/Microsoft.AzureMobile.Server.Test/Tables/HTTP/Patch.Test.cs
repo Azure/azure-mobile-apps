@@ -247,5 +247,90 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
                     break;
             }
         }
+
+        [Fact]
+        public async Task SoftDeletePatch_PatchDeletedItem_ReturnsGone()
+        {
+            // Arrange
+            var index = 25;
+            var server = Program.CreateTestServer();
+            var id = Utils.GetMovieId(index);
+
+            var patchDoc = new PatchOperation[]
+            {
+                new PatchOperation("replace", "title", "Test Movie Title"),
+                new PatchOperation("replace", "rating", "PG-13")
+            };
+
+            // Act
+            var response = await server.SendPatch($"tables/soft/{id}", patchDoc).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task SoftDeletePatch_CanUndeleteDeletedItem()
+        {
+            // Arrange
+            int index = 25;
+            var server = Program.CreateTestServer();
+            var repository = server.GetRepository<SoftMovie>();
+            var id = Utils.GetMovieId(index);
+            var expected = repository.GetEntity(id).Clone();
+            expected.Deleted = false;
+
+            var patchDoc = new PatchOperation[]
+            {
+                new PatchOperation("replace", "deleted", false)
+            };
+
+            // Act
+            var response = await server.SendPatch($"tables/soft/{id}", patchDoc).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = response.DeserializeContent<ClientMovie>();
+            var stored = repository.GetEntity(id);
+
+            AssertEx.SystemPropertiesChanged(expected, stored);
+            AssertEx.SystemPropertiesMatch(stored, result);
+            Assert.Equal<IMovie>(expected, result);
+            AssertEx.ResponseHasConditionalHeaders(stored, response);
+        }
+
+        [Fact]
+        public async Task SoftDeletePatch_PatchNotDeletedItem()
+        {
+            // Arrange
+            int index = 24;
+            var server = Program.CreateTestServer();
+            var repository = server.GetRepository<SoftMovie>();
+            var id = Utils.GetMovieId(index);
+            var expected = repository.GetEntity(id).Clone();
+            expected.Title = "Test Movie Title";
+            expected.Rating = "PG-13";
+
+            var patchDoc = new PatchOperation[]
+            {
+                new PatchOperation("replace", "title", "Test Movie Title"),
+                new PatchOperation("replace", "rating", "PG-13")
+            };
+
+            // Act
+            var response = await server.SendPatch($"tables/soft/{id}", patchDoc).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var result = response.DeserializeContent<ClientMovie>();
+            var stored = repository.GetEntity(id);
+
+            AssertEx.SystemPropertiesChanged(expected, stored);
+            AssertEx.SystemPropertiesMatch(stored, result);
+            Assert.Equal<IMovie>(expected, result);
+            AssertEx.ResponseHasConditionalHeaders(stored, response);
+        }
     }
 }

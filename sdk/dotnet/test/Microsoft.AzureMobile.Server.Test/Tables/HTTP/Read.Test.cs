@@ -136,5 +136,43 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
                 AssertEx.ResponseHasConditionalHeaders(expected, response);
             }
         }
+
+        [Fact]
+        public async Task ReadSoftDeletedItem_WorksIfNotDeleted()
+        {
+            // Arrange
+            int index = 24;
+            var server = Program.CreateTestServer();
+            var repository = server.GetRepository<SoftMovie>();
+            string id = Utils.GetMovieId(index);
+            var expected = repository.GetEntity(id);
+
+            // Act
+            var response = await server.SendRequest(HttpMethod.Get, $"tables/soft/{id}").ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var actual = response.DeserializeContent<ClientMovie>();
+
+            // Records match the repository
+            Assert.Equal<IMovie>(expected, actual);
+            AssertEx.SystemPropertiesMatch(expected, actual);
+            AssertEx.ResponseHasConditionalHeaders(expected, response);
+        }
+
+        [Fact]
+        public async Task ReadSoftDeletedItem_ReturnsGoneIfDeleted()
+        {
+            // Arrange
+            int index = 25;
+            var server = Program.CreateTestServer();
+            string id = Utils.GetMovieId(index);
+
+            // Act
+            var response = await server.SendRequest(HttpMethod.Get, $"tables/soft/{id}").ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
+        }
     }
 }

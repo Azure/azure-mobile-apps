@@ -2,14 +2,40 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AzureMobile.Server.Exceptions;
 
 namespace Microsoft.AzureMobile.Server.Extensions
 {
     internal static class HttpRequestExtensions
     {
+        /// <summary>
+        /// Creates the NextLink Uri for the next request in a paging request.
+        /// </summary>
+        /// <param name="skip">The skip value</param>
+        /// <param name="top">The top value</param>
+        /// <returns>A URI representing the next page</returns>
+        internal static Uri CreateNextLink(this HttpRequest request, int skip = 0, int top = 0)
+        {
+            var builder = new UriBuilder(new Uri(request.GetDisplayUrl()));
+            List<string> query = string.IsNullOrEmpty(builder.Query) ? new() : builder.Query.TrimStart('?').Split('&').Where(q => !q.StartsWith("$skip=") && !q.StartsWith("$top=")).ToList();
+
+            if (skip > 0)
+            {
+                query.Add($"$skip={skip}");
+            }
+            if (top > 0)
+            {
+                query.Add($"$top={top}");
+            }
+
+            builder.Query = $"?{string.Join('&', query).TrimStart('&')}";
+            return builder.Uri;
+        }
+
         /// <summary>
         /// Determines if the request has met the preconditions within the conditional headers,
         /// according to RFC 7232 sectuin 5 and 6.
@@ -32,7 +58,6 @@ namespace Microsoft.AzureMobile.Server.Extensions
 
             if (headers.IfMatch.Count == 0 && headers.IfUnmodifiedSince.HasValue)
             {
-                //if (!(entity != null && entity.UpdatedAt <= headers.IfUnmodifiedSince.Value))
                 if (entity == null || entity.UpdatedAt > headers.IfUnmodifiedSince.Value)
                 {
                     throw new PreconditionFailedException(entity);
@@ -49,7 +74,6 @@ namespace Microsoft.AzureMobile.Server.Extensions
 
             if (headers.IfNoneMatch.Count == 0 && headers.IfModifiedSince.HasValue)
             {
-                //if (!(entity != null && entity.UpdatedAt > headers.IfModifiedSince.Value))
                 if (entity == null || entity.UpdatedAt <= headers.IfModifiedSince.Value)
                 {
                     throw isFetch && entity != null ? new NotModifiedException() : new PreconditionFailedException(entity);

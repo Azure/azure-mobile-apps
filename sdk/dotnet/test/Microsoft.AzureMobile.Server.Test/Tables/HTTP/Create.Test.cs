@@ -227,5 +227,35 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
                 AssertEx.ResponseHasConditionalHeaders(entity, response);
             }
         }
+
+        // Even though half the movies are deleted, they should all still produce conflicts
+        [Theory, CombinatorialData]
+        public async Task SoftDeleteCreateTests([CombinatorialRange(0, Movies.Count)] int index)
+        {
+            // Arrange
+            var server = Program.CreateTestServer();
+            var repository = server.GetRepository<SoftMovie>();
+            var expectedCount = repository.Entities.Count;
+            var movieToAdd = blackPantherMovie.Clone();
+            movieToAdd.Id = Utils.GetMovieId(index);
+            var expectedMovie = repository.GetEntity(movieToAdd.Id).Clone();
+
+            // Act
+            var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, "tables/soft", movieToAdd).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            Assert.Equal(expectedCount, repository.Entities.Count);
+
+            var result = response.DeserializeContent<ClientMovie>();
+            var entity = repository.GetEntity(movieToAdd.Id);
+            Assert.NotNull(entity);
+            AssertEx.SystemPropertiesSet(entity);
+            AssertEx.SystemPropertiesMatch(entity, result);
+            Assert.Equal<IMovie>(expectedMovie, result);
+            Assert.Equal<IMovie>(expectedMovie, entity);
+            Assert.Equal<ITableData>(expectedMovie, entity);
+            AssertEx.ResponseHasConditionalHeaders(entity, response);
+        }
     }
 }

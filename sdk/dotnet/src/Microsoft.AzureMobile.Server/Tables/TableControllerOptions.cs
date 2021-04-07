@@ -28,5 +28,11 @@ namespace Microsoft.AzureMobile.Server
                 _pageSize = value;
             }
         }
+
+        /// <summary>
+        /// True if soft delete is enabled.  By default, soft delete is turned off
+        /// (for backwards compatibility with Azure Mobile Apps v2.0)
+        /// </summary>
+        public bool EnableSoftDelete { get; set; } = false;
     }
 }

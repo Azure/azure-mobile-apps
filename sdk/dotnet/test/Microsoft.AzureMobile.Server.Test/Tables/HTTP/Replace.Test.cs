@@ -204,5 +204,52 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
                 Assert.Equal<ITableData>(expected, entity);
             }
         }
+
+        [Fact]
+        public async Task ReplaceSoftNotDeleted_Works()
+        {
+            // Arrange
+            int index = 24;
+            var server = Program.CreateTestServer();
+            var repository = server.GetRepository<SoftMovie>();
+            string id = Utils.GetMovieId(index);
+            var original = repository.GetEntity(id).Clone();
+            var expected = repository.GetEntity(id).Clone();
+            expected.Title = "Replacement Title";
+            expected.Rating = "PG-13";
+
+            // Act
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/soft/{id}", expected).ConfigureAwait(false);
+            var stored = repository.GetEntity(id);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal<IMovie>(expected, stored);
+            AssertEx.SystemPropertiesChanged(original, stored);
+            AssertEx.ResponseHasConditionalHeaders(stored, response);
+        }
+
+        [Fact]
+        public async Task ReplaceSoftDeleted_ReturnsGone()
+        {
+            // Arrange
+            int index = 25;
+            var server = Program.CreateTestServer();
+            var repository = server.GetRepository<SoftMovie>();
+            string id = Utils.GetMovieId(index);
+            var original = repository.GetEntity(id).Clone();
+            var expected = repository.GetEntity(id).Clone();
+            expected.Title = "Replacement Title";
+            expected.Rating = "PG-13";
+
+            // Act
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/soft/{id}", expected).ConfigureAwait(false);
+            var stored = repository.GetEntity(id);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
+            Assert.Equal<IMovie>(original, stored);
+            Assert.Equal<ITableData>(original, stored);
+        }
     }
 }
