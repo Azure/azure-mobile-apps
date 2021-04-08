@@ -4,9 +4,12 @@
 using System.Linq;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Query.Validators;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OData.UriParser;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Microsoft.AzureMobile.Server
 {
@@ -23,6 +26,14 @@ namespace Microsoft.AzureMobile.Server
         /// <returns>The resulting service collection</returns>
         public static IServiceCollection AddAzureMobile(this IServiceCollection services)
         {
+            services
+                .AddControllers()
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                });
+
             services.AddOData();
 
             services

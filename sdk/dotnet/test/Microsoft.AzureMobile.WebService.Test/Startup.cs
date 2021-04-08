@@ -49,15 +49,10 @@ namespace Microsoft.AzureMobile.WebService.Test
             softData.ForEach(m => m.Deleted = m.Rating == "R");
             services.AddSingleton<IRepository<SoftMovie>>(new InMemoryRepository<SoftMovie>(softData));
 
-            // Add the controllers.  Note that we require a specific setup for Newtonsoft.JSON to work.
-            // <b>DO NOT USE System.Text.Json IN Azure Mobile Apps APPLICATIONS</b>
-            services
-                .AddControllers()
-                .AddNewtonsoftJson(options =>
-                {
-                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-                });
+            // Configure ASP.NET Controllers before adding Azure Mobile Apps
+            // Note: We use Newtonsoft.JSON for JsonPatch and OData capabilities
+            // DO NOT USE System.Text.Json ON AZURE MOBILE APPS PROJECTS
+            services.AddControllers();
 
             // Add Azure Mobile Apps
             services.AddAzureMobile();
