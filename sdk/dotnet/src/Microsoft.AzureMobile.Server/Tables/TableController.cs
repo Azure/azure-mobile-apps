@@ -24,6 +24,7 @@ namespace Microsoft.AzureMobile.Server
     [ApiController]
     [AzureMobileController]
     [AzureMobileExceptions]
+    [ZumoVersionFilter]
     public class TableController<TEntity> : ControllerBase where TEntity : class, ITableData
     {
         /// <summary>

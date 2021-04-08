@@ -68,6 +68,12 @@ namespace Microsoft.AzureMobile.Common.Test.Extensions
                     request.Headers.Add(kv.Key, kv.Value);
                 }
             }
+
+            // Auto-add the X-ZUMO-Version header if we don't already have one.
+            if (!request.Headers.Contains("X-ZUMO-Version"))
+            {
+                request.Headers.Add("X-ZUMO-Version", "3.0");
+            }
             return client.SendAsync(request);
         }
 
@@ -106,6 +112,13 @@ namespace Microsoft.AzureMobile.Common.Test.Extensions
                     request.Headers.Add(kv.Key, kv.Value);
                 }
             }
+
+            // Auto-add the X-ZUMO-Version header if we don't already have one.
+            if (!request.Headers.Contains("X-ZUMO-Version"))
+            {
+                request.Headers.Add("X-ZUMO-Version", "3.0");
+            }
+
             var payload = JsonSerializer.Serialize(content, SerializerOptions);
             request.Content = new StringContent(payload, Encoding.UTF8, contentType);
             return client.SendAsync(request);
@@ -130,6 +143,12 @@ namespace Microsoft.AzureMobile.Common.Test.Extensions
                 {
                     request.Headers.Add(kv.Key, kv.Value);
                 }
+            }
+
+            // Auto-add the X-ZUMO-Version header if we don't already have one.
+            if (!request.Headers.Contains("X-ZUMO-Version"))
+            {
+                request.Headers.Add("X-ZUMO-Version", "3.0");
             }
 
             var payload = JsonSerializer.Serialize(content, SerializerOptions);
