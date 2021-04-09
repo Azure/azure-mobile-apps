@@ -257,5 +257,41 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             Assert.Equal<ITableData>(expectedMovie, entity);
             AssertEx.ResponseHasConditionalHeaders(entity, response);
         }
+
+        [Theory, CombinatorialData]
+        public async Task BasicV2CreateTests(bool hasId)
+        {
+            // Arrange
+            var server = Program.CreateTestServer();
+            var repository = server.GetRepository<InMemoryMovie>();
+            var expectedCount = repository.Entities.Count;
+            var movieToAdd = blackPantherMovie.Clone();
+            if (hasId) { movieToAdd.Id = Guid.NewGuid().ToString("N"); }
+            var headers = new Dictionary<string, string> { { "ZUMO-API-VERSION", "2.0.0" } };
+
+            // Act
+            var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, "tables/movies", movieToAdd, headers).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            var result = response.DeserializeContent<ClientMovie>();
+            Assert.True(Guid.TryParse(result.Id, out _));
+            if (hasId)
+            {
+                Assert.Equal(movieToAdd.Id, result.Id);
+            }
+            Assert.Equal(expectedCount + 1, repository.Entities.Count);
+
+            var entity = repository.GetEntity(result.Id);
+            Assert.NotNull(entity);
+
+            AssertEx.SystemPropertiesSet(entity);
+            AssertEx.SystemPropertiesMatch(entity, result);
+            Assert.Equal<IMovie>(movieToAdd, result);
+            Assert.Equal<IMovie>(movieToAdd, entity);
+            AssertEx.ResponseHasConditionalHeaders(entity, response);
+            AssertEx.ResponseHasHeader(response, "Location", $"https://localhost/tables/movies/{result.Id}");
+        }
     }
 }

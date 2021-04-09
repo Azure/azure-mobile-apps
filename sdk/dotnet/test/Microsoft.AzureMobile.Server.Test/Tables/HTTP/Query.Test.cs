@@ -573,6 +573,5 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
                 AssertEx.SystemPropertiesMatch(expected, actual);
             }
         }
-
     }
 }

@@ -9,16 +9,17 @@ namespace Microsoft.AzureMobile.Server.Tables
     /// <summary>
     /// List of known versions that are valid in this edition of Azure Mobile Apps
     /// </summary>
-    internal enum ZumoVersion
+    public enum ZumoVersion
     {
         Invalid,
-        V3_0
+        V2,
+        V3
     }
 
     internal static class ZumoVersionExtensions
     {
         /// <summary>
-        /// Parses an <c>X-ZUMO-Version</c> value to ensure it is valid.
+        /// Parses an <c>ZUMO-API-VERSION</c> value to ensure it is valid.
         /// </summary>
         /// <param name="input">The version header or query parameter</param>
         /// <param name="version">The parsed version</param>
@@ -28,9 +29,14 @@ namespace Microsoft.AzureMobile.Server.Tables
             Regex pattern = new(@"^[0-9]\.[0-9](\.[0-9])?$");
             if (pattern.Match(input).Success)
             {
-                if (input.StartsWith("3.0"))
+                if (input.StartsWith("2.0"))
                 {
-                    version = ZumoVersion.V3_0;
+                    version = ZumoVersion.V2;
+                    return true;
+                }
+                else if (input.StartsWith("3.0"))
+                {
+                    version = ZumoVersion.V3;
                     return true;
                 }
             }
@@ -39,11 +45,11 @@ namespace Microsoft.AzureMobile.Server.Tables
         }
 
         /// <summary>
-        /// Returns the <c>X-ZUMO-Version</c> for the current request.
+        /// Determines if the ZUMO-API-VERSION matches the provided version.
         /// </summary>
         /// <param name="request"></param>
         /// <returns>A <see cref="ZumoVersion"/> value for the current request</returns>
-        internal static ZumoVersion GetZumoVersion(this HttpRequest request)
-            => (ZumoVersion) request.HttpContext.Items["ZumoVersion"];
+        internal static bool IsZumoVersion(this HttpRequest request, ZumoVersion expected)
+            => request.HttpContext.Items["ZumoVersion"] is ZumoVersion version && version == expected;
     }
 }

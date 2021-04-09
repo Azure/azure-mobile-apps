@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AzureMobile.Server.Exceptions;
 using Microsoft.AzureMobile.Server.Extensions;
 
-namespace Microsoft.AzureMobile.Server.Tables
+namespace Microsoft.AzureMobile.Server.Filters
 {
     /// <summary>
     /// When the main table controller throws an exception, it is caught and turned

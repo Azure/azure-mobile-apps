@@ -56,11 +56,11 @@ namespace Microsoft.AzureMobile.Server.Test.Tables
 
         [Theory]
         [InlineData("tables/movies/id-001", null)]
-        [InlineData("tables/movies/id-001?X-ZUMO-Version=true", null)]
-        [InlineData("tables/movies/id-001?X-ZUMO-Version=0", null)]
-        [InlineData("tables/movies/id-001?X-ZUMO-Version=somevalue", null)]
-        [InlineData("tables/movies/id-001?X-ZUMO-Version=1.0", null)]
-        [InlineData("tables/movies/id-001?X-ZUMO-Version=9.0.0", null)]
+        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=true", null)]
+        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=0", null)]
+        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=somevalue", null)]
+        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=1.0", null)]
+        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=9.0.0", null)]
         [InlineData("tables/movies/id-001", "true")]
         [InlineData("tables/movies/id-001", "0")]
         [InlineData("tables/movies/id-001", "somevalue")]
@@ -78,7 +78,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables
             };
             if (headerValue != null)
             {
-                request.Headers.Add("X-ZUMO-Version", headerValue);
+                request.Headers.Add("ZUMO-API-VERSION", headerValue);
             }
 
             // Act
@@ -92,9 +92,9 @@ namespace Microsoft.AzureMobile.Server.Test.Tables
         }
 
         [Theory]
-        [InlineData("tables/movies/id-001?X-ZUMO-Version=3.0", null)]
-        [InlineData("tables/movies/id-001?X-ZUMO-Version=3.0.0", null)]
-        [InlineData("tables/movies/id-001?X-ZUMO-Version=3.0.1", null)]
+        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=3.0", null)]
+        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=3.0.0", null)]
+        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=3.0.1", null)]
         [InlineData("tables/movies/id-001", "3.0")]
         [InlineData("tables/movies/id-001", "3.0.0")]
         [InlineData("tables/movies/id-001", "3.0.1")]
@@ -110,7 +110,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables
             };
             if (headerValue != null)
             {
-                request.Headers.Add("X-ZUMO-Version", headerValue);
+                request.Headers.Add("ZUMO-API-VERSION", headerValue);
             }
 
             // Act

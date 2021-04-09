@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AzureMobile.Server.Exceptions;
 using Microsoft.AzureMobile.Server.Extensions;
+using Microsoft.AzureMobile.Server.Filters;
 using Microsoft.AzureMobile.Server.Tables;
 using Microsoft.OData;
 using Microsoft.OData.Edm;
@@ -25,6 +26,7 @@ namespace Microsoft.AzureMobile.Server
     [AzureMobileController]
     [AzureMobileExceptions]
     [ZumoVersionFilter]
+    [ZumoBackwardsCompatibilityFilter]
     public class TableController<TEntity> : ControllerBase where TEntity : class, ITableData
     {
         /// <summary>

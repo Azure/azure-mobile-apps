@@ -4,21 +4,22 @@
 using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AzureMobile.Server.Tables;
 
-namespace Microsoft.AzureMobile.Server.Tables
+namespace Microsoft.AzureMobile.Server.Filters
 {
     /// <summary>
-    /// A resource filter that implements the X-ZUMO-Version check and adds the
+    /// A resource filter that implements the <c>ZUMO-API-VERSION</c> check and adds the
     /// check to the <see cref="HttpContext"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     internal class ZumoVersionFilterAttribute : Attribute, IResourceFilter
     {
-        private const string ZumoVersionHeader = "X-ZUMO-Version";
+        private const string ZumoVersionHeader = "ZUMO-API-VERSION";
 
         /// <summary>
         /// Executes the resource filter.  Called before the execution of the remainder of the
-        /// pipeline. Determines whether <c>X-ZUMO-Version</c> has been submitted, and returns
+        /// pipeline. Determines whether <c>ZUMO-API-VERSION</c> has been submitted, and returns
         /// a well-formed error message if it has not been submitted.
         /// </summary>
         /// <param name="resourceContext"></param>
@@ -36,8 +37,8 @@ namespace Microsoft.AzureMobile.Server.Tables
                 {
                     errorDocument = new ProblemDetails
                     {
-                        Title = "Invalid X-ZUMO-Version Query Parameter",
-                        Detail = "The value of the X-ZUMO-Version query parameter does not match a known version"
+                        Title = $"Invalid {ZumoVersionHeader} Query Parameter",
+                        Detail = $"The value of the {ZumoVersionHeader} query parameter does not match a known version"
                     };
                 }
             }
@@ -48,8 +49,8 @@ namespace Microsoft.AzureMobile.Server.Tables
                 {
                     errorDocument = new ProblemDetails
                     {
-                        Title = "Invalid X-ZUMO-Version Header",
-                        Detail = "The value of the X-ZUMO-Version header does not match a known version"
+                        Title = $"Invalid {ZumoVersionHeader} Header",
+                        Detail = $"The value of the {ZumoVersionHeader} header does not match a known version"
                     };
                 }
             }
@@ -57,8 +58,8 @@ namespace Microsoft.AzureMobile.Server.Tables
             {
                 errorDocument = new ProblemDetails
                 {
-                    Title = "Missing X-ZUMO-Version",
-                    Detail = "The value of X-ZUMO-Version is not specified in headers or query parameters"
+                    Title = $"Missing {ZumoVersionHeader}",
+                    Detail = $"The value of {ZumoVersionHeader} is not specified in headers or query parameters"
                 };
             }
 

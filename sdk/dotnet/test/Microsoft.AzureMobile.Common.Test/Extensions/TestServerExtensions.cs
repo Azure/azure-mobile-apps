@@ -21,6 +21,8 @@ namespace Microsoft.AzureMobile.Common.Test.Extensions
     [ExcludeFromCodeCoverage(Justification = "Part of the test suite")]
     public static class TestServerExtensions
     {
+        private const string ZumoVersionHeader = "ZUMO-API-VERSION";
+
         /// <summary>
         /// The URI to assume for the <see cref="TestServer"/> instance.
         /// </summary>
@@ -70,10 +72,11 @@ namespace Microsoft.AzureMobile.Common.Test.Extensions
             }
 
             // Auto-add the X-ZUMO-Version header if we don't already have one.
-            if (!request.Headers.Contains("X-ZUMO-Version"))
+            if (!request.Headers.Contains(ZumoVersionHeader))
             {
-                request.Headers.Add("X-ZUMO-Version", "3.0");
+                request.Headers.Add(ZumoVersionHeader, "3.0.0");
             }
+
             return client.SendAsync(request);
         }
 
@@ -114,9 +117,9 @@ namespace Microsoft.AzureMobile.Common.Test.Extensions
             }
 
             // Auto-add the X-ZUMO-Version header if we don't already have one.
-            if (!request.Headers.Contains("X-ZUMO-Version"))
+            if (!request.Headers.Contains(ZumoVersionHeader))
             {
-                request.Headers.Add("X-ZUMO-Version", "3.0");
+                request.Headers.Add(ZumoVersionHeader, "3.0.0");
             }
 
             var payload = JsonSerializer.Serialize(content, SerializerOptions);
@@ -146,9 +149,9 @@ namespace Microsoft.AzureMobile.Common.Test.Extensions
             }
 
             // Auto-add the X-ZUMO-Version header if we don't already have one.
-            if (!request.Headers.Contains("X-ZUMO-Version"))
+            if (!request.Headers.Contains(ZumoVersionHeader))
             {
-                request.Headers.Add("X-ZUMO-Version", "3.0");
+                request.Headers.Add(ZumoVersionHeader, "3.0");
             }
 
             var payload = JsonSerializer.Serialize(content, SerializerOptions);
