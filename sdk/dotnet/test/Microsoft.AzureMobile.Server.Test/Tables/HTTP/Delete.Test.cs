@@ -40,6 +40,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
 
         [Theory]
         [InlineData("tables/movies/not-found", HttpStatusCode.NotFound)]
+        [InlineData("tables/movies_pagesize/not-found", HttpStatusCode.NotFound)]
         public async Task FailedDeleteTests(
             string relativeUri,
             HttpStatusCode expectedStatusCode,
@@ -65,7 +66,8 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
         [Theory, CombinatorialData]
         public async Task AuthenticatedDeleteTests(
             [CombinatorialValues(0, 1, 2, 3, 7, 14, 25)] int index,
-            [CombinatorialValues(null, "failed", "success")] string userId)
+            [CombinatorialValues(null, "failed", "success")] string userId,
+            [CombinatorialValues("movies_rated", "movies_legal")] string table)
         {
             // Arrange
             var server = Program.CreateTestServer();
@@ -79,12 +81,13 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             }
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Delete, $"tables/movies_rated/{id}", headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}", headers).ConfigureAwait(false);
 
             // Assert
             if (userId != "success")
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+                var statusCode = table.Contains("legal") ? HttpStatusCode.UnavailableForLegalReasons : HttpStatusCode.Unauthorized;
+                Assert.Equal(statusCode, response.StatusCode);
                 Assert.Equal(expectedCount, repository.Entities.Count);
                 Assert.NotNull(repository.GetEntity(id));
             }
@@ -137,18 +140,18 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             }
         }
 
-        [Fact]
-        public async Task SoftDeleteItem_SetsDeletedFlag()
+        [Theory, CombinatorialData]
+        public async Task SoftDeleteItem_SetsDeletedFlag([CombinatorialValues("soft", "soft_logged")] string table)
         {
             // Arrange
-            int index = 24;
+            const int index = 24;
             var server = Program.CreateTestServer();
             var repository = server.GetRepository<SoftMovie>();
             var entityCount = repository.Entities.Count;
             var id = Utils.GetMovieId(index);
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Delete, $"tables/soft/{id}").ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}").ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
@@ -157,18 +160,18 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             Assert.True(entity.Deleted);
         }
 
-        [Fact]
-        public async Task SoftDeleteItem_GoneWhenDeleted()
+        [Theory, CombinatorialData]
+        public async Task SoftDeleteItem_GoneWhenDeleted([CombinatorialValues("soft", "soft_logged")] string table)
         {
             // Arrange
-            int index = 25;
+            const int index = 25;
             var server = Program.CreateTestServer();
             var repository = server.GetRepository<SoftMovie>();
             var entityCount = repository.Entities.Count;
             var id = Utils.GetMovieId(index);
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Delete, $"tables/soft/{id}").ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}").ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.Gone, response.StatusCode);

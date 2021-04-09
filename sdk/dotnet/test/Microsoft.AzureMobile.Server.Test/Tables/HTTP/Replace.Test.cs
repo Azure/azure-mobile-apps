@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AzureMobile.Common.Test;
 using Microsoft.AzureMobile.Common.Test.Extensions;
@@ -23,7 +22,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
     public class Replace_Tests
     {
         [Theory, CombinatorialData]
-        public async Task BasicReplaceTests([CombinatorialRange(0, Movies.Count)] int index)
+        public async Task BasicReplaceTests([CombinatorialRange(0, Movies.Count)] int index, [CombinatorialValues("movies", "movies_pagesize")] string table)
         {
             // Arrange
             var server = Program.CreateTestServer();
@@ -35,7 +34,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             expected.Rating = "PG-13";
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Put, $"tables/movies/{id}", expected).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/{table}/{id}", expected).ConfigureAwait(false);
             var stored = repository.GetEntity(id);
 
             // Assert
@@ -75,10 +74,41 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             Assert.Equal<ITableData>(expected, stored);
         }
 
+        [Theory]
+        [InlineData("id", "test-id")]
+        [InlineData("duration", 50)]
+        [InlineData("duration", 370)]
+        [InlineData("rating", "M")]
+        [InlineData("rating", "PG-13 but not always")]
+        [InlineData("title", "a")]
+        [InlineData("title", "Lorem ipsum dolor sit amet, consectetur adipiscing elit accumsan.")]
+        [InlineData("year", 1900)]
+        [InlineData("year", 2035)]
+        public async Task ReplacementValidationTestsWithoutLogging(string propName, object propValue)
+        {
+            // Arrange
+            var server = Program.CreateTestServer();
+            var repository = server.GetRepository<InMemoryMovie>();
+            string id = Utils.GetMovieId(20);
+            var expected = repository.GetEntity(id).Clone();
+            var entity = expected.ToDictionary();
+            entity[propName] = propValue;
+
+            // Act
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/movies_pagesize/{id}", entity).ConfigureAwait(false);
+            var stored = repository.GetEntity(id);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal<IMovie>(expected, stored);
+            Assert.Equal<ITableData>(expected, stored);
+        }
+
         [Theory, CombinatorialData]
         public async Task AuthenticatedPatchTests(
             [CombinatorialValues(0, 1, 2, 3, 7, 14, 25)] int index,
-            [CombinatorialValues(null, "failed", "success")] string userId)
+            [CombinatorialValues(null, "failed", "success")] string userId,
+            [CombinatorialValues("movies_rated", "movies_legal")] string table)
         {
             // Arrange
             var server = Program.CreateTestServer();
@@ -99,13 +129,14 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             }
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Put, $"tables/movies_rated/{id}", replacement, headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/{table}/{id}", replacement, headers).ConfigureAwait(false);
             var stored = repository.GetEntity(id);
 
             // Assert
             if (userId != "success")
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+                var statusCode = table.Contains("legal") ? HttpStatusCode.UnavailableForLegalReasons : HttpStatusCode.Unauthorized;
+                Assert.Equal(statusCode, response.StatusCode);
                 Assert.Equal<IMovie>(original, stored);
                 Assert.Equal<ITableData>(original, stored);
             }
@@ -170,7 +201,9 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
 
         [Theory]
         [InlineData("tables/movies/not-found", HttpStatusCode.NotFound)]
+        [InlineData("tables/movies_pagesize/not-found", HttpStatusCode.NotFound)]
         [InlineData("tables/movies_rated/id-107", HttpStatusCode.NotFound, "X-Auth", "success")]
+        [InlineData("tables/movies_legal/id-107", HttpStatusCode.NotFound, "X-Auth", "success")]
         public async Task FailedReplaceTests(string relativeUri, HttpStatusCode expectedStatusCode, string headerName = null, string headerValue = null)
         {
             // Arrange
@@ -205,8 +238,8 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             }
         }
 
-        [Fact]
-        public async Task ReplaceSoftNotDeleted_Works()
+        [Theory, CombinatorialData]
+        public async Task ReplaceSoftNotDeleted_Works([CombinatorialValues("soft", "soft_logged")] string table)
         {
             // Arrange
             int index = 24;
@@ -219,7 +252,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             expected.Rating = "PG-13";
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Put, $"tables/soft/{id}", expected).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/{table}/{id}", expected).ConfigureAwait(false);
             var stored = repository.GetEntity(id);
 
             // Assert
@@ -229,8 +262,8 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             AssertEx.ResponseHasConditionalHeaders(stored, response);
         }
 
-        [Fact]
-        public async Task ReplaceSoftDeleted_ReturnsGone()
+        [Theory, CombinatorialData]
+        public async Task ReplaceSoftDeleted_ReturnsGone([CombinatorialValues("soft", "soft_logged")] string table)
         {
             // Arrange
             int index = 25;
@@ -243,7 +276,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             expected.Rating = "PG-13";
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Put, $"tables/soft/{id}", expected).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/{table}/{id}", expected).ConfigureAwait(false);
             var stored = repository.GetEntity(id);
 
             // Assert

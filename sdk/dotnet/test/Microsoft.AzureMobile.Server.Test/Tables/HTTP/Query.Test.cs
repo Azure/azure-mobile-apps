@@ -505,6 +505,8 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
         [InlineData("tables/movies_pagesize?$top=26", HttpStatusCode.BadRequest)]
         [InlineData("tables/movies_rated", HttpStatusCode.Unauthorized)]
         [InlineData("tables/movies_rated", HttpStatusCode.Unauthorized, "X-Auth", "failed")]
+        [InlineData("tables/movies_legal", HttpStatusCode.UnavailableForLegalReasons)]
+        [InlineData("tables/movies_legal", HttpStatusCode.UnavailableForLegalReasons, "X-Auth", "failed")]
         public async Task FailedQueryTest(string relativeUri, HttpStatusCode expectedStatusCode, string headerName = null, string headerValue = null)
         {
             // Arrange

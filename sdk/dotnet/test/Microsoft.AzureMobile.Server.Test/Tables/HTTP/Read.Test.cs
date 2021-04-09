@@ -22,7 +22,8 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
     {
         [Theory, CombinatorialData]
         public async Task BasicReadTests(
-            [CombinatorialRange(0, Movies.Count)] int index
+            [CombinatorialRange(0, Movies.Count)] int index,
+            [CombinatorialValues("movies", "movies_pagesize")] string table
         )
         {
             // Arrange
@@ -32,7 +33,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             var expected = repository.GetEntity(id);
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Get, $"tables/movies/{id}").ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -46,7 +47,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
 
         [Theory]
         [InlineData("tables/movies/not-found", HttpStatusCode.NotFound)]
-
+        [InlineData("tables/movies_pagesize/not-found", HttpStatusCode.NotFound)]
         public async Task FailedReadTests(
             string relativeUri,
             HttpStatusCode expectedStatusCode,
@@ -68,7 +69,8 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
         [Theory, CombinatorialData]
         public async Task AuthenticatedReadTests(
             [CombinatorialValues(0, 1, 2, 3, 7, 14, 25)] int index,
-            [CombinatorialValues(null, "failed", "success")] string userId)
+            [CombinatorialValues(null, "failed", "success")] string userId,
+            [CombinatorialValues("movies_rated", "movies_legal")] string table)
         {
             // Arrange
             var server = Program.CreateTestServer();
@@ -82,12 +84,13 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             }
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Get, $"tables/movies_rated/{id}", headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}", headers).ConfigureAwait(false);
 
             // Assert
             if (userId != "success")
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+                var statusCode = table.Contains("legal") ? HttpStatusCode.UnavailableForLegalReasons : HttpStatusCode.Unauthorized;
+                Assert.Equal(statusCode, response.StatusCode);
             }
             else
             {
@@ -137,8 +140,8 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             }
         }
 
-        [Fact]
-        public async Task ReadSoftDeletedItem_WorksIfNotDeleted()
+        [Theory, CombinatorialData]
+        public async Task ReadSoftDeletedItem_WorksIfNotDeleted([CombinatorialValues("soft", "soft_logged")] string table)
         {
             // Arrange
             int index = 24;
@@ -148,7 +151,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             var expected = repository.GetEntity(id);
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Get, $"tables/soft/{id}").ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -160,8 +163,8 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             AssertEx.ResponseHasConditionalHeaders(expected, response);
         }
 
-        [Fact]
-        public async Task ReadSoftDeletedItem_ReturnsGoneIfDeleted()
+        [Theory, CombinatorialData]
+        public async Task ReadSoftDeletedItem_ReturnsGoneIfDeleted([CombinatorialValues("soft", "soft_logged")] string table)
         {
             // Arrange
             int index = 25;
@@ -169,7 +172,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             string id = Utils.GetMovieId(index);
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Get, $"tables/soft/{id}").ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.Gone, response.StatusCode);

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.AzureMobile.Server
 {
@@ -34,5 +35,10 @@ namespace Microsoft.AzureMobile.Server
         /// (for backwards compatibility with Azure Mobile Apps v2.0)
         /// </summary>
         public bool EnableSoftDelete { get; set; } = false;
+
+        /// <summary>
+        /// The status code returned when the user is unauthorized.
+        /// </summary>
+        public int UnauthorizedStatusCode { get; set; } = StatusCodes.Status401Unauthorized;
     }
 }

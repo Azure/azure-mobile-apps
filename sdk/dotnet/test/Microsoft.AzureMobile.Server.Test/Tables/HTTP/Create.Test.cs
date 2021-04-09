@@ -36,7 +36,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
         #endregion
 
         [Theory, CombinatorialData]
-        public async Task BasicCreateTests(bool hasId)
+        public async Task BasicCreateTests([CombinatorialValues("movies", "movies_pagesize")] string table, bool hasId)
         {
             // Arrange
             var server = Program.CreateTestServer();
@@ -46,7 +46,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             if (hasId) { movieToAdd.Id = Guid.NewGuid().ToString("N"); }
 
             // Act
-            var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, "tables/movies", movieToAdd).ConfigureAwait(false);
+            var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, $"tables/{table}", movieToAdd).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -67,7 +67,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             Assert.Equal<IMovie>(movieToAdd, result);
             Assert.Equal<IMovie>(movieToAdd, entity);
             AssertEx.ResponseHasConditionalHeaders(entity, response);
-            AssertEx.ResponseHasHeader(response, "Location", $"https://localhost/tables/movies/{result.Id}");
+            AssertEx.ResponseHasHeader(response, "Location", $"https://localhost/tables/{table}/{result.Id}");
         }
 
         [Theory, CombinatorialData]
@@ -181,7 +181,9 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
         }
 
         [Theory, CombinatorialData]
-        public async Task AuthenticatedDeleteTests([CombinatorialValues(null, "failed", "success")] string userId)
+        public async Task AuthenticatedCreateTests(
+            [CombinatorialValues(null, "failed", "success")] string userId,
+            [CombinatorialValues("movies_rated", "movies_legal")] string table)
         {
             // Arrange
             var server = Program.CreateTestServer();
@@ -200,12 +202,13 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             }
 
             // Act
-            var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, "tables/movies_rated", movieToAdd, headers).ConfigureAwait(false);
+            var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, $"tables/{table}", movieToAdd, headers).ConfigureAwait(false);
 
             // Assert
             if (userId != "success")
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+                var statusCode = table.Contains("legal") ? HttpStatusCode.UnavailableForLegalReasons : HttpStatusCode.Unauthorized;
+                Assert.Equal(statusCode, response.StatusCode);
                 Assert.Equal(expectedCount, repository.Entities.Count);
             }
             else
@@ -215,7 +218,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
                 var result = response.DeserializeContent<ClientMovie>();
                 Assert.True(Guid.TryParse(result.Id, out _));
                 Assert.Equal(expectedCount + 1, repository.Entities.Count);
-                AssertEx.ResponseHasHeader(response, "Location", $"https://localhost/tables/movies_rated/{result.Id}");
+                AssertEx.ResponseHasHeader(response, "Location", $"https://localhost/tables/{table}/{result.Id}");
 
                 var entity = repository.GetEntity(result.Id);
                 Assert.NotNull(entity);
@@ -230,7 +233,9 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
 
         // Even though half the movies are deleted, they should all still produce conflicts
         [Theory, CombinatorialData]
-        public async Task SoftDeleteCreateTests([CombinatorialRange(0, Movies.Count)] int index)
+        public async Task SoftDeleteCreateTests(
+            [CombinatorialRange(0, Movies.Count)] int index,
+            [CombinatorialValues("soft", "soft_logged")] string table)
         {
             // Arrange
             var server = Program.CreateTestServer();
@@ -241,7 +246,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             var expectedMovie = repository.GetEntity(movieToAdd.Id).Clone();
 
             // Act
-            var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, "tables/soft", movieToAdd).ConfigureAwait(false);
+            var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, $"tables/{table}", movieToAdd).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);

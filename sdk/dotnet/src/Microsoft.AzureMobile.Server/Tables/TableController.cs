@@ -17,6 +17,7 @@ using Microsoft.AzureMobile.Server.Exceptions;
 using Microsoft.AzureMobile.Server.Extensions;
 using Microsoft.AzureMobile.Server.Filters;
 using Microsoft.AzureMobile.Server.Tables;
+using Microsoft.Extensions.Logging;
 using Microsoft.OData;
 using Microsoft.OData.Edm;
 
@@ -80,6 +81,13 @@ namespace Microsoft.AzureMobile.Server
         public IAccessControlProvider<TEntity> AccessControlProvider { get; set; }
         #endregion
 
+        #region Logger Property
+        /// <summary>
+        /// Where to send request/response log messages.
+        /// </summary>
+        public ILogger Logger { get; set; } = null;
+        #endregion
+
         #region Private Methods
         /// <summary>
         /// Checks the authorization of the request and throws a <see cref="HttpException"/> if the
@@ -94,7 +102,12 @@ namespace Microsoft.AzureMobile.Server
             var isAuthorized = await AccessControlProvider.IsAuthorizedAsync(operation, entity, token).ConfigureAwait(false);
             if (!isAuthorized)
             {
-                throw new HttpException(StatusCodes.Status401Unauthorized);
+                Logger?.LogWarning($"Not authorized to perform operation {operation} on entity {entity?.Id}");
+                throw new HttpException(Options.UnauthorizedStatusCode);
+            }
+            else
+            {
+                Logger?.LogDebug($"Authorized to perform operation {operation} on entity {entity?.Id}");
             }
         }
 
@@ -128,10 +141,11 @@ namespace Microsoft.AzureMobile.Server
         [Consumes("application/json")]
         public virtual async Task<IActionResult> CreateAsync([FromBody] TEntity item, CancellationToken token = default)
         {
+            Logger?.LogInformation("Create: initiated");
             await AuthorizeRequest(TableOperation.Create, item, token).ConfigureAwait(false);
-
             await AccessControlProvider.PreCommitHookAsync(TableOperation.Create, item, token).ConfigureAwait(false);
             await Repository.CreateAsync(item, token).ConfigureAwait(false);
+            Logger?.LogInformation($"Create: Item stored at {item.Id}");
             return CreatedAtAction(nameof(ReadAsync), new { id = item.Id }, item);
         }
 
@@ -147,28 +161,29 @@ namespace Microsoft.AzureMobile.Server
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public virtual async Task<IActionResult> DeleteAsync([FromRoute] string id, CancellationToken token = default)
         {
+            Logger?.LogInformation($"Delete({id}): initiated");
             var entity = await Repository.ReadAsync(id, token).ConfigureAwait(false);
             if (entity == null || !EntityIsInView(entity))
             {
+                Logger?.LogWarning($"Delete({id}): Item not found (not in view)");
                 return NotFound();
             }
-
             await AuthorizeRequest(TableOperation.Delete, entity, token).ConfigureAwait(false);
-
             if (Options.EnableSoftDelete && entity.Deleted)
             {
+                Logger?.LogWarning($"Delete({id}): Item not found (soft-delete)");
                 return StatusCode(StatusCodes.Status410Gone);
             }
-
             Request.ParseConditionalRequest(entity, out byte[] version);
-
             if (Options.EnableSoftDelete)
             {
+                Logger?.LogInformation($"Delete({id}): Marking item as deleted (soft-delete)");
                 entity.Deleted = true;
                 await Repository.ReplaceAsync(entity, version, token).ConfigureAwait(false);
             }
             else
             {
+                Logger?.LogInformation($"Delete({id}): Deleting item (hard-delete)");
                 await Repository.DeleteAsync(id, version, token).ConfigureAwait(false);
             }
             return NoContent();
@@ -191,24 +206,24 @@ namespace Microsoft.AzureMobile.Server
         [Consumes("application/json-patch+json")]
         public virtual async Task<IActionResult> PatchAsync([FromRoute] string id, [FromBody] JsonPatchDocument<TEntity> patchDocument, CancellationToken token = default)
         {
+            Logger?.LogInformation($"Patch({id}): initiated (RFC6902 document)");
             if (patchDocument.ModifiesSystemProperties())
             {
+                Logger?.LogWarning($"Patch({id}): Patch documentcontains system property modifications (which are disallowed)");
                 return BadRequest();
             }
-
             var entity = await Repository.ReadAsync(id, token).ConfigureAwait(false);
             if (entity == null || !EntityIsInView(entity))
             {
+                Logger?.LogWarning($"Patch({id}): Item not found (not in view)");
                 return NotFound();
             }
-
             await AuthorizeRequest(TableOperation.Update, entity, token).ConfigureAwait(false);
-
             if (Options.EnableSoftDelete && entity.Deleted && !patchDocument.Contains("replace", "/deleted", false))
             {
+                Logger?.LogWarning($"Patch({id}): Item not found (soft-delete)");
                 return StatusCode(StatusCodes.Status410Gone);
             }
-
             Request.ParseConditionalRequest(entity, out byte[] version);
 
             patchDocument.ApplyTo(entity);
@@ -219,6 +234,7 @@ namespace Microsoft.AzureMobile.Server
 
             await AccessControlProvider.PreCommitHookAsync(TableOperation.Update, entity, token).ConfigureAwait(false);
             await Repository.ReplaceAsync(entity, version, token).ConfigureAwait(false);
+            Logger?.LogDebug($"Patch({id}): successfully patched");
             return Ok(entity);
         }
 
@@ -243,6 +259,7 @@ namespace Microsoft.AzureMobile.Server
         [ProducesResponseType(StatusCodes.Status200OK)]
         public virtual async Task<IActionResult> QueryAsync(CancellationToken token = default)
         {
+            Logger?.LogInformation($"Query: {Request.QueryString}");
             await AuthorizeRequest(TableOperation.Query, null, token).ConfigureAwait(false);
 
             var dataset = Repository.AsQueryable()
@@ -259,6 +276,7 @@ namespace Microsoft.AzureMobile.Server
             }
             catch (ODataException validationException)
             {
+                Logger?.LogWarning($"Query: Error when validating query: {validationException.Message}");
                 return BadRequest(validationException.Message);
             }
 
@@ -273,6 +291,7 @@ namespace Microsoft.AzureMobile.Server
                 NextLink = skip >= count ? null : Request.CreateNextLink(skip, queryOptions.Top?.Value ?? 0)
             };
 
+            Logger?.LogInformation($"Query: {result.Items.Count()} items being returned");
             return Ok(result);
         }
 
@@ -288,20 +307,21 @@ namespace Microsoft.AzureMobile.Server
         [ProducesResponseType(StatusCodes.Status200OK)]
         public virtual async Task<IActionResult> ReadAsync([FromRoute] string id, CancellationToken token = default)
         {
+            Logger?.LogInformation($"Read({id}): initiated");
             var entity = await Repository.ReadAsync(id, token).ConfigureAwait(false);
             if (entity == null || !EntityIsInView(entity))
             {
+                Logger?.LogWarning($"Read({id}): Item not found (not in view)");
                 return NotFound();
             }
-
             await AuthorizeRequest(TableOperation.Delete, entity, token).ConfigureAwait(false);
-
             if (Options.EnableSoftDelete && entity.Deleted)
             {
+                Logger?.LogWarning($"Read({id}): Item not found (soft-delete)");
                 return StatusCode(StatusCodes.Status410Gone);
             }
-
             Request.ParseConditionalRequest(entity, out _);
+            Logger?.LogInformation($"Read({id}): Item found - returning");
             return Ok(entity);
         }
 
@@ -311,27 +331,30 @@ namespace Microsoft.AzureMobile.Server
         [Consumes("application/json")]
         public virtual async Task<IActionResult> ReplaceAsync([FromRoute] string id, [FromBody] TEntity item, CancellationToken token = default)
         {
+            Logger?.LogInformation($"Replace({id}): initiating");
             if (item.Id != id)
             {
+                Logger?.LogWarning($"Replace({id}): item does not match ID");
                 return BadRequest();
             }
 
             var entity = await Repository.ReadAsync(id, token).ConfigureAwait(false);
             if (entity == null || !EntityIsInView(entity))
             {
+                Logger?.LogWarning($"Replace({id}): Item not found (not in view)");
                 return NotFound();
             }
 
             await AuthorizeRequest(TableOperation.Update, entity, token).ConfigureAwait(false);
-
             if (Options.EnableSoftDelete && entity.Deleted)
             {
+                Logger?.LogWarning($"Replace({id}): Item not found (soft-delete)");
                 return StatusCode(StatusCodes.Status410Gone);
             }
-
             Request.ParseConditionalRequest(entity, out byte[] version);
             await AccessControlProvider.PreCommitHookAsync(TableOperation.Update, item, token).ConfigureAwait(false);
             await Repository.ReplaceAsync(item, version, token).ConfigureAwait(false);
+            Logger?.LogInformation($"Replace({id}): Item replaced");
             return Ok(item);
         }
         #endregion

@@ -20,7 +20,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
     public class Patch_Tests
     {
         [Theory, CombinatorialData]
-        public async Task BasicPatchTests([CombinatorialRange(0, Movies.Count)] int index)
+        public async Task BasicPatchTests([CombinatorialRange(0, Movies.Count)] int index, [CombinatorialValues("movies", "movies_pagesize")] string table)
         {
             // Arrange
             var server = Program.CreateTestServer();
@@ -37,7 +37,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             };
 
             // Act
-            var response = await server.SendPatch($"tables/movies/{id}", patchDoc).ConfigureAwait(false);
+            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -51,21 +51,27 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             AssertEx.ResponseHasConditionalHeaders(stored, response);
         }
 
-        [Theory]
-        [InlineData("/id", "test-id")]
-        [InlineData("/updatedAt", "2018-12-31T05:00:00.000Z")]
-        [InlineData("/version", "dGVzdA==")]
-        public async Task CannotPatchSystemProperties(string propName, string propValue)
+        [Theory, CombinatorialData]
+        public async Task CannotPatchSystemProperties(
+            [CombinatorialValues("movies", "movies_pagesize")] string table,
+            [CombinatorialValues("/id", "/updatedAt", "/version")] string propName)
         {
             // Arrange
+            Dictionary<string, string> propValues = new()
+            {
+                { "/id", "test-id" },
+                { "/updatedAt", "2018-12-31T05:00:00.000Z" },
+                { "/version", "dGVzdA==" }
+            };
+
             var server = Program.CreateTestServer();
             var repository = server.GetRepository<InMemoryMovie>();
             var id = Utils.GetMovieId(100);
             var expected = repository.GetEntity(id).Clone();
-            var patchDoc = new PatchOperation[] { new PatchOperation("replace", propName, propValue) };
+            var patchDoc = new PatchOperation[] { new PatchOperation("replace", propName, propValues[propName]) };
 
             // Act
-            var response = await server.SendPatch($"tables/movies/{id}", patchDoc).ConfigureAwait(false);
+            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -76,6 +82,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
 
         [Theory]
         [InlineData(HttpStatusCode.NotFound, "tables/movies/missing-id")]
+        [InlineData(HttpStatusCode.NotFound, "tables/movies_pagesize/missing-id")]
         public async Task PatchFailureTests(HttpStatusCode expectedStatusCode, string relativeUri)
         {
             // Arrange
@@ -149,7 +156,8 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
         [Theory, CombinatorialData]
         public async Task AuthenticatedPatchTests(
             [CombinatorialValues(0, 1, 2, 3, 7, 14, 25)] int index,
-            [CombinatorialValues(null, "failed", "success")] string userId)
+            [CombinatorialValues(null, "failed", "success")] string userId,
+            [CombinatorialValues("movies_rated", "movies_legal")] string table)
         {
             // Arrange
             var server = Program.CreateTestServer();
@@ -173,13 +181,14 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             }
 
             // Act
-            var response = await server.SendPatch($"tables/movies_rated/{id}", patchDoc, headers).ConfigureAwait(false);
+            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc, headers).ConfigureAwait(false);
             var stored = repository.GetEntity(id);
 
             // Assert
             if (userId != "success")
             {
-                Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+                var statusCode = table.Contains("legal") ? HttpStatusCode.UnavailableForLegalReasons : HttpStatusCode.Unauthorized;
+                Assert.Equal(statusCode, response.StatusCode);
                 Assert.Equal<IMovie>(original, stored);
                 Assert.Equal<ITableData>(original, stored);
             }
@@ -248,11 +257,11 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             }
         }
 
-        [Fact]
-        public async Task SoftDeletePatch_PatchDeletedItem_ReturnsGone()
+        [Theory, CombinatorialData]
+        public async Task SoftDeletePatch_PatchDeletedItem_ReturnsGone([CombinatorialValues("soft", "soft_logged")] string table)
         {
             // Arrange
-            var index = 25;
+            const int index = 25;
             var server = Program.CreateTestServer();
             var id = Utils.GetMovieId(index);
 
@@ -263,17 +272,17 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             };
 
             // Act
-            var response = await server.SendPatch($"tables/soft/{id}", patchDoc).ConfigureAwait(false);
+            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
         }
 
-        [Fact]
-        public async Task SoftDeletePatch_CanUndeleteDeletedItem()
+        [Theory, CombinatorialData]
+        public async Task SoftDeletePatch_CanUndeleteDeletedItem([CombinatorialValues("soft", "soft_logged")] string table)
         {
             // Arrange
-            int index = 25;
+            const int index = 25;
             var server = Program.CreateTestServer();
             var repository = server.GetRepository<SoftMovie>();
             var id = Utils.GetMovieId(index);
@@ -286,7 +295,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             };
 
             // Act
-            var response = await server.SendPatch($"tables/soft/{id}", patchDoc).ConfigureAwait(false);
+            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -300,11 +309,11 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             AssertEx.ResponseHasConditionalHeaders(stored, response);
         }
 
-        [Fact]
-        public async Task SoftDeletePatch_PatchNotDeletedItem()
+        [Theory, CombinatorialData]
+        public async Task SoftDeletePatch_PatchNotDeletedItem([CombinatorialValues("soft", "soft_logged")] string table)
         {
             // Arrange
-            int index = 24;
+            const int index = 24;
             var server = Program.CreateTestServer();
             var repository = server.GetRepository<SoftMovie>();
             var id = Utils.GetMovieId(index);
@@ -319,7 +328,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             };
 
             // Act
-            var response = await server.SendPatch($"tables/soft/{id}", patchDoc).ConfigureAwait(false);
+            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

@@ -27,7 +27,7 @@ namespace Microsoft.AzureMobile.Server.InMemory.Test
         };
         #endregion
 
-        [Theory, CombinatorialData]
+        [Theory, PairwiseData]
         public void EqualityTests(
             [CombinatorialValues("", "t1", "t2")] string aID,
             bool aDeleted,
