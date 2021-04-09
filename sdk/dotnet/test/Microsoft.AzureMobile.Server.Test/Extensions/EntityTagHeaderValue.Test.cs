@@ -2,11 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AzureMobile.Server.Extensions;
 using Microsoft.Net.Http.Headers;
 using Xunit;

@@ -242,7 +242,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
         public async Task ReplaceSoftNotDeleted_Works([CombinatorialValues("soft", "soft_logged")] string table)
         {
             // Arrange
-            int index = 24;
+            const int index = 24;
             var server = Program.CreateTestServer();
             var repository = server.GetRepository<SoftMovie>();
             string id = Utils.GetMovieId(index);
@@ -266,7 +266,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
         public async Task ReplaceSoftDeleted_ReturnsGone([CombinatorialValues("soft", "soft_logged")] string table)
         {
             // Arrange
-            int index = 25;
+            const int index = 25;
             var server = Program.CreateTestServer();
             var repository = server.GetRepository<SoftMovie>();
             string id = Utils.GetMovieId(index);

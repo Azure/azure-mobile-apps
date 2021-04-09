@@ -11,8 +11,6 @@ using Microsoft.AzureMobile.Server.InMemory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace Microsoft.AzureMobile.WebService.Test
 {

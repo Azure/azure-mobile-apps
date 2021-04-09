@@ -88,7 +88,7 @@ namespace Microsoft.AzureMobile.Common.Test.Models
         /// Converts this object to a dictionary.
         /// </summary>
         /// <returns></returns>
-        public Dictionary<string,object> ToDictionary()
+        public Dictionary<string, object> ToDictionary()
         {
             string json = JsonSerializer.Serialize(this);
             var result = JsonSerializer.Deserialize<Dictionary<string, object>>(json);

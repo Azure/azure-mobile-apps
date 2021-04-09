@@ -2,14 +2,8 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AzureMobile.Common.Test.Models;
 using Microsoft.AzureMobile.Server.Exceptions;
 using Microsoft.AzureMobile.Server.Extensions;
 using Microsoft.AzureMobile.Server.InMemory;

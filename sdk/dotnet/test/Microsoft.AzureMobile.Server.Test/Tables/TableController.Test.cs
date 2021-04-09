@@ -66,7 +66,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables
         [InlineData("tables/movies/id-001", "somevalue")]
         [InlineData("tables/movies/id-001", "1.0")]
         [InlineData("tables/movies/id-001", "9.0.0")]
-        public async Task ZumoVersion_MissingOrInvalid_BadRequest(string relativeUri,string headerValue)
+        public async Task ZumoVersion_MissingOrInvalid_BadRequest(string relativeUri, string headerValue)
         {
             // Arrange
             var server = Program.CreateTestServer();

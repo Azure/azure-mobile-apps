@@ -4,9 +4,7 @@
 using System.Linq;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Query.Validators;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.AzureMobile.Server.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OData.UriParser;
 using Newtonsoft.Json;

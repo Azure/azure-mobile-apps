@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AzureMobile.Common.Test.Models
 {

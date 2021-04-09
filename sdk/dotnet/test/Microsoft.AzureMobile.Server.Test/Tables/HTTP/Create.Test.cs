@@ -79,7 +79,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             var expectedCount = repository.Entities.Count;
             var movieToAdd = blackPantherMovie.Clone();
             movieToAdd.Id = Guid.NewGuid().ToString("N");
-            if (useUpdatedAt) { movieToAdd.UpdatedAt = DateTimeOffset.Parse("2018-12-31T01:01:01.000Z");  }
+            if (useUpdatedAt) { movieToAdd.UpdatedAt = DateTimeOffset.Parse("2018-12-31T01:01:01.000Z"); }
             if (useVersion) { movieToAdd.Version = Convert.ToBase64String(Guid.NewGuid().ToByteArray()); }
 
             // Act

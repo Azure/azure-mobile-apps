@@ -13,7 +13,6 @@ namespace Microsoft.AzureMobile.Server.Extensions
         private const string IncludeDeletedOption = "include:deleted";
         private const string ZumoOptionsHeader = "X-ZUMO-Options";
 
-
         /// <summary>
         /// Applies an optional data view to the query.
         /// </summary>
