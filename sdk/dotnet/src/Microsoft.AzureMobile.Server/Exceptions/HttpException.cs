@@ -69,6 +69,29 @@ namespace Microsoft.AzureMobile.Server.Exceptions
 
     #region Sub-classes
     /// <summary>
+    /// A basic exception class for handling repository issues.
+    /// </summary>
+    [ExcludeFromCodeCoverage(Justification = "Do not test standard exception constructors")]
+    public class RepositoryException : HttpException
+    {
+        public RepositoryException() : base()
+        {
+        }
+
+        public RepositoryException(string message) : base(message)
+        {
+        }
+
+        public RepositoryException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+        public RepositoryException(int statusCode, object payload = null) : base(statusCode, payload)
+        {
+        }
+    }
+
+    /// <summary>
     /// A <see cref="HttpException"/> that returns 304 Not Modified to the client.
     /// </summary>
 #pragma warning disable RCS1194 // Implement exception constructors.

@@ -15,9 +15,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AzureMobile.Commo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AzureMobile.WebService.Test", "test\Microsoft.AzureMobile.WebService.Test\Microsoft.AzureMobile.WebService.Test.csproj", "{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AzureMobile.Server.InMemory.Test", "test\Microsoft.AzureMobile.Server.InMemory.Test\Microsoft.AzureMobile.Server.InMemory.Test.csproj", "{F3C16337-ECE5-4F73-9A1E-528232D44C52}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AzureMobile.Server.InMemory.Test", "test\Microsoft.AzureMobile.Server.InMemory.Test\Microsoft.AzureMobile.Server.InMemory.Test.csproj", "{F3C16337-ECE5-4F73-9A1E-528232D44C52}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AzureMobile.Server.Test", "test\Microsoft.AzureMobile.Server.Test\Microsoft.AzureMobile.Server.Test.csproj", "{9E547FED-7BA2-43BF-8A71-4C763FDCBC7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AzureMobile.Server.Test", "test\Microsoft.AzureMobile.Server.Test\Microsoft.AzureMobile.Server.Test.csproj", "{9E547FED-7BA2-43BF-8A71-4C763FDCBC7C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AzureMobile.Server.EFCore", "src\Microsoft.AzureMobile.Server.EFCore\Microsoft.AzureMobile.Server.EFCore.csproj", "{FFE32FF2-2025-4127-9BAA-AC08D9E5D1D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AzureMobile.Server.EFCore.Test", "test\Microsoft.AzureMobile.Server.EFCore.Test\Microsoft.AzureMobile.Server.EFCore.Test.csproj", "{C7D7FF9A-FB7C-4746-9CCB-751FF81B876E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -101,6 +105,30 @@ Global
 		{9E547FED-7BA2-43BF-8A71-4C763FDCBC7C}.Release|x64.Build.0 = Release|Any CPU
 		{9E547FED-7BA2-43BF-8A71-4C763FDCBC7C}.Release|x86.ActiveCfg = Release|Any CPU
 		{9E547FED-7BA2-43BF-8A71-4C763FDCBC7C}.Release|x86.Build.0 = Release|Any CPU
+		{FFE32FF2-2025-4127-9BAA-AC08D9E5D1D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFE32FF2-2025-4127-9BAA-AC08D9E5D1D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFE32FF2-2025-4127-9BAA-AC08D9E5D1D6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FFE32FF2-2025-4127-9BAA-AC08D9E5D1D6}.Debug|x64.Build.0 = Debug|Any CPU
+		{FFE32FF2-2025-4127-9BAA-AC08D9E5D1D6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FFE32FF2-2025-4127-9BAA-AC08D9E5D1D6}.Debug|x86.Build.0 = Debug|Any CPU
+		{FFE32FF2-2025-4127-9BAA-AC08D9E5D1D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFE32FF2-2025-4127-9BAA-AC08D9E5D1D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFE32FF2-2025-4127-9BAA-AC08D9E5D1D6}.Release|x64.ActiveCfg = Release|Any CPU
+		{FFE32FF2-2025-4127-9BAA-AC08D9E5D1D6}.Release|x64.Build.0 = Release|Any CPU
+		{FFE32FF2-2025-4127-9BAA-AC08D9E5D1D6}.Release|x86.ActiveCfg = Release|Any CPU
+		{FFE32FF2-2025-4127-9BAA-AC08D9E5D1D6}.Release|x86.Build.0 = Release|Any CPU
+		{C7D7FF9A-FB7C-4746-9CCB-751FF81B876E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7D7FF9A-FB7C-4746-9CCB-751FF81B876E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7D7FF9A-FB7C-4746-9CCB-751FF81B876E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C7D7FF9A-FB7C-4746-9CCB-751FF81B876E}.Debug|x64.Build.0 = Debug|Any CPU
+		{C7D7FF9A-FB7C-4746-9CCB-751FF81B876E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C7D7FF9A-FB7C-4746-9CCB-751FF81B876E}.Debug|x86.Build.0 = Debug|Any CPU
+		{C7D7FF9A-FB7C-4746-9CCB-751FF81B876E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7D7FF9A-FB7C-4746-9CCB-751FF81B876E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7D7FF9A-FB7C-4746-9CCB-751FF81B876E}.Release|x64.ActiveCfg = Release|Any CPU
+		{C7D7FF9A-FB7C-4746-9CCB-751FF81B876E}.Release|x64.Build.0 = Release|Any CPU
+		{C7D7FF9A-FB7C-4746-9CCB-751FF81B876E}.Release|x86.ActiveCfg = Release|Any CPU
+		{C7D7FF9A-FB7C-4746-9CCB-751FF81B876E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -112,6 +140,8 @@ Global
 		{C602091B-DC94-4CFD-9E4C-7F27B4A3E08A} = {8E70DD2F-2182-439E-888F-4B6F73CCE95A}
 		{F3C16337-ECE5-4F73-9A1E-528232D44C52} = {8E70DD2F-2182-439E-888F-4B6F73CCE95A}
 		{9E547FED-7BA2-43BF-8A71-4C763FDCBC7C} = {8E70DD2F-2182-439E-888F-4B6F73CCE95A}
+		{FFE32FF2-2025-4127-9BAA-AC08D9E5D1D6} = {81138015-8205-4410-AFB3-4BA5E949B9C1}
+		{C7D7FF9A-FB7C-4746-9CCB-751FF81B876E} = {8E70DD2F-2182-439E-888F-4B6F73CCE95A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D1B5BA0C-B5E0-4E9B-BAD8-5E7C6841D6A2}

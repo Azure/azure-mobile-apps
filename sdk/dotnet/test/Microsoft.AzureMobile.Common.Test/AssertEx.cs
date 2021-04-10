@@ -43,7 +43,7 @@ namespace Microsoft.AzureMobile.Common.Test
         public static void SystemPropertiesSet(ITableData entity)
         {
             AssertEx.CloseTo(DateTimeOffset.Now, entity.UpdatedAt);
-            Assert.Equal(16, entity.Version.Length);
+            Assert.NotEmpty(entity.Version);
         }
 
         public static void SystemPropertiesChanged(ITableData original, ITableData replacement)
