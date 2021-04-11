@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.AzureMobile.Server.InMemory\Microsoft.AzureMobile.Server.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.AzureMobile.Server\Microsoft.AzureMobile.Server.csproj" />
+    <ProjectReference Include="..\Microsoft.AzureMobile.Common.Test\Microsoft.AzureMobile.Common.Test.csproj" />
+  </ItemGroup>
+
+</Project>
