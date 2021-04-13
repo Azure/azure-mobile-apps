@@ -110,6 +110,12 @@ namespace Microsoft.AzureMobile.Server.Exceptions
         public BadRequestException() : base(StatusCodes.Status400BadRequest)
         {
         }
+
+        public BadRequestException(string message, Exception innerException) : base(message, innerException)
+        {
+            StatusCode = StatusCodes.Status400BadRequest;
+            Payload = innerException;
+        }
     }
 
     /// <summary>

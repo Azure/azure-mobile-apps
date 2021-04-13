@@ -3,7 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AzureMobile.Server.Exceptions;
@@ -81,6 +84,19 @@ namespace Microsoft.AzureMobile.Server.Extensions
             }
 
             version = headers.IfMatch.Count > 0 ? headers.IfMatch.Single().ToByteArray() : null;
+        }
+
+        /// <summary>
+        /// Reads the body of the request as a string.
+        /// </summary>
+        /// <param name="request">The request</param>
+        /// <returns>The body of the request</returns>
+        internal static async Task<string> GetBodyAsStringAsync(this HttpRequest request)
+        {
+            using (var streamReader = new StreamReader(request.Body, Encoding.UTF8))
+            {
+                return await streamReader.ReadToEndAsync().ConfigureAwait(false);
+            }
         }
     }
 }

@@ -5,10 +5,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AzureMobile.Common.Test.Models;
 using Microsoft.AzureMobile.Common.Test.TestData;
-using Microsoft.AzureMobile.Server.Tables;
+using Microsoft.AzureMobile.Server.Models;
 using Xunit;
 
-namespace Microsoft.AzureMobile.Server.Test.Tables
+namespace Microsoft.AzureMobile.Server.Test.Models
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class PagedResult_Tests
