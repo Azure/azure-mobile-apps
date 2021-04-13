@@ -2,13 +2,15 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Linq;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace Microsoft.AzureMobile.Server.Extensions
 {
     internal static class JsonPatchDocumentExtensions
     {
+        private const string UniversalTimeFormat = "yyyyMMddTHHmmss.fff";
+
         /// <summary>
         /// Returns true if one of the operations is the operation specified.
         /// </summary>
@@ -22,8 +24,12 @@ namespace Microsoft.AzureMobile.Server.Extensions
         {
             foreach (var operation in patch.Operations)
             {
-                if (operation.op == op && operation.path == path && operation.value.Equals(value))
+                if (operation.op.Equals(op, StringComparison.InvariantCultureIgnoreCase)
+                    && operation.path.Equals(path, StringComparison.InvariantCultureIgnoreCase)
+                    && operation.value.Equals(value))
+                {
                     return true;
+                }
             }
             return false;
         }
@@ -33,16 +39,36 @@ namespace Microsoft.AzureMobile.Server.Extensions
         /// to adjust system properties, and only replace operations are allowed.
         /// </summary>
         /// <param name="patch">The patch document</param>
-        internal static bool ModifiesSystemProperties<TEntity>(this JsonPatchDocument<TEntity> patch) where TEntity : class, ITableData
+        internal static bool ModifiesSystemProperties<TEntity>(this JsonPatchDocument<TEntity> patch, TEntity entity) where TEntity : class, ITableData
         {
-            string[] systemProperties = new string[] { "/id", "/updatedat", "/version" };
-            string[] allowsOperations = new string[] { "replace", "test" };
-
             foreach (var operation in patch.Operations)
             {
-                if (!allowsOperations.Contains(operation.op) || systemProperties.Contains(operation.path.ToLowerInvariant()))
+                switch (operation.OperationType)
                 {
-                    return true;
+                    case OperationType.Replace:
+                        if (operation.path.Equals("/id", StringComparison.OrdinalIgnoreCase) && !entity.Id.Equals(operation.value))
+                            return true;
+
+                        if (operation.path.Equals("/version", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string stored = entity.GetETag().Trim('"');
+                            if (!stored.Equals(operation.value))
+                                return true;
+                        }
+
+                        if (operation.path.Equals("/updatedAt", StringComparison.OrdinalIgnoreCase) && operation.value is DateTime dt)
+                        {
+                            string stored = entity.UpdatedAt.ToUniversalTime().ToString(UniversalTimeFormat);
+                            string dtzval = dt.ToUniversalTime().ToString(UniversalTimeFormat);
+                            if (stored != dtzval)
+                                return true;
+                        }
+
+                        break;
+                    case OperationType.Test:
+                        break;
+                    default:
+                        return true;
                 }
             }
             return false;

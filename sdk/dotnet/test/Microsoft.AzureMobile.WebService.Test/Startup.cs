@@ -11,6 +11,7 @@ using Microsoft.AzureMobile.Server.InMemory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AzureMobile.WebService.Test
 {
@@ -39,6 +40,9 @@ namespace Microsoft.AzureMobile.WebService.Test
         /// <param name="services">The service collection</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            // Implement logging!
+            services.AddLogging(options => options.AddConsole());
+
             // Add singletons for each InMemoryRepository to be used.
             var seedData = Movies.OfType<InMemoryMovie>();
             services.AddSingleton<IRepository<InMemoryMovie>>(new InMemoryRepository<InMemoryMovie>(seedData));

@@ -151,7 +151,7 @@ namespace Microsoft.AzureMobile.Common.Test.Extensions
             // Auto-add the X-ZUMO-Version header if we don't already have one.
             if (!request.Headers.Contains(ZumoVersionHeader))
             {
-                request.Headers.Add(ZumoVersionHeader, "3.0");
+                request.Headers.Add(ZumoVersionHeader, "3.0.0");
             }
 
             var payload = JsonSerializer.Serialize(content, SerializerOptions);

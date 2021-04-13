@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 #nullable enable
 
-namespace Microsoft.AzureMobile.Server.Tables
+namespace Microsoft.AzureMobile.Server.Models
 {
     /// <summary>
     /// The model class for the response to a query request.

@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AzureMobile.Common.Test;
 using Microsoft.AzureMobile.Common.Test.Extensions;
@@ -18,10 +18,12 @@ using Xunit;
 namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class Patch_Tests
+    public class DeltaPatch_Tests
     {
         [Theory, CombinatorialData]
-        public async Task BasicPatchTests([CombinatorialRange(0, Movies.Count)] int index, [CombinatorialValues("movies", "movies_pagesize")] string table)
+        public async Task BasicPatchTests(
+            [CombinatorialRange(0, Movies.Count)] int index,
+            [CombinatorialValues("movies", "movies_pagesize")] string table)
         {
             // Arrange
             var server = Program.CreateTestServer();
@@ -31,14 +33,14 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             expected.Title = "Test Movie Title";
             expected.Rating = "PG-13";
 
-            var patchDoc = new PatchOperation[]
+            var patchDoc = new Dictionary<string, object>()
             {
-                new PatchOperation("replace", "title", "Test Movie Title"),
-                new PatchOperation("replace", "rating", "PG-13")
+                { "title", "Test Movie Title" },
+                { "rating", "PG-13" }
             };
 
             // Act
-            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -55,64 +57,33 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
         [Theory, CombinatorialData]
         public async Task CannotPatchSystemProperties(
             [CombinatorialValues("movies", "movies_pagesize")] string table,
-            [CombinatorialValues("/id", "/updatedAt", "/version")] string propName)
+            [CombinatorialValues("Id", "UpdatedAt", "Version")] string propName)
         {
             // Arrange
             Dictionary<string, string> propValues = new()
             {
-                { "/id", "test-id" },
-                { "/updatedAt", "2018-12-31T05:00:00.000Z" },
-                { "/version", "dGVzdA==" }
+                { "Id", "test-id" },
+                { "UpdatedAt", "2018-12-31T05:00:00.000Z" },
+                { "Version", "dGVzdA==" }
             };
 
             var server = Program.CreateTestServer();
             var repository = server.GetRepository<InMemoryMovie>();
             var id = Utils.GetMovieId(100);
             var expected = repository.GetEntity(id).Clone();
-            var patchDoc = new PatchOperation[] { new PatchOperation("replace", propName, propValues[propName]) };
+            var patchDoc = new Dictionary<string, object>()
+            {
+                { propName, propValues[propName] }
+            };
 
             // Act
-            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             var stored = repository.GetEntity(id);
             Assert.Equal<IMovie>(expected, stored);
             Assert.Equal<ITableData>(expected, stored);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task CanPatchNonModifiedSystemProperties(
-            [CombinatorialValues("movies", "movies_pagesize")] string table,
-            [CombinatorialValues("/id", "/updatedAt", "/version")] string propName)
-        {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<InMemoryMovie>();
-            var id = Utils.GetMovieId(100);
-            var expected = repository.GetEntity(id).Clone();
-
-            Dictionary<string, string> propValues = new()
-            {
-                { "/id", id },
-                { "/updatedAt", expected.UpdatedAt.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture) },
-                { "/version", Convert.ToBase64String(expected.Version) }
-            };
-            var patchDoc = new PatchOperation[] { new PatchOperation("replace", propName, propValues[propName]) };
-
-            // Act
-            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            var result = response.DeserializeContent<ClientMovie>();
-            var stored = repository.GetEntity(id);
-
-            AssertEx.SystemPropertiesChanged(expected, stored);
-            AssertEx.SystemPropertiesMatch(stored, result);
-            Assert.Equal<IMovie>(expected, result);
-            AssertEx.ResponseHasConditionalHeaders(stored, response);
         }
 
         [Theory]
@@ -122,14 +93,14 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
         {
             // Arrange
             var server = Program.CreateTestServer();
-            PatchOperation[] patchDoc = new PatchOperation[]
+            var patchDoc = new Dictionary<string, object>()
             {
-                new PatchOperation("replace", "title", "Home Video"),
-                new PatchOperation("replace", "rating", "PG-13")
+                { "Title", "Test Movie Title" },
+                { "Rating", "PG-13" }
             };
 
             // Act
-            var response = await server.SendPatch(relativeUri, patchDoc).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, relativeUri, patchDoc, "application/json", null).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(expectedStatusCode, response.StatusCode);
@@ -143,14 +114,14 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             var repository = server.GetRepository<InMemoryMovie>();
             var id = Utils.GetMovieId(100);
             var expected = repository.GetEntity(id).Clone();
-            PatchOperation[] patchDoc = new PatchOperation[]
+            var patchDoc = new Dictionary<string, object>()
             {
-                new PatchOperation("replace", "title", "Home Video"),
-                new PatchOperation("replace", "rating", "PG-13")
+                { "Title", "Test Movie Title" },
+                { "Rating", "PG-13" }
             };
 
             // Act
-            var response = await server.SendPatch($"tables/movies/{id}", patchDoc, "application/json+problem").ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/movies/{id}", patchDoc, "application/json+problem", null).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
@@ -159,30 +130,55 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             Assert.Equal<ITableData>(expected, stored);
         }
 
+        [Fact]
+        public async Task PatchFailedWithMalformedJson()
+        {
+            // Arrange
+            var server = Program.CreateTestServer();
+            var repository = server.GetRepository<InMemoryMovie>();
+            var id = Utils.GetMovieId(100);
+            var expected = repository.GetEntity(id).Clone();
+            const string patchDoc = "{ \"some-malformed-json\": null";
+
+            // Act
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/movies/{id}", patchDoc, "application/json", null).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            var stored = repository.GetEntity(id);
+            Assert.Equal<IMovie>(expected, stored);
+            Assert.Equal<ITableData>(expected, stored);
+        }
+
         [Theory]
         [InlineData("duration", 50)]
         [InlineData("duration", 370)]
-        [InlineData("duration", null)]
         [InlineData("rating", "M")]
         [InlineData("rating", "PG-13 but not always")]
         [InlineData("title", "a")]
         [InlineData("title", "Lorem ipsum dolor sit amet, consectetur adipiscing elit accumsan.")]
-        [InlineData("title", null)]
         [InlineData("year", 1900)]
         [InlineData("year", 2035)]
-        [InlineData("year", null)]
+        [InlineData("Duration", 50)]
+        [InlineData("Duration", 370)]
+        [InlineData("Rating", "M")]
+        [InlineData("Rating", "PG-13 but not always")]
+        [InlineData("Title", "a")]
+        [InlineData("Title", "Lorem ipsum dolor sit amet, consectetur adipiscing elit accumsan.")]
+        [InlineData("Year", 1900)]
+        [InlineData("Year", 2035)]
         public async Task PatchValidationFailureTests(string propName, object propValue)
         {
             // Arrange
             string id = Utils.GetMovieId(100);
             var server = Program.CreateTestServer();
-            var patchDoc = new PatchOperation[]
+            var patchDoc = new Dictionary<string, object>()
             {
-                propValue == null ? new PatchOperation("remove", $"/{propName}") : new PatchOperation("replace", $"/{propName}", propValue)
+                { propName, propValue }
             };
 
             // Act
-            var response = await server.SendPatch($"tables/movies/{id}", patchDoc).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/movies/{id}", patchDoc, "application/json", null).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -203,10 +199,10 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             expected.Title = "TEST MOVIE TITLE"; // Upper Cased because of the PreCommitHook
             expected.Rating = "PG-13";
 
-            var patchDoc = new PatchOperation[]
+            var patchDoc = new Dictionary<string, object>()
             {
-                new PatchOperation("replace", "title", "Test Movie Title"),
-                new PatchOperation("replace", "rating", "PG-13")
+                { "Title", "Test Movie Title" },
+                { "Rating", "PG-13" }
             };
 
             Dictionary<string, string> headers = new();
@@ -216,7 +212,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             }
 
             // Act
-            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc, headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", headers).ConfigureAwait(false);
             var stored = repository.GetEntity(id);
 
             // Assert
@@ -257,15 +253,15 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             var entity = repository.GetEntity(id);
             entity.UpdatedAt = DateTimeOffset.Parse("Sat, 02 Mar 2019 15:00:00 GMT");
             Dictionary<string, string> headers = new() { { headerName, headerValue ?? entity.GetETag() } };
-            var patchDoc = new PatchOperation[]
+            var patchDoc = new Dictionary<string, object>()
             {
-                new PatchOperation("replace", "title", "Test Movie Title"),
-                new PatchOperation("replace", "rating", "PG-13")
+                { "Title", "Test Movie Title" },
+                { "Rating", "PG-13" }
             };
             var expected = repository.GetEntity(id).Clone();
 
             // Act
-            var response = await server.SendPatch($"tables/movies/{id}", patchDoc, headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/movies/{id}", patchDoc, "application/json", headers).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(expectedStatusCode, response.StatusCode);
@@ -300,14 +296,14 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             var server = Program.CreateTestServer();
             var id = Utils.GetMovieId(index);
 
-            var patchDoc = new PatchOperation[]
+            var patchDoc = new Dictionary<string, object>()
             {
-                new PatchOperation("replace", "title", "Test Movie Title"),
-                new PatchOperation("replace", "rating", "PG-13")
+                { "Title", "Test Movie Title" },
+                { "Rating", "PG-13" }
             };
 
             // Act
-            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
@@ -324,13 +320,13 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             var expected = repository.GetEntity(id).Clone();
             expected.Deleted = false;
 
-            var patchDoc = new PatchOperation[]
+            var patchDoc = new Dictionary<string, object>()
             {
-                new PatchOperation("replace", "deleted", false)
+                { "Deleted", false }
             };
 
             // Act
-            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -356,14 +352,14 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             expected.Title = "Test Movie Title";
             expected.Rating = "PG-13";
 
-            var patchDoc = new PatchOperation[]
+            var patchDoc = new Dictionary<string, object>()
             {
-                new PatchOperation("replace", "title", "Test Movie Title"),
-                new PatchOperation("replace", "rating", "PG-13")
+                { "Title", "Test Movie Title" },
+                { "Rating", "PG-13" }
             };
 
             // Act
-            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

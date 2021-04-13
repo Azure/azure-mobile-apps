@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AzureMobile.Server.Tables;
 using Xunit;
 
-namespace Microsoft.AzureMobile.Server.Test.Tables
+namespace Microsoft.AzureMobile.Server.Test.Models
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class ZumoVersion_Tests

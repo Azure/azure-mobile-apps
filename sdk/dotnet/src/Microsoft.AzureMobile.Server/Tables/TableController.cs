@@ -3,7 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Mime;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.OData;
@@ -12,14 +15,16 @@ using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AzureMobile.Server.Exceptions;
 using Microsoft.AzureMobile.Server.Extensions;
 using Microsoft.AzureMobile.Server.Filters;
-using Microsoft.AzureMobile.Server.Tables;
+using Microsoft.AzureMobile.Server.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.OData;
 using Microsoft.OData.Edm;
+using Newtonsoft.Json;
 
 namespace Microsoft.AzureMobile.Server
 {
@@ -43,7 +48,7 @@ namespace Microsoft.AzureMobile.Server
         /// <param name="repository">The repository to use as the data store.</param>
         /// <param name="accessControlProvider">The access control provider.</param>
         /// <param name="options">The <see cref="TableControllerOptions"/> for this controller.</param>
-        public TableController(IRepository<TEntity> repository = null, IAccessControlProvider<TEntity> accessControlProvider = null, TableControllerOptions options = null) : base()
+        public TableController(IRepository<TEntity> repository = null, IAccessControlProvider<TEntity> accessControlProvider = null, TableControllerOptions options = null)
         {
             _repository = repository;
             AccessControlProvider = accessControlProvider ?? new AccessControlProvider<TEntity>();
@@ -118,9 +123,43 @@ namespace Microsoft.AzureMobile.Server
         /// <returns>true if in view</returns>
         [NonAction]
         internal bool EntityIsInView(TEntity entity)
+            => AccessControlProvider.GetDataView()?.Invoke(entity) != false;
+
+        /// <summary>
+        /// Converts the provided JSON string to a JSON Patch Document based on the Request type.
+        /// Supports both RFC 6902 and RFC 7286 type patches.
+        /// </summary>
+        /// <param name="id">The ID of the request</param>
+        /// <param name="json">The JSON Patch Document</param>
+        /// <returns>A <see cref="JsonPatchDocument{TModel}"/> object</returns>
+        [NonAction]
+        internal JsonPatchDocument<TEntity> GetPatchDocument(string id, string json)
         {
-            Func<TEntity, bool> dataView = AccessControlProvider.GetDataView();
-            return dataView?.Invoke(entity) != false;
+            ContentType contentType = new(Request.ContentType);
+
+            try
+            {
+                if (contentType.MediaType == "application/json-patch+json")
+                {
+                    Logger?.LogInformation($"Patch({id}): Received JSON PATCH");
+                    return JsonConvert.DeserializeObject<JsonPatchDocument<TEntity>>(json);
+                }
+                else
+                {
+                    Logger?.LogInformation($"Patch({id}): Received MERGE PATCH");
+                    var mergepatch = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+                    var patch = new JsonPatchDocument<TEntity>();
+                    foreach (var kv in mergepatch)
+                    {
+                        patch.Operations.Add(new Operation<TEntity>("replace", $"/{kv.Key}", null, kv.Value));
+                    }
+                    return patch;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new BadRequestException(ex.Message, ex);
+            }
         }
         #endregion
 
@@ -136,9 +175,8 @@ namespace Microsoft.AzureMobile.Server
         /// <param name="token">A cancellation token.</param>
         /// <returns>A <see cref="CreatedAtRouteResult"/> for the created entity.</returns>
         [HttpPost]
-        [ActionName("CreateAsync")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
         [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         public virtual async Task<IActionResult> CreateAsync([FromBody] TEntity item, CancellationToken token = default)
         {
             Logger?.LogInformation("Create: initiated");
@@ -157,7 +195,6 @@ namespace Microsoft.AzureMobile.Server
         /// <param name="token">A cancellation token</param>
         /// <returns>A <see cref="NoContentResult"/> action result</returns>
         [HttpDelete("{id}")]
-        [ActionName("DeleteAsync")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public virtual async Task<IActionResult> DeleteAsync([FromRoute] string id, CancellationToken token = default)
         {
@@ -190,34 +227,36 @@ namespace Microsoft.AzureMobile.Server
         }
 
         /// <summary>
-        /// The PATCH method updates an existing entity according to the JSONPATCH (RFC 6902)
-        /// input format.
+        /// The PATCH method updates an existing entity according to the Delta patch format used by
+        /// ZUMO-API-VERSION v2.0.0
         /// </summary>
-        /// <remarks>
-        /// Only the "replace" operation is supported.
-        /// </remarks>
         /// <param name="id">The globally unique ID of the entity</param>
-        /// <param name="patchDocument">The RFC 6902 patch document</param>
+        /// <param name="patchDocument">The delta patch document</param>
         /// <param name="token">A cancellation token</param>
         /// <returns>An <see cref="OkObjectResult"/> with the resulting entity.</returns>
         [HttpPatch("{id}")]
-        [ActionName("PatchAsync")]
+        [Consumes("application/json", "application/json-patch+json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [Consumes("application/json-patch+json")]
-        public virtual async Task<IActionResult> PatchAsync([FromRoute] string id, [FromBody] JsonPatchDocument<TEntity> patchDocument, CancellationToken token = default)
+        public virtual async Task<IActionResult> PatchAsync([FromRoute] string id, CancellationToken token = default)
         {
-            Logger?.LogInformation($"Patch({id}): initiated (RFC6902 document)");
-            if (patchDocument.ModifiesSystemProperties())
-            {
-                Logger?.LogWarning($"Patch({id}): Patch documentcontains system property modifications (which are disallowed)");
-                return BadRequest();
-            }
+            Logger?.LogInformation($"Patch({id}): initiated");
+
+            // Read the body as a string and convert into a JsonPatchDocument.
+            string json = await Request.GetBodyAsStringAsync();
+            JsonPatchDocument<TEntity> patchDocument = GetPatchDocument(id, json);
+
             var entity = await Repository.ReadAsync(id, token).ConfigureAwait(false);
             if (entity == null || !EntityIsInView(entity))
             {
                 Logger?.LogWarning($"Patch({id}): Item not found (not in view)");
                 return NotFound();
             }
+            if (patchDocument.ModifiesSystemProperties(entity))
+            {
+                Logger?.LogWarning($"Patch({id}): Patch document changes system properties (which is disallowed)");
+                return BadRequest();
+            }
+
             await AuthorizeRequest(TableOperation.Update, entity, token).ConfigureAwait(false);
             if (Options.EnableSoftDelete && entity.Deleted && !patchDocument.Contains("replace", "/deleted", false))
             {
@@ -325,10 +364,17 @@ namespace Microsoft.AzureMobile.Server
             return Ok(entity);
         }
 
+        /// <summary>
+        /// The PUT operation is an idempotent mechanism for replacing the entire record.  This version does not
+        /// do create operations (use POST for that)
+        /// </summary>
+        /// <param name="id">The id of the record to be replaced</param>
+        /// <param name="item">The replacement item</param>
+        /// <param name="token">A cancellation token</param>
+        /// <returns></returns>
         [HttpPut("{id}")]
-        [ActionName("ReplaceAsync")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
         [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public virtual async Task<IActionResult> ReplaceAsync([FromRoute] string id, [FromBody] TEntity item, CancellationToken token = default)
         {
             Logger?.LogInformation($"Replace({id}): initiating");

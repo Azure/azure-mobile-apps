@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AzureMobile.Server.Extensions;
+using Microsoft.AzureMobile.Server.Models;
 using Microsoft.AzureMobile.Server.Tables;
 
 namespace Microsoft.AzureMobile.Server.Filters
