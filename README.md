@@ -10,7 +10,7 @@ To get started, take a look at [our documentation](https://azure.github.io/azure
 
 ### [.NET Core 5](sdk/dotnet/README.md)
 
-[![Coverage Status](https://coveralls.io/repos/github/Azure/azure-mobile-apps/badge.svg?branch=main)](https://coveralls.io/github/Azure/azure-mobile-apps?branch=main)
+[![.NET Library](https://github.com/Azure/azure-mobile-apps/actions/workflows/build-dotnet-library.yml/badge.svg?branch=main)](https://github.com/Azure/azure-mobile-apps/actions/workflows/build-dotnet-library.yml)
 
 ## Generating the documentation
 
