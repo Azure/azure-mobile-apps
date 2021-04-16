@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <PackageId>Microsoft.AzureMobile.Server.EFCore</PackageId>
+    <PackageId>Microsoft.AzureMobile.Server.InMemory</PackageId>
     <Authors>Microsoft Corporation</Authors>
     <Company>Microsoft Corporation</Company>
     <TargetFramework>net5.0</TargetFramework>
