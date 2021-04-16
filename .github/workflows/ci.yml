@@ -11,5 +11,16 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '5.0.202'
-      - run: dotnet build sdk/dotnet/AzureMobile.sln
-      - run: dotnet test sdk/dotnet/AzureMobile.sln
+      - name: Build Library
+        run: dotnet build sdk/dotnet/AzureMobile.sln
+      - name: Automated unit and integration tests
+        run: dotnet test sdk/dotnet/AzureMobile.sln
+          /p:CollectCoverage=true
+          /p:CoverletOutput=TestResults/
+          /p:CoverletOutputFormat=lcov
+      - name: Publish coverage report to coveralls.io
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: $({ secrets.GITHUB_TOKEN })
+          path-to-lcov: sdk/dotnet/TestResults/coverage.info
+          base-path: sdk/dotnet
