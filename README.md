@@ -8,7 +8,7 @@ To get started, take a look at [our documentation](https://azure.github.io/azure
 
 ## Libraries
 
-### [.NET Core 5](sdk/dotnet/README.md)
+### .NET
 
 [![.NET Library](https://github.com/Azure/azure-mobile-apps/actions/workflows/build-dotnet-library.yml/badge.svg?branch=main)](https://github.com/Azure/azure-mobile-apps/actions/workflows/build-dotnet-library.yml)
 

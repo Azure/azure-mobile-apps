@@ -15,7 +15,7 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   # GitHub Packaged Feed settings
   GITHUB_FEED: https://nuget.pkg.github.com/azure-mobile-apps/
-  GITHUB_USER: ${{ secrets.GITHUB_FEED_ACTOR }}
+  GITHUB_USER: ${{ github.actor }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   # Official NuGet Feed settings
   NUGET_FEED: https://api.nuget.org/v3/index.json
@@ -82,10 +82,7 @@ jobs:
       
       - name: Push to GitHub Feed
         run: |
-          for f in ./nupkg/*.nupkg
-          do
-            curl -vX PUT -u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@$f $GITHUB_FEED
-          done
+          find . -type f -name '*.nupkg' -print -exec curl -vX PUT -u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@{} $GITHUB_FEED \;
 
   deploy:
     needs: build
@@ -117,11 +114,10 @@ jobs:
 
       - name: Push to GitHub Feed
         run: |
-          for f in ./nupkg/*.nupkg
-          do
-            curl -vX PUT -u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@$f $GITHUB_FEED
-          done
+          find . -type f -name '*.nupkg' -print -exec curl -vX PUT -u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@{} $GITHUB_FEED \;
+
 
       - name: Push to NuGet Feed
-        run: dotnet nuget push ./nupkg/*.nupkg --source $NUGET_FEED --skip-duplicate --api-key $NUGET_KEY
+        run: |
+          find . -type f -name '*.nupkg' -print -exec dotnet nuget push {} --source $NUGET_FEED --skip-duplicate --api-key $NUGET_KEY \;
 
