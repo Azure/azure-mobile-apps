@@ -1,6 +1,6 @@
 using Microsoft.AzureMobile.Server.EFCore;
 
-namespace azuremobileserver.Db
+namespace Template.AzureMobileServer.Db
 {
     /// <summary>
     /// A DTO (data transfer object) for the TodoItems table.

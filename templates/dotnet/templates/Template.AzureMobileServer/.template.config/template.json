@@ -5,7 +5,7 @@
     "identity": "Microsoft.AzureMobile.ServerTemplate.CSharp",
     "name": "Azure Mobile Apps ASP.NET Core Server",
     "shortName": "azuremobileserver",
-    "sourceName": "azuremobileserver",
+    "sourceName": "Template.AzureMobileServer",
     "preferNameDirectory": true,
     "tags": {
         "language": "C#",

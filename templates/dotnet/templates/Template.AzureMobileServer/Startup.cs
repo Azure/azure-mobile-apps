@@ -1,4 +1,4 @@
-using azuremobileserver.Db;
+using Template.AzureMobileServer.Db;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AzureMobile.Server;
@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace azuremobileserver
+namespace Template.AzureMobileServer
 {
     public class Startup
     {

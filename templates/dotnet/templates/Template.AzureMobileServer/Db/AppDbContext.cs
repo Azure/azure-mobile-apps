@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace azuremobileserver.Db
+namespace Template.AzureMobileServer.Db
 {
     public class AppDbContext : DbContext
     {

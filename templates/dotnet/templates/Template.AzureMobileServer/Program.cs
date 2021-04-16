@@ -1,11 +1,11 @@
 using System;
-using azuremobileserver.Db;
+using Template.AzureMobileServer.Db;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace azuremobileserver
+namespace Template.AzureMobileServer
 {
     public class Program
     {
