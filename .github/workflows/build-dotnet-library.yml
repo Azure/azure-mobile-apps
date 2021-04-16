@@ -82,7 +82,7 @@ jobs:
       
       - name: Push to GitHub Feed
         run: |
-          find . -type f -name '*.nupkg' -print -exec curl -vX PUT -u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@{} $GITHUB_FEED \;
+          find . -type f -name '*.nupkg' ! -name '*.symbols.nupkg' -print -exec curl -vX PUT -u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@{} $GITHUB_FEED \;
 
   deploy:
     needs: build
@@ -114,5 +114,5 @@ jobs:
 
       - name: Push to NuGet Feed
         run: |
-          find . -type f -name '*.nupkg' -print -exec dotnet nuget push {} --source $NUGET_FEED --skip-duplicate --api-key $NUGET_KEY \;
+          find . -type f -name '*.nupkg' ! -name '*.symbols.nupkg' -print -exec dotnet nuget push {} --source $NUGET_FEED --skip-duplicate --api-key $NUGET_KEY \;
 
