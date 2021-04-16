@@ -1,0 +1,18 @@
+{
+  "routes": {
+    "/": {
+      "insert": {
+        "permission": "public"
+      },
+      "read": {
+        "permission": "admin"
+      },
+      "update": {
+        "permission": "application"
+      },
+      "delete": {
+        "permission": "user"
+      }
+    }
+  }
+}

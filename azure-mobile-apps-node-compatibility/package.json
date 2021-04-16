@@ -1,0 +1,33 @@
+{
+  "name": "azure-mobile-apps-compatibility",
+  "version": "0.0.7",
+  "description": "Scaffold an Azure Mobile App from an Azure Mobile Service",
+  "author": "Microsoft",
+  "repository": "Azure/azure-mobile-apps-node-compatibility",
+  "license": "MIT",
+  "bin": {
+    "scaffold-mobile-app": "bin/scaffold-mobile-app"
+  },
+  "scripts": {
+    "test": "npm run mocha"
+  },
+  "dependencies": {
+    "cli-prompt": "^0.5.0",
+    "mkdirp": "^0.5.1",
+    "msnodesqlv8": "^0.1.35",
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {
+    "azure": "^0.6.9-zumo",
+    "azure-mobile-apps": "^2.0.0",
+    "chai": "^3.5.0",
+    "chai-subset": "^1.2.0",
+    "express": "^4.13.4",
+    "mocha": "^2.4.5",
+    "node-uuid": "^1.4.7",
+    "rimraf": "^2.5.2",
+    "sqlite3": "^3.1.4",
+    "supertest": "^1.2.0",
+    "supertest-as-promised": "^3.0.0"
+  }
+}

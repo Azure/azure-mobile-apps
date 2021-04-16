@@ -1,0 +1,13 @@
+{
+    "name": "scaffolded-mobile-app",
+    "version": "0.0.1",
+    "description": "An Azure Mobile App scaffolded with the compatibility tool",
+    "dependencies": {
+        "azure": "0.6.9-zumo",
+        "azure-mobile-apps": "^2.0.1",
+        "azure-mobile-apps-compatibility": "^0.0.6",
+        "express": "^4.13.4"
+    },
+    "license": "UNLICENSED",
+    "private": true
+}
