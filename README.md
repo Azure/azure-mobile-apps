@@ -12,6 +12,10 @@ To get started, take a look at [our documentation](https://azure.github.io/azure
 
 [![.NET Library](https://github.com/Azure/azure-mobile-apps/actions/workflows/build-dotnet-library.yml/badge.svg?branch=main)](https://github.com/Azure/azure-mobile-apps/actions/workflows/build-dotnet-library.yml)
 
+We generate builds through GitHub Actions and distribute them through GitHub Packages.  Each non-release build will be numbered `0.0.buildnumber`.  You can find them on [GitHub Packages](https://github.com/Azure/azure-mobile-apps/packages).  Learn how to install the built packages from [the GitHub documentation](https://docs.github.com/en/packages/guides/configuring-dotnet-cli-for-use-with-github-packages).
+
+Releases are published to the main NuGet feed.
+
 ## Generating the documentation
 
 This project uses [mkdocs](https://mkdocs.org) for documentation.  Documentation is written in Markdown.  To install the pre-requisites, use the following:
