@@ -1,8 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <PackageId>Microsoft.AzureMobile.Server.EFCore</PackageId>
+    <Authors>Microsoft Corporation</Authors>
+    <Company>Microsoft Corporation</Company>
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <Version>5.0.0-preview.1</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Description>A repository library for Azure Mobile Apps, implemented using Entity Framework Core.  For more details, see Microsoft.AzureMobile.Server.</Description>
+    <Copyright>Copyright (c) 2021 Microsoft Corporation.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <ProjectUrl>https://github.com/azure/azure-mobile-apps</ProjectUrl>
+    <RepositoryUrl>https://github.com/azure/azure-mobile-apps</RepositoryUrl>
+    <PackageTags>microsoft aspnetcore azure cloud mobile webapi</PackageTags>
+    <NeutralLanguage>en</NeutralLanguage>
+    <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.5" />

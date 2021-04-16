@@ -1,10 +1,10 @@
-name: Azure Mobile Apps .NET CI
+name: .NET Library BUILD
 on: [ workflow_dispatch ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
     name: Azure Mobile Apps .NET Library
+    runs-on: ubuntu-latest
     steps:
       - name: Check out current source
         uses: actions/checkout@v2
@@ -33,11 +33,20 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: $({ secrets.GITHUB_TOKEN })
-          path-to-lcov: sdk/dotnet/TestResults/lcov.info
+          path-to-lcov: ./TestResults/lcov.info
           base-path: sdk/dotnet
+
+      - name: Pack libraries for NuGET
+        run: dotnet pack -c Release sdk/dotnet/AzureMobile.sln
 
       - name: Upload Coverage Reports
         uses: actions/upload-artifact@v2
         with:
           name: coverage-reports
           path: sdk/dotnet/TestResults
+
+      - name: Upload nupkg files
+        uses: actions/upload-artifact@v2
+        with:
+          name: nupkg-files
+          path: sdk/dotnet/src/**/bin/Release/*.nupkg
