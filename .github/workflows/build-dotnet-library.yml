@@ -15,7 +15,7 @@ jobs:
           dotnet-version: '5.0.202'
 
       - name: Install dependencies
-        run: dotnet restore
+        run: dotnet restore sdk/dotnet/AzureMobile.sln
 
       - name: Build Library
         run: dotnet build --no-restore sdk/dotnet/AzureMobile.sln
