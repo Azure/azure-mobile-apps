@@ -1,29 +1,49 @@
 name: .NET Library BUILD
-on: [ workflow_dispatch ]
+on:
+  workflow_dispatch
+
+env:
+  # Stop wasting time caching packages
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  # Disable sending usage data to Microsoft
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  # GitHub Packaged Feed settings
+  GITHUB_FEED: https://nuget.pkg.github.com/azure-mobile-apps/
+  GITHUB_USER: ${{ secrets.GITHUB_PUBLISH_USER }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # Officual NuGet Feed settings
+  NUGET_FEED: https://api.nuget.org/v3/index.json
+  NUGET_KEY: ${{ secrets.NUGET_KEY }}
+
+defaults:
+  run:
+    working-directory: sdk/dotnet
 
 jobs:
   build:
-    name: Azure Mobile Apps .NET Library
     runs-on: ubuntu-latest
     steps:
-      - name: Check out current source
+      - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup dotnet
+      - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '5.0.202'
 
-      - name: Install dependencies
-        run: dotnet restore sdk/dotnet/AzureMobile.sln
+      - name: Restore
+        run: dotnet restore
 
-      - name: Build Library
-        run: dotnet build --no-restore sdk/dotnet/AzureMobile.sln
+      - name: Build
+        run: dotnet build --no-restore -c Release
 
-      - name: Automated unit and integration tests
-        run: dotnet test sdk/dotnet/AzureMobile.sln --no-restore --collect:"XPlat Code Coverage"
+      - name: Test
+        run: dotnet test --no-restore -c Release --collect:"XPlat Code Coverage"
 
-      - name: Produce coverage reports
+      - name: Pack
+        run: dotnet pack -v normal -c Release --no-restore --include-symbols --include-source -p:PackageVersion=$GITHUB_RUN_ID
+
+      - name: Coverage
         uses: danielpalme/ReportGenerator-GitHub-Action@4.8.7
         with:
           reports: sdk/dotnet/test/**/*.cobertura.xml
@@ -32,17 +52,14 @@ jobs:
           sourcedirs: sdk/dotnet
           verbosity: Warning
 
-      - name: Pack libraries for NuGET
-        run: dotnet pack -c Release sdk/dotnet/AzureMobile.sln
-
       - name: Upload Coverage Reports
         uses: actions/upload-artifact@v2
         with:
-          name: coverage-reports
+          name: coverage
           path: sdk/dotnet/TestResults
 
-      - name: Upload nupkg files
+      - name: Upload nupkg
         uses: actions/upload-artifact@v2
         with:
-          name: nupkg-files
-          path: sdk/dotnet/src/**/bin/Release/*.nupkg
+          name: nupkg
+          path: sdk/dotnet/src/**/bin/Release/*.nupkg      
