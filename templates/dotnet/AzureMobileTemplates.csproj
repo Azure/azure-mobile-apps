@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <PackageType>Template</PackageType>
+        <PackageVersion>5.0.0-preview.1</PackageVersion>
+        <PackageId>Microsoft.AzureMobile.ServerTemplate.CSharp</PackageId>
+        <Authors>Microsoft Corporation</Authors>
+        <Title>Azure Mobile Apps Templates</Title>
+        <Description>Templates to use when creating Azure Mobile Apps applications.</Description>
+        <PackageTags>dotnet-new;templates;azure-mobile-apps</PackageTags>
+        <TargetFramework>net5</TargetFramework>
+        <IncludeContentInPack>true</IncludeContentInPack>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <ContentTargetFolders>content</ContentTargetFolders>
+    </PropertyGroup>
+    <ItemGroup>
+        <Content Include="templates\**\*" Exclude="templates\**\bin\**;templates\**\obj\**" />
+        <Compile Remove="**\*" />
+    </ItemGroup>
+</Project>
