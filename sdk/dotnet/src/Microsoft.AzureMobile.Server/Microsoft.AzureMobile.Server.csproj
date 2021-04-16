@@ -5,7 +5,6 @@
     <Company>Microsoft Corporation</Company>
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>9.0</LangVersion>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Description>The main ASP.NET Core service library for generating an Azure Mobile Apps web service.  In addition, you will need to add a repository and requirements.</Description>
     <Copyright>Copyright (c) 2021 Microsoft Corporation.</Copyright>

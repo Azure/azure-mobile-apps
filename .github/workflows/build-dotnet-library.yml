@@ -48,7 +48,7 @@ jobs:
         run: dotnet test --no-restore -c Release --collect:"XPlat Code Coverage"
 
       - name: Pack
-        run: dotnet pack -v normal -c Release --no-restore --include-symbols --include-source -p:PackageVersion=$GITHUB_RUN_ID
+        run: dotnet pack -v normal -c Release --no-restore --include-symbols --include-source -p:PackageVersion=0.0.$GITHUB_RUN_ID
 
       - name: Coverage
         uses: danielpalme/ReportGenerator-GitHub-Action@4.8.7
@@ -111,11 +111,6 @@ jobs:
           VERSION="${VERSION//v}"
           echo Clean Version: $VERSION
           dotnet pack -v normal -c Release --include-symbols --include-source -p:PackageVersion=$VERSION -o nupkg
-
-      - name: Push to GitHub Feed
-        run: |
-          find . -type f -name '*.nupkg' -print -exec curl -vX PUT -u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@{} $GITHUB_FEED \;
-
 
       - name: Push to NuGet Feed
         run: |

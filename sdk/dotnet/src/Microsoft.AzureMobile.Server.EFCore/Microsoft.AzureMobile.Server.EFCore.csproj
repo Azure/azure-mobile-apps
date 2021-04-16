@@ -5,7 +5,6 @@
     <Company>Microsoft Corporation</Company>
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>9.0</LangVersion>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Description>A repository library for Azure Mobile Apps, implemented using Entity Framework Core.  For more details, see Microsoft.AzureMobile.Server.</Description>
     <Copyright>Copyright (c) 2021 Microsoft Corporation.</Copyright>
