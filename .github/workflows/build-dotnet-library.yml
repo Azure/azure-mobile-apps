@@ -14,11 +14,14 @@ jobs:
         with:
           dotnet-version: '5.0.202'
 
+      - name: Install dependencies
+        run: dotnet restore
+
       - name: Build Library
-        run: dotnet build sdk/dotnet/AzureMobile.sln
+        run: dotnet build --no-restore sdk/dotnet/AzureMobile.sln
 
       - name: Automated unit and integration tests
-        run: dotnet test sdk/dotnet/AzureMobile.sln --collect:"XPlat Code Coverage"
+        run: dotnet test sdk/dotnet/AzureMobile.sln --no-restore --collect:"XPlat Code Coverage"
 
       - name: Produce coverage reports
         uses: danielpalme/ReportGenerator-GitHub-Action@4.8.7
@@ -28,13 +31,6 @@ jobs:
           reporttypes: lcov;Html
           sourcedirs: sdk/dotnet
           verbosity: Warning
-
-      - name: Publish coverage report to coveralls.io
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: $({ secrets.GITHUB_TOKEN })
-          path-to-lcov: ./TestResults/lcov.info
-          base-path: sdk/dotnet
 
       - name: Pack libraries for NuGET
         run: dotnet pack -c Release sdk/dotnet/AzureMobile.sln
