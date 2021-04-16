@@ -1,0 +1,15 @@
+name: Azure Mobile Apps .NET CI
+on: [ workflow_dispatch ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Azure Mobile Apps .NET Library
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.202'
+      - run: dotnet build sdk/dotnet/AzureMobile.sln
+      - run: dotnet test sdk/dotnet/AzureMobile.sln
