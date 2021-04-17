@@ -69,26 +69,6 @@ jobs:
           name: nupkg
           path: sdk/dotnet/src/**/bin/Release/*.nupkg      
 
-  buildtemplate:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: templates/dotnet
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '5.0.202'
-
-      - name: Pack
-        run: dotnet pack -c Release .\AzureMobileTemplates.csproj
-
-      - name: Push to GitHub Feed
-        run: find bin -type f -name '*.nupkg' ! -name '*.symbols.nupkg' -print -exec curl -vX PUT -u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@{} $GITHUB_FEED \;
-
   prerelease:
     needs: build
     runs-on: ubuntu-latest
@@ -131,3 +111,51 @@ jobs:
         run: |
           find . -type f -name '*.nupkg' ! -name '*.symbols.nupkg' -print -exec dotnet nuget push {} --source $NUGET_FEED --skip-duplicate --api-key $NUGET_KEY \;
 
+  buildtemplate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: templates/dotnet
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.202'
+
+      - name: Pack
+        run: dotnet pack -c Release ./AzureMobileTemplates.csproj
+
+      - name: Push to GitHub Feed
+        run: find ./bin -type f -name '*.nupkg' -print -exec curl -vX PUT -u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@{} $GITHUB_FEED \;
+
+  deploytemplate:
+    needs: buildtemplate
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: templates/dotnet
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.202'
+
+      - name: Create Release NuGet package
+        run: |
+          arrTag=(${GITHUB_REF//\// })
+          VERSION="${arrTag[2]}"
+          echo Version: $VERSION
+          VERSION="${VERSION//v}"
+          echo Clean Version: $VERSION
+          dotnet pack -v normal -c Release -p:PackageVersion=$VERSION -o nupkg ./AzureMobileTemplates.csproj
+
+      - name: Push to NuGet Feed
+        run: |
+          find ./bin -type f -name '*.nupkg' -print -exec dotnet nuget push {} --source $NUGET_FEED --skip-duplicate --api-key $NUGET_KEY \;
