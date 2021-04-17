@@ -6,6 +6,7 @@
         <Title>Azure Mobile Apps Templates</Title>
         <Description>Templates to use when creating Azure Mobile Apps applications.</Description>
         <PackageTags>dotnet-new;templates;azure-mobile-apps</PackageTags>
+        <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
         <TargetFramework>net5</TargetFramework>
         <IncludeContentInPack>true</IncludeContentInPack>
         <IncludeBuildOutput>false</IncludeBuildOutput>
