@@ -126,7 +126,7 @@ jobs:
           dotnet-version: '5.0.202'
 
       - name: Pack
-        run: dotnet pack -c Release ./AzureMobileTemplates.csproj
+        run: dotnet pack -c Release -p:PackageVersion=$VERSION -o nupkg ./AzureMobileTemplates.csproj
 
       - name: Push to GitHub Feed
         run: find ./bin -type f -name '*.nupkg' -print -exec curl -vX PUT -u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@{} $GITHUB_FEED \;
