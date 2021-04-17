@@ -21,8 +21,6 @@ env:
   NUGET_FEED: https://api.nuget.org/v3/index.json
   NUGET_KEY: ${{ secrets.NUGET_KEY }}
 
-
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -70,6 +68,26 @@ jobs:
         with:
           name: nupkg
           path: sdk/dotnet/src/**/bin/Release/*.nupkg      
+
+  buildtemplate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: templates/dotnet
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.202'
+
+      - name: Pack
+        run: dotnet pack -c Release .\AzureMobileTemplates.csproj
+
+      - name: Push to GitHub Feed
+        run: find bin -type f -name '*.nupkg' ! -name '*.symbols.nupkg' -print -exec curl -vX PUT -u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@{} $GITHUB_FEED \;
 
   prerelease:
     needs: build
