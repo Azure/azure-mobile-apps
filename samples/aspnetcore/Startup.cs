@@ -44,6 +44,9 @@ namespace aspnetcore
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("AppDbContext")));
 
+            services.AddAuthentication("AppService")
+                .AddAppServiceAuthentication((_) => { });
+
             // Add Web API Controllers
             services.AddControllers();
 
@@ -61,6 +64,7 @@ namespace aspnetcore
 
             app.UseHttpsRedirection();
             app.UseRouting();
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
