@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using System;
 
 namespace Microsoft.AzureMobile.Server.Authentication
 {
@@ -12,6 +11,16 @@ namespace Microsoft.AzureMobile.Server.Authentication
     public static class AppServiceAuthentication
     {
         private const string AppServiceAuthEnabled = "WEBSITE_AUTH_ENABLED";
+
+        /// <summary>
+        /// The authentication scheme to use for enabling App Service Authentication
+        /// </summary>
+        public const string AuthenticationScheme = "AppService";
+
+        /// <summary>
+        /// The display name for the authentication scheme
+        /// </summary>
+        public const string DisplayName = "Azure App Service Authentication";
 
         /// <summary>
         /// Returns true if App Service Authentication is enabled.

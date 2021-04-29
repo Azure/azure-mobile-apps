@@ -74,11 +74,9 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             var repository = server.GetRepository<InMemoryMovie>();
             var expectedCount = repository.Entities.Count;
             string id = Utils.GetMovieId(index);
+
             Dictionary<string, string> headers = new();
-            if (userId != null)
-            {
-                headers.Add("X-Auth", userId);
-            }
+            Utils.AddAuthHeaders(headers, userId);
 
             // Act
             var response = await server.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}", headers).ConfigureAwait(false);

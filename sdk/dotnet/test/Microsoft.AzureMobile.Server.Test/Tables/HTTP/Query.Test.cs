@@ -356,14 +356,14 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
         [InlineData("tables/movies?$top=5&$orderBy=year desc,title desc", 5, "tables/movies?$orderBy=year desc,title desc&$skip=5&$top=5", 0, new[] { "id-033", "id-122", "id-188", "id-149", "id-064" })]
         [InlineData("tables/movies_pagesize", 25, "tables/movies_pagesize?$skip=25", 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
         [InlineData("tables/movies_pagesize?$skip=25", 25, "tables/movies_pagesize?$skip=50", 0, new[] { "id-025", "id-026", "id-027", "id-028", "id-029" })]
-        [InlineData("tables/movies_rated", 94, null, 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-007" }, "X-Auth", "success")]
-        public async Task BasicQueryTest(string query, int expectedItemCount, string expectedNextLinkQuery, long expectedTotalCount, string[] firstExpectedItems, string headerName = null, string headerValue = null)
+        [InlineData("tables/movies_rated", 94, null, 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-007" }, "success")]
+        public async Task BasicQueryTest(string query, int expectedItemCount, string expectedNextLinkQuery, long expectedTotalCount, string[] firstExpectedItems, string userId = null)
         {
             // Arrange
             var server = Program.CreateTestServer();
             var repository = server.GetRepository<InMemoryMovie>();
             Dictionary<string, string> headers = new();
-            if (headerName != null && headerValue != null) headers.Add(headerName, headerValue);
+            Utils.AddAuthHeaders(headers, userId);
 
             // Act
             var response = await server.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);

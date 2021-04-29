@@ -206,10 +206,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             };
 
             Dictionary<string, string> headers = new();
-            if (userId != null)
-            {
-                headers.Add("X-Auth", userId);
-            }
+            Utils.AddAuthHeaders(headers, userId);
 
             // Act
             var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", headers).ConfigureAwait(false);

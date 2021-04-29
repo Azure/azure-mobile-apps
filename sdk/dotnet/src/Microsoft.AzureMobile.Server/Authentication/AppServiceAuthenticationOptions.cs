@@ -14,5 +14,12 @@ namespace Microsoft.AzureMobile.Server.Authentication
         {
             Events = new object();
         }
+
+        /// <summary>
+        /// If set to true, force-enable the authentication handler.  If set to false,
+        /// the authentication handler is enabled only if <c>WEBSITE_AUTH_ENABLED</c>
+        /// environment variable is set to true.
+        /// </summary>
+        public bool ForceEnable { get; set; }
     }
 }

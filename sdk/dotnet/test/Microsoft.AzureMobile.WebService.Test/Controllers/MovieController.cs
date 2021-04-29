@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AzureMobile.Common.Test.Models;
@@ -40,6 +41,7 @@ namespace Microsoft.AzureMobile.WebService.Test.Controllers
         }
     }
 
+    [AllowAnonymous]
     [Route("tables/movies_rated")]
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class RRatedMoviesController : TableController<InMemoryMovie>, IAccessControlProvider<InMemoryMovie>
@@ -48,11 +50,6 @@ namespace Microsoft.AzureMobile.WebService.Test.Controllers
         {
             AccessControlProvider = this;
             Logger = logger;
-        }
-
-        internal string UserId
-        {
-            get { return Request.Headers.ContainsKey("X-Auth") ? Request.Headers["X-Auth"][0] : null; }
         }
 
         /// <summary>
@@ -70,7 +67,7 @@ namespace Microsoft.AzureMobile.WebService.Test.Controllers
         /// <param name="token">A cancellation token</param>
         /// <returns>True if the client is allowed to perform the operation</returns>
         public virtual Task<bool> IsAuthorizedAsync(TableOperation operation, InMemoryMovie entity, CancellationToken token = default)
-            => Task.FromResult(UserId != null && UserId == "success");
+            => Task.FromResult(HttpContext.User?.Identity?.IsAuthenticated == true);
 
         /// <summary>
         /// Allows the user to set up any modifications that are necessary to support the chosen access control rules.
@@ -86,6 +83,7 @@ namespace Microsoft.AzureMobile.WebService.Test.Controllers
         }
     }
 
+    [AllowAnonymous]
     [Route("tables/movies_legal")]
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class LegalMoviesController : TableController<InMemoryMovie>, IAccessControlProvider<InMemoryMovie>
@@ -94,11 +92,6 @@ namespace Microsoft.AzureMobile.WebService.Test.Controllers
         {
             AccessControlProvider = this;
             Options = new TableControllerOptions { UnauthorizedStatusCode = StatusCodes.Status451UnavailableForLegalReasons };
-        }
-
-        internal string UserId
-        {
-            get { return Request.Headers.ContainsKey("X-Auth") ? Request.Headers["X-Auth"][0] : null; }
         }
 
         /// <summary>
@@ -116,7 +109,7 @@ namespace Microsoft.AzureMobile.WebService.Test.Controllers
         /// <param name="token">A cancellation token</param>
         /// <returns>True if the client is allowed to perform the operation</returns>
         public virtual Task<bool> IsAuthorizedAsync(TableOperation operation, InMemoryMovie entity, CancellationToken token = default)
-            => Task.FromResult(UserId != null && UserId == "success");
+            => Task.FromResult(HttpContext.User?.Identity?.IsAuthenticated == true);
 
         /// <summary>
         /// Allows the user to set up any modifications that are necessary to support the chosen access control rules.

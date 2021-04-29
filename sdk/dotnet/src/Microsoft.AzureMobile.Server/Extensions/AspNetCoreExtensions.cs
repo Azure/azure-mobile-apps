@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using System;
-using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Query.Validators;
 using Microsoft.AspNetCore.Authentication;
@@ -14,6 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OData.UriParser;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Microsoft.AzureMobile.Server
 {
@@ -75,9 +74,18 @@ namespace Microsoft.AzureMobile.Server
         /// Enables App Service Authentication to be supported within the application.
         /// </summary>
         /// <param name="builder"></param>
-        /// <param name="configure"></param>
+        /// <param name="configure">An option setting mechanisms</param>
         /// <returns></returns>
         public static AuthenticationBuilder AddAppServiceAuthentication(this AuthenticationBuilder builder, Action<AppServiceAuthenticationOptions> configure)
             => builder.AddScheme<AppServiceAuthenticationOptions, AppServiceAuthenticationHandler>("AppService", "AppService", configure);
+
+        /// <summary>
+        /// Convenience method to bypass the options setting phase of the App Service Authentication builder.
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        [ExcludeFromCodeCoverage]
+        public static AuthenticationBuilder AddAppServiceAuthentication(this AuthenticationBuilder builder)
+            => builder.AddAppServiceAuthentication(_ => { });
     }
 }

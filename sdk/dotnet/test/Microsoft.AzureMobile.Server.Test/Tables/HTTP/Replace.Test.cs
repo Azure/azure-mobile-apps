@@ -123,10 +123,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             replacement.Rating = "PG-13";
 
             Dictionary<string, string> headers = new();
-            if (userId != null)
-            {
-                headers.Add("X-Auth", userId);
-            }
+            Utils.AddAuthHeaders(headers, userId);
 
             // Act
             var response = await server.SendRequest(HttpMethod.Put, $"tables/{table}/{id}", replacement, headers).ConfigureAwait(false);

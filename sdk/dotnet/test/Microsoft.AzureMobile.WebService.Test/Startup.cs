@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AzureMobile.Common.Test.Models;
 using Microsoft.AzureMobile.Common.Test.TestData;
 using Microsoft.AzureMobile.Server;
+using Microsoft.AzureMobile.Server.Authentication;
 using Microsoft.AzureMobile.Server.InMemory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,6 +52,10 @@ namespace Microsoft.AzureMobile.WebService.Test
             softData.ForEach(m => m.Deleted = m.Rating == "R");
             services.AddSingleton<IRepository<SoftMovie>>(new InMemoryRepository<SoftMovie>(softData));
 
+            // Add authentication - force enabling the authentication pipeline.
+            services.AddAuthentication(AppServiceAuthentication.AuthenticationScheme)
+                .AddAppServiceAuthentication(options => options.ForceEnable = true);
+
             // Configure ASP.NET Controllers before adding Azure Mobile Apps
             // Note: We use Newtonsoft.JSON for JsonPatch and OData capabilities
             // DO NOT USE System.Text.Json ON AZURE MOBILE APPS PROJECTS
@@ -69,12 +74,10 @@ namespace Microsoft.AzureMobile.WebService.Test
         /// <param name="env"></param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
             app.UseHttpsRedirection();
             app.UseRouting();
+
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

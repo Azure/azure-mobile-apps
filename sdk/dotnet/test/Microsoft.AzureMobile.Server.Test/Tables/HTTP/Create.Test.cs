@@ -196,10 +196,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             expectedMovie.Title = movieToAdd.Title.ToUpper();
 
             Dictionary<string, string> headers = new();
-            if (userId != null)
-            {
-                headers.Add("X-Auth", userId);
-            }
+            Utils.AddAuthHeaders(headers, userId);
 
             // Act
             var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, $"tables/{table}", movieToAdd, headers).ConfigureAwait(false);

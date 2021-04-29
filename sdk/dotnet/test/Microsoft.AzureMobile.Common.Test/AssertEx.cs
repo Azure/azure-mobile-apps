@@ -21,7 +21,7 @@ namespace Microsoft.AzureMobile.Common.Test
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public static class AssertEx
     {
-        public static void CloseTo(DateTimeOffset expected, DateTimeOffset actual, int interval = 1000)
+        public static void CloseTo(DateTimeOffset expected, DateTimeOffset actual, int interval = 2000)
         {
             Assert.NotNull(expected);
             Assert.NotNull(actual);

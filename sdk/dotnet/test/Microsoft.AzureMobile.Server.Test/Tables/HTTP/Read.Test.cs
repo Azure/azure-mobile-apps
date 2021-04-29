@@ -78,10 +78,7 @@ namespace Microsoft.AzureMobile.Server.Test.Tables.HTTP
             string id = Utils.GetMovieId(index);
             var expected = repository.GetEntity(id);
             Dictionary<string, string> headers = new();
-            if (userId != null)
-            {
-                headers.Add("X-Auth", userId);
-            }
+            Utils.AddAuthHeaders(headers, userId);
 
             // Act
             var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}", headers).ConfigureAwait(false);

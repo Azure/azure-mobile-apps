@@ -8,6 +8,9 @@ using System.Text;
 
 namespace Microsoft.AzureMobile.Server.Authentication
 {
+    /// <summary>
+    /// Model of the App Service auth token.
+    /// </summary>
     internal class AppServiceToken
     {
         /// <summary>
@@ -17,9 +20,24 @@ namespace Microsoft.AzureMobile.Server.Authentication
         /// <returns></returns>
         public static AppServiceToken FromString(string token)
         {
-            var bytes = Convert.FromBase64String(token);
-            var json = Encoding.UTF8.GetString(bytes);
-            return JsonConvert.DeserializeObject<AppServiceToken>(json);
+            if (token == null)
+            {
+                throw new ArgumentNullException(nameof(token));
+            }
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new ArgumentException("Empty string", nameof(token));
+            }
+            try
+            {
+                var bytes = Convert.FromBase64String(token);
+                var json = Encoding.UTF8.GetString(bytes);
+                return JsonConvert.DeserializeObject<AppServiceToken>(json);
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException("Invalid token", nameof(token), ex);
+            }
         }
 
         /// <summary>
