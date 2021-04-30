@@ -2,19 +2,42 @@
 
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/azure/azure-mobile-apps/tree/main/LICENSE.txt)
 
-Azure Mobile Apps is a set of client and server libraries for adding authenticated data access and offline synchronization to your mobile applications.  The server side is a Node.js or ASP.NET Framework web API that runs on [Azure App Service](https://azure.microsoft.com/services/app-service/).  The client side contains everything necessary to provide offline sync for your Android, iOS, UWP, or Xamarin application.
+Azure Mobile Apps is a set of client and server libraries for adding authenticated data access and offline synchronization to your mobile applications. 
+
+Currently supported environments:
+
+| Server | Client |
+|--------|--------|
+| NodeJS | Andriod (Java) |
+| ASP.NET Framework | iOS (Swift, Objective-C) |
+|| Apache Cordova |
+|| Xamarin (.NET Standard 2.0) |
+
+Currently in development
+
+| Server | Client |
+|--------|--------|
+| ASP.NET Core ||
 
 To get started, take a look at [our documentation](https://azure.github.io/azure-mobile-apps).
 
 ## Libraries
 
-### .NET
+### .NET (sdk/dotnet)
 
-[![.NET Library](https://github.com/Azure/azure-mobile-apps/actions/workflows/build-dotnet-library.yml/badge.svg?branch=main)](https://github.com/Azure/azure-mobile-apps/actions/workflows/build-dotnet-library.yml)
+The .NET Library uses ASP.NET Core 5.0 and provides an in-memory store and an Entity Framework 5.0 based store.
 
-We generate builds through GitHub Actions and distribute them through GitHub Packages.  Each non-release build will be numbered `0.0.buildnumber`.  You can find them on [GitHub Packages](https://github.com/Azure/azure-mobile-apps/packages).  Learn how to install the built packages from [the GitHub documentation](https://docs.github.com/en/packages/guides/configuring-dotnet-cli-for-use-with-github-packages).
+> **TODO**
+> Provide links to detailed instructions for ASP.NET Core when released.
 
-Releases are published to the main NuGet feed.
+## Templates
+
+### dotnet new (templates/dotnet)
+
+A template for `dotnet new` is provided to provide a base ASP.NET Core service.
+
+> **TODO**
+> Provide installation instructions for the template.
 
 ## Generating the documentation
 
