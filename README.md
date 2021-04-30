@@ -16,6 +16,7 @@ Currently supported environments:
 Currently in development
 
 | Server | Client |
+|--------|--------|
 | ASP.NET Core ||
 
 To get started, take a look at [our documentation](https://azure.github.io/azure-mobile-apps).
