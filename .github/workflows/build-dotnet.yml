@@ -43,13 +43,13 @@ jobs:
         name: Restore
         run: dotnet restore
       - 
-        name: Build
+        name: Build Server Library
         run: dotnet build -c Release --no-restore
       - 
-        name: Test
+        name: Test Server Library
         run: dotnet test -c Release
       - 
-        name: Pack
+        name: Pack Server Library
         run: dotnet pack -v normal -c Release --no-restore --include-symbols --include-source -p:PackaVersion=$GITHUB_RUN_ID
 
       - name: Consolidate nupkg
@@ -82,33 +82,3 @@ jobs:
           do
             curl -vX PUT u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@$f $GITHUB_FEED
           done
-
-  release:
-    needs: build
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
-    steps:
-      - 
-        name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 5.0.301
-      
-      - 
-        name: Create Release NuGet package=@$f
-        run: |
-          arrTag=(${GITHUB_REF//\// })
-          VERSION="${arrTag[2]}"
-          echo Version: $VERSION
-          VERSION="${VERSION//v}"
-          echo Clean Version: $VERSION
-          dotnet pack -v normal -c Release --include-symbols --include-source -p:PackageVersion=$VERSION -o nupkg
-
-      - 
-        name: Push to GitHub Package Feed
-        run: |
-          for f in ./nupkg/*.nupkg
-          do
-            curl -vX PUT -u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@$f $GITHUB_FEED
-          done
-      
