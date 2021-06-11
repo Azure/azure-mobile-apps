@@ -8,9 +8,6 @@ on:
   pull_request:
     branches:
     - main
-  release:
-    types:
-      - published
 
 env:
   # Stop wasting time caching packages
@@ -67,6 +64,7 @@ jobs:
   prerelease:
     needs: build
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
     steps:
       -
         name: Download Artifacts
