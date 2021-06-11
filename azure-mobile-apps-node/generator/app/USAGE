@@ -1,0 +1,31 @@
+Description:
+    Creates a new basic Azure App Service Mobile App
+
+Options:
+    Jasmine or Mocha for testing
+
+Example:
+    yo azure-mobile-apps
+
+    This will create:
+        Standard Project Files
+            .gitignore
+            jsconfig.json
+            package.json
+
+        Application Files
+            bin/www
+            server/app.js
+            server/logger.js
+
+        Example Controllers
+            server/tables/example.js
+            server/api/example.js
+
+        Tests
+            test/app.js
+            test/logger.js
+
+    You can use NPM commands to run the server:
+        npm start   Starts the server
+        npm test    Runs the tests

@@ -1,0 +1,5 @@
+test/**/*.tests.js
+--full-trace
+--check-leaks
+--globals __core-js_shared__
+--timeout 2000

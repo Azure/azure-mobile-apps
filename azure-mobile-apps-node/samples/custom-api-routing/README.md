@@ -1,0 +1,21 @@
+
+# Azure App Service Mobile Apps backend with custom API routing
+
+This sample provides a template basic application for use with Azure App Service.  It defines
+a single table with a dynamic schema and direct access disabled.  It provides a custom API
+with the following routes:
+
+POST: /api/items/:category/:id - adds an item to the table with the id parameter, category parameter and POSTed JSON content
+GET: /api/items/:category - returns all items added to the specified category
+
+# Features
+
+* Single table (items) with dynamic schema and direct access disabled
+* Custom API with custom routing
+
+This project can be used with any of the client projects provided by the QuickStart blade under
+your Web app in the [Azure Portal](https://portal.azure.com).
+
+# More Information
+
+For more information, see the [Azure documentation](https://azure.microsoft.com/en-us/documentation/articles/app-service-mobile-node-backend-how-to-use-server-sdk/).

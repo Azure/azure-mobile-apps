@@ -1,0 +1,8 @@
+{
+    "source": ".json",
+    "deep": {
+        "object": {
+            "conflict": 2
+        }
+    }
+}

@@ -1,0 +1,46 @@
+{
+  "tags": {
+    "allowUnknownTags": true,
+    "dictionaries": ["jsdoc"]
+  },
+  "plugins": ["plugins/markdown"],
+  "templates": {
+    "logoFile": "",
+    "cleverLinks": false,
+    "monospaceLinks": true,
+    "dateFormat": "ddd MMM Do YYYY",
+    "outputSourceFiles": false,
+    "outputSourcePath": false,
+    "systemName": "Azure Mobile Apps Node SDK",
+    "footer": "",
+    "copyright": "Copyright (c) Microsoft and contributors.  All rights reserved.",
+    "navType": "vertical",
+    "theme": "flatly",
+    "linenums": true,
+    "collapseSymbols": false,
+    "inverseNav": true,
+    "highlightTutorialCode": true,
+    "protocol": "html://",
+    "methodHeadingReturns": true,
+    "encoding": "utf8",
+    "private": true,
+    "recurse": true,
+    "sortByName": true,
+    "stripModuleName": "azure-mobile-apps/src"
+  },
+  "markdown": {
+    "parser": "gfm",
+    "hardwrap": false
+  },
+  "source": {
+    "include": ["src", "jsdoc"],
+    "excludePattern": "node_modules",
+    "exclude": ["jsdoc/template"]
+  },
+  "opts": {
+    "destination": "./jsdoc/out",
+    "readme": "./README.md",
+    "recurse": true,
+    "template": "./node_modules/minami"
+  }
+}

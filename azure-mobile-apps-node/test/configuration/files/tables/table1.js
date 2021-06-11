@@ -1,0 +1,3 @@
+﻿module.exports = {
+    authenticate: true
+}

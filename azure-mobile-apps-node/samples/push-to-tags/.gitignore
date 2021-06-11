@@ -1,0 +1,23 @@
+# VS / NTVS stuff
+*.dat
+*.suo
+*.user
+bin
+obj
+packages
+*.png
+
+# Windows Store artefacts
+Package.StoreAssociation.xml
+*.pfx
+
+# Logs
+logs
+*.log
+
+# Local Configuration Files
+azureMobile.js
+
+# Dependency directory
+# https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
+node_modules

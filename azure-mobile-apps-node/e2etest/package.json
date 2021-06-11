@@ -1,0 +1,13 @@
+{
+  "name": "azure-mobile-apps.E2E",
+  "version": "0.0.1",
+  "description": "Azure Mobile Apps end to end test Node.js server implementation",
+  "main": "index.js",
+  "author": "Microsoft",
+  "dependencies": {
+    "azure-mobile-apps": "Azure/azure-mobile-apps-node",
+    "body-parser": "^1.13.1",
+    "chai": "^3.4.1",
+    "express": "^4.12.4"
+  }
+}

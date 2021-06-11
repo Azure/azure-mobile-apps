@@ -1,0 +1,40 @@
+{
+    "version": "0.0.1",
+    "description": "A basic mobile service for Azure App Service",
+    "main": "bin/www",
+    "engines": {
+        "node": ">5.1.1",
+        "npm": ">3.3.6"
+    },
+    "private": true,
+    "scripts": {
+        "start": "node ./bin/www",
+        "pretest": "eslint server test",
+<% if(testFramework==='jasmine') { -%>
+        "test": "jasmine"
+<% } else if(testFramework==='mocha') { -%>
+        "test": "mocha"
+<% } -%>
+    },
+    "license": "MIT",
+    "dependencies": {
+        "azure-mobile-apps": "^2.0.0-rc4",
+        "body-parser": "^1.14.2",
+        "compression": "^1.6.0",
+        "config": "^1.17.1",
+        "express": "^4.13.3",
+        "express-winston": "^1.2.0",
+        "serve-static": "^1.10.0",
+        "shell-arguments": "^1.1.6",
+        "winston": "^2.1.1"
+    },
+    "devDependencies": {
+<% if(testFramework==='jasmine') { -%>
+        "jasmine": "^2.4.0",
+<% } else if(testFramework==='mocha') { -%>
+        "mocha": "^2.3.0",
+        "chai": "^3.4.1",
+<% } -%>
+        "eslint": "^1.10.3"
+    }
+}

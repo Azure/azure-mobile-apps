@@ -1,0 +1,7 @@
+# dependencies used to test azure-mobile-apps.d.ts
+azure-sb
+express
+express-serve-static-core
+mime
+node
+serve-static

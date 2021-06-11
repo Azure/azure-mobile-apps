@@ -1,0 +1,13 @@
+{
+    "name": "azure-mobile-apps.samples.basic-app",
+    "version": "0.1.0",
+    "description": "A basic Node server for Azure App Service Mobile Apps",
+    "main": "app.js",
+    "private": true,
+    "author": "Microsoft",
+    "license": "MIT",
+    "dependencies": {
+        "azure-mobile-apps": "^2.0.0",
+        "express": "^4.13.3"
+    }
+}

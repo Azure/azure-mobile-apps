@@ -1,0 +1,1 @@
+import "./azure-mobile-apps/azure-mobile-apps.d.ts"

@@ -1,0 +1,14 @@
+{
+  "name": "azure-mobile-apps.samples.custom-api-sql-stmt",
+  "version": "0.1.0",
+  "description": "An Azure Mobile Apps backend demonstrating a custom API with a Stored Procedure",
+  "main": "app.js",
+  "private": true,
+  "author": "Microsoft",
+  "license": "MIT",
+  "dependencies": {
+    "azure-mobile-apps": "^2.0.0",
+    "body-parser": "^1.15.0",
+    "express": "^4.13.0"
+  }
+}

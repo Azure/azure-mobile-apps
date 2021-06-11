@@ -1,0 +1,21 @@
+<html>
+<head>
+    <script>
+    window.onload = function () {
+        if (window.opener) {
+            var location = window.location.href,
+                envelope = {
+                    type: "LoginCompleted",
+                    oauth: JSON.parse(decodeURIComponent(location.substring(location.indexOf('token=') + 6)))
+                };
+            window.opener.postMessage(JSON.stringify(envelope), '*');
+        }
+    }
+    </script>
+</head>
+
+<body>
+    <p>This is the authentication completion page for the Azure Mobile Apps authentication development stub.</p>
+    <p>You should not be seeing this message. The authentication window manager for your current platform did not receive appropriate notification of a successful login.</p>
+</body>
+</html>

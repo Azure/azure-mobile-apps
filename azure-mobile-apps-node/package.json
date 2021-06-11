@@ -1,0 +1,47 @@
+{
+  "name": "azure-mobile-apps",
+  "version": "4.0.3",
+  "description": "Build mobile apps with data storage, push notifications and offline sync in minutes.",
+  "main": "src/index.js",
+  "typings": "typings/main.d.ts",
+  "author": "Microsoft",
+  "repository": "Azure/azure-mobile-apps-node",
+  "license": "MIT",
+  "scripts": {
+    "test": "npm run lint && mocha",
+    "lint": "jshint src",
+    "jsdoc": "jsdoc -c jsdoc/config.json",
+    "testCI": "mocha --timeout 10000",
+    "travis": "npm run lint && npm run testCI"
+  },
+  "dependencies": {
+    "azure-odata-sql": "^0.1.0",
+    "azure-query-js": "^0.1.0",
+    "azure-sb": "^0.10.3",
+    "body-parser": "^1.13.1",
+    "es6-promise": "^3.1.2",
+    "express": "^4.12.4",
+    "jsonwebtoken": "^8.5.1",
+    "mssql": "^3.2.0",
+    "useragent": "^2.3.0",
+    "uuid": "^3.0.0",
+    "winston": "^2.1.0"
+  },
+  "devDependencies": {
+    "chai": "^3.0.0",
+    "chai-as-promised": "^5.0.0",
+    "chai-subset": "^1.0.1",
+    "jsdoc": "^3.3.2",
+    "jshint": "^2.9.1",
+    "minami": "danderson00/minami",
+    "mocha": "^3.0.2",
+    "q": "^1.4.1",
+    "sinon": "^1.16.1",
+    "sinon-as-promised": "^4.0.2",
+    "sinon-chai": "^2.8.0",
+    "sqlite3": "^4.1.1",
+    "supertest": "^2.0.0",
+    "supertest-as-promised": "^4.0.0",
+    "swagger-ui": "^3.25.0"
+  }
+}
