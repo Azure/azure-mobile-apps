@@ -19,6 +19,7 @@ env:
   # GitHub Packages Feed settings
   GITHUB_FEED: https://nuget.pkg.github.com/azure-mobile-apps/
   GiTHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_PACKAGES: https://nuget.pkg.github.com/Azure/index.json
 
 jobs:
   build:
@@ -72,6 +73,10 @@ jobs:
         with:
           name: nupkg
 
+      -
+        name: Add GitHub Package Source
+        run: |
+          dotnet nuget add source --username $GITHUB_USERNAME --password $GITHUB_TOKEN --store-password-in-clear-text --name github "$GITHUB_PACKAGES"
       - 
         name: Push to GitHub Package Feed
         run: |
