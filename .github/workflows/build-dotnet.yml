@@ -75,9 +75,4 @@ jobs:
 
       - 
         name: Push to GitHub Package Feed
-        run: |
-          for f in ./nupkg/*.nupkg
-          do
-            echo Pushing $f
-            curl -vX PUT -u "$GITHUB_USERNAME:$GITHUB_TOKEN" -F package=@$f $GITHUB_FEED
-          done
+        run: dotnet nuget push ./nupkg/*.nupkg -s $GITHUB_FEED -k $GITHUB_TOKEN --skip-duplicate
