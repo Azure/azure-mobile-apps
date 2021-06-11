@@ -73,16 +73,11 @@ jobs:
         with:
           name: nupkg
 
-      -
-        name: Add GitHub Package Source
-        run: |
-          dotnet nuget add source --username $GITHUB_USERNAME --password $GITHUB_TOKEN --store-password-in-clear-text --name github "$GITHUB_FEED/index.json"
-
       - 
         name: Push to GitHub Package Feed
         run: |
           for f in ./nupkg/*.nupkg
           do
             echo Pushing $f
-            dotnet nuget push $f --api-key $GITHUB_TOKEN --source "github"
+            curl -vX PUT -u "$GITHUB_USERNAME:$GITHUB_TOKEN" -F package=@$f $GITHUB_FEED
           done
