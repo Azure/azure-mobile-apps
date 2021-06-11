@@ -1,0 +1,6 @@
+workspace '../ZumoE2ETest'
+target 'ZumoE2ETestApp' do
+  use_frameworks!
+  pod 'Google/SignIn'
+  pod 'ADAL', '~> 2.4'
+end

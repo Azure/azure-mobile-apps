@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.microsoft.windowsazure.mobileservices">
+
+    <application tools:replace="android:allowBackup" android:allowBackup="true">
+        <activity android:name=".authentication.RedirectUrlActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="${redirectUriScheme}" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".authentication.CustomTabsIntermediateActivity" android:exported="false" />
+        <activity android:name=".authentication.CustomTabsLoginActivity" android:exported="false" android:launchMode="singleTask" />
+    </application>
+
+</manifest>

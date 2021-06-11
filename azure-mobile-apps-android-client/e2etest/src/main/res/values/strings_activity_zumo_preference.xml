@@ -1,0 +1,17 @@
+<resources>
+
+    <string name="title_activity_zumo_preference">Settings</string>
+
+    <!-- General settings -->
+    <string name="pref_header_general">General</string>
+
+    <string name="pref_mobile_service_url">Mobile Service URL</string>
+    <string name="pref_default_mobile_service_url"></string>
+    <string name="pref_storage_container_url">Container URL</string>
+    <string name="pref_default_storage_container_url"></string>
+    <string name="pref_storage_base64_token">Token</string>
+    <string name="pref_default_storage_base64_token"></string>
+    <string name="pref_storage_runtime">Runtime</string>
+    <string name="pref_default_storage_runtime"></string>
+
+</resources>

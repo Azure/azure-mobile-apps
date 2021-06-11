@@ -1,0 +1,39 @@
+apply plugin: 'com.android.library'
+
+ext {
+    PUBLISH_ARTIFACT_ID = 'azure-notifications-handler'
+    REPO_URL = 'https://api.bintray.com/maven/microsoftazuremobile/SDK/Notifications-Handler'
+}
+
+group = 'com.microsoft.azure'
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion '26.0.3'
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    productFlavors {
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.google.firebase:firebase-core:16.0.8'
+    implementation 'com.google.firebase:firebase-messaging:17.5.0'
+}
+
+apply from : '../../android-libraries.gradle'

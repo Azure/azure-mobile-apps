@@ -1,0 +1,48 @@
+apply plugin: 'com.android.library'
+
+ext {
+    PUBLISH_ARTIFACT_ID = 'azure-mobile-android'
+    REPO_URL = 'https://api.bintray.com/maven/microsoftazuremobile/SDK/Mobile-Apps-Android'
+}
+
+group = 'com.microsoft.azure'
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion '26.0.3'
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            manifestPlaceholders = ['redirectUriScheme': '']
+        }
+        debug {
+            manifestPlaceholders = ['redirectUriScheme': '']
+        }
+    }
+    lintOptions {
+        abortOnError false
+    }
+    productFlavors {
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.google.guava:guava:18.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.12.1'
+    implementation 'com.android.support:customtabs:26.1.0'
+}
+
+apply from : '../../android-libraries.gradle'

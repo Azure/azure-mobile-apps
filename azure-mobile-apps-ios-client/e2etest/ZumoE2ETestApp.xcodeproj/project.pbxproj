@@ -1,0 +1,644 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0044609E1C84D96600CB5A0F /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0044609D1C84D96600CB5A0F /* WebKit.framework */; };
+		8099D2E41EFBC75C005F24D4 /* GoogleAuth-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8099D2E31EFBC75C005F24D4 /* GoogleAuth-Info.plist */; };
+		8099D2E71EFBD4AB005F24D4 /* ZumoTestGoogleSignInDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8099D2E61EFBD4AB005F24D4 /* ZumoTestGoogleSignInDelegate.m */; };
+		872B02BF1672A73B003613A1 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 872B02BE1672A73B003613A1 /* UIKit.framework */; };
+		872B02C11672A73B003613A1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 872B02C01672A73B003613A1 /* Foundation.framework */; };
+		872B02C31672A73B003613A1 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 872B02C21672A73B003613A1 /* CoreGraphics.framework */; };
+		872B02C91672A73B003613A1 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 872B02C71672A73B003613A1 /* InfoPlist.strings */; };
+		872B02CB1672A73B003613A1 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 872B02CA1672A73B003613A1 /* main.m */; };
+		872B02CF1672A73B003613A1 /* ZumoAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 872B02CE1672A73B003613A1 /* ZumoAppDelegate.m */; };
+		872B02E01672A8FC003613A1 /* ZumoTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 872B02DF1672A8FC003613A1 /* ZumoTest.m */; };
+		872B02E31672A908003613A1 /* ZumoTestGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = 872B02E21672A908003613A1 /* ZumoTestGroup.m */; };
+		872B02ED1673EE91003613A1 /* ZumoTestHelpViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 872B02EB1673EE91003613A1 /* ZumoTestHelpViewController.m */; };
+		872B02EE1673EE91003613A1 /* ZumoTestHelpViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 872B02EC1673EE91003613A1 /* ZumoTestHelpViewController.xib */; };
+		872B02FE1673F4CF003613A1 /* ZumoMainTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 872B02FD1673F4CF003613A1 /* ZumoMainTableViewController.m */; };
+		872B03031673F9D4003613A1 /* ZumoTestGlobals.m in Sources */ = {isa = PBXBuildFile; fileRef = 872B03021673F9D4003613A1 /* ZumoTestGlobals.m */; };
+		872B030D16758058003613A1 /* ZumoTestGroupTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 872B030C16758058003613A1 /* ZumoTestGroupTableViewController.m */; };
+		872B031316759F6D003613A1 /* ZumoRoundTripTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 872B031216759F6D003613A1 /* ZumoRoundTripTests.m */; };
+		872B031616759FE2003613A1 /* ZumoQueryTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 872B031516759FE2003613A1 /* ZumoQueryTests.m */; };
+		872B031916759FF2003613A1 /* ZumoCUDTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 872B031816759FF1003613A1 /* ZumoCUDTests.m */; };
+		872B031C16759FF9003613A1 /* ZumoLoginTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 872B031B16759FF9003613A1 /* ZumoLoginTests.m */; };
+		872B031F1675A128003613A1 /* ZumoTestStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 872B031E1675A127003613A1 /* ZumoTestStore.m */; };
+		8757386A18A40C2A0025024F /* ZumoTestRunSetup.m in Sources */ = {isa = PBXBuildFile; fileRef = 8757386918A40C2A0025024F /* ZumoTestRunSetup.m */; };
+		87B36928167AE7D300F42BCE /* ZumoQueryTestData.m in Sources */ = {isa = PBXBuildFile; fileRef = 87B36927167AE7D300F42BCE /* ZumoQueryTestData.m */; };
+		87B3693516875B1100F42BCE /* ZumoPushTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 87B3693416875B1100F42BCE /* ZumoPushTests.m */; };
+		87D8D9451678443D00CDE19A /* ZumoMiscTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 87D8D9441678443D00CDE19A /* ZumoMiscTests.m */; };
+		87FA8406174FE58A0089EDEA /* ZumoCustomApiTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 87FA8405174FE58A0089EDEA /* ZumoCustomApiTests.m */; };
+		87FA840B17569AB90089EDEA /* TestLoggingFilter.m in Sources */ = {isa = PBXBuildFile; fileRef = 87FA840A17569AB90089EDEA /* TestLoggingFilter.m */; };
+		8E59339319E9C6E802F7D7D3 /* Pods_ZumoE2ETestApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A8E3FE822FAA34F98590D72 /* Pods_ZumoE2ETestApp.framework */; };
+		9C7466F11DD2B35600F6BB5F /* ZumoLoginSafariViewControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C7466F01DD2B35600F6BB5F /* ZumoLoginSafariViewControllerTests.m */; };
+		9C9E224F1E2E980700EC3A91 /* ZumoLoginSafariViewControllerSwiftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C9E224E1E2E980700EC3A91 /* ZumoLoginSafariViewControllerSwiftTests.swift */; };
+		A20EF08A1993F1F000C64641 /* ZumoBlobConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = A20EF0891993F1F000C64641 /* ZumoBlobConnection.m */; };
+		A2B509DD199ABF1A00A914CF /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A2B509DC199ABF1A00A914CF /* MessageUI.framework */; };
+		A2B509E0199B376C00A914CF /* ZumoTestResultViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A2B509DF199B376C00A914CF /* ZumoTestResultViewController.m */; };
+		A2B509E4199C006600A914CF /* Main_iPhone.Storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A2B509E2199C006600A914CF /* Main_iPhone.Storyboard */; };
+		A2EB9E40199543E30032B8BC /* ZumoConfigurationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A2EB9E3F199543E30032B8BC /* ZumoConfigurationViewController.m */; };
+		A37A1C7A1C04D1FB007A5BC2 /* MicrosoftAzureMobile.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A37A1C791C04D1FB007A5BC2 /* MicrosoftAzureMobile.framework */; };
+		A3AD0B6D1BED91F900288E3D /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A3AD0B6C1BED91F900288E3D /* Launch Screen.storyboard */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0044609D1C84D96600CB5A0F /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		806A17C41EEAA18100230146 /* ZumoE2ETestApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ZumoE2ETestApp.entitlements; sourceTree = "<group>"; };
+		8099D2DF1EFBC6CB005F24D4 /* SafariServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SafariServices.framework; path = System/Library/Frameworks/SafariServices.framework; sourceTree = SDKROOT; };
+		8099D2E01EFBC6CB005F24D4 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		8099D2E31EFBC75C005F24D4 /* GoogleAuth-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleAuth-Info.plist"; sourceTree = "<group>"; };
+		8099D2E51EFBD49C005F24D4 /* ZumoTestGoogleSignInDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZumoTestGoogleSignInDelegate.h; sourceTree = "<group>"; };
+		8099D2E61EFBD4AB005F24D4 /* ZumoTestGoogleSignInDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoTestGoogleSignInDelegate.m; sourceTree = "<group>"; };
+		872B02BA1672A73B003613A1 /* ZumoE2ETestApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZumoE2ETestApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		872B02BE1672A73B003613A1 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		872B02C01672A73B003613A1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		872B02C21672A73B003613A1 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		872B02C61672A73B003613A1 /* ZumoE2ETestApp-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ZumoE2ETestApp-Info.plist"; sourceTree = "<group>"; };
+		872B02C81672A73B003613A1 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		872B02CA1672A73B003613A1 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		872B02CC1672A73B003613A1 /* ZumoE2ETestApp-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ZumoE2ETestApp-Prefix.pch"; sourceTree = "<group>"; };
+		872B02CD1672A73B003613A1 /* ZumoAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZumoAppDelegate.h; sourceTree = "<group>"; };
+		872B02CE1672A73B003613A1 /* ZumoAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZumoAppDelegate.m; sourceTree = "<group>"; };
+		872B02DC1672A8E9003613A1 /* ZumoTestCallbacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZumoTestCallbacks.h; sourceTree = "<group>"; };
+		872B02DD1672A8F4003613A1 /* ZumoTestGroupCallbacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZumoTestGroupCallbacks.h; sourceTree = "<group>"; };
+		872B02DE1672A8FC003613A1 /* ZumoTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoTest.h; sourceTree = "<group>"; };
+		872B02DF1672A8FC003613A1 /* ZumoTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoTest.m; sourceTree = "<group>"; };
+		872B02E11672A908003613A1 /* ZumoTestGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoTestGroup.h; sourceTree = "<group>"; };
+		872B02E21672A908003613A1 /* ZumoTestGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoTestGroup.m; sourceTree = "<group>"; };
+		872B02EA1673EE91003613A1 /* ZumoTestHelpViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoTestHelpViewController.h; sourceTree = "<group>"; };
+		872B02EB1673EE91003613A1 /* ZumoTestHelpViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoTestHelpViewController.m; sourceTree = "<group>"; };
+		872B02EC1673EE91003613A1 /* ZumoTestHelpViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ZumoTestHelpViewController.xib; sourceTree = "<group>"; };
+		872B02FC1673F4CF003613A1 /* ZumoMainTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoMainTableViewController.h; sourceTree = "<group>"; };
+		872B02FD1673F4CF003613A1 /* ZumoMainTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoMainTableViewController.m; sourceTree = "<group>"; };
+		872B03011673F9D4003613A1 /* ZumoTestGlobals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoTestGlobals.h; sourceTree = "<group>"; };
+		872B03021673F9D4003613A1 /* ZumoTestGlobals.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoTestGlobals.m; sourceTree = "<group>"; };
+		872B030B16758058003613A1 /* ZumoTestGroupTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoTestGroupTableViewController.h; sourceTree = "<group>"; };
+		872B030C16758058003613A1 /* ZumoTestGroupTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoTestGroupTableViewController.m; sourceTree = "<group>"; };
+		872B031116759F6D003613A1 /* ZumoRoundTripTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoRoundTripTests.h; sourceTree = "<group>"; };
+		872B031216759F6D003613A1 /* ZumoRoundTripTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoRoundTripTests.m; sourceTree = "<group>"; };
+		872B031416759FE2003613A1 /* ZumoQueryTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoQueryTests.h; sourceTree = "<group>"; };
+		872B031516759FE2003613A1 /* ZumoQueryTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoQueryTests.m; sourceTree = "<group>"; };
+		872B031716759FF1003613A1 /* ZumoCUDTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoCUDTests.h; sourceTree = "<group>"; };
+		872B031816759FF1003613A1 /* ZumoCUDTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoCUDTests.m; sourceTree = "<group>"; };
+		872B031A16759FF9003613A1 /* ZumoLoginTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoLoginTests.h; sourceTree = "<group>"; };
+		872B031B16759FF9003613A1 /* ZumoLoginTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoLoginTests.m; sourceTree = "<group>"; };
+		872B031D1675A127003613A1 /* ZumoTestStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoTestStore.h; sourceTree = "<group>"; };
+		872B031E1675A127003613A1 /* ZumoTestStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoTestStore.m; sourceTree = "<group>"; };
+		8757386818A40C2A0025024F /* ZumoTestRunSetup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoTestRunSetup.h; sourceTree = "<group>"; };
+		8757386918A40C2A0025024F /* ZumoTestRunSetup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoTestRunSetup.m; sourceTree = "<group>"; };
+		87B36926167AE7D300F42BCE /* ZumoQueryTestData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoQueryTestData.h; sourceTree = "<group>"; };
+		87B36927167AE7D300F42BCE /* ZumoQueryTestData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoQueryTestData.m; sourceTree = "<group>"; };
+		87B3693316875B1100F42BCE /* ZumoPushTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoPushTests.h; sourceTree = "<group>"; };
+		87B3693416875B1100F42BCE /* ZumoPushTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoPushTests.m; sourceTree = "<group>"; };
+		87D8D9431678443D00CDE19A /* ZumoMiscTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoMiscTests.h; sourceTree = "<group>"; };
+		87D8D9441678443D00CDE19A /* ZumoMiscTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoMiscTests.m; sourceTree = "<group>"; };
+		87FA8404174FE58A0089EDEA /* ZumoCustomApiTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoCustomApiTests.h; sourceTree = "<group>"; };
+		87FA8405174FE58A0089EDEA /* ZumoCustomApiTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoCustomApiTests.m; sourceTree = "<group>"; };
+		87FA840917569AB90089EDEA /* TestLoggingFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestLoggingFilter.h; sourceTree = "<group>"; };
+		87FA840A17569AB90089EDEA /* TestLoggingFilter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestLoggingFilter.m; sourceTree = "<group>"; };
+		9A8E3FE822FAA34F98590D72 /* Pods_ZumoE2ETestApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ZumoE2ETestApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C7466F01DD2B35600F6BB5F /* ZumoLoginSafariViewControllerTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoLoginSafariViewControllerTests.m; sourceTree = "<group>"; };
+		9C7466F21DD2B39700F6BB5F /* ZumoLoginSafariViewControllerTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoLoginSafariViewControllerTests.h; sourceTree = "<group>"; };
+		9C9E224D1E2E980700EC3A91 /* ZumoE2ETestApp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ZumoE2ETestApp-Bridging-Header.h"; sourceTree = "<group>"; };
+		9C9E224E1E2E980700EC3A91 /* ZumoLoginSafariViewControllerSwiftTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZumoLoginSafariViewControllerSwiftTests.swift; sourceTree = "<group>"; };
+		A20EF0881993F1F000C64641 /* ZumoBlobConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoBlobConnection.h; sourceTree = "<group>"; };
+		A20EF0891993F1F000C64641 /* ZumoBlobConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoBlobConnection.m; sourceTree = "<group>"; };
+		A2838AF5B6268ABD1512B88E /* Pods-ZumoE2ETestApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZumoE2ETestApp.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ZumoE2ETestApp/Pods-ZumoE2ETestApp.debug.xcconfig"; sourceTree = "<group>"; };
+		A2B509DC199ABF1A00A914CF /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
+		A2B509DE199B376C00A914CF /* ZumoTestResultViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoTestResultViewController.h; sourceTree = "<group>"; };
+		A2B509DF199B376C00A914CF /* ZumoTestResultViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoTestResultViewController.m; sourceTree = "<group>"; };
+		A2B509E2199C006600A914CF /* Main_iPhone.Storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main_iPhone.Storyboard; sourceTree = "<group>"; };
+		A2EB9E3E199543E30032B8BC /* ZumoConfigurationViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZumoConfigurationViewController.h; sourceTree = "<group>"; };
+		A2EB9E3F199543E30032B8BC /* ZumoConfigurationViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZumoConfigurationViewController.m; sourceTree = "<group>"; };
+		A37A1C791C04D1FB007A5BC2 /* MicrosoftAzureMobile.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = MicrosoftAzureMobile.framework; sourceTree = "<group>"; };
+		A3AD0B6C1BED91F900288E3D /* Launch Screen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
+		C1619A0BBE473A7845043D87 /* Pods-ZumoE2ETestApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZumoE2ETestApp.release.xcconfig"; path = "Pods/Target Support Files/Pods-ZumoE2ETestApp/Pods-ZumoE2ETestApp.release.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		872B02B71672A73B003613A1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8E59339319E9C6E802F7D7D3 /* Pods_ZumoE2ETestApp.framework in Frameworks */,
+				0044609E1C84D96600CB5A0F /* WebKit.framework in Frameworks */,
+				A37A1C7A1C04D1FB007A5BC2 /* MicrosoftAzureMobile.framework in Frameworks */,
+				A2B509DD199ABF1A00A914CF /* MessageUI.framework in Frameworks */,
+				872B02BF1672A73B003613A1 /* UIKit.framework in Frameworks */,
+				872B02C11672A73B003613A1 /* Foundation.framework in Frameworks */,
+				872B02C31672A73B003613A1 /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		647ACF5FE804EE2E540D87B5 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				A2838AF5B6268ABD1512B88E /* Pods-ZumoE2ETestApp.debug.xcconfig */,
+				C1619A0BBE473A7845043D87 /* Pods-ZumoE2ETestApp.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		872B02AF1672A73B003613A1 = {
+			isa = PBXGroup;
+			children = (
+				872B02C41672A73B003613A1 /* ZumoE2ETestApp */,
+				872B02BD1672A73B003613A1 /* Frameworks */,
+				872B02BB1672A73B003613A1 /* Products */,
+				647ACF5FE804EE2E540D87B5 /* Pods */,
+			);
+			sourceTree = "<group>";
+		};
+		872B02BB1672A73B003613A1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				872B02BA1672A73B003613A1 /* ZumoE2ETestApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		872B02BD1672A73B003613A1 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8099D2DF1EFBC6CB005F24D4 /* SafariServices.framework */,
+				8099D2E01EFBC6CB005F24D4 /* SystemConfiguration.framework */,
+				0044609D1C84D96600CB5A0F /* WebKit.framework */,
+				A37A1C791C04D1FB007A5BC2 /* MicrosoftAzureMobile.framework */,
+				A2B509DC199ABF1A00A914CF /* MessageUI.framework */,
+				872B02BE1672A73B003613A1 /* UIKit.framework */,
+				872B02C01672A73B003613A1 /* Foundation.framework */,
+				872B02C21672A73B003613A1 /* CoreGraphics.framework */,
+				9A8E3FE822FAA34F98590D72 /* Pods_ZumoE2ETestApp.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		872B02C41672A73B003613A1 /* ZumoE2ETestApp */ = {
+			isa = PBXGroup;
+			children = (
+				806A17C41EEAA18100230146 /* ZumoE2ETestApp.entitlements */,
+				A2B509E2199C006600A914CF /* Main_iPhone.Storyboard */,
+				A3AD0B6C1BED91F900288E3D /* Launch Screen.storyboard */,
+				872B031016759F56003613A1 /* Tests */,
+				872B02FB1673F48B003613A1 /* TestTableViewControllers */,
+				872B02E81673EE5D003613A1 /* HelpController */,
+				872B02DB1672A8D6003613A1 /* TestFramework */,
+				872B02CD1672A73B003613A1 /* ZumoAppDelegate.h */,
+				872B02CE1672A73B003613A1 /* ZumoAppDelegate.m */,
+				872B02C51672A73B003613A1 /* Supporting Files */,
+				A20EF0881993F1F000C64641 /* ZumoBlobConnection.h */,
+				A20EF0891993F1F000C64641 /* ZumoBlobConnection.m */,
+				A2EB9E3E199543E30032B8BC /* ZumoConfigurationViewController.h */,
+				A2EB9E3F199543E30032B8BC /* ZumoConfigurationViewController.m */,
+				A2B509DE199B376C00A914CF /* ZumoTestResultViewController.h */,
+				A2B509DF199B376C00A914CF /* ZumoTestResultViewController.m */,
+				9C9E224D1E2E980700EC3A91 /* ZumoE2ETestApp-Bridging-Header.h */,
+				8099D2E51EFBD49C005F24D4 /* ZumoTestGoogleSignInDelegate.h */,
+				8099D2E61EFBD4AB005F24D4 /* ZumoTestGoogleSignInDelegate.m */,
+			);
+			path = ZumoE2ETestApp;
+			sourceTree = "<group>";
+		};
+		872B02C51672A73B003613A1 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				8099D2E31EFBC75C005F24D4 /* GoogleAuth-Info.plist */,
+				872B02C61672A73B003613A1 /* ZumoE2ETestApp-Info.plist */,
+				872B02C71672A73B003613A1 /* InfoPlist.strings */,
+				872B02CA1672A73B003613A1 /* main.m */,
+				872B02CC1672A73B003613A1 /* ZumoE2ETestApp-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		872B02DB1672A8D6003613A1 /* TestFramework */ = {
+			isa = PBXGroup;
+			children = (
+				872B02DC1672A8E9003613A1 /* ZumoTestCallbacks.h */,
+				872B02DD1672A8F4003613A1 /* ZumoTestGroupCallbacks.h */,
+				872B02DE1672A8FC003613A1 /* ZumoTest.h */,
+				872B02DF1672A8FC003613A1 /* ZumoTest.m */,
+				872B02E11672A908003613A1 /* ZumoTestGroup.h */,
+				872B02E21672A908003613A1 /* ZumoTestGroup.m */,
+				872B03011673F9D4003613A1 /* ZumoTestGlobals.h */,
+				872B03021673F9D4003613A1 /* ZumoTestGlobals.m */,
+			);
+			name = TestFramework;
+			sourceTree = "<group>";
+		};
+		872B02E81673EE5D003613A1 /* HelpController */ = {
+			isa = PBXGroup;
+			children = (
+				872B02EA1673EE91003613A1 /* ZumoTestHelpViewController.h */,
+				872B02EB1673EE91003613A1 /* ZumoTestHelpViewController.m */,
+				872B02EC1673EE91003613A1 /* ZumoTestHelpViewController.xib */,
+			);
+			name = HelpController;
+			sourceTree = "<group>";
+		};
+		872B02FB1673F48B003613A1 /* TestTableViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				872B02FC1673F4CF003613A1 /* ZumoMainTableViewController.h */,
+				872B02FD1673F4CF003613A1 /* ZumoMainTableViewController.m */,
+				872B030B16758058003613A1 /* ZumoTestGroupTableViewController.h */,
+				872B030C16758058003613A1 /* ZumoTestGroupTableViewController.m */,
+			);
+			name = TestTableViewControllers;
+			sourceTree = "<group>";
+		};
+		872B031016759F56003613A1 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				872B031116759F6D003613A1 /* ZumoRoundTripTests.h */,
+				872B031216759F6D003613A1 /* ZumoRoundTripTests.m */,
+				872B031416759FE2003613A1 /* ZumoQueryTests.h */,
+				872B031516759FE2003613A1 /* ZumoQueryTests.m */,
+				87B36926167AE7D300F42BCE /* ZumoQueryTestData.h */,
+				87B36927167AE7D300F42BCE /* ZumoQueryTestData.m */,
+				872B031716759FF1003613A1 /* ZumoCUDTests.h */,
+				872B031816759FF1003613A1 /* ZumoCUDTests.m */,
+				872B031A16759FF9003613A1 /* ZumoLoginTests.h */,
+				872B031B16759FF9003613A1 /* ZumoLoginTests.m */,
+				87D8D9431678443D00CDE19A /* ZumoMiscTests.h */,
+				87D8D9441678443D00CDE19A /* ZumoMiscTests.m */,
+				872B031D1675A127003613A1 /* ZumoTestStore.h */,
+				872B031E1675A127003613A1 /* ZumoTestStore.m */,
+				87B3693316875B1100F42BCE /* ZumoPushTests.h */,
+				87B3693416875B1100F42BCE /* ZumoPushTests.m */,
+				87FA8404174FE58A0089EDEA /* ZumoCustomApiTests.h */,
+				87FA8405174FE58A0089EDEA /* ZumoCustomApiTests.m */,
+				87FA840917569AB90089EDEA /* TestLoggingFilter.h */,
+				87FA840A17569AB90089EDEA /* TestLoggingFilter.m */,
+				8757386818A40C2A0025024F /* ZumoTestRunSetup.h */,
+				8757386918A40C2A0025024F /* ZumoTestRunSetup.m */,
+				9C7466F21DD2B39700F6BB5F /* ZumoLoginSafariViewControllerTests.h */,
+				9C7466F01DD2B35600F6BB5F /* ZumoLoginSafariViewControllerTests.m */,
+				9C9E224E1E2E980700EC3A91 /* ZumoLoginSafariViewControllerSwiftTests.swift */,
+			);
+			name = Tests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		872B02B91672A73B003613A1 /* ZumoE2ETestApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 872B02D81672A73B003613A1 /* Build configuration list for PBXNativeTarget "ZumoE2ETestApp" */;
+			buildPhases = (
+				ED54B2EF8E53B49D32F722DA /* [CP] Check Pods Manifest.lock */,
+				872B02B61672A73B003613A1 /* Sources */,
+				872B02B81672A73B003613A1 /* Resources */,
+				872B02B71672A73B003613A1 /* Frameworks */,
+				02A33389C465B71401EAB903 /* [CP] Embed Pods Frameworks */,
+				413ECC5862028B11F437B7C4 /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ZumoE2ETestApp;
+			productName = ZumoE2ETestApp;
+			productReference = 872B02BA1672A73B003613A1 /* ZumoE2ETestApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		872B02B11672A73B003613A1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				CLASSPREFIX = Zumo;
+				LastUpgradeCheck = 0810;
+				ORGANIZATIONNAME = Microsoft;
+				TargetAttributes = {
+					872B02B91672A73B003613A1 = {
+						DevelopmentTeam = 5Z97G9NZQ6;
+						LastSwiftMigration = 0820;
+						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.Keychain = {
+								enabled = 1;
+							};
+							com.apple.Push = {
+								enabled = 1;
+							};
+						};
+					};
+				};
+			};
+			buildConfigurationList = 872B02B41672A73B003613A1 /* Build configuration list for PBXProject "ZumoE2ETestApp" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 872B02AF1672A73B003613A1;
+			productRefGroup = 872B02BB1672A73B003613A1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				872B02B91672A73B003613A1 /* ZumoE2ETestApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		872B02B81672A73B003613A1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				872B02C91672A73B003613A1 /* InfoPlist.strings in Resources */,
+				8099D2E41EFBC75C005F24D4 /* GoogleAuth-Info.plist in Resources */,
+				872B02EE1673EE91003613A1 /* ZumoTestHelpViewController.xib in Resources */,
+				A2B509E4199C006600A914CF /* Main_iPhone.Storyboard in Resources */,
+				A3AD0B6D1BED91F900288E3D /* Launch Screen.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		02A33389C465B71401EAB903 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-ZumoE2ETestApp/Pods-ZumoE2ETestApp-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/ADAL/ADAL.framework",
+				"${BUILT_PRODUCTS_DIR}/GTMOAuth2/GTMOAuth2.framework",
+				"${BUILT_PRODUCTS_DIR}/GTMSessionFetcher/GTMSessionFetcher.framework",
+				"${BUILT_PRODUCTS_DIR}/GoogleToolboxForMac/GoogleToolboxForMac.framework",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ADAL.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GTMOAuth2.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GTMSessionFetcher.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GoogleToolboxForMac.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ZumoE2ETestApp/Pods-ZumoE2ETestApp-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		413ECC5862028B11F437B7C4 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-ZumoE2ETestApp/Pods-ZumoE2ETestApp-resources.sh",
+				"${PODS_ROOT}/GoogleSignIn/Resources/GoogleSignIn.bundle",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleSignIn.bundle",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ZumoE2ETestApp/Pods-ZumoE2ETestApp-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		ED54B2EF8E53B49D32F722DA /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ZumoE2ETestApp-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		872B02B61672A73B003613A1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A2EB9E40199543E30032B8BC /* ZumoConfigurationViewController.m in Sources */,
+				9C7466F11DD2B35600F6BB5F /* ZumoLoginSafariViewControllerTests.m in Sources */,
+				872B02CB1672A73B003613A1 /* main.m in Sources */,
+				872B02CF1672A73B003613A1 /* ZumoAppDelegate.m in Sources */,
+				872B02E01672A8FC003613A1 /* ZumoTest.m in Sources */,
+				872B02E31672A908003613A1 /* ZumoTestGroup.m in Sources */,
+				872B02ED1673EE91003613A1 /* ZumoTestHelpViewController.m in Sources */,
+				A2B509E0199B376C00A914CF /* ZumoTestResultViewController.m in Sources */,
+				872B02FE1673F4CF003613A1 /* ZumoMainTableViewController.m in Sources */,
+				9C9E224F1E2E980700EC3A91 /* ZumoLoginSafariViewControllerSwiftTests.swift in Sources */,
+				8099D2E71EFBD4AB005F24D4 /* ZumoTestGoogleSignInDelegate.m in Sources */,
+				872B03031673F9D4003613A1 /* ZumoTestGlobals.m in Sources */,
+				872B030D16758058003613A1 /* ZumoTestGroupTableViewController.m in Sources */,
+				8757386A18A40C2A0025024F /* ZumoTestRunSetup.m in Sources */,
+				872B031316759F6D003613A1 /* ZumoRoundTripTests.m in Sources */,
+				872B031616759FE2003613A1 /* ZumoQueryTests.m in Sources */,
+				872B031916759FF2003613A1 /* ZumoCUDTests.m in Sources */,
+				872B031C16759FF9003613A1 /* ZumoLoginTests.m in Sources */,
+				872B031F1675A128003613A1 /* ZumoTestStore.m in Sources */,
+				87D8D9451678443D00CDE19A /* ZumoMiscTests.m in Sources */,
+				A20EF08A1993F1F000C64641 /* ZumoBlobConnection.m in Sources */,
+				87B36928167AE7D300F42BCE /* ZumoQueryTestData.m in Sources */,
+				87B3693516875B1100F42BCE /* ZumoPushTests.m in Sources */,
+				87FA8406174FE58A0089EDEA /* ZumoCustomApiTests.m in Sources */,
+				87FA840B17569AB90089EDEA /* TestLoggingFilter.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		872B02C71672A73B003613A1 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				872B02C81672A73B003613A1 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		872B02D61672A73B003613A1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		872B02D71672A73B003613A1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		872B02D91672A73B003613A1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2838AF5B6268ABD1512B88E /* Pods-ZumoE2ETestApp.debug.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ZumoE2ETestApp/ZumoE2ETestApp.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 5Z97G9NZQ6;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)",
+					"$(PROJECT_DIR)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "ZumoE2ETestApp/ZumoE2ETestApp-Prefix.pch";
+				INFOPLIST_FILE = "ZumoE2ETestApp/ZumoE2ETestApp-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				OTHER_LDFLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.microsoft.azure.zumo.testapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "ZumoE2ETestApp/ZumoE2ETestApp-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		872B02DA1672A73B003613A1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C1619A0BBE473A7845043D87 /* Pods-ZumoE2ETestApp.release.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ZumoE2ETestApp/ZumoE2ETestApp.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 5Z97G9NZQ6;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)",
+					"$(PROJECT_DIR)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "ZumoE2ETestApp/ZumoE2ETestApp-Prefix.pch";
+				INFOPLIST_FILE = "ZumoE2ETestApp/ZumoE2ETestApp-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				OTHER_LDFLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.microsoft.azure.zumo.testapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "ZumoE2ETestApp/ZumoE2ETestApp-Bridging-Header.h";
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		872B02B41672A73B003613A1 /* Build configuration list for PBXProject "ZumoE2ETestApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				872B02D61672A73B003613A1 /* Debug */,
+				872B02D71672A73B003613A1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		872B02D81672A73B003613A1 /* Build configuration list for PBXNativeTarget "ZumoE2ETestApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				872B02D91672A73B003613A1 /* Debug */,
+				872B02DA1672A73B003613A1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 872B02B11672A73B003613A1 /* Project object */;
+}

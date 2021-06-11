@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9059" systemVersion="15B42" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" initialViewController="01J-lp-oVM">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9049"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="EHf-IW-A2E">
+            <objects>
+                <viewController id="01J-lp-oVM" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="Llm-lL-Icb"/>
+                        <viewControllerLayoutGuide type="bottom" id="xb3-aO-Qok"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" usesAttributedText="YES" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rlg-Hd-rcF">
+                                <rect key="frame" x="36" y="40" width="528" height="28"/>
+                                <animations/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="rlg-Hd-rcF" secondAttribute="height" multiplier="311:29" id="VWd-jC-VNj"/>
+                                    <constraint firstAttribute="width" secondItem="rlg-Hd-rcF" secondAttribute="height" multiplier="173:29" id="WJY-s8-xkI"/>
+                                    <constraint firstAttribute="width" constant="173" id="s52-RO-qpu"/>
+                                </constraints>
+                                <attributedString key="attributedText">
+                                    <fragment content="Azure ">
+                                        <attributes>
+                                            <color key="NSColor" red="0.80000001190000003" green="0.80000001190000003" blue="0.80000001190000003" alpha="1" colorSpace="calibratedRGB"/>
+                                            <font key="NSFont" size="24" name="HelveticaNeue"/>
+                                            <paragraphStyle key="NSParagraphStyle" alignment="center" lineBreakMode="wordWrapping" baseWritingDirection="natural" tighteningFactorForTruncation="0.0"/>
+                                        </attributes>
+                                    </fragment>
+                                    <fragment content="Mobile Apps">
+                                        <attributes>
+                                            <color key="NSColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                            <font key="NSFont" size="24" name="HelveticaNeue"/>
+                                            <paragraphStyle key="NSParagraphStyle" alignment="center" lineBreakMode="wordWrapping" baseWritingDirection="natural" tighteningFactorForTruncation="0.0"/>
+                                        </attributes>
+                                    </fragment>
+                                </attributedString>
+                                <nil key="highlightedColor"/>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="VWd-jC-VNj"/>
+                                        <exclude reference="WJY-s8-xkI"/>
+                                        <exclude reference="s52-RO-qpu"/>
+                                    </mask>
+                                </variation>
+                                <variation key="heightClass=regular-widthClass=compact" ambiguous="YES" misplaced="YES">
+                                    <rect key="frame" x="239" y="40" width="173" height="29"/>
+                                </variation>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="355-3B-1Li">
+                                <rect key="frame" x="256" y="544" width="89" height="36"/>
+                                <animations/>
+                                <accessibility key="accessibilityConfiguration" label="Loading..."/>
+                                <fontDescription key="fontDescription" type="system" pointSize="20"/>
+                                <state key="normal" title="Loading...">
+                                    <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                            </button>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="E2E Test Suite" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PPl-om-x2j">
+                                <rect key="frame" x="16" y="69" width="568" height="26.5"/>
+                                <animations/>
+                                <fontDescription key="fontDescription" type="system" pointSize="22"/>
+                                <color key="textColor" red="0.80000001190000003" green="0.80000001190000003" blue="0.80000001190000003" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <animations/>
+                        <color key="backgroundColor" red="0.27058823529999998" green="0.69411764710000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstItem="rlg-Hd-rcF" firstAttribute="top" secondItem="Llm-lL-Icb" secondAttribute="bottom" constant="20" id="5Ql-Je-Wgk"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="rlg-Hd-rcF" secondAttribute="trailing" constant="16" id="C4D-kX-kPZ"/>
+                            <constraint firstItem="rlg-Hd-rcF" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leadingMargin" constant="16" id="GDy-oq-Vnb"/>
+                            <constraint firstItem="PPl-om-x2j" firstAttribute="trailing" secondItem="Ze5-6b-2t3" secondAttribute="trailingMargin" constant="16" id="Gpp-8g-u3a"/>
+                            <constraint firstItem="xb3-aO-Qok" firstAttribute="top" secondItem="355-3B-1Li" secondAttribute="bottom" constant="20" id="Ivy-p4-1yc"/>
+                            <constraint firstItem="PPl-om-x2j" firstAttribute="top" secondItem="rlg-Hd-rcF" secondAttribute="bottom" constant="1" id="XDq-02-FQA"/>
+                            <constraint firstItem="355-3B-1Li" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="ZjP-CS-fAO"/>
+                            <constraint firstItem="PPl-om-x2j" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leadingMargin" constant="16" id="auo-RS-UE7"/>
+                            <constraint firstItem="PPl-om-x2j" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" constant="16" id="ay6-8v-04j"/>
+                            <constraint firstAttribute="trailing" secondItem="PPl-om-x2j" secondAttribute="trailing" constant="16" id="mdf-k1-Kow"/>
+                        </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="Gpp-8g-u3a"/>
+                                <exclude reference="auo-RS-UE7"/>
+                            </mask>
+                        </variation>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="460" y="427"/>
+        </scene>
+    </scenes>
+</document>

@@ -1,0 +1,17 @@
+// ----------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// ----------------------------------------------------------------------------
+
+#import <UIKit/UIKit.h>
+#import "ZumoTestGroup.h"
+#import "ZumoTestGroupCallbacks.h"
+
+@interface ZumoTestGroupTableViewController : UITableViewController <UITextFieldDelegate, ZumoTestGroupCallbacks>
+
+@property (nonatomic, strong) ZumoTestGroup *testGroup;
+@property (nonatomic, strong) NSString *logUploadUrl;
+
+- (IBAction)runTests:(id)sender;
+- (IBAction)resetTests:(id)sender;
+
+@end

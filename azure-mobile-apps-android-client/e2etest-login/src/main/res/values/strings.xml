@@ -1,0 +1,11 @@
+<resources>
+
+    <string name="app_name">Zumo Custom Tabs Login E2E Test</string>
+    <string name="service_title">Zumo Custom Tabs Login E2E Test</string>
+    <string name="button_google_login">Login with Google</string>
+    <string name="button_facebook_login">Login with Facebook</string>
+    <string name="button_MSA_login">Login with MSA</string>
+    <string name="button_AAD_login">Login with AAD</string>
+    <string name="button_twitter_login">Login with Twitter</string>
+
+</resources>

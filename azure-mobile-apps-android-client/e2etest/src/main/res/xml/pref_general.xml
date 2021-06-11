@@ -1,0 +1,31 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+        android:defaultValue="@string/pref_default_mobile_service_url"
+        android:key="pref_mobile_service_url"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:title="@string/pref_mobile_service_url" />
+
+    <EditTextPreference
+        android:defaultValue="@string/pref_default_storage_container_url"
+        android:key="pref_storage_container_url"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:title="@string/pref_storage_container_url" />
+
+    <EditTextPreference
+        android:defaultValue="@string/pref_default_storage_base64_token"
+        android:key="pref_storage_base64_token"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:title="@string/pref_storage_base64_token" />
+
+    <EditTextPreference
+        android:defaultValue="@string/pref_default_storage_runtime"
+        android:key="pref_runtime_version"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:title="@string/pref_storage_runtime" />
+
+</PreferenceScreen>
