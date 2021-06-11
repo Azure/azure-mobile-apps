@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Authors>Microsoft Corporation</Authors>
+    <Company>Microsoft Corporation</Company>
+    <Copyright>Copyright (c) 2021 Microsoft Corporation.</Copyright>
+    <Description>An in-memory repository for use with the ASP.NET Core Datasync framework.</Description>
+    <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
+    <LangVersion>9.0</LangVersion>
+    <NeutralLanguage>en</NeutralLanguage>
+    <PackageId>Microsoft.AspNetCore.Datasync.InMemory</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageTags>microsoft aspnetcore cloud datasync webapi</PackageTags>
+    <ProductName>Microsoft.AspNetCore.Datasync.InMemory</ProductName>
+    <ProjectUrl>https://github.com/Microsoft/datasync-server</ProjectUrl>
+    <RepositoryUrl>https://github.com/Microsoft/datasync-server</RepositoryUrl>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,81 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31229.75
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4AD0B95F-AAF4-4E0A-95F1-111D71A92533}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Datasync", "src\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj", "{6FCD8475-EA06-4810-B964-1A4B5F0A9F28}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Datasync.InMemory", "src\Microsoft.AspNetCore.Datasync.InMemory\Microsoft.AspNetCore.Datasync.InMemory.csproj", "{0568C5EB-DC55-4406-8375-A49789A37FEC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Datasync.EFCore", "src\Microsoft.AspNetCore.Datasync.EFCore\Microsoft.AspNetCore.Datasync.EFCore.csproj", "{28C62B18-6FC4-426A-839B-EDD92EB6B121}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{FC1EEC9E-3B6D-487B-80AF-DF63352EC02A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datasync.Common.Test", "test\Datasync.Common.Test\Datasync.Common.Test.csproj", "{B2CCFF82-1E32-40EA-919C-4C9C08D1D0E1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datasync.Webservice", "test\Datasync.Webservice\Datasync.Webservice.csproj", "{084FF19D-CFD1-465D-9659-F3BEAA224270}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.InMemory.Test", "test\Microsoft.AspNetCore.Datasync.InMemory.Test\Microsoft.AspNetCore.Datasync.InMemory.Test.csproj", "{B07EB39C-A7C0-4215-B798-6B566A5F50AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.EFCore.Test", "test\Microsoft.AspNetCore.Datasync.EFCore.Test\Microsoft.AspNetCore.Datasync.EFCore.Test.csproj", "{83D54978-F01B-4745-8A8A-FA0004D9D476}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.Test", "test\Microsoft.AspNetCore.Datasync.Test\Microsoft.AspNetCore.Datasync.Test.csproj", "{191784ED-C684-40B9-9E7A-186D9EA5285B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6FCD8475-EA06-4810-B964-1A4B5F0A9F28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FCD8475-EA06-4810-B964-1A4B5F0A9F28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FCD8475-EA06-4810-B964-1A4B5F0A9F28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FCD8475-EA06-4810-B964-1A4B5F0A9F28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0568C5EB-DC55-4406-8375-A49789A37FEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0568C5EB-DC55-4406-8375-A49789A37FEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0568C5EB-DC55-4406-8375-A49789A37FEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0568C5EB-DC55-4406-8375-A49789A37FEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28C62B18-6FC4-426A-839B-EDD92EB6B121}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28C62B18-6FC4-426A-839B-EDD92EB6B121}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28C62B18-6FC4-426A-839B-EDD92EB6B121}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28C62B18-6FC4-426A-839B-EDD92EB6B121}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2CCFF82-1E32-40EA-919C-4C9C08D1D0E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2CCFF82-1E32-40EA-919C-4C9C08D1D0E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2CCFF82-1E32-40EA-919C-4C9C08D1D0E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2CCFF82-1E32-40EA-919C-4C9C08D1D0E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{084FF19D-CFD1-465D-9659-F3BEAA224270}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{084FF19D-CFD1-465D-9659-F3BEAA224270}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{084FF19D-CFD1-465D-9659-F3BEAA224270}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{084FF19D-CFD1-465D-9659-F3BEAA224270}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B07EB39C-A7C0-4215-B798-6B566A5F50AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B07EB39C-A7C0-4215-B798-6B566A5F50AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B07EB39C-A7C0-4215-B798-6B566A5F50AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B07EB39C-A7C0-4215-B798-6B566A5F50AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83D54978-F01B-4745-8A8A-FA0004D9D476}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83D54978-F01B-4745-8A8A-FA0004D9D476}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83D54978-F01B-4745-8A8A-FA0004D9D476}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83D54978-F01B-4745-8A8A-FA0004D9D476}.Release|Any CPU.Build.0 = Release|Any CPU
+		{191784ED-C684-40B9-9E7A-186D9EA5285B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{191784ED-C684-40B9-9E7A-186D9EA5285B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{191784ED-C684-40B9-9E7A-186D9EA5285B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{191784ED-C684-40B9-9E7A-186D9EA5285B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6FCD8475-EA06-4810-B964-1A4B5F0A9F28} = {4AD0B95F-AAF4-4E0A-95F1-111D71A92533}
+		{0568C5EB-DC55-4406-8375-A49789A37FEC} = {4AD0B95F-AAF4-4E0A-95F1-111D71A92533}
+		{28C62B18-6FC4-426A-839B-EDD92EB6B121} = {4AD0B95F-AAF4-4E0A-95F1-111D71A92533}
+		{B2CCFF82-1E32-40EA-919C-4C9C08D1D0E1} = {FC1EEC9E-3B6D-487B-80AF-DF63352EC02A}
+		{084FF19D-CFD1-465D-9659-F3BEAA224270} = {FC1EEC9E-3B6D-487B-80AF-DF63352EC02A}
+		{B07EB39C-A7C0-4215-B798-6B566A5F50AD} = {FC1EEC9E-3B6D-487B-80AF-DF63352EC02A}
+		{83D54978-F01B-4745-8A8A-FA0004D9D476} = {FC1EEC9E-3B6D-487B-80AF-DF63352EC02A}
+		{191784ED-C684-40B9-9E7A-186D9EA5285B} = {FC1EEC9E-3B6D-487B-80AF-DF63352EC02A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A0CEDA72-A2EB-4741-98C3-6E5CFA65DF02}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Authors>Microsoft Corporation</Authors>
+    <Company>Microsoft Corporation</Company>
+    <Copyright>Copyright (c) 2021 Microsoft Corporation.</Copyright>
+    <Description>An Entity Framework Core based repository for use with the ASP.NET Core Datasync framework.</Description>
+    <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
+    <LangVersion>9.0</LangVersion>
+    <NeutralLanguage>en</NeutralLanguage>
+    <PackageId>Microsoft.AspNetCore.Datasync.EFCore</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageTags>microsoft aspnetcore cloud datasync webapi</PackageTags>
+    <ProductName>Microsoft.AspNetCore.Datasync.EFCore</ProductName>
+    <ProjectUrl>https://github.com/Microsoft/datasync-server</ProjectUrl>
+    <RepositoryUrl>https://github.com/Microsoft/datasync-server</RepositoryUrl>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.5" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj" />
+  </ItemGroup>
+</Project>
