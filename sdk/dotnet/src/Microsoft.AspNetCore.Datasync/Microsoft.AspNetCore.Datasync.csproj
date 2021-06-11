@@ -13,7 +13,7 @@
     <PackageTags>microsoft aspnetcore cloud datasync webapi</PackageTags>
     <ProductName>Microsoft.AspNetCore.Datasync</ProductName>
     <ProjectUrl>https://github.com/Azure/azure-mobile-apps</ProjectUrl>
-    <RepositoryUrl>https//github.com/Azure/azure-mobile-apps</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
