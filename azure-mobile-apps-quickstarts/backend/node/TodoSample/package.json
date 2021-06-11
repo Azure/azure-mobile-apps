@@ -1,0 +1,18 @@
+{
+  "engines": {
+    "node": "=4.2.1"
+  },
+  "name": "azure-mobile-apps-quickstarts.backend.node.TodoSample",
+  "version": "0.0.1",
+  "description": "Samples for Azure Mobile Apps",
+  "author": "Microsoft",
+  "repository": "Azure/azure-mobile-apps-quickstarts",
+  "license": "MIT",
+  "dependencies": {
+    "azure-mobile-apps": "4.0.1",
+    "express": "4.17.1",
+    "sqlite3": "4.1.0",
+    "swagger-ui": "3.23.6"
+  },
+  "devDependencies": {}
+}

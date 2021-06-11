@@ -1,0 +1,16 @@
+{
+  "engines": {
+    "node": "=4.2.1"
+  },
+  "name": "azure-mobile-apps-quickstarts.backend.node.EmptySite",
+  "version": "0.0.1",
+  "description": "Samples for Azure Mobile Apps",
+  "author": "Microsoft",
+  "repository": "Azure/azure-mobile-apps-quickstarts",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.13.0",
+    "azure-mobile-apps": "^3.0.0"
+  },
+  "devDependencies": {}
+}

@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Full" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildProjectDirectory)\tools\Microsoft.WindowsAzure.Mobile.Build.targets" />
+  <Import Project="$(MSBuildProjectDirectory)\tools\NuGet.targets" />
+
+  <PropertyGroup>
+    <SDKRootPath>$(MSBuildThisFileDirectory)</SDKRootPath>
+    <QuickStartsSourceDirectory>$(SDKRootPath)\client</QuickStartsSourceDirectory>
+    <ZipPath>$(SDKRootPath)\packages\7-Zip.CommandLine.9.20.0\tools\7za</ZipPath>
+    <OutputPath>$(MSBuildThisFileDirectory)\bin</OutputPath>
+
+    <DownloadNuGetExe>true</DownloadNuGetExe>
+    <NugetExe>$(MSBuildProjectDirectory)\.nuget\NuGet.exe</NugetExe>
+    <DefaultNugetPackageSource>https://www.nuget.org/api/v2/</DefaultNugetPackageSource>
+    <NugetPackageSource Condition=" '$(NugetPackageSource)' == '' ">$(DefaultNugetPackageSource)</NugetPackageSource>
+
+    <!-- Define default configuration (so building from command line is consistent) -->
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+
+    <!--TODO : Detect JS SDK version-->
+    <JSSDKVersion>2.0.0-beta</JSSDKVersion>
+
+    <!--TODO : Detect Android SDK version-->
+    <AndroidSDKVersion>3.4.0</AndroidSDKVersion>
+
+    <!--Variable to override iOS SDK-->
+    <iOSSDK></iOSSDK>
+  </PropertyGroup>
+
+  <!-- Quickstarts -->
+  <ItemGroup>
+    <!-- Node quickstarts -->
+    <QuickStart Include="$(MSBuildProjectFile)" >
+      <Runtime>Node</Runtime>
+      <SourcePath>web</SourcePath>
+      <ZipFileName>Html_JavaScript.zip</ZipFileName>
+    </QuickStart>
+
+    <QuickStart Include="$(MSBuildProjectFile)">
+      <Runtime>Node</Runtime>
+      <SourcePath>windows-universal-cs</SourcePath>
+      <ZipFileName>Windows_Universal_CS.zip</ZipFileName>
+    </QuickStart>
+    
+    <QuickStart Include="$(MSBuildProjectFile)">
+      <Runtime>Node</Runtime>
+      <SourcePath>windows-uwp-cs</SourcePath>
+      <ZipFileName>Windows_UWP_CS.zip</ZipFileName>
+    </QuickStart>
+      
+    <QuickStart Include="Windows_Universal_JS">
+      <Runtime>Node</Runtime>
+      <SourcePath>windows-universal-js</SourcePath>
+      <ZipFileName>Windows_Universal_JS.zip</ZipFileName>
+    </QuickStart>
+
+    <QuickStart Include="Xamarin_iOS" >
+      <Runtime>Node</Runtime>
+      <SourcePath>xamarin.iOS</SourcePath>
+      <ZipFileName>Xamarin_iOS.zip</ZipFileName>
+    </QuickStart>
+
+    <QuickStart Include="Xamarin_Android" >
+      <Runtime>Node</Runtime>
+      <SourcePath>xamarin.android</SourcePath>
+      <ZipFileName>Xamarin_Android.zip</ZipFileName>
+    </QuickStart>
+
+    <QuickStart Include="Xamarin_Forms" >
+      <Runtime>Node</Runtime>
+      <SourcePath>xamarin.forms</SourcePath>
+      <ZipFileName>Xamarin_Forms.zip</ZipFileName>
+    </QuickStart>
+
+
+    <!-- DotNet quickstarts -->
+    <QuickStart Include="Existing_DotNet">
+      <Runtime>DotNet</Runtime>
+      <SourcePath>dotnet-service</SourcePath>
+      <ZipFileName>Existing_DotNet.zip</ZipFileName>
+    </QuickStart>
+
+    <QuickStart Include="Html_JavaScript_DotNet" >
+      <Runtime>DotNet</Runtime>
+      <SourcePath>web-dotnet</SourcePath>
+      <ZipFileName>Html_JavaScript_DotNet.zip</ZipFileName>
+    </QuickStart>
+
+    <QuickStart Include="Cordova" >
+      <Runtime>DotNet</Runtime>
+      <SourcePath>cordova</SourcePath>
+      <ZipFileName>Cordova.zip</ZipFileName>
+    </QuickStart>
+
+
+    <!--iOS quickstarts-->
+    <QuickStart Include="iOS" >
+      <Runtime>iOS</Runtime>
+      <SourcePath>iOS</SourcePath>
+      <ZipFileName>iOS_ObjC.zip</ZipFileName>
+    </QuickStart>
+
+    <QuickStart Include="iOS-Swift" >
+      <Runtime>iOS</Runtime>
+      <SourcePath>iOS-Swift</SourcePath>
+      <ZipFileName>iOS_Swift.zip</ZipFileName>
+    </QuickStart>
+    
+
+    <!--Java quickstarts-->
+    <QuickStart Include="Android">
+      <Runtime>Java</Runtime>
+      <SourcePath>android</SourcePath>
+      <ZipFileName>Android_Java.zip</ZipFileName>
+    </QuickStart>
+  </ItemGroup>
+
+  <Target Name="DownloadSDK">
+    <!-- Create the Quickstarts directory in bin folder -->
+    <MakeDir Directories="$(OutputPath)\Quickstarts"/>
+
+    <!--Download Nuget.exe (CheckPrerequisistes defined in NuGet.targets)-->
+    <MakeDir Directories="$(MSBuildProjectDirectory)\.nuget" />
+    <CallTarget Targets="CheckPrerequisites"  />
+
+    <!--Restore required nuget packages-->
+    <Exec Command='"$(NugetExe)" install 7-Zip.CommandLine -source $(DefaultNugetPackageSource) -o "$(MSBuildProjectDirectory)\packages" -Version 9.20.0' LogStandardErrorAsError="true" />
+
+    <Exec Command='"$(NugetExe)" install Microsoft.Azure.Mobile.Server.Quickstart -source $(NugetPackageSource) -o "$(MSBuildProjectDirectory)\backend\dotnet\packages"' LogStandardErrorAsError="true" />
+    <Exec Command='"$(NugetExe)" install Microsoft.WindowsAzure.ConfigurationManager -source $(NugetPackageSource) -o "$(MSBuildProjectDirectory)\backend\dotnet\packages"' LogStandardErrorAsError="true" />
+    
+    <Exec Command='"$(NugetExe)" install Microsoft.Azure.Mobile.Client -source $(NugetPackageSource) -o "$(MSBuildProjectDirectory)\packages\sdk"' LogStandardErrorAsError="true" />
+    <Exec Command='"$(NugetExe)" install Microsoft.Azure.Mobile.Client.SQLiteStore -source $(NugetPackageSource) -o "$(MSBuildProjectDirectory)\packages\sqllitestore"' LogStandardErrorAsError="true" />
+    <Exec Command='"$(NugetExe)" install WindowsAzure.MobileServices.WinJS -source $(NugetPackageSource) -o "$(MSBuildProjectDirectory)\packages"' LogStandardErrorAsError="true" />
+    <Exec Command='"$(NugetExe)" install "$(MSBuildProjectDirectory)\backend\try-mobile-apps\packages.config" -source $(NugetPackageSource) -o "$(MSBuildProjectDirectory)\backend\try-mobile-apps\packages"' LogStandardErrorAsError="true" />
+
+    <!--Download iOS SDK-->
+    <HttpDownload DownloadUrl="https://go.microsoft.com/fwLink/?LinkID=529823" PackageDirectory="$(SDKRootPath)\packages" SDKPackage="iOS" Condition=" '$(iOSSDK)' == ''" />
+    <Exec Command='"$(ZipPath)" x "$(iOSSDK)" -o"$(SDKRootPath)\packages\iOS" * -r -y' Condition=" '$(iOSSDK)' != ''" />
+  </Target>
+
+  <Target Name="BuildQuickStarts">
+    <!--Find NugetVersion from NugetPackages-->
+    <GetNugetVersion PackageDirectory="$(MSBuildProjectDirectory)\packages\sdk" NugetId="Microsoft.Azure.Mobile.Client*" >
+      <Output TaskParameter="NugetVersion" PropertyName="SDKPackageVersion" />
+    </GetNugetVersion>
+    <Message Text="SDKPackageVersion = $(SDKPackageVersion)" />
+
+    <GetNugetVersion PackageDirectory="$(MSBuildProjectDirectory)\packages\sqllitestore" NugetId="Microsoft.Azure.Mobile.Client.SQLiteStore*">
+      <Output TaskParameter="NugetVersion" PropertyName="StorePackageVersion" />
+    </GetNugetVersion>
+    <Message Text="StorePackageVersion = $(StorePackageVersion)" />
+
+    <GetNugetVersion PackageDirectory="$(MSBuildProjectDirectory)\packages" NugetId="WindowsAzure.MobileServices.WinJS*">
+      <Output TaskParameter="NugetVersion" PropertyName="WinJSPackageVersion" />
+    </GetNugetVersion>
+    <Message Text="WinJSPackageVersion = $(WinJSPackageVersion)" />
+
+
+    <!-- Build DotNet service quickstart -->
+    <MSBuild Projects="$(MSBuildProjectDirectory)\backend\dotnet\Quickstart.csproj"
+             Properties="Configuration=$(Configuration)"/>
+    <!-- Copy the DotNet service quickstart from network share to the bin directory -->
+    <ItemGroup>
+      <DotNetService Include="$(MSBuildProjectDirectory)\backend\dotnet\bin\$(Configuration)\Quickstart\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DotNetService)"
+          DestinationFiles="@(DotNetService->'$(QuickStartsSourceDirectory)\dotnet-service\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+
+    <!-- Build "Try Mobile Apps" service quickstart -->
+    <MSBuild Projects="$(MSBuildProjectDirectory)\backend\try-mobile-apps\TryMobileApps.csproj" Properties="Configuration=$(Configuration)"/>
+    <!-- Copy the SQL CE native binaries to the bin folder - don't do this as a post build event as this will break online editing with Monaco -->
+    <ItemGroup>
+      <TryMobileApps Include="$(MSBuildProjectDirectory)\backend\try-mobile-apps\packages\Microsoft.SqlServer.Compact.4.0.8876.1\NativeBinaries\x86\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(TryMobileApps)"
+          DestinationFiles="@(TryMobileApps->'$(MSBuildProjectDirectory)\backend\try-mobile-apps\bin\x86\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+    <Exec Command='"$(ZipPath)" a -tzip $(OutputPath)\QuickStarts\TryMobileApps.zip $(MSBuildProjectDirectory)\backend\try-mobile-apps\* -xr!obj -xr!packages  -x!"bin\*.xml" -xr!de -xr!es -xr!fr -xr!it -xr!ja -xr!ko -xr!ru -xr!zh-Hans -xr!zh-Hant'/>
+
+    <MSBuild Projects="$(QuickStartsSourceDirectory)\setup\Setup.csproj" Targets="TransformAll"
+             Properties="Runtime=NODE;ManagedSDKVersion=$(SDKPackageVersion);JSSDKVersion=$(JSSDKVersion);AndroidSDKVersion=$(AndroidSDKVersion);StoreSDKVersion=$(StorePackageVersion);WinJSPackageVersion=$(WinJSPackageVersion);" />
+
+    <!-- We don't want to dublicate web QS files so copy them from Node.js runtime QS to NET runtime QS -->
+    <ItemGroup>
+      <WebFiles Include="$(QuickStartsSourceDirectory)\web\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(WebFiles)"
+          DestinationFiles="@(WebFiles->'$(QuickStartsSourceDirectory)\web-dotnet\ZUMOAPPNAME\%(RecursiveDir)%(Filename)%(Extension)')"/>
+
+    <!-- Execute the private BuildQuickStart task for each quickstart -->
+    <ItemGroup Condition="'@(QuickStart)' != ''">
+      <_BuildQuickStartsNode Include="$(MSBuildProjectFile)">
+        <AdditionalProperties>
+          QuickStartPath=%(QuickStart.SourcePath);
+          QuickStartZipFileName=%(QuickStart.ZipFileName);
+          QuickStartRuntime=%(QuickStart.Runtime)
+        </AdditionalProperties>
+      </_BuildQuickStartsNode>
+    </ItemGroup>
+
+    <MSBuild Projects="@(_BuildQuickStartsNode)"  Targets="_BuildQuickStartParallel"
+             Properties="Runtime=NODE;ManagedSDKVersion=$(SDKPackageVersion);JSSDKVersion=$(JSSDKVersion);StoreSDKVersion=$(StorePackageVersion);WinJSPackageVersion=$(WinJSPackageVersion);" 
+             Condition="'%(QuickStart.Runtime)' == 'Node'" />
+
+    <MSBuild Projects="$(QuickStartsSourceDirectory)\setup\Setup.csproj" Targets="TransformAll"
+             Properties="Runtime=DOTNET;ManagedSDKVersion=$(SDKPackageVersion);JSSDKVersion=$(JSSDKVersion);AndroidSDKVersion=$(AndroidSDKVersion);StoreSDKVersion=$(StorePackageVersion);WinJSPackageVersion=$(WinJSPackageVersion);" 
+             Condition="'%(QuickStart.Runtime)' == 'DotNet'"/>
+
+    <MSBuild Projects="@(_BuildQuickStartsDotNet)"  Targets="_BuildQuickStartParallel"
+             Properties="Runtime=DOTNET;ManagedSDKVersion=$(SDKPackageVersion);JSSDKVersion=$(JSSDKVersion);StoreSDKVersion=$(StorePackageVersion);WinJSPackageVersion=$(WinJSPackageVersion);" 
+             Condition="'%(QuickStart.Runtime)' == 'DotNet'"/>
+
+    <MSBuild Projects="@(_BuildQuickStartsJava)"  Targets="_BuildQuickStartParallel" Properties=""  Condition="'%(QuickStart.Runtime)' == 'Java'"/>
+
+    <MSBuild Projects="@(_BuildQuickStartsiOS)"  Targets="_BuildQuickStartParallel"
+             Properties="Runtime=iOS;ManagedSDKVersion=$(SDKPackageVersion);JSSDKVersion=$(JSSDKVersion);StoreSDKVersion=$(StorePackageVersion);WinJSPackageVersion=$(WinJSPackageVersion);" 
+             Condition="'%(QuickStart.Runtime)' == 'iOS'"/>
+  </Target>
+
+  <Target Name="_BuildQuickStartParallel">
+    <PropertyGroup>
+      <QuickStartSourceDirectory>$(QuickStartsSourceDirectory)\$(QuickStartPath)</QuickStartSourceDirectory>
+      <QuickStartOutputDirectory>$(OutputPath)\QuickStarts\$(QuickStartRuntime)\$(QuickStartPath)</QuickStartOutputDirectory>
+    </PropertyGroup>
+
+    <!-- Copy the quickstart from the source directory to the bin directory -->
+    <ItemGroup>
+      <QuickStartCopyFiles Include="$(QuickStartSourceDirectory)\**\*.*"/>
+    </ItemGroup>
+
+    <Copy SourceFiles="@(QuickStartCopyFiles)"
+          DestinationFiles="@(QuickStartCopyFiles->'$(QuickStartOutputDirectory)\%(RecursiveDir)%(Filename)%(Extension)')"/>
+
+    <!-- WinJS is special so we need to copy over the .js files from nuget source -->
+    <ItemGroup>
+      <WinJSQuickStartCopyFiles Include="$(SDKRootPath)\packages\WindowsAzure.MobileServices.WinJS.$(WinJSPackageVersion)\content\js\*.*"/>
+    </ItemGroup>
+    <Copy Condition="'$(QuickStartPath)' == 'windows-universal-js'"
+          SourceFiles="@(WinJSQuickStartCopyFiles)"
+          DestinationFolder="$(QuickStartOutputDirectory)\ZUMOAPPNAME\ZUMOAPPNAME.Windows\js"/>
+    <Copy Condition="'$(QuickStartPath)' == 'windows-universal-js'"
+          SourceFiles="@(WinJSQuickStartCopyFiles)"
+          DestinationFolder="$(QuickStartOutputDirectory)\ZUMOAPPNAME\ZUMOAPPNAME.WindowsPhone\js"/>
+
+    <!-- Copy iOS SDK -->
+    <ItemGroup>
+      <iOSSDK Include="$(SDKRootPath)\packages\iOS\MicrosoftAzureMobile.framework\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(iOSSDK)"
+          Condition="'$(QuickStartRuntime)' == 'iOS'"
+          DestinationFiles="@(iOSSDK->'$(QuickStartOutputDirectory)\ZUMOAPPNAME\MicrosoftAzureMobile.framework\%(RecursiveDir)%(Filename)%(Extension)')"/>
+
+    <!-- Delete any .tt & .gitignore files -->
+    <ItemGroup>
+      <FilesToDelete Include="$(QuickStartOutputDirectory)\**\*.tt" />
+      <FilesToDelete Include="$(QuickStartOutputDirectory)\.gitignore" />
+    </ItemGroup>
+    <Delete Files="@(FilesToDelete)"/>
+
+    <!-- Zip up the quickstart -->
+    <Exec Command='"$(ZipPath)" a -tzip $(OutputPath)\QuickStarts\$(QuickStartZipFileName) $(QuickStartOutputDirectory)\* '/>
+  </Target>
+
+  <!-- Clean -->
+  <Target Name="Clean">
+    <RemoveDir Directories="$(OutputPath)"/>
+    <RemoveDir Directories="$(MSBuildThisFileDirectory)\packages" />
+    <RemoveDir Directories="$(MSBuildThisFileDirectory)\backend\dotnet\packages" />
+  </Target>
+
+  <!-- Full -->
+  <Target Name="Full" DependsOnTargets="Clean;DownloadSDK;BuildQuickStarts;" />
+</Project>

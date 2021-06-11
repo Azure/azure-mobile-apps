@@ -1,0 +1,148 @@
+﻿<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Xml" #>
+<#@ assembly name="System.IO.Compression" #>
+<#@ assembly name="System.IO.Compression.FileSystem" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Xml" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.IO.Compression" #>
+<#@ import namespace="System.Reflection" #>
+<#+
+public List<NugetPackage> GetQuickStartTemplates()
+{
+    var quickstart = new List<NugetPackage>();
+    quickstart.AddRange(ReadAllInstalledPackages(srcDirectory));
+    return quickstart.Distinct().ToList();
+}
+
+public string GetHintPath(List<NugetPackage> nugetPackages, string id, string targetFramework=null)
+{
+    var package = nugetPackages.Where(nugetPackage => string.CompareOrdinal(nugetPackage.Id, id) == 0).FirstOrDefault();
+    return string.Format(@"..\packages\{0}.{1}\lib\{2}", package.Id, package.Version, targetFramework == null ? "net45" : targetFramework);
+}
+
+public string GetVersion(List<NugetPackage> nugetPackages, string id)
+{
+    var package = nugetPackages.Where(nugetPackage => string.CompareOrdinal(nugetPackage.Id, id) == 0).FirstOrDefault();
+    return package.Version;
+}
+
+public string GetAssemblyVersion(List<NugetPackage> nugetPackages, string packageId, string assemblyName=null)
+{
+    if (assemblyName == null)
+    {
+        assemblyName = packageId;
+    }
+    var package = nugetPackages.Where(nugetPackage => string.CompareOrdinal(nugetPackage.Id, packageId) == 0).Single();
+    var assemblies = package.AssemblyNames.Where(an => an.Name == assemblyName);
+    // if there's more than one version, we're not sure what to pick, so just throw. this shouldn't happen.
+    return assemblies.Select(a => a.Version.ToString()).Distinct().Single();
+}
+
+static IEnumerable<NugetPackage> ReadAllInstalledPackages(string srcPackageDirectory)
+{
+    List<NugetPackage> packages = new List<NugetPackage>();
+    FileInfo[] dirs = new DirectoryInfo(srcPackageDirectory).GetFiles("*.nupkg", SearchOption.AllDirectories);
+    foreach (string fullPath in dirs.Select(d => d.FullName))
+    {
+        packages.Add(NugetPackage.Create(fullPath));
+    }
+    return packages;
+}
+
+static string GetNugetDirectory(string srcDirectory, string nugetPackage)
+{
+    var directoryInfo = new DirectoryInfo(srcDirectory);
+    DirectoryInfo nugetPackageInfo = (DirectoryInfo)directoryInfo.GetDirectories(nugetPackage).GetValue(0);
+
+    return nugetPackageInfo.Name;
+}
+
+public class NugetPackage : IEquatable<NugetPackage>
+{
+    private NugetPackage(string packageId, string version, IEnumerable<AssemblyName> assemblyNames)
+    {
+        this.Id = packageId;
+
+        if (version.StartsWith("[") || version.StartsWith("("))
+        {
+            version = version.Substring(1);
+        }
+        if (version.EndsWith("]") || version.EndsWith(")"))
+        {
+            version = version.Substring(0, version.Length - 1);
+        }
+
+        this.Version = version;
+        this.AssemblyNames = assemblyNames;
+    }
+
+    public string Id { get; private set; }
+
+    public string Version { get; private set; }
+
+    public IEnumerable<AssemblyName> AssemblyNames { get; private set; }
+
+    bool IEquatable<NugetPackage>.Equals(NugetPackage other)
+    {
+        if (other == null)
+        {
+            return false;
+        }
+
+        return string.CompareOrdinal(this.Id, other.Id) == 0 && string.CompareOrdinal(this.Version, other.Version) == 0;
+    }
+
+    public override int GetHashCode()
+    {
+        return this.Id.GetHashCode();
+    }
+
+    public static NugetPackage Create(string nupkgFile)
+    {
+        ExtractNuspec(nupkgFile);
+        var directoryInfo = new DirectoryInfo(Path.GetDirectoryName(nupkgFile));
+        string nuspecFile = directoryInfo.GetFiles("*.nuspec", SearchOption.AllDirectories).Single().FullName;
+
+        var doc = new XmlDocument();
+        doc.Load(nuspecFile);
+        XmlNode version = SelectSingleNode(doc, "/ns:package/ns:metadata/ns:version");
+        XmlNode id = SelectSingleNode(doc, "/ns:package/ns:metadata/ns:id");
+
+        var dotNetFolders = directoryInfo.GetDirectories("net*", SearchOption.AllDirectories);
+        var assemblyFiles = dotNetFolders.SelectMany (nf => nf.GetFiles(@"*.dll", SearchOption.TopDirectoryOnly));
+
+        IEnumerable<AssemblyName> assemblyNames = assemblyFiles.Select(af => AssemblyName.GetAssemblyName(af.FullName));
+
+        return new NugetPackage(id.InnerText, version.InnerText, assemblyNames);
+    }
+
+    private static void ExtractNuspec(string nupkgFile)
+    {
+        string path = Path.GetDirectoryName(nupkgFile);
+        using (ZipArchive archive = ZipFile.OpenRead(nupkgFile))
+        {
+            foreach (ZipArchiveEntry entry in archive.Entries)
+            {
+                if (entry.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine(string.Format("Nuspec found. Extracting {0} file", entry.FullName));
+                    entry.ExtractToFile(Path.Combine(path, "package.nuspec"), overwrite: true);
+                }
+            }
+        }
+    }
+
+    // try to find the node in all of our namespaces
+    private static XmlNode SelectSingleNode(XmlDocument doc, string path)
+    {
+        XmlNode packageNode = doc.ChildNodes.Cast<XmlNode>().Where (xn => xn.Name == "package").Single();
+        var xmlNameSpaceManager = new XmlNamespaceManager(doc.NameTable);
+        xmlNameSpaceManager.AddNamespace("ns", packageNode.NamespaceURI);
+        XmlNode node = doc.SelectSingleNode(path, xmlNameSpaceManager);
+        return node;
+    }
+}
+#>

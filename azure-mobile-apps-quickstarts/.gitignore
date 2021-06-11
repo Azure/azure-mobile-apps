@@ -1,0 +1,57 @@
+.DS_Store
+bin
+gen
+target
+*.keystore
+*.swp
+*.orig
+*.log
+*.userprefs
+seed.txt
+map.txt
+.metadata
+*.mdf
+*.ldf
+obj
+*.csproj.user
+*.suo
+*.xccheckout
+deriveddata
+
+# NuGet V3 artifacts
+*.nuget.props
+*.nuget.targets
+project.lock.json
+
+# Downloaded files
+.nuget
+tools-packages
+packages
+
+# Copied files
+client/dotnet-service
+client/web-dotnet/ZUMOAPPNAME/page.tt
+client/web-dotnet/ZUMOAPPNAME/styles.css
+client/web-dotnet/ZUMOAPPNAME/index.html
+client/web-dotnet/ZUMOAPPNAME/index.tt
+client/web-dotnet/ZUMOAPPNAME/page.js
+
+# Generated files using *.tt
+client/web/index.html
+client/web/page.js
+client/windows-universal-cs/ZUMOAPPNAME.sln
+client/windows-universal-cs/ZUMOAPPNAME/ZUMOAPPNAME.Shared/App.xaml.cs
+client/windows-universal-cs/ZUMOAPPNAME/ZUMOAPPNAME.Windows/ZUMOAPPNAME.Windows.csproj
+client/windows-universal-cs/ZUMOAPPNAME/ZUMOAPPNAME.Windows/packages.config
+client/windows-universal-cs/ZUMOAPPNAME/ZUMOAPPNAME.WindowsPhone/ZUMOAPPNAME.WindowsPhone.csproj
+client/windows-universal-cs/ZUMOAPPNAME/ZUMOAPPNAME.WindowsPhone/packages.config
+client/windows-universal-js/ZUMOAPPNAME.sln
+client/windows-universal-js/ZUMOAPPNAME/ZUMOAPPNAME.Shared/js/default.js
+client/windows-universal-js/ZUMOAPPNAME/ZUMOAPPNAME.Windows/packages.config
+client/windows-universal-js/ZUMOAPPNAME/ZUMOAPPNAME.WindowsPhone/packages.config
+client/xamarin.android/ZUMOAPPNAME/packages.config
+client/xamarin.iOS/ZUMOAPPNAME/packages.config
+client/xamarin.forms/**/*.config
+client/xamarin.forms/**/project.json
+client/xamarin.forms/Droid/Resources/Resource.designer.cs
+client/android/ZUMOAPPNAME/app/build.gradle
