@@ -74,5 +74,10 @@ jobs:
           name: nupkg
 
       - 
-        name: Push to GitHub Package Feed
-        run: dotnet nuget push ./nupkg/*.nupkg -s $GITHUB_FEED -k $GITHUB_TOKEN --skip-duplicate
+        name: Add Nuget Source
+        run: dotnet nuget add source --username USERNAME --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/Azure/index.json"
+
+      - 
+        name: Publish to GitHub Packages
+        run: dotnet nuget push "./nupkg/*.nupkg" --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
+        
