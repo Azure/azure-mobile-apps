@@ -21,7 +21,6 @@ env:
   DOTNET_NOLOGO: true
   # GitHub Packages Feed settings
   GITHUB_FEED: https://nuget.pkg.github.com/azure-mobile-apps/
-  GITHUB_USER: adrianhall
   GiTHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -80,5 +79,5 @@ jobs:
         run: |
           for f in ./nupkg/*.nupkg
           do
-            curl -vX PUT u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@$f $GITHUB_FEED
+            dotnet nuget push $f --api-key $GITHUB_TOKEN --source "github"
           done
