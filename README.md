@@ -4,22 +4,29 @@
 
 Azure Mobile Apps is a set of client and server libraries for adding authenticated data access and offline synchronization to your mobile applications. 
 
-Currently supported environments:
+> **UPDATE**<br/>
+> We are currently updating the Azure Mobile Apps libraries to ASP.NET Core, and will be updating the supported environments soon.
 
-| Server | Client |
-|--------|--------|
-| NodeJS | Andriod (Java) |
-| ASP.NET Framework | iOS (Swift, Objective-C) |
-|| Apache Cordova |
-|| Xamarin (.NET Standard 2.0) |
+Currently, we support:
 
-Currently in development
-
-| Server | Client |
-|--------|--------|
-| ASP.NET Core ||
+* ASP.NET Framework on the server side (for security issues only)
+* .NET Standard 2.0 Client (Xamarin, WPF, etc.)
 
 To get started, take a look at [our documentation](https://azure.github.io/azure-mobile-apps).
+
+The following libraries have been archived and can be considered deprecated (links take you to the archive)
+
+* Android Client
+* iOS Client
+* JavaScript Client
+* Apache Cordova Client
+* Node Server
+
+> **What does deprecation mean?**<br/>
+> The libraries that have been deprecated are still available in [the archive](https://github.com/azure/azure-mobile-apps/tree/archive), and documentation is available in [the documentation](https://azure.github.io/azure-mobile-apps/), but no further work will be done on these libraries, and any issues opened on these libraries will be closed as "won't fix".  The libraries are open-source, and you are welcome to fork them to adjust as you see fit.
+> 
+> In particular, the upcoming ASP.NET Core service will implement ZUMO-API-VERSION 3.0.0 (whereas the Node and ASP.NET Framework implemented ZUMO-API-VERSION 2.0.0).  It is unlikely that the deprecated clients will work against the newer server versions.
+
 
 ## Libraries
 
