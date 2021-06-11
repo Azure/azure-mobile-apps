@@ -8,6 +8,9 @@ on:
   pull_request:
     branches:
     - main
+  release:
+    types:
+      - published
 
 env:
   # Stop wasting time caching packages
@@ -24,6 +27,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk/dotnet
     steps:
       - 
         name: Checkout
@@ -35,19 +41,15 @@ jobs:
           dotnet-version: 5.0.301
       - 
         name: Restore
-        working-directory: sdk/dotnet
         run: dotnet restore
       - 
         name: Build
-        working-directory: sdk/dotnet
         run: dotnet build -c Release --no-restore
       - 
         name: Test
-        working-directory: sdk/dotnet
         run: dotnet test -c Release
       - 
         name: Pack
-        working-directory: sdk/dotnet
         run: dotnet pack -v normal -c Release --no-restore --include-symbols --include-source -p:PackaVersion=$GITHUB_RUN_ID
 
       - 
@@ -55,7 +57,11 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: nupkg
-          path: sdk/dotnet/src/**/bin/Release/*.nupkg
+          path: |
+            sdk/dotnet/src/Microsoft.AspNetCore.Datasync/bin/Release/*.nupkg
+            sdk/dotnet/src/Microsoft.AspNetCore.Datasync.EFCore/bin/Release/*.nupkg
+            sdk/dotnet/src/Microsoft.AspNetCore.Datasync.InMemory/bin/Release/*.nupkg
+          if-no-files-found: error
       
   prerelease:
     needs: build

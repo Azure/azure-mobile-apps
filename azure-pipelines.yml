@@ -1,0 +1,44 @@
+trigger:
+  - main
+  - refs/tags/*
+
+pr:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  BASE_VERSION: 5.0.0
+  PREVIEW_LABEL: 'preview'
+  BUILD_NUMBER: $[counter(format('{0}_{1}_{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['Build.SourceBranch']), 1)]
+  NUGET_VERSION: $[format('{0}-{1}.{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['BUILD_NUMBER'])]
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
+steps:
+- task: UseDotNet@2
+  inputs:
+    version: '5.0.301'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+  workingDirectory: 'sdk/dotnet'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    arguments: '-c Release --no-restore'
+  workingDirectory: 'sdk/dotnet'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
+    arguments: '-c Release'
+  workingDirectory: 'sdk/dotnet'
+
+
+
+  
