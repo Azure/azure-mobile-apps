@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <!--
+        Customize the content security policy in the meta tag below as needed. Add 'unsafe-inline' to default-src to enable inline JavaScript.
+        For details, see http://go.microsoft.com/fwlink/?LinkID=617521
+    -->
+        <meta http-equiv="Content-Security-Policy" content="default-src * data: gap: http: https: 'unsafe-eval' 'unsafe-inline'">
+        
+        <meta name="format-detection" content="telephone=no">
+        <meta name="msapplication-tap-highlight" content="no">
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+        <link href="external/qunit/qunit.css" rel="stylesheet" />
+        <title>Azure Mobile Apps Cordova tests</title>
+    </head>
+    <body>
+        <form>
+            <input id="refresh" type="text" size="25">
+            <input type="button" onclick="window.location.href = document.getElementById('refresh').value;" value="Refresh">
+        </form>
+        <script>
+            document.getElementById('refresh').value = window.location.href;
+        </script>
+            
+        <!--
+        QUnit dynamically creates a toolbar and adds DOM nodes to it. However, adding dynamic
+        content is not supported on Windows 8.1 (Details: http://go.microsoft.com/fwlink/?LinkID=247104).
+        MSApp.execUnsafeLocalFunction() can be used to disable script filtering, but that will need changing QUnit code.
+
+        As a workaround, we add a div to filter calls to QUnit's toolbar. We do this by setting the id of the filter
+        div same as the id of QUnit's toolbar div and position it before QUnit's div in the DOM. 
+        The appendChild() method of the toolbar filter invokes appendChild() on QUnit's toolbar in a safe manner.
+
+        Note: Do not change the order of the following 2 divs.
+        -->
+            
+        <div id='qunit-testrunner-toolbar'></div>
+        <div id="qunit"></div>
+
+        <script>
+            function id(name) {
+                return this.window.document.getElementById(name);
+            }
+
+            var toolbarId = "qunit-testrunner-toolbar",
+                toolbarFilter = id(toolbarId);
+
+            // Do the following only if we are running in WinJS context.
+            if (window.MSApp) {
+                toolbarFilter.appendChild = function() {
+                    var child = arguments[0];
+
+                    // Safely add the child to the QUnit toolbar
+                    MSApp.execUnsafeLocalFunction(function() {
+                        // Lookup QUnit's toolbar by setting the ID of the filter to ""
+                        toolbarFilter.id = "";
+                        var qunitToolbar = id("qunit-testrunner-toolbar");
+
+                        // Append the child to qunit's toolbar
+                        qunitToolbar.appendChild(child);
+
+                        // Start filtering method calls to the QUnit toolbar again
+                        toolbarFilter.id = toolbarId;
+                    });
+                };
+            }
+        </script>
+
+        <script type="text/javascript" src="cordova.js"></script>
+        <script src="external/qunit/qunit.js"></script>
+        <script src="scripts/generated/tests.js"></script>
+        <script type="text/javascript" src="scripts/platformOverrides.js"></script>
+        <script type="text/javascript" src="scripts/index.js"></script>
+    </body>
+</html>

@@ -1,0 +1,67 @@
+{
+  "name": "azure-mobile-apps-client",
+  "description": "Javascript SDK for connecting to Azure Mobile Apps. For more details visit https://azure.microsoft.com/en-us/documentation/learning-paths/appservice-mobileapps/",
+  "version": "2.0.1",
+  "devDependencies": {
+    "browserify": "~11.1.0",
+    "browserify-derequire": "~0.9.4",
+    "es6-promise": "^3.1.2",
+    "fs-sync": "~1.0.2",
+    "grunt": "~0.4.5",
+    "grunt-browserify": "~4.0.1",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-copy": "~0.8.2",
+    "grunt-contrib-jshint": "^1.0.0",
+    "grunt-contrib-nodeunit": "~0.4.1",
+    "grunt-contrib-uglify": "~0.6.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-exec": "~0.4.6",
+    "grunt-multi-dest": "^1.0.0",
+    "http-server": "^0.9.0",
+    "jsdoc": "^3.4.1",
+    "minami": "^1.1.1",
+    "package-json-versionify": "^1.0.2",
+    "qunitjs": "^1.23.1",
+    "request": "^2.69.0",
+    "rimraf": "^2.5.2",
+    "wd": "^0.4.0"
+  },
+  "author": "Microsoft",
+  "homepage": "https://azure.microsoft.com/en-us/documentation/learning-paths/appservice-mobileapps/",
+  "license": "Apache-2.0",
+  "main": "sdk/src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/azure/azure-mobile-apps-js-client.git"
+  },
+  "scripts": {
+    "build": "grunt build",
+    "buildall": "grunt build",
+    "buildbrowser": "grunt buildbrowsermin",
+    "buildcordova": "grunt buildcordovamin",
+    "jsdoc": "jsdoc -c jsdoc/config.json",
+    "watch": "grunt watch:all",
+    "watchall": "grunt watch:all",
+    "watchbrowser": "grunt watch:web",
+    "watchcordova": "grunt watch:cordova",
+    "browserut": "http-server sdk/test/app/browser/ -p 8081 -o http://localhost:8081/index.html -c-1",
+    "hostandroidut": "http-server sdk/test/app/cordova/platforms/android/assets/www/ -p 8080 -c-1",
+    "e2esetup": "grunt e2esetup"
+  },
+  "dependencies": {
+    "azure-odata-sql": "^0.2.0",
+    "azure-query-js": "^0.1.0",
+    "uuid": "^3.0.1",
+    "verror": "^1.8.1"
+  },
+  "keywords": [
+    "microsoft",
+    "azure",
+    "mobile",
+    "windowsazureofficial",
+    "app",
+    "service",
+    "api",
+    "apps"
+  ]
+}

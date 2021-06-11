@@ -1,0 +1,40 @@
+{
+    "name": "cordova-plugin-ms-azure-mobile-apps",
+    "version": "2.0.2",
+    "description": "Cordova plugin for connecting to Azure Mobile Apps. For more details visit https://azure.microsoft.com/en-us/documentation/learning-paths/appservice-mobileapps/",
+    "cordova": {
+        "id": "cordova-plugin-ms-azure-mobile-apps",
+        "platforms": [
+            "android",
+            "ios",
+            "windows8",
+            "windows",
+            "wp8",
+            "browser"
+        ]
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/azure/azure-mobile-apps-cordova-client"
+    },
+    "homepage": "https://azure.microsoft.com/en-us/documentation/learning-paths/appservice-mobileapps/",
+    "keywords": [
+        "microsoft",
+        "azure",
+        "mobile",
+        "windowsazureofficial",
+        "app",
+        "service",
+        "api",
+        "apps",
+        "ecosystem:cordova",
+        "cordova",
+        "cordova-android",
+        "cordova-ios",
+        "cordova-windows8",
+        "cordova-windows",
+        "cordova-browser"
+    ],
+    "author": "Microsoft",
+    "license": "Apache-2.0"
+}

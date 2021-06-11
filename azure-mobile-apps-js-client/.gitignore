@@ -1,0 +1,39 @@
+## BEGIN: Files common to .gitignore and .npmignore
+
+.DS_Store
+node_modules
+*.keystore
+*.swp
+*.orig
+*.log
+*.userprefs
+seed.txt
+map.txt
+.metadata
+*.mdf
+*.ldf
+packages
+deriveddata
+Backup
+*.iml
+
+#ignore build files
+bin/
+obj/
+bld/
+dist/
+gen/
+[Gg]enerated/
+[Ee]xternal/
+jsdoc/out
+
+# VS files
+*.user
+*.suo
+.vs
+.vscode
+
+## END: Files common to .gitignore and .npmignore
+
+# Distributables directory
+dist

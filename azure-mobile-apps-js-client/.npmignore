@@ -1,0 +1,44 @@
+## BEGIN: Files common to .gitignore and .npmignore
+
+.DS_Store
+node_modules
+target
+*.keystore
+*.swp
+*.orig
+*.log
+*.userprefs
+seed.txt
+map.txt
+.metadata
+*.mdf
+*.ldf
+packages
+deriveddata
+Backup
+*.iml
+
+# Build files
+bin
+obj
+bld
+gen
+[Gg]enerated
+
+# VS files
+*.user
+*.suo
+.vs
+
+## END: Files common to .gitignore and .npmignore
+
+# Test files
+test
+e2etest
+
+# Exclude VS files as we want to keep the npm package as small as possible
+*.sln
+*.proj
+
+.npmignore
+.git*
