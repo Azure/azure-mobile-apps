@@ -52,15 +52,17 @@ jobs:
         name: Pack
         run: dotnet pack -v normal -c Release --no-restore --include-symbols --include-source -p:PackaVersion=$GITHUB_RUN_ID
 
+      - name: Consolidate nupkg
+        run: |
+          mkdir nupkg
+          find src -iname '*.nupkg' -exec cp \{\} ./nupkg \;
+          
       - 
         name: Upload Artifacts
         uses: actions/upload-artifact@v2
         with:
           name: nupkg
-          path: |
-            sdk/dotnet/src/Microsoft.AspNetCore.Datasync/bin/Release/*.nupkg
-            sdk/dotnet/src/Microsoft.AspNetCore.Datasync.EFCore/bin/Release/*.nupkg
-            sdk/dotnet/src/Microsoft.AspNetCore.Datasync.InMemory/bin/Release/*.nupkg
+          path: sdk/dotnet/nupkg/*.nupkg
           if-no-files-found: error
       
   prerelease:
@@ -76,7 +78,7 @@ jobs:
       - 
         name: Push to GitHub Package Feed
         run: |
-          for f in ./nupkg/*.nupkg
+          for f in `find ./nupkg -type f -name '*.nupkg'
           do
             curl -vX PUT u "$GITHUB_USER:$GITHUB_TOKEN" -F package=@$f $GITHUB_FEED
           done
