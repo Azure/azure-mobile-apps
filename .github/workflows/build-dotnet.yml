@@ -47,7 +47,7 @@ jobs:
         run: dotnet test -c Release
       - 
         name: Pack Server Library
-        run: dotnet pack -v normal -c Release --no-restore --include-symbols --include-source -p:PackaVersion=$GITHUB_RUN_ID
+        run: dotnet pack -v normal -c Release --no-restore --include-symbols --include-source -p:PackageVersion=$GITHUB_RUN_ID
 
       - name: Consolidate nupkg
         run: |
@@ -79,5 +79,5 @@ jobs:
 
       - 
         name: Publish to GitHub Packages
-        run: dotnet nuget push "./nupkg/*.nupkg" --api-key ${{ secrets.GITHUB_TOKEN }} --source "github" --skip-duplicates --include-symbols false
+        run: dotnet nuget push "./nupkg/*.nupkg" --api-key ${{ secrets.GITHUB_TOKEN }} --source "github" --skip-duplicate --no-symbols
         
