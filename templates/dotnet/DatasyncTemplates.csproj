@@ -6,15 +6,14 @@
         <Title>ASP.NET Core Datasync Templates</Title>
         <Description>Templates to use when creating ASP.NET Core datasync applications.</Description>
         <PackageTags>dotnet-new;templates;aspnetcore;datasync</PackageTags>
-        <RepositoryUrl>https://github.com/Microsoft/datasync-server</RepositoryUrl>
+        <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
         <TargetFramework>net5</TargetFramework>
         <IncludeContentInPack>true</IncludeContentInPack>
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <ContentTargetFolders>content</ContentTargetFolders>
     </PropertyGroup>
     <ItemGroup>
-        <Content Include="Microsoft.AspNetCore.Datasync.ServerTemplate\**" />
-        <Content Exclude="**\bin\**;templates\**\obj\**" />
+        <Content Include="Template.DatasyncServer\**" />
         <Compile Remove="**\*" />
     </ItemGroup>
 </Project>

@@ -20,6 +20,8 @@ env:
   GITHUB_FEED: https://nuget.pkg.github.com/Azure/
   GITHUB_USERNAME: adrianhall
   GiTHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # Base version for the prerelease builds
+  BASE_VERSION: 5.0.0
 
 jobs:
   build:
@@ -40,22 +42,29 @@ jobs:
         name: Restore
         run: dotnet restore
       - 
-        name: Build Server Library
+        name: Build library
         run: dotnet build -c Release --no-restore
       - 
-        name: Test Server Library
+        name: Test library
         run: dotnet test -c Release
       - 
-        name: Pack Server Library
-        run: dotnet pack -v normal -c Release --no-restore --include-symbols --include-source -p:PackageVersion=$GITHUB_RUN_ID
-
-      - name: Consolidate nupkg
+        name: Pack library
+        run: dotnet pack -v normal -c Release --no-restore --include-symbols --include-source -p:PackageVersion="$BASE_VERSION-preview.$GITHUB_RUN_ID"
+      - 
+        name: Consolidate nupkg
         run: |
           mkdir nupkg
           find src \( -iname '*.nupkg' ! -iname '*.symbols.nupkg' \) -exec cp \{\} ./nupkg \;
-
       - 
-        name: Upload Artifacts
+        name: Build template nupkg
+        working-directory: templates/dotnet
+        run: dotnet pack -c Release
+      - 
+        name: Copy template nupkg into consolidated nupkg
+        working-directory: templates/dotnet
+        run: cp bin/Release/*.nupkg ../../sdk/dotnet/nupkg
+      - 
+        name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           name: nupkg
@@ -68,13 +77,13 @@ jobs:
     if: ${{ github.event_name == 'push' }}
     steps:
       -
-        name: Download Artifacts
+        name: Download artifacts
         uses: actions/download-artifact@v1
         with:
           name: nupkg
 
       - 
-        name: Add Nuget Source
+        name: Add nuget source
         run: dotnet nuget add source --username USERNAME --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/Azure/index.json"
 
       - 
