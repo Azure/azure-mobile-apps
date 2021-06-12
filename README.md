@@ -2,7 +2,7 @@
 
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/azure/azure-mobile-apps/tree/main/LICENSE.txt)
 
-Azure Mobile Apps is a set of client and server libraries for adding authenticated data access and offline synchronization to your mobile applications. 
+Azure Mobile Apps is a set of client and server libraries for adding authenticated data access and offline synchronization to your mobile applications.
 
 > **UPDATE**<br/>
 > We are currently updating the Azure Mobile Apps libraries to ASP.NET Core, and will be updating the supported environments soon.
@@ -24,27 +24,36 @@ The following libraries have been archived and can be considered deprecated (lin
 
 > **What does deprecation mean?**<br/>
 > The libraries that have been deprecated are still available in [the archive](https://github.com/azure/azure-mobile-apps/tree/archive), and documentation is available in [the documentation](https://azure.github.io/azure-mobile-apps/), but no further work will be done on these libraries, and any issues opened on these libraries will be closed as "won't fix".  The libraries are open-source, and you are welcome to fork them to adjust as you see fit.
-> 
+>
 > In particular, the upcoming ASP.NET Core service will implement ZUMO-API-VERSION 3.0.0 (whereas the Node and ASP.NET Framework implemented ZUMO-API-VERSION 2.0.0).  It is unlikely that the deprecated clients will work against the newer server versions.
-
 
 ## Libraries
 
 ### .NET (sdk/dotnet)
 
-The .NET Library uses ASP.NET Core 5.0 and provides an in-memory store and an Entity Framework 5.0 based store.
+The .NET Library uses ASP.NET Core 5.0 and provides an in-memory store and an Entity Framework 5.0 based store.  The pre-release versions of the library are available on [GitHub Packages](https://github.com/orgs/Azure/packages?repo_name=azure-mobile-apps).  Refer to the [GitHub Packages documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry) for information on using the pre-release packages.
 
-> **TODO**
-> Provide links to detailed instructions for ASP.NET Core when released.
+Released and supported versions of the library will be distributed by the normal [NuGet](https://www.nuget.org/) mechanism.
 
 ## Templates
 
-### dotnet new (templates/dotnet)
+We provide a template for use with `dotnet new`.  The template pre-configures ASP.NET Core, Entity Framework Core, and the Datasync Server libraries.  To install the template:
 
-A template for `dotnet new` is provided to provide a base ASP.NET Core service.
+```dotnetcli
+dotnet new -i <path-to-nupkg>
+```
 
-> **TODO**
-> Provide installation instructions for the template.
+The latest version of the nupkg for the template can be downloaded from the [GitHub Packages repository](https://github.com/orgs/Azure/packages?repo_name=azure-mobile-apps).  
+
+To create a server, use `dotnet new`:
+
+```dotnetcli
+mkdir My.Datasync.Server
+cd My.Datasync.Server
+dotnet new datasync-server
+```
+
+The Datasync Server template will be released to NuGet at the same time as the new libraries.
 
 ## Generating the documentation
 

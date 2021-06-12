@@ -64,5 +64,6 @@ nav:
       - Apache Cordova: howto/client/cordova.md
       - .NET: howto/client/dotnet.md
     - Work with the Server SDK:
+      - ASP.NET Core: howto/server/aspnetcore.md
       - ASP.NET Framework: howto/server/dotnet-framework.md
       - Node.js: howto/server/nodejs.md
