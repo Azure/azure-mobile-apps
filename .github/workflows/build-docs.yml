@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build and Deploy Documentation
+    name: Build docs
     runs-on: ubuntu-latest
     steps:
       -

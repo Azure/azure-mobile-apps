@@ -254,14 +254,14 @@ Once configured with the `MobileAppController` attribute, you can define the cus
 
 Azure Mobile Apps uses App Service Authentication / Authorization to secure your mobile backend.  This section shows you how to perform the following authentication-related tasks in your .NET backend server project:
 
-* [Add authentication to a server project](#add-auth)
-* [Use custom authentication for your application](#custom-auth)
-* [Retrieve authenticated user information](#user-info)
-* [Restrict data access for authorized users](#authorize)
+* [Add authentication to a server project](#add-authentication)
+* [Use custom authentication for your application](#use-custom-authentication)
+* [Retrieve authenticated user information](#retrieve-authenticated-user-information)
+* [Restrict data access for authorized users](#restrict-data-access-for-authorized-users)
 
-### <a name="add-auth"></a>Add authentication to a server project
+### Add authentication
 
-You can add authentication to your server project by extending the **MobileAppConfiguration** object and configuring OWIN middleware. 
+You can add authentication to your server project by extending the **MobileAppConfiguration** object and configuring OWIN middleware.
 
 1. In Visual Studio, install the [Microsoft.Azure.Mobile.Server.Authentication] package.
 2. In the `Startup.cs` project file, add the following line of code at the beginning of the **Configuration** method:
@@ -273,9 +273,10 @@ You can add authentication to your server project by extending the **MobileAppCo
     This OWIN middleware component validates tokens issued by the associated App Service gateway.
 3. Add the `[Authorize]` attribute to any controller or method that requires authentication.
 
-### <a name="custom-auth"></a>Use custom authentication for your application
+### Use custom authentication
 
-> **IMPORTANT**<br/>
+> **IMPORTANT**
+>
 > In order to enable custom authentication, you must first enable App Service Authentication without selecting a provider for your App Service in the Azure portal. This will enable the `WEBSITE_AUTH_SIGNING_KEY` environment variable when hosted.
 >
 > If you do not wish to use one of the App Service Authentication/Authorization providers, you can implement your own login system. Install the [Microsoft.Azure.Mobile.Server.Login] package to assist with authentication token generation.  Provide your own code for validating user credentials. For example, you might check against salted and hashed passwords in a database. In the example below, the `isValidAssertion()` method (defined elsewhere) is responsible for these checks.
@@ -318,7 +319,7 @@ In the preceding example, `LoginResult` and `LoginResultUser` are serializable o
 }
 ```
 
-The `AppServiceLoginHandler.CreateToken()` method includes an *audience* and an *issuer* parameter. Both of these parameters are set to the URL of your application root, using the HTTPS scheme. Similarly you should set *secretKey* to be the value of your application's signing key. Do not distribute the signing key in a client as it can be used to mint keys and impersonate users. You can obtain the signing key while hosted in App Service by referencing the `WEBSITE_AUTH_SIGNING_KEY` environment variable. If needed in a local debugging context, follow the instructions in the [Local debugging with authentication](#local-debug) section to retrieve the key and store it as an application setting.
+The `AppServiceLoginHandler.CreateToken()` method includes an *audience* and an *issuer* parameter. Both of these parameters are set to the URL of your application root, using the HTTPS scheme. Similarly you should set *secretKey* to be the value of your application's signing key. Do not distribute the signing key in a client as it can be used to mint keys and impersonate users. You can obtain the signing key while hosted in App Service by referencing the `WEBSITE_AUTH_SIGNING_KEY` environment variable. If needed in a local debugging context, follow the instructions in the [Local debugging with authentication](#local-debugging-with-authentication) section to retrieve the key and store it as an application setting.
 
 The issued token may also include other claims and an expiry date.  Minimally, the issued token must include a subject (**sub**) claim.
 
@@ -331,7 +332,7 @@ config.Routes.MapHttpRoute("custom", ".auth/login/custom", new { controller = "C
 > [!TIP]
 > Using the `loginAsync()` approach ensures that the authentication token is attached to every subsequent call to the service.
 
-### <a name="user-info"></a>Retrieve authenticated user information
+### Retrieve authenticated user information
 
 When a user is authenticated by App Service, you can access the assigned user ID and other information in your .NET backend code. The user information can be used for making authorization decisions in the backend. The following code obtains the user ID associated with a request:
 
@@ -371,7 +372,7 @@ if (credentials.Provider == "Facebook")
 
 Add a using statement for `System.Security.Principal` to provide the **GetAppServiceIdentityAsync** extension method.
 
-### <a name="authorize"></a>Restrict data access for authorized users
+### Restrict data access for authorized users
 
 In the previous section, we showed how to retrieve the user ID of an authenticated user. You can restrict access to data and other resources based on this value. For example, adding a userId column to tables and filtering the query results by the user ID is a simple way to limit returned data only to authorized users. The following code returns data rows only when the SID matches the value in the UserId column on the TodoItem table:
 
@@ -417,7 +418,7 @@ To enable diagnostics and write to the logs:
 1. Republish your server project, and access the Azure Mobile Apps backend to execute the code path with the logging.
 1. Download and evaluate the logs, as described in [Access log files](https://docs.microsoft.com/azure/app-service/troubleshoot-dotnet-visual-studio#webserverlogs).
 
-### <a name="local-debug"></a>Local debugging with authentication
+### debugging with authentication
 
 You can run your application locally to test changes before publishing them to the cloud. For most Azure Mobile Apps backends, press *F5* while in Visual Studio. However, there are some additional considerations when using authentication.
 
