@@ -944,15 +944,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#add-authentication-to-a-server-project" class="md-nav__link">
-    Add authentication to a server project
+  <a href="#add-authentication" class="md-nav__link">
+    Add authentication
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#use-custom-authentication-for-your-application" class="md-nav__link">
-    Use custom authentication for your application
+  <a href="#use-custom-authentication" class="md-nav__link">
+    Use custom authentication
   </a>
   
 </li>
@@ -992,8 +992,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#local-debugging-with-authentication" class="md-nav__link">
-    Local debugging with authentication
+  <a href="#debugging-with-authentication" class="md-nav__link">
+    debugging with authentication
   </a>
   
 </li>
@@ -1137,15 +1137,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#add-authentication-to-a-server-project" class="md-nav__link">
-    Add authentication to a server project
+  <a href="#add-authentication" class="md-nav__link">
+    Add authentication
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#use-custom-authentication-for-your-application" class="md-nav__link">
-    Use custom authentication for your application
+  <a href="#use-custom-authentication" class="md-nav__link">
+    Use custom authentication
   </a>
   
 </li>
@@ -1185,8 +1185,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#local-debugging-with-authentication" class="md-nav__link">
-    Local debugging with authentication
+  <a href="#debugging-with-authentication" class="md-nav__link">
+    debugging with authentication
   </a>
   
 </li>
@@ -1433,13 +1433,13 @@
 <h2 id="work-with-authentication">Work with authentication<a class="headerlink" href="#work-with-authentication" title="Permanent link">&para;</a></h2>
 <p>Azure Mobile Apps uses App Service Authentication / Authorization to secure your mobile backend.  This section shows you how to perform the following authentication-related tasks in your .NET backend server project:</p>
 <ul>
-<li><a href="#add-auth">Add authentication to a server project</a></li>
-<li><a href="#custom-auth">Use custom authentication for your application</a></li>
-<li><a href="#user-info">Retrieve authenticated user information</a></li>
-<li><a href="#authorize">Restrict data access for authorized users</a></li>
+<li><a href="#add-authentication">Add authentication to a server project</a></li>
+<li><a href="#use-custom-authentication">Use custom authentication for your application</a></li>
+<li><a href="#retrieve-authenticated-user-information">Retrieve authenticated user information</a></li>
+<li><a href="#restrict-data-access-for-authorized-users">Restrict data access for authorized users</a></li>
 </ul>
-<h3 id="add-authentication-to-a-server-project"><a name="add-auth"></a>Add authentication to a server project<a class="headerlink" href="#add-authentication-to-a-server-project" title="Permanent link">&para;</a></h3>
-<p>You can add authentication to your server project by extending the <strong>MobileAppConfiguration</strong> object and configuring OWIN middleware. </p>
+<h3 id="add-authentication">Add authentication<a class="headerlink" href="#add-authentication" title="Permanent link">&para;</a></h3>
+<p>You can add authentication to your server project by extending the <strong>MobileAppConfiguration</strong> object and configuring OWIN middleware.</p>
 <ol>
 <li>In Visual Studio, install the <a href="https://www.nuget.org/packages/Microsoft.Azure.Mobile.Server.Authentication/">Microsoft.Azure.Mobile.Server.Authentication</a> package.</li>
 <li>
@@ -1450,10 +1450,10 @@
 3. Add the <code>[Authorize]</code> attribute to any controller or method that requires authentication.</p>
 </li>
 </ol>
-<h3 id="use-custom-authentication-for-your-application"><a name="custom-auth"></a>Use custom authentication for your application<a class="headerlink" href="#use-custom-authentication-for-your-application" title="Permanent link">&para;</a></h3>
+<h3 id="use-custom-authentication">Use custom authentication<a class="headerlink" href="#use-custom-authentication" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>IMPORTANT</strong><br/>
-In order to enable custom authentication, you must first enable App Service Authentication without selecting a provider for your App Service in the Azure portal. This will enable the <code>WEBSITE_AUTH_SIGNING_KEY</code> environment variable when hosted.</p>
+<p><strong>IMPORTANT</strong></p>
+<p>In order to enable custom authentication, you must first enable App Service Authentication without selecting a provider for your App Service in the Azure portal. This will enable the <code>WEBSITE_AUTH_SIGNING_KEY</code> environment variable when hosted.</p>
 <p>If you do not wish to use one of the App Service Authentication/Authorization providers, you can implement your own login system. Install the <a href="https://www.nuget.org/packages/Microsoft.Azure.Mobile.Server.Login/">Microsoft.Azure.Mobile.Server.Login</a> package to assist with authentication token generation.  Provide your own code for validating user credentials. For example, you might check against salted and hashed passwords in a database. In the example below, the <code>isValidAssertion()</code> method (defined elsewhere) is responsible for these checks.</p>
 </blockquote>
 <p>The custom authentication is exposed by creating an ApiController and exposing <code>register</code> and <code>login</code> actions. The client should use a custom UI to collect the information from the user.  The information is then submitted to the API with a standard HTTP POST call. Once the server validates the assertion, a token is issued using the <code>AppServiceLoginHandler.CreateToken()</code> method.  The ApiController <strong>should not</strong> use the <code>[MobileAppController]</code> attribute.</p>
@@ -1487,7 +1487,7 @@ In order to enable custom authentication, you must first enable App Service Auth
     <span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>The <code>AppServiceLoginHandler.CreateToken()</code> method includes an <em>audience</em> and an <em>issuer</em> parameter. Both of these parameters are set to the URL of your application root, using the HTTPS scheme. Similarly you should set <em>secretKey</em> to be the value of your application's signing key. Do not distribute the signing key in a client as it can be used to mint keys and impersonate users. You can obtain the signing key while hosted in App Service by referencing the <code>WEBSITE_AUTH_SIGNING_KEY</code> environment variable. If needed in a local debugging context, follow the instructions in the <a href="#local-debug">Local debugging with authentication</a> section to retrieve the key and store it as an application setting.</p>
+<p>The <code>AppServiceLoginHandler.CreateToken()</code> method includes an <em>audience</em> and an <em>issuer</em> parameter. Both of these parameters are set to the URL of your application root, using the HTTPS scheme. Similarly you should set <em>secretKey</em> to be the value of your application's signing key. Do not distribute the signing key in a client as it can be used to mint keys and impersonate users. You can obtain the signing key while hosted in App Service by referencing the <code>WEBSITE_AUTH_SIGNING_KEY</code> environment variable. If needed in a local debugging context, follow the instructions in the <a href="#local-debugging-with-authentication">Local debugging with authentication</a> section to retrieve the key and store it as an application setting.</p>
 <p>The issued token may also include other claims and an expiry date.  Minimally, the issued token must include a subject (<strong>sub</strong>) claim.</p>
 <p>You can support the standard client <code>loginAsync()</code> method by overloading the authentication route.  If the client calls <code>client.loginAsync('custom');</code> to log in, your route must be <code>/.auth/login/custom</code>.  You can set the route for the custom authentication controller using <code>MapHttpRoute()</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="n">config</span><span class="p">.</span><span class="n">Routes</span><span class="p">.</span><span class="n">MapHttpRoute</span><span class="p">(</span><span class="s">&quot;custom&quot;</span><span class="p">,</span> <span class="s">&quot;.auth/login/custom&quot;</span><span class="p">,</span> <span class="k">new</span> <span class="p">{</span> <span class="n">controller</span> <span class="p">=</span> <span class="s">&quot;CustomAuth&quot;</span> <span class="p">});</span>
@@ -1496,7 +1496,7 @@ In order to enable custom authentication, you must first enable App Service Auth
 <p>[!TIP]
 Using the <code>loginAsync()</code> approach ensures that the authentication token is attached to every subsequent call to the service.</p>
 </blockquote>
-<h3 id="retrieve-authenticated-user-information"><a name="user-info"></a>Retrieve authenticated user information<a class="headerlink" href="#retrieve-authenticated-user-information" title="Permanent link">&para;</a></h3>
+<h3 id="retrieve-authenticated-user-information">Retrieve authenticated user information<a class="headerlink" href="#retrieve-authenticated-user-information" title="Permanent link">&para;</a></h3>
 <p>When a user is authenticated by App Service, you can access the assigned user ID and other information in your .NET backend code. The user information can be used for making authorization decisions in the backend. The following code obtains the user ID associated with a request:</p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Get the SID of the current user.</span>
 <span class="kt">var</span> <span class="n">claimsPrincipal</span> <span class="p">=</span> <span class="k">this</span><span class="p">.</span><span class="n">User</span> <span class="k">as</span> <span class="n">ClaimsPrincipal</span><span class="p">;</span>
@@ -1526,7 +1526,7 @@ Using the <code>loginAsync()</code> approach ensures that the authentication tok
 <span class="p">}</span>
 </code></pre></div>
 <p>Add a using statement for <code>System.Security.Principal</code> to provide the <strong>GetAppServiceIdentityAsync</strong> extension method.</p>
-<h3 id="restrict-data-access-for-authorized-users"><a name="authorize"></a>Restrict data access for authorized users<a class="headerlink" href="#restrict-data-access-for-authorized-users" title="Permanent link">&para;</a></h3>
+<h3 id="restrict-data-access-for-authorized-users">Restrict data access for authorized users<a class="headerlink" href="#restrict-data-access-for-authorized-users" title="Permanent link">&para;</a></h3>
 <p>In the previous section, we showed how to retrieve the user ID of an authenticated user. You can restrict access to data and other resources based on this value. For example, adding a userId column to tables and filtering the query results by the user ID is a simple way to limit returned data only to authorized users. The following code returns data rows only when the SID matches the value in the UserId column on the TodoItem table:</p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Get the SID of the current user.</span>
 <span class="kt">var</span> <span class="n">claimsPrincipal</span> <span class="p">=</span> <span class="k">this</span><span class="p">.</span><span class="n">User</span> <span class="k">as</span> <span class="n">ClaimsPrincipal</span><span class="p">;</span>
@@ -1564,7 +1564,7 @@ Using the <code>loginAsync()</code> approach ensures that the authentication tok
 </li>
 <li>Download and evaluate the logs, as described in <a href="https://docs.microsoft.com/azure/app-service/troubleshoot-dotnet-visual-studio#webserverlogs">Access log files</a>.</li>
 </ol>
-<h3 id="local-debugging-with-authentication"><a name="local-debug"></a>Local debugging with authentication<a class="headerlink" href="#local-debugging-with-authentication" title="Permanent link">&para;</a></h3>
+<h3 id="debugging-with-authentication">debugging with authentication<a class="headerlink" href="#debugging-with-authentication" title="Permanent link">&para;</a></h3>
 <p>You can run your application locally to test changes before publishing them to the cloud. For most Azure Mobile Apps backends, press <em>F5</em> while in Visual Studio. However, there are some additional considerations when using authentication.</p>
 <p>You must have a cloud-based mobile app with App Service Authentication/Authorization configured, and your client must have the cloud endpoint specified as the alternate login host. See the documentation for your client platform for the specific steps required.</p>
 <p>Ensure that your mobile backend has <a href="https://www.nuget.org/packages/Microsoft.Azure.Mobile.Server.Authentication/">Microsoft.Azure.Mobile.Server.Authentication</a> installed. Then, in your application's OWIN startup class, add the following, after <code>MobileAppConfiguration</code> has been applied to your <code>HttpConfiguration</code>:</p>
