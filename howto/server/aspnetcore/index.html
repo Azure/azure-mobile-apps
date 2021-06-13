@@ -1,0 +1,1467 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="canonical" href="https://azure.github.io/azure-mobile-apps/howto/server/aspnetcore/">
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.1, mkdocs-material-7.1.8">
+    
+    
+      
+        <title>ASP.NET Core - Azure Mobile Apps</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ca7ac06f.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.f1a3b89f.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+    
+      
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="preference" data-md-color-primary="" data-md-color-accent="">
+  
+    
+    <script>function __prefix(e){return new URL("../../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-to-use-the-aspnet-core-backend-server-sdk" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Azure Mobile Apps" class="md-header__button md-logo" aria-label="Azure Mobile Apps" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Azure Mobile Apps
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ASP.NET Core
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/azure/azure-mobile-apps/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../.." class="md-tabs__link">
+      Home
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../quickstarts/cordova/" class="md-tabs__link">
+        Quickstarts
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../auth/" class="md-tabs__link md-tabs__link--active">
+        How to
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Azure Mobile Apps" class="md-nav__button md-logo" aria-label="Azure Mobile Apps" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Azure Mobile Apps
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/azure/azure-mobile-apps/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      <label class="md-nav__link" for="__nav_2">
+        Quickstarts
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Quickstarts" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Quickstarts
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_1" type="checkbox" id="__nav_2_1" >
+      
+      <label class="md-nav__link" for="__nav_2_1">
+        Apache Cordova
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Apache Cordova" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_1">
+          <span class="md-nav__icon md-icon"></span>
+          Apache Cordova
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/cordova/" class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/cordova/offline/" class="md-nav__link">
+        Add Offline Sync
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/cordova/auth/" class="md-nav__link">
+        Add Authentication
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_2" type="checkbox" id="__nav_2_2" >
+      
+      <label class="md-nav__link" for="__nav_2_2">
+        Windows (UWP)
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Windows (UWP)" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          Windows (UWP)
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/uwp/" class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/uwp/offline/" class="md-nav__link">
+        Add Offline Sync
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/uwp/auth/" class="md-nav__link">
+        Add Authentication
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_3" type="checkbox" id="__nav_2_3" >
+      
+      <label class="md-nav__link" for="__nav_2_3">
+        Windows (WPF)
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Windows (WPF)" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_3">
+          <span class="md-nav__icon md-icon"></span>
+          Windows (WPF)
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/wpf/" class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/wpf/offline/" class="md-nav__link">
+        Add Offline Sync
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/wpf/auth/" class="md-nav__link">
+        Add Authentication
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_4" type="checkbox" id="__nav_2_4" >
+      
+      <label class="md-nav__link" for="__nav_2_4">
+        Xamarin.Android
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Xamarin.Android" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_4">
+          <span class="md-nav__icon md-icon"></span>
+          Xamarin.Android
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/xamarin-android/" class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/xamarin-android/offline/" class="md-nav__link">
+        Add Offline Sync
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/xamarin-android/auth/" class="md-nav__link">
+        Add Authentication
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_5" type="checkbox" id="__nav_2_5" >
+      
+      <label class="md-nav__link" for="__nav_2_5">
+        Xamarin.Forms
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Xamarin.Forms" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_5">
+          <span class="md-nav__icon md-icon"></span>
+          Xamarin.Forms
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/xamarin-forms/" class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/xamarin-forms/offline/" class="md-nav__link">
+        Add Offline Sync
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/xamarin-forms/auth/" class="md-nav__link">
+        Add Authentication
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_6" type="checkbox" id="__nav_2_6" >
+      
+      <label class="md-nav__link" for="__nav_2_6">
+        Xamarin.iOS
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Xamarin.iOS" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_6">
+          <span class="md-nav__icon md-icon"></span>
+          Xamarin.iOS
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/xamarin-ios/" class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/xamarin-ios/offline/" class="md-nav__link">
+        Add Offline Sync
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstarts/xamarin-ios/auth/" class="md-nav__link">
+        Add Authentication
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      <label class="md-nav__link" for="__nav_3">
+        How to
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="How to" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          How to
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../auth/" class="md-nav__link">
+        Authentication
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../datasync/" class="md-nav__link">
+        Offline Data Sync
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3_3" type="checkbox" id="__nav_3_3" >
+      
+      <label class="md-nav__link" for="__nav_3_3">
+        Work with the Client SDK
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Work with the Client SDK" data-md-level="2">
+        <label class="md-nav__title" for="__nav_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          Work with the Client SDK
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../client/cordova/" class="md-nav__link">
+        Apache Cordova
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../client/dotnet/" class="md-nav__link">
+        .NET
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3_4" type="checkbox" id="__nav_3_4" checked>
+      
+      <label class="md-nav__link" for="__nav_3_4">
+        Work with the Server SDK
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Work with the Server SDK" data-md-level="2">
+        <label class="md-nav__title" for="__nav_3_4">
+          <span class="md-nav__icon md-icon"></span>
+          Work with the Server SDK
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          ASP.NET Core
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        ASP.NET Core
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-platforms" class="md-nav__link">
+    Supported Platforms
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-new-datasync-server" class="md-nav__link">
+    Create a new datasync server
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-table-controller-for-a-sql-table" class="md-nav__link">
+    Create a table controller for a SQL table
+  </a>
+  
+    <nav class="md-nav" aria-label="Create a table controller for a SQL table">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-a-model-class" class="md-nav__link">
+    Create a model class
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-the-dbcontext" class="md-nav__link">
+    Update the DbContext
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-a-table-controller" class="md-nav__link">
+    Create a table controller
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implementing-an-in-memory-repository" class="md-nav__link">
+    Implementing an in-memory repository
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure-table-controller-options" class="md-nav__link">
+    Configure table controller options
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure-access-permissions" class="md-nav__link">
+    Configure access permissions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure-logging" class="md-nav__link">
+    Configure logging
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enable-azure-app-service-identity" class="md-nav__link">
+    Enable Azure App Service Identity
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#not-covered-but-possible" class="md-nav__link">
+    Not covered, but possible
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dotnet-framework/" class="md-nav__link">
+        ASP.NET Framework
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nodejs/" class="md-nav__link">
+        Node.js
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-platforms" class="md-nav__link">
+    Supported Platforms
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-new-datasync-server" class="md-nav__link">
+    Create a new datasync server
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-table-controller-for-a-sql-table" class="md-nav__link">
+    Create a table controller for a SQL table
+  </a>
+  
+    <nav class="md-nav" aria-label="Create a table controller for a SQL table">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-a-model-class" class="md-nav__link">
+    Create a model class
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-the-dbcontext" class="md-nav__link">
+    Update the DbContext
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-a-table-controller" class="md-nav__link">
+    Create a table controller
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implementing-an-in-memory-repository" class="md-nav__link">
+    Implementing an in-memory repository
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure-table-controller-options" class="md-nav__link">
+    Configure table controller options
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure-access-permissions" class="md-nav__link">
+    Configure access permissions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure-logging" class="md-nav__link">
+    Configure logging
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enable-azure-app-service-identity" class="md-nav__link">
+    Enable Azure App Service Identity
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#not-covered-but-possible" class="md-nav__link">
+    Not covered, but possible
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/azure/azure-mobile-apps/blob/master/docs/howto/server/aspnetcore.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="how-to-use-the-aspnet-core-backend-server-sdk">How to use the ASP.NET Core backend server SDK<a class="headerlink" href="#how-to-use-the-aspnet-core-backend-server-sdk" title="Permanent link">&para;</a></h1>
+<p>This topic shows you have to configure and use the ASP.NET Core backend server SDK to produce a datasync server.</p>
+<h2 id="supported-platforms">Supported Platforms<a class="headerlink" href="#supported-platforms" title="Permanent link">&para;</a></h2>
+<p>The ASP.NET Core backend server supports ASP.NET Core 5.0 currently.</p>
+<h2 id="create-a-new-datasync-server">Create a new datasync server<a class="headerlink" href="#create-a-new-datasync-server" title="Permanent link">&para;</a></h2>
+<p>A datasync server uses the normal ASP.NET Core mechanisms for creating the server.  It consists of three steps:</p>
+<ol>
+<li>Create an ASP.NET Core server project.</li>
+<li>Add Entity Framework Core</li>
+<li>Add Datasync Services</li>
+</ol>
+<p>In addition, you can optionally add identity (authentication and authorization) to your service.  For information on creating an ASP.NET Core service with Entity Framework Core, please see <a href="https://docs.microsoft.com/aspnet/core/tutorials/first-web-api?view=aspnetcore-5.0&amp;tabs=visual-studio">the tutorial</a>.</p>
+<p>To enable datasync services, you need to modify the <code>Startup.cs</code> file in two places.  In <code>ConfigureServices()</code>, add <code>services.AddDatasyncControllers()</code>.  For example:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// Initialize Entity Framework Core</span>
+    <span class="n">services</span><span class="p">.</span><span class="n">AddDbContext</span><span class="p">&lt;</span><span class="n">AppDbContext</span><span class="p">&gt;(</span><span class="n">options</span> <span class="p">=&gt;</span>
+        <span class="n">options</span><span class="p">.</span><span class="n">UseSqlServer</span><span class="p">(</span><span class="n">Configuration</span><span class="p">.</span><span class="n">GetConnectionString</span><span class="p">(</span><span class="s">&quot;AppDbContext&quot;</span><span class="p">)));</span>
+
+    <span class="c1">// Add Datasync-aware MVC controllers</span>
+    <span class="n">services</span><span class="p">.</span><span class="n">AddDatasyncControllers</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Then, in the <code>Configure()</code> method, update the <code>UseEndpoints()</code> callback to include <code>endpoints.EnableDatasyncControllers()</code>.  For example:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">void</span> <span class="nf">Configure</span><span class="p">(</span><span class="n">IApplicationBuilder</span> <span class="n">app</span><span class="p">,</span> <span class="n">IWebHostEnvironment</span> <span class="n">env</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">env</span><span class="p">.</span><span class="n">IsDevelopment</span><span class="p">())</span>
+    <span class="p">{</span>
+        <span class="n">app</span><span class="p">.</span><span class="n">UseDeveloperExceptionPage</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="n">app</span><span class="p">.</span><span class="n">UseHttpsRedirection</span><span class="p">();</span>
+    <span class="n">app</span><span class="p">.</span><span class="n">UseRouting</span><span class="p">();</span>
+    <span class="n">app</span><span class="p">.</span><span class="n">UseAuthorization</span><span class="p">();</span>
+
+    <span class="n">app</span><span class="p">.</span><span class="n">UseEndpoints</span><span class="p">(</span><span class="n">endpoints</span> <span class="p">=&gt;</span>
+    <span class="p">{</span>
+        <span class="n">endpoints</span><span class="p">.</span><span class="n">MapControllers</span><span class="p">();</span>
+        <span class="n">endpoints</span><span class="p">.</span><span class="n">EnableTableControllers</span><span class="p">();</span>
+    <span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>You can also use the ASP.NET Core datasync-server template:</p>
+<div class="highlight"><pre><span></span><code># This only needs to be done once
+dotnet new -i Microsoft.AspNetCore.Datasync.Template.CSharp
+mkdir My.Datasync.Server
+cd My.Datasync.Server
+dotnet new datasync-server
+</code></pre></div>
+<p>The template includes a sample model and controller as well.</p>
+<h2 id="create-a-table-controller-for-a-sql-table">Create a table controller for a SQL table<a class="headerlink" href="#create-a-table-controller-for-a-sql-table" title="Permanent link">&para;</a></h2>
+<p>The default repository uses Entity Framework Core.  Creating a table controller is a three step process:</p>
+<ol>
+<li>Create a model class for the data model.</li>
+<li>Add the model class to the <code>DbContext</code> for your application.</li>
+<li>Create a new <code>TableController&lt;T&gt;</code> class to expose your model.</li>
+</ol>
+<h3 id="create-a-model-class">Create a model class<a class="headerlink" href="#create-a-model-class" title="Permanent link">&para;</a></h3>
+<p>All model classes must conform to <code>ITableData</code> and add the abstract class for the repository type you are using.  Entity Framework Core uses <code>EntityTableData</code>, as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">class</span> <span class="nc">TodoItem</span> <span class="p">:</span> <span class="n">EntityTableData</span>
+<span class="p">{</span>
+    <span class="c1">/// &lt;summary&gt;</span>
+    <span class="c1">/// Text of the Todo Item</span>
+    <span class="c1">/// &lt;/summary&gt;</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Text</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="c1">/// &lt;summary&gt;</span>
+    <span class="c1">/// Is the item complete?</span>
+    <span class="c1">/// &lt;/summary&gt;</span>
+    <span class="k">public</span> <span class="kt">bool</span> <span class="n">Complete</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The <code>ITableData</code> (which is implemented by <code>EntityTableData</code>) provides the ID of the record, together with additional properties for handling datasync services:</p>
+<ul>
+<li><code>UpdatedAt</code> (<code>DateTimeOffset?</code>) provides the date that the record was last updated.</li>
+<li><code>Version</code> (<code>byte[]</code>) provides an opaque value that changes on every write.</li>
+<li><code>Deleted</code> (<code>bool</code>) is true if the record has been deleted but not yet purged.</li>
+</ul>
+<p>These values are maintained by the server, and should not be manually altered by your code.</p>
+<h3 id="update-the-dbcontext">Update the <code>DbContext</code><a class="headerlink" href="#update-the-dbcontext" title="Permanent link">&para;</a></h3>
+<p>Entity Framework Core requires that each model in the database be registered in the <code>DbContext</code>.  For example:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">class</span> <span class="nc">AppDbContext</span> <span class="p">:</span> <span class="n">DbContext</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="nf">AppDbContext</span><span class="p">(</span><span class="n">DbContextOptions</span><span class="p">&lt;</span><span class="n">AppDbContext</span><span class="p">&gt;</span> <span class="n">options</span><span class="p">)</span> <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+    <span class="p">{</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="n">DbSet</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span> <span class="n">TodoItems</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="create-a-table-controller">Create a table controller<a class="headerlink" href="#create-a-table-controller" title="Permanent link">&para;</a></h3>
+<p>A table controller is a specialized <code>ApiController</code>.  Here is a minimal table controller:</p>
+<div class="highlight"><pre><span></span><code><span class="na">[Route(&quot;tables/[controller]</span><span class="s">&quot;)]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">TodoItemController</span> <span class="p">:</span> <span class="n">TableController</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="nf">TodoItemController</span><span class="p">(</span><span class="n">AppDbContext</span> <span class="n">context</span><span class="p">)</span> <span class="p">:</span> <span class="k">base</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">Repository</span> <span class="p">=</span> <span class="k">new</span> <span class="n">EntityTableRepository</span><span class="p">&lt;</span><span class="n">TodoItem</span><span class="p">&gt;(</span><span class="n">context</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Of note:</p>
+<ul>
+<li>The controller must have a route.  By convention, tables are exposed on a sub-path of <code>/tables</code>, but they can be placed anywhere.  If you are using client libraries earlier than v5.0.0, then the table must be a sub-path of <code>/tables</code>.</li>
+<li>The controller must inherit from <code>TableController&lt;T&gt;</code>, where <code>&lt;T&gt;</code> is an implementation of the <code>ITableData</code> implementation for your repository type.</li>
+<li>You must assign a repository based on the same type as your model.</li>
+</ul>
+<h3 id="implementing-an-in-memory-repository">Implementing an in-memory repository<a class="headerlink" href="#implementing-an-in-memory-repository" title="Permanent link">&para;</a></h3>
+<p>In addition to the Entity Framework Core repository, we support an in-memory repository.  This must be exposed as a <code>Singleton</code>.  To configure an in-memory repository, use the following in the <code>ConfigureServices()</code> method of your <code>Startup.cs</code> file:</p>
+<div class="highlight"><pre><span></span><code><span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">&gt;</span> <span class="n">seedData</span> <span class="p">=</span> <span class="n">GenerateSeedData</span><span class="p">();</span>
+<span class="n">services</span><span class="p">.</span><span class="n">AddSingleton</span><span class="p">&lt;</span><span class="n">IRepository</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">&gt;&gt;(</span><span class="k">new</span> <span class="n">InMemoryRepository</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">&gt;(</span><span class="n">seedData</span><span class="p">));</span>
+</code></pre></div>
+<p>You can then set up your table controller as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="na">[Route(&quot;tables/models&quot;)]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">ModelController</span> <span class="p">:</span> <span class="n">TableController</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="nf">MovieController</span><span class="p">(</span><span class="n">IRepository</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">&gt;</span> <span class="n">repository</span><span class="p">)</span> <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="n">repository</span><span class="p">)</span>
+    <span class="p">{</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="configure-table-controller-options">Configure table controller options<a class="headerlink" href="#configure-table-controller-options" title="Permanent link">&para;</a></h2>
+<p>You can configure certain aspects of the controller using <code>TableControllerOptions</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="na">[Route(&quot;tables/models&quot;)]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">MoodelController</span> <span class="p">:</span> <span class="n">TableController</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="nf">ModelController</span><span class="p">(</span><span class="n">IRepository</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">&gt;</span> <span class="n">repository</span><span class="p">)</span> <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="n">repository</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">Options</span> <span class="p">=</span> <span class="k">new</span> <span class="n">TableControllerOptions</span> <span class="p">{</span> <span class="n">PageSize</span> <span class="p">=</span> <span class="m">25</span> <span class="p">};</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The options you can set include:</p>
+<ul>
+<li><code>PageSize</code> (<code>int</code>) is the maximum number of items in a single page that will be returned by a query operation.</li>
+<li><code>MaxTop</code> (<code>int</code>) is the maximum value allowed for a <code>$top</code> query option.  This is equivalent to the LINQ <code>.Take()</code> value.</li>
+<li><code>EnableSoftDelete</code> (<code>bool</code>) enables soft-delete, which marks items as deleted instead of deleting them from the database.  This allows clients to update their offline cache, but requires that the items be purged periodically.</li>
+<li><code>UnauthorizedStatusCode</code> (<code>int</code>) is the status code that is returned if the user is not authorized to do a specific operation.  By default, it is <code>401 Unauthorized</code>, but can be set to anything you want.</li>
+</ul>
+<h2 id="configure-access-permissions">Configure access permissions<a class="headerlink" href="#configure-access-permissions" title="Permanent link">&para;</a></h2>
+<p>By default, a user can do anything they want to entities within a table - create, read, update, and delete any record.  This is normally undesirable, so you will want to create an <code>AccessControlProvider</code>.  This object implements <code>IAccessControlProvider</code> to implement three methods:</p>
+<ul>
+<li><code>GetDataView()</code> returns a lambda that limits what the connected user can see.</li>
+<li><code>IsAuthorizedAsync()</code> determines if the connected user can perform the action on the specific entity that is being requested.</li>
+<li><code>PreCommitHookAsync()</code> adjusts any entity immediately prior to being written to the repository.</li>
+</ul>
+<p>Between the three methods, you can effectively handle most access control cases.  If you need access to the <code>HttpContext</code>, you will need to <a href="https://docs.microsoft.com/aspnet/core/fundamentals/http-context?view=aspnetcore-5.0#use-httpcontext-from-custom-components">configure a HttpContextAccessor</a>.</p>
+<p>As an example, the following implements a personal table, where a user can only see their own records.</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">class</span> <span class="nc">PrivateAccessControlProvider</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;:</span> <span class="n">IAccessControlProvider</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span>
+    <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="n">ITableData</span>
+    <span class="k">where</span> <span class="n">T</span> <span class="p">:</span> <span class="n">IUserId</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IHttpContextAccessor</span> <span class="n">_accessor</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">PrivateAccessControlProvider</span><span class="p">(</span><span class="n">IHttpContextAccessor</span> <span class="n">accessor</span><span class="p">)</span> 
+    <span class="p">{</span>
+        <span class="n">_accessor</span> <span class="p">=</span> <span class="n">accessor</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">private</span> <span class="kt">string</span> <span class="n">Username</span> <span class="p">{</span> <span class="k">get</span> <span class="p">=&gt;</span> <span class="n">_accessor</span><span class="p">.</span><span class="n">HttpContext</span><span class="p">.</span><span class="n">User</span><span class="p">.</span><span class="n">Identity</span><span class="p">.</span><span class="n">Name</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="k">public</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span><span class="kt">bool</span><span class="p">&gt;</span> <span class="n">GetDataView</span><span class="p">()</span> <span class="p">=&gt;</span> <span class="n">model</span> <span class="p">=&gt;</span> <span class="n">model</span><span class="p">.</span><span class="n">UserId</span> <span class="p">==</span> <span class="n">Username</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="n">Task</span><span class="p">&lt;</span><span class="kt">bool</span><span class="p">&gt;</span> <span class="n">IsAuthorizedAsync</span><span class="p">(</span><span class="n">TableOperation</span> <span class="n">op</span><span class="p">,</span> <span class="n">T</span><span class="p">?</span> <span class="n">entity</span><span class="p">,</span> <span class="n">CancellationToken</span> <span class="n">token</span> <span class="p">=</span> <span class="k">default</span><span class="p">)</span> 
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">op</span> <span class="p">==</span> <span class="n">TableOperation</span><span class="p">.</span><span class="n">Create</span> <span class="p">||</span> <span class="n">op</span> <span class="p">==</span> <span class="n">TableOperation</span><span class="p">.</span><span class="n">Query</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">Task</span><span class="p">.</span><span class="n">FromResult</span><span class="p">(</span><span class="k">true</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">else</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">Task</span><span class="p">.</span><span class="n">FromResult</span><span class="p">(</span><span class="n">entity</span><span class="p">?.</span><span class="n">UserId</span> <span class="p">==</span> <span class="n">Username</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">virtual</span> <span class="n">Task</span> <span class="nf">PreCommitHookAsync</span><span class="p">(</span><span class="n">TableOperation</span> <span class="n">operation</span><span class="p">,</span> <span class="n">T</span> <span class="n">entity</span><span class="p">,</span> <span class="n">CancellationToken</span> <span class="n">token</span> <span class="p">=</span> <span class="k">default</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">entity</span><span class="p">.</span><span class="n">UserId</span> <span class="p">==</span> <span class="n">Username</span><span class="p">;</span>
+        <span class="k">return</span> <span class="n">Task</span><span class="p">.</span><span class="n">CompletedTask</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The methods are async in case you need to do an additional database lookup to get the correct answer. You can implement the <code>IAccessControlProvider&lt;T&gt;</code> interface on the controller, but you still have to pass in the <code>IHttpContextAccessor</code> to access the <code>HttpContext</code> in a thread safe manner.</p>
+<p>To use this access control provider, update your <code>TableController</code> as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="na">[Authorize]</span>
+<span class="na">[Route(&quot;tables/[controller]</span><span class="s">&quot;)]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">ModelController</span> <span class="p">:</span> <span class="n">TableController</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="nf">ModelsController</span><span class="p">(</span><span class="n">AppDbContext</span> <span class="n">context</span><span class="p">,</span> <span class="n">IHttpContextAccessor</span> <span class="n">accessor</span><span class="p">)</span> <span class="p">:</span> <span class="k">base</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">AccessControlProvider</span> <span class="p">=</span> <span class="k">new</span> <span class="n">PrivateAccessControlProvider</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">&gt;(</span><span class="n">accessor</span><span class="p">);</span>
+        <span class="n">Repository</span> <span class="p">=</span> <span class="k">new</span> <span class="n">EntityTableRepository</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">&gt;(</span><span class="n">context</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>If you want to allow both unauthenticated and authenticated access to a table, decorate it with <code>[AllowAnonymous]</code> instead of <code>[Authorize]</code>.</p>
+<h2 id="configure-logging">Configure logging<a class="headerlink" href="#configure-logging" title="Permanent link">&para;</a></h2>
+<p>Logging is handled through <a href="https://docs.microsoft.com/aspnet/core/fundamentals/logging/?view=aspnetcore-5.0">the normal logging mechanism</a> for ASP.NET Core.  You need to assign the appropriate <code>ILogger</code> to the <code>Logger</code> property:</p>
+<div class="highlight"><pre><span></span><code><span class="na">[Authorize]</span>
+<span class="na">[Route(&quot;tables/[controller]</span><span class="s">&quot;)]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">ModelController</span> <span class="p">:</span> <span class="n">TableController</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="nf">ModelsController</span><span class="p">(</span><span class="n">AppDbContext</span> <span class="n">context</span><span class="p">,</span> <span class="n">Ilogger</span><span class="p">&lt;</span><span class="n">ModelController</span><span class="p">&gt;</span> <span class="n">logger</span><span class="p">)</span> <span class="p">:</span> <span class="k">base</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">Repository</span> <span class="p">=</span> <span class="k">new</span> <span class="n">EntityTableRepository</span><span class="p">&lt;</span><span class="n">Model</span><span class="p">&gt;(</span><span class="n">context</span><span class="p">);</span>
+        <span class="n">Logger</span> <span class="p">=</span> <span class="n">logger</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="enable-azure-app-service-identity">Enable Azure App Service Identity<a class="headerlink" href="#enable-azure-app-service-identity" title="Permanent link">&para;</a></h2>
+<p>The ASP.NET Core datasync server supports [ASP.NET Core Identity], or any other authentication and authorization scheme you wish to support.  To assist with upgrades from prior versions of Azure Mobile Apps, we also provide an identity provider that implement <a href="https://docs.microsoft.com/azure/app-service/overview-authentication-authorization">Azure App Service Identity</a>.  To configure Azure App Service Identity in your application, edit your <code>Startup.cs</code>.  In the <code>ConfigureServices()</code> method, use the following:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// Implement logging!</span>
+    <span class="n">services</span><span class="p">.</span><span class="n">AddLogging</span><span class="p">(</span><span class="n">options</span> <span class="p">=&gt;</span> <span class="n">options</span><span class="p">.</span><span class="n">AddConsole</span><span class="p">());</span>
+
+    <span class="c1">// Initialize Entity Framework Core</span>
+    <span class="n">services</span><span class="p">.</span><span class="n">AddDbContext</span><span class="p">&lt;</span><span class="n">AppDbContext</span><span class="p">&gt;(</span><span class="n">options</span> <span class="p">=&gt;</span>
+        <span class="n">options</span><span class="p">.</span><span class="n">UseSqlServer</span><span class="p">(</span><span class="n">Configuration</span><span class="p">.</span><span class="n">GetConnectionString</span><span class="p">(</span><span class="s">&quot;AppDbContext&quot;</span><span class="p">)));</span>
+
+    <span class="c1">// Add authentication - force enabling the authentication pipeline.</span>
+    <span class="n">services</span><span class="p">.</span><span class="n">AddAuthentication</span><span class="p">(</span><span class="n">AzureAppServiceAuthentication</span><span class="p">.</span><span class="n">AuthenticationScheme</span><span class="p">)</span>
+        <span class="p">.</span><span class="n">AddAzureAppServiceAuthentication</span><span class="p">(</span><span class="n">options</span> <span class="p">=&gt;</span> <span class="n">options</span><span class="p">.</span><span class="n">ForceEnable</span> <span class="p">=</span> <span class="k">true</span><span class="p">);</span>
+
+    <span class="c1">// Add Datasync-aware Controllers</span>
+    <span class="n">services</span><span class="p">.</span><span class="n">AddDatasyncControllers</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Then, in the <code>Configure()</code> method, enable ASP.NET Core identity as normal:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span> <span class="k">void</span> <span class="nf">Configure</span><span class="p">(</span><span class="n">IApplicationBuilder</span> <span class="n">app</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">app</span><span class="p">.</span><span class="n">UseHttpsRedirection</span><span class="p">();</span>
+    <span class="n">app</span><span class="p">.</span><span class="n">UseRouting</span><span class="p">();</span>
+
+    <span class="n">app</span><span class="p">.</span><span class="n">UseAuthentication</span><span class="p">();</span>
+    <span class="n">app</span><span class="p">.</span><span class="n">UseAuthorization</span><span class="p">();</span>
+
+    <span class="n">app</span><span class="p">.</span><span class="n">UseEndpoints</span><span class="p">(</span><span class="n">endpoints</span> <span class="p">=&gt;</span>
+    <span class="p">{</span>
+        <span class="n">endpoints</span><span class="p">.</span><span class="n">MapControllers</span><span class="p">();</span>
+        <span class="n">endpoints</span><span class="p">.</span><span class="n">EnableTableControllers</span><span class="p">();</span>
+    <span class="p">});</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="not-covered-but-possible">Not covered, but possible<a class="headerlink" href="#not-covered-but-possible" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Write your own <code>IRepository</code> for handling new data stores.</li>
+</ul>
+<p>If you have requests, please let us know in the <a href="https://github.com/Azure/azure-mobile-apps/issues">GitHub Issues</a>.</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../../client/dotnet/" class="md-footer__link md-footer__link--prev" aria-label="Previous: .NET" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              .NET
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../dotnet-framework/" class="md-footer__link md-footer__link--next" aria-label="Next: ASP.NET Framework" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              ASP.NET Framework
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Copyright &copy; Microsoft, Inc.  All Rights Reserved.
+          </div>
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+  <div class="md-footer-social">
+    
+      
+      
+        
+        
+      
+      <a href="https://github.com/azure/azure-mobile-apps" target="_blank" rel="noopener" title="github.com" class="md-footer-social__link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+      </a>
+    
+  </div>
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.instant", "navigation.tabs", "navigation.sections", "search.suggest", "search.highlight"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../../assets/javascripts/workers/search.b0710199.min.js", "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.76f349be.min.js"></script>
+      
+    
+  </body>
+</html>
