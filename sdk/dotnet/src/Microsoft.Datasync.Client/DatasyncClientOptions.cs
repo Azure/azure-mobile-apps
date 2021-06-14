@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -15,7 +14,7 @@ namespace Microsoft.Datasync.Client
     /// </summary>
     public class DatasyncClientOptions
     {
-        private JsonSerializerOptions _deserializerOptions = new JsonSerializerOptions()
+        private JsonSerializerOptions _deserializerOptions = new()
         {
             AllowTrailingCommas = true,
             NumberHandling = JsonNumberHandling.Strict,
@@ -24,7 +23,7 @@ namespace Microsoft.Datasync.Client
             ReadCommentHandling = JsonCommentHandling.Skip
         };
         private IEnumerable<HttpMessageHandler> _httpPipeline = Array.Empty<HttpMessageHandler>();
-        private JsonSerializerOptions _serializerOptions = new JsonSerializerOptions()
+        private JsonSerializerOptions _serializerOptions = new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             NumberHandling = JsonNumberHandling.Strict,
@@ -53,13 +52,10 @@ namespace Microsoft.Datasync.Client
             get => _httpPipeline;
             set
             {
-                if (value.Count() > 1 && value.Reverse().Skip(1).Any(m => !(m is DelegatingHandler)))
-                {
-                    throw new ArgumentException($"Invalid {nameof(HttpPipeline)} - all elements except the last one must be a DelegatingHandler", nameof(HttpPipeline));
-                }
-                _httpPipeline = value;
+                _httpPipeline = value ?? throw new ArgumentNullException(nameof(HttpPipeline));
             }
         }
+
         /// <summary>
         /// The serializer options to use when serializing content for the datasync service.
         /// </summary>
@@ -89,6 +85,5 @@ namespace Microsoft.Datasync.Client
         /// The protocol version string to use in the <c>ZUMO-API-VERSION</c> header.
         /// </summary>
         internal virtual string ProtocolVersion { get; } = "3.0.0";
-
     }
 }

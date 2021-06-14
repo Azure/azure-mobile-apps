@@ -97,13 +97,6 @@ namespace Microsoft.Datasync.Client.Test
         }
 
         [Fact]
-        public void HttpMessageHandlers_ThrowsWhenClientHandlerNotAtEnd()
-        {
-            var pipeline = new HttpMessageHandler[] { new HttpClientHandler(), new MockMessageHandler() };
-            Assert.Throws<ArgumentException>(() => new DatasyncClientOptions { HttpPipeline = pipeline });
-        }
-
-        [Fact]
         public void HttpMessageHandlers_ThrowsOnNull()
         {
             Assert.Throws<ArgumentNullException>(() => new DatasyncClientOptions() { HttpPipeline = null });
