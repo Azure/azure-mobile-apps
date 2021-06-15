@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 
 namespace Microsoft.Datasync.Client.Http
 {
@@ -14,46 +16,48 @@ namespace Microsoft.Datasync.Client.Http
     /// A <see cref="HttpClient"/> wrapper that sends and receives JSON
     /// payloads from a service.
     /// </summary>
-    public class JsonClient
+    public class DatasyncHttpClient : IDisposable
     {
+        private bool disposedValue;
+
         /// <summary>
-        /// Creates a new <see cref="JsonClient"/> based on the endpoint provided and using
+        /// Creates a new <see cref="DatasyncHttpClient"/> based on the endpoint provided and using
         /// default options.
         /// </summary>
         /// <param name="endpoint">The endpoint (which must be a valid endpoint)</param>
-        public JsonClient(string endpoint)
+        public DatasyncHttpClient(string endpoint)
             : this(endpoint, new DatasyncClientOptions())
         {
         }
 
         /// <summary>
-        /// Creates a new <see cref="JsonClient"/> based on the endpoint provided and using
+        /// Creates a new <see cref="DatasyncHttpClient"/> based on the endpoint provided and using
         /// default options.
         /// </summary>
         /// <param name="endpoint">The endpoint (which must be a valid endpoint)</param>
-        public JsonClient(Uri endpoint)
+        public DatasyncHttpClient(Uri endpoint)
             : this(endpoint, new DatasyncClientOptions())
         {
         }
 
         /// <summary>
-        /// Creates a new <see cref="JsonClient"/> based on the endpoint provided and using
+        /// Creates a new <see cref="DatasyncHttpClient"/> based on the endpoint provided and using
         /// the specified options.
         /// </summary>
         /// <param name="endpoint">The endpoint (which must be a valid endpoint)</param>
         /// <param name="options">The <see cref="DatasyncClientOptions"/> for this client</param>
-        public JsonClient(string endpoint, DatasyncClientOptions options)
+        public DatasyncHttpClient(string endpoint, DatasyncClientOptions options)
             : this(new Uri(endpoint, UriKind.Absolute), options)
         {
         }
 
         /// <summary>
-        /// Creates a new <see cref="JsonClient"/> based on the endpoint provided and using
+        /// Creates a new <see cref="DatasyncHttpClient"/> based on the endpoint provided and using
         /// the specified options.
         /// </summary>
         /// <param name="endpoint">The endpoint (which must be a valid endpoint)</param>
         /// <param name="options">The <see cref="DatasyncClientOptions"/> for this client</param>
-        public JsonClient(Uri endpoint, DatasyncClientOptions options)
+        public DatasyncHttpClient(Uri endpoint, DatasyncClientOptions options)
         {
             ValidateEndpoint(endpoint, nameof(endpoint));
             Endpoint = NormalizeEndpoint(endpoint);
@@ -130,6 +134,59 @@ namespace Microsoft.Datasync.Client.Http
         }
 
         /// <summary>
+        /// Creates a suitable <see cref="HttpRequestMessage"/> for transmitting to the service.
+        /// </summary>
+        /// <param name="method">The <see cref="HttpMethod"/> to use.</param>
+        /// <param name="relativeUri"></param>
+        /// <returns>A <see cref="HttpRequestMessage"/></returns>
+        public HttpRequestMessage CreateRequest(HttpMethod method, string relativeUri)
+        {
+            if (method == null)
+            {
+                throw new ArgumentNullException(nameof(method));
+            }
+            if (relativeUri == null)
+            {
+                throw new ArgumentNullException(nameof(relativeUri));
+            }
+            return new HttpRequestMessage(method, new Uri(Endpoint, relativeUri));
+        }
+
+        /// <summary>
+        /// Creates a suitable <see cref="HttpRequestMessage"/> for transmitting to the service, with a payload.
+        /// </summary>
+        /// <typeparam name="T">the type of the payload</typeparam>
+        /// <param name="method">The <see cref="HttpMethod"/> to use.</param>
+        /// <param name="relativeUri">The relative Uri for the request</param>
+        /// <param name="payload">The payload</param>
+        /// <param name="contentType">The content type of the payload</param>
+        /// <returns>A <see cref="HttpRequestMessage"/></returns>
+        public HttpRequestMessage CreateRequest<T>(HttpMethod method, string relativeUri, T payload, string contentType = "application/json")
+        {
+            if (method == null)
+            {
+                throw new ArgumentNullException(nameof(method));
+            }
+            if (relativeUri == null)
+            {
+                throw new ArgumentNullException(nameof(relativeUri));
+            }
+            if (payload == null)
+            {
+                throw new ArgumentNullException(nameof(payload));
+            }
+            if (contentType == null)
+            {
+                throw new ArgumentNullException(nameof(contentType));
+            }
+
+            return new HttpRequestMessage(method, new Uri(Endpoint, relativeUri))
+            {
+                Content = new StringContent(JsonSerializer.Serialize(payload, ClientOptions.SerializerOptions), Encoding.UTF8, contentType)
+            };
+        }
+
+        /// <summary>
         /// Returns a default <see cref="HttpClientHandler"/> that supports automatic gzip decompression.
         /// </summary>
         /// <returns>A <see cref="HttpClientHandler"/></returns>
@@ -179,5 +236,26 @@ namespace Microsoft.Datasync.Client.Http
                 throw new UriFormatException($"{paramName} must use HTTP scheme");
             }
         }
+
+        #region IDisposable
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    HttpMessageHandler.Dispose();
+                    HttpClient.Dispose();
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }
