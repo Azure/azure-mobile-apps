@@ -5,10 +5,13 @@ using Microsoft.Datasync.Client.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Datasync.Client.Http
 {
@@ -208,6 +211,33 @@ namespace Microsoft.Datasync.Client.Http
         /// <returns>The normalized endpoint</returns>
         internal static Uri NormalizeEndpoint(Uri endpoint)
             => new UriBuilder(endpoint).WithQuery(string.Empty).WithFragment(string.Empty).WithTrailingSlash().Uri;
+
+        /// <summary>
+        /// Sends a request to the datasync service, expecting a JSON response back.  Returns the response.
+        /// </summary>
+        /// <typeparam name="T">The type of the deserialized content</typeparam>
+        /// <param name="request">The <see cref="HttpRequestMessage"/> to send to the service</param>
+        /// <param name="token">A <see cref="CancellationToken"/></param>
+        /// <returns>A <see cref="HttpResponse{T}"/> object that contains the content.</returns>
+        public async Task<HttpResponse<T>> SendAsync<T>(HttpRequestMessage request, CancellationToken token = default)
+        {
+            using var message = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+            var response = await HttpResponse<T>.FromResponseAsync(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+            if (response.IsSuccessStatusCode)
+            {
+                return response;
+            }
+            else if (response.IsConflictStatusCode)
+            {
+                throw new ConflictException<T>(response);
+            }
+            throw response.StatusCode switch
+            {
+                HttpStatusCode.NotModified  => new NotModifiedException(),
+                HttpStatusCode.NotFound => new NotFoundException(),
+                _ => new RequestFailedException(response.StatusCode)
+            };
+        }
 
         /// <summary>
         /// Tests to see if the provided endpoint is valid.  If it isn't valid, an appropriate

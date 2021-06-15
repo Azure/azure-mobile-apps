@@ -5,8 +5,11 @@ using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Test.Helpers;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Http
@@ -203,7 +206,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var endpoint = new Uri("https://zumo.azure-api.net/tables/movies");
             var client = new DatasyncHttpClient(endpoint, options);
 
-            AssertEx.HeaderMatches("ZUMO-API-VERSION", "3.0.0", client.HttpClient.DefaultRequestHeaders);
+            AssertEx.HasValue("ZUMO-API-VERSION", new[] { "3.0.0" }, client.HttpClient.DefaultRequestHeaders);
         }
         #endregion
 
@@ -380,7 +383,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         {
             // Arrange
             var payload = new MockObject { StringValue = "test" };
-            var jsonPayload = "{\"stringValue\":\"test\"}";
+            const string jsonPayload = "{\"stringValue\":\"test\"}";
             var client = new DatasyncHttpClient("https://zumo.azure-api.net/tables/movies");
 
             // Act
@@ -402,7 +405,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         {
             // Arrange
             var payload = new MockObject { StringValue = "test" };
-            var jsonPayload = "{\"stringValue\":\"test\"}";
+            const string jsonPayload = "{\"stringValue\":\"test\"}";
             var client = new DatasyncHttpClient("https://zumo.azure-api.net/tables/movies");
 
             // Act
@@ -448,6 +451,372 @@ namespace Microsoft.Datasync.Client.Test.Http
 
             // Assert
             Assert.Throws<ArgumentNullException>(() => client.CreateRequest(HttpMethod.Post, "1234", payload, null));
+        }
+        #endregion
+
+        #region SendAsync<T> Helpers
+        private readonly string Endpoint = "https://zumo.azure-api.net/tables/movies";
+        private readonly MockObject Payload = new() { StringValue = "test" };
+        private readonly string PayloadJson = "{\"stringValue\":\"test\"}";
+
+        [Theory]
+        [InlineData("DELETE", "id-000", false, null, null, 204,  false)]
+        [InlineData("DELETE", "id-000", false, "If-Match", "\"etag\"", 204, false)]
+        [InlineData("GET", "", false, null, null, 200, true)]
+        [InlineData("GET", "?$select=stringValue", false, null, null, 200, true)]
+        [InlineData("GET", "id-000", false, null, null, 200, true)]
+        [InlineData("GET", "id-000", false, "If-None-Match", "\"etag\"", 200, true)]
+        [InlineData("PATCH", "id-000", true, null, null, 200, true)]
+        [InlineData("PATCH", "id-000", true, "If-Match", "\"etag\"", 200, true)]
+        [InlineData("POST", "", true, null, null, 201, true)]
+        [InlineData("POST", "", true, "If-None-Match", "*", 201, true)]
+        [InlineData("PUT", "id-000", true, null, null, 200, true)]
+        [InlineData("PUT", "id-000", true, "If-Match", "\"etag\"", 200, true)]
+        public async Task SendAsyncT_Success(
+            /* Request */ string method, string relativeUri, bool includeContent, string hdrName, string hdrValue,
+            /* Response */ int statusCode, bool expectContent)
+        {
+            // Arrange
+            var httpService = new MockMessageHandler();
+            if (expectContent)
+            {
+                httpService.AddResponse((HttpStatusCode)statusCode, Payload);
+            }
+            else
+            {
+                httpService.AddResponse((HttpStatusCode)statusCode);
+            }
+            var client = new DatasyncHttpClient(Endpoint, new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { httpService } });
+            HttpRequestMessage request = includeContent
+                ? client.CreateRequest(new HttpMethod(method), relativeUri, Payload)
+                : client.CreateRequest(new HttpMethod(method), relativeUri);
+            if (hdrName != null && hdrValue != null)
+            {
+                request.Headers.Add(hdrName, hdrValue);
+            }
+
+            // Act
+            var response = await client.SendAsync<MockObject>(request).ConfigureAwait(false);
+
+            // Assert - Request
+            Assert.Single(httpService.Requests);
+            Assert.Equal(method.ToUpper(), httpService.Requests[0].Method.ToString().ToUpper());
+            Assert.Equal($"{Endpoint}/{relativeUri}", httpService.Requests[0].RequestUri.ToString());
+            if (includeContent)
+            {
+                Assert.Equal(PayloadJson, httpService.Requests[0].Content.ReadAsStringAsync().Result);
+                Assert.Equal("application/json", httpService.Requests[0].Content.Headers.ContentType.MediaType);
+            }
+            if (hdrName != null && hdrValue != null)
+            {
+                AssertEx.HasValue(hdrName, new[] { hdrValue }, request.Headers);
+            }
+
+            // Assert - Response
+            Assert.Equal(statusCode, (int)response.StatusCode);
+            if (expectContent)
+            {
+                Assert.True(response.HasContent);
+                Assert.Equal(PayloadJson, Encoding.UTF8.GetString(response.Content));
+                Assert.True(response.HasValue);
+                Assert.Equal("test", response.Value.StringValue);
+            }
+            else
+            {
+                Assert.False(response.HasContent);
+                Assert.Empty(response.Content);
+                Assert.False(response.HasValue);
+                Assert.Null(response.Value);
+            }
+        }
+
+        [Theory]
+        [InlineData("DELETE", "id-000", false, null, null)]
+        [InlineData("DELETE", "id-000", false, "If-Match", "\"etag\"")]
+        [InlineData("GET", "", false, null, null)]
+        [InlineData("GET", "?$select=stringValue", false, null, null)]
+        [InlineData("GET", "id-000", false, null, null)]
+        [InlineData("GET", "id-000", false, "If-None-Match", "\"etag\"")]
+        [InlineData("PATCH", "id-000", true, null, null)]
+        [InlineData("PATCH", "id-000", true, "If-Match", "\"etag\"")]
+        [InlineData("POST", "", true, null, null)]
+        [InlineData("POST", "", true, "If-None-Match", "*")]
+        [InlineData("PUT", "id-000", true, null, null)]
+        [InlineData("PUT", "id-000", true, "If-Match", "\"etag\"")]
+        public async Task SendAsyncT_ThrowsNotFound(
+            /* Request */ string method, string relativeUri, bool includeContent, string hdrName, string hdrValue)
+        {
+            // Arrange
+            var httpService = new MockMessageHandler();
+            httpService.AddResponse(HttpStatusCode.NotFound);
+            var client = new DatasyncHttpClient(Endpoint, new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { httpService } });
+            HttpRequestMessage request = includeContent
+                ? client.CreateRequest(new HttpMethod(method), relativeUri, Payload)
+                : client.CreateRequest(new HttpMethod(method), relativeUri);
+            if (hdrName != null && hdrValue != null)
+            {
+                request.Headers.Add(hdrName, hdrValue);
+            }
+
+            // Act
+            await Assert.ThrowsAsync<NotFoundException>(() => client.SendAsync<MockObject>(request)).ConfigureAwait(false);
+        }
+
+        [Theory]
+        [InlineData("DELETE", "id-000", false, null, null)]
+        [InlineData("DELETE", "id-000", false, "If-Match", "\"etag\"")]
+        [InlineData("GET", "", false, null, null)]
+        [InlineData("GET", "?$select=stringValue", false, null, null)]
+        [InlineData("GET", "id-000", false, null, null)]
+        [InlineData("GET", "id-000", false, "If-None-Match", "\"etag\"")]
+        [InlineData("PATCH", "id-000", true, null, null)]
+        [InlineData("PATCH", "id-000", true, "If-Match", "\"etag\"")]
+        [InlineData("POST", "", true, null, null)]
+        [InlineData("POST", "", true, "If-None-Match", "*")]
+        [InlineData("PUT", "id-000", true, null, null)]
+        [InlineData("PUT", "id-000", true, "If-Match", "\"etag\"")]
+        public async Task SendAsyncT_400_ThrowsRequestFailed(string method, string relativeUri, bool includeContent, string hdrName, string hdrValue)
+        {
+            // Arrange
+            var httpService = new MockMessageHandler();
+            httpService.AddResponse(HttpStatusCode.BadRequest);
+            var client = new DatasyncHttpClient(Endpoint, new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { httpService } });
+            HttpRequestMessage request = includeContent
+                ? client.CreateRequest(new HttpMethod(method), relativeUri, Payload)
+                : client.CreateRequest(new HttpMethod(method), relativeUri);
+            if (hdrName != null && hdrValue != null)
+            {
+                request.Headers.Add(hdrName, hdrValue);
+            }
+
+            // Act
+            var exception = await Assert.ThrowsAsync<RequestFailedException>(() => client.SendAsync<MockObject>(request)).ConfigureAwait(false);
+            Assert.Equal(400, (int)exception.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("DELETE", "id-000", false, null, null)]
+        [InlineData("DELETE", "id-000", false, "If-Match", "\"etag\"")]
+        [InlineData("GET", "", false, null, null)]
+        [InlineData("GET", "?$select=stringValue", false, null, null)]
+        [InlineData("GET", "id-000", false, null, null)]
+        [InlineData("GET", "id-000", false, "If-None-Match", "\"etag\"")]
+        [InlineData("PATCH", "id-000", true, null, null)]
+        [InlineData("PATCH", "id-000", true, "If-Match", "\"etag\"")]
+        [InlineData("POST", "", true, null, null)]
+        [InlineData("POST", "", true, "If-None-Match", "*")]
+        [InlineData("PUT", "id-000", true, null, null)]
+        [InlineData("PUT", "id-000", true, "If-Match", "\"etag\"")]
+        public async Task SendAsyncT_401_ThrowsRequestFailed(string method, string relativeUri, bool includeContent, string hdrName, string hdrValue)
+        {
+            // Arrange
+            var httpService = new MockMessageHandler();
+            httpService.AddResponse(HttpStatusCode.Unauthorized);
+            var client = new DatasyncHttpClient(Endpoint, new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { httpService } });
+            HttpRequestMessage request = includeContent
+                ? client.CreateRequest(new HttpMethod(method), relativeUri, Payload)
+                : client.CreateRequest(new HttpMethod(method), relativeUri);
+            if (hdrName != null && hdrValue != null)
+            {
+                request.Headers.Add(hdrName, hdrValue);
+            }
+
+            // Act
+            var exception = await Assert.ThrowsAsync<RequestFailedException>(() => client.SendAsync<MockObject>(request)).ConfigureAwait(false);
+            Assert.Equal(401, (int)exception.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("DELETE", "id-000", false, null, null)]
+        [InlineData("DELETE", "id-000", false, "If-Match", "\"etag\"")]
+        [InlineData("GET", "", false, null, null)]
+        [InlineData("GET", "?$select=stringValue", false, null, null)]
+        [InlineData("GET", "id-000", false, null, null)]
+        [InlineData("GET", "id-000", false, "If-None-Match", "\"etag\"")]
+        [InlineData("PATCH", "id-000", true, null, null)]
+        [InlineData("PATCH", "id-000", true, "If-Match", "\"etag\"")]
+        [InlineData("POST", "", true, null, null)]
+        [InlineData("POST", "", true, "If-None-Match", "*")]
+        [InlineData("PUT", "id-000", true, null, null)]
+        [InlineData("PUT", "id-000", true, "If-Match", "\"etag\"")]
+        public async Task SendAsyncT_403_ThrowsRequestFailed(string method, string relativeUri, bool includeContent, string hdrName, string hdrValue)
+        {
+            // Arrange
+            var httpService = new MockMessageHandler();
+            httpService.AddResponse(HttpStatusCode.Forbidden);
+            var client = new DatasyncHttpClient(Endpoint, new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { httpService } });
+            HttpRequestMessage request = includeContent
+                ? client.CreateRequest(new HttpMethod(method), relativeUri, Payload)
+                : client.CreateRequest(new HttpMethod(method), relativeUri);
+            if (hdrName != null && hdrValue != null)
+            {
+                request.Headers.Add(hdrName, hdrValue);
+            }
+
+            // Act
+            var exception = await Assert.ThrowsAsync<RequestFailedException>(() => client.SendAsync<MockObject>(request)).ConfigureAwait(false);
+            Assert.Equal(403, (int)exception.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("DELETE", "id-000", false, null, null)]
+        [InlineData("DELETE", "id-000", false, "If-Match", "\"etag\"")]
+        [InlineData("GET", "", false, null, null)]
+        [InlineData("GET", "?$select=stringValue", false, null, null)]
+        [InlineData("GET", "id-000", false, null, null)]
+        [InlineData("GET", "id-000", false, "If-None-Match", "\"etag\"")]
+        [InlineData("PATCH", "id-000", true, null, null)]
+        [InlineData("PATCH", "id-000", true, "If-Match", "\"etag\"")]
+        [InlineData("POST", "", true, null, null)]
+        [InlineData("POST", "", true, "If-None-Match", "*")]
+        [InlineData("PUT", "id-000", true, null, null)]
+        [InlineData("PUT", "id-000", true, "If-Match", "\"etag\"")]
+        public async Task SendAsyncT_405_ThrowsRequestFailed(string method, string relativeUri, bool includeContent, string hdrName, string hdrValue)
+        {
+            // Arrange
+            var httpService = new MockMessageHandler();
+            httpService.AddResponse(HttpStatusCode.MethodNotAllowed);
+            var client = new DatasyncHttpClient(Endpoint, new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { httpService } });
+            HttpRequestMessage request = includeContent
+                ? client.CreateRequest(new HttpMethod(method), relativeUri, Payload)
+                : client.CreateRequest(new HttpMethod(method), relativeUri);
+            if (hdrName != null && hdrValue != null)
+            {
+                request.Headers.Add(hdrName, hdrValue);
+            }
+
+            // Act
+            var exception = await Assert.ThrowsAsync<RequestFailedException>(() => client.SendAsync<MockObject>(request)).ConfigureAwait(false);
+            Assert.Equal(405, (int)exception.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("DELETE", "id-000", false, null, null)]
+        [InlineData("DELETE", "id-000", false, "If-Match", "\"etag\"")]
+        [InlineData("GET", "", false, null, null)]
+        [InlineData("GET", "?$select=stringValue", false, null, null)]
+        [InlineData("GET", "id-000", false, null, null)]
+        [InlineData("GET", "id-000", false, "If-None-Match", "\"etag\"")]
+        [InlineData("PATCH", "id-000", true, null, null)]
+        [InlineData("PATCH", "id-000", true, "If-Match", "\"etag\"")]
+        [InlineData("POST", "", true, null, null)]
+        [InlineData("POST", "", true, "If-None-Match", "*")]
+        [InlineData("PUT", "id-000", true, null, null)]
+        [InlineData("PUT", "id-000", true, "If-Match", "\"etag\"")]
+        public async Task SendAsyncT_500_ThrowsRequestFailed(string method, string relativeUri, bool includeContent, string hdrName, string hdrValue)
+        {
+            // Arrange
+            var httpService = new MockMessageHandler();
+            httpService.AddResponse(HttpStatusCode.InternalServerError);
+            var client = new DatasyncHttpClient(Endpoint, new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { httpService } });
+            HttpRequestMessage request = includeContent
+                ? client.CreateRequest(new HttpMethod(method), relativeUri, Payload)
+                : client.CreateRequest(new HttpMethod(method), relativeUri);
+            if (hdrName != null && hdrValue != null)
+            {
+                request.Headers.Add(hdrName, hdrValue);
+            }
+
+            // Act
+            var exception = await Assert.ThrowsAsync<RequestFailedException>(() => client.SendAsync<MockObject>(request)).ConfigureAwait(false);
+            Assert.Equal(500, (int)exception.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("GET", "", false, null, null)]
+        [InlineData("GET", "?$select=stringValue", false, null, null)]
+        [InlineData("GET", "id-000", false, null, null)]
+        [InlineData("GET", "id-000", false, "If-None-Match", "\"etag\"")]
+        public async Task SendAsyncT_304_ThrowsNotModified(string method, string relativeUri, bool includeContent, string hdrName, string hdrValue)
+        {
+            // Arrange
+            var httpService = new MockMessageHandler();
+            httpService.AddResponse(HttpStatusCode.NotModified);
+            var client = new DatasyncHttpClient(Endpoint, new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { httpService } });
+            HttpRequestMessage request = includeContent
+                ? client.CreateRequest(new HttpMethod(method), relativeUri, Payload)
+                : client.CreateRequest(new HttpMethod(method), relativeUri);
+            if (hdrName != null && hdrValue != null)
+            {
+                request.Headers.Add(hdrName, hdrValue);
+            }
+
+            // Act
+            await Assert.ThrowsAsync<NotModifiedException>(() => client.SendAsync<MockObject>(request)).ConfigureAwait(false);
+        }
+
+        [Theory]
+        [InlineData("DELETE", "id-000", false, null, null)]
+        [InlineData("DELETE", "id-000", false, "If-Match", "\"etag\"")]
+        [InlineData("PATCH", "id-000", true, null, null)]
+        [InlineData("PATCH", "id-000", true, "If-Match", "\"etag\"")]
+        [InlineData("POST", "", true, null, null)]
+        [InlineData("POST", "", true, "If-None-Match", "*")]
+        [InlineData("PUT", "id-000", true, null, null)]
+        [InlineData("PUT", "id-000", true, "If-Match", "\"etag\"")]
+        public async Task SendAsyncT_409_ThrowsConflict(string method, string relativeUri, bool includeContent, string hdrName, string hdrValue)
+        {
+            // Arrange
+            var httpService = new MockMessageHandler();
+            httpService.AddResponse(HttpStatusCode.Conflict, Payload);
+            var client = new DatasyncHttpClient(Endpoint, new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { httpService } });
+            HttpRequestMessage request = includeContent
+                ? client.CreateRequest(new HttpMethod(method), relativeUri, Payload)
+                : client.CreateRequest(new HttpMethod(method), relativeUri);
+            if (hdrName != null && hdrValue != null)
+            {
+                request.Headers.Add(hdrName, hdrValue);
+            }
+
+            // Act
+            var exception = await Assert.ThrowsAsync<ConflictException<MockObject>>(() => client.SendAsync<MockObject>(request)).ConfigureAwait(false);
+
+            // Assert - ServerItem is set
+            Assert.Equal("test", exception.ServerItem.StringValue);
+
+            // Assert - Response is correct
+            Assert.Equal(409, (int)exception.Response.StatusCode);
+            Assert.True(exception.Response.HasContent);
+            Assert.Equal(PayloadJson, Encoding.UTF8.GetString(exception.Response.Content));
+            Assert.True(exception.Response.HasValue);
+            Assert.Equal("test", exception.Response.Value.StringValue);
+        }
+
+        [Theory]
+        [InlineData("DELETE", "id-000", false, null, null)]
+        [InlineData("DELETE", "id-000", false, "If-Match", "\"etag\"")]
+        [InlineData("PATCH", "id-000", true, null, null)]
+        [InlineData("PATCH", "id-000", true, "If-Match", "\"etag\"")]
+        [InlineData("POST", "", true, null, null)]
+        [InlineData("POST", "", true, "If-None-Match", "*")]
+        [InlineData("PUT", "id-000", true, null, null)]
+        [InlineData("PUT", "id-000", true, "If-Match", "\"etag\"")]
+        public async Task SendAsyncT_412_ThrowsConflict(string method, string relativeUri, bool includeContent, string hdrName, string hdrValue)
+        {
+            // Arrange
+            var httpService = new MockMessageHandler();
+            httpService.AddResponse(HttpStatusCode.PreconditionFailed, Payload);
+            var client = new DatasyncHttpClient(Endpoint, new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { httpService } });
+            HttpRequestMessage request = includeContent
+                ? client.CreateRequest(new HttpMethod(method), relativeUri, Payload)
+                : client.CreateRequest(new HttpMethod(method), relativeUri);
+            if (hdrName != null && hdrValue != null)
+            {
+                request.Headers.Add(hdrName, hdrValue);
+            }
+
+            // Act
+            var exception = await Assert.ThrowsAsync<ConflictException<MockObject>>(() => client.SendAsync<MockObject>(request)).ConfigureAwait(false);
+
+            // Assert - ServerItem is set
+            Assert.Equal("test", exception.ServerItem.StringValue);
+
+            // Assert - Response is correct
+            Assert.Equal(412, (int)exception.Response.StatusCode);
+            Assert.True(exception.Response.HasContent);
+            Assert.Equal(PayloadJson, Encoding.UTF8.GetString(exception.Response.Content));
+            Assert.True(exception.Response.HasValue);
+            Assert.Equal("test", exception.Response.Value.StringValue);
         }
         #endregion
 

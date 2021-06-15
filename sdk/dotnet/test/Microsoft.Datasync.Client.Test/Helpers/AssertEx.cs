@@ -8,20 +8,28 @@ using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Helpers
 {
-    [ExcludeFromCodeCoverage]
+    /// <summary>
+    /// A set of additional assertions.
+    /// </summary>
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public static class AssertEx
     {
-        public static void HeaderMatches(string headerName, string headerValue, HttpHeaders headers)
+        /// <summary>
+        /// Assert if a header-style dictionary contains a specific header.
+        /// </summary>
+        public static void HasValue(string name, IEnumerable<string> expected, IReadOnlyDictionary<string, IEnumerable<string>> dictionary)
         {
-            Assert.True(headers.Contains(headerName), $"Headers does not contain {headerName}");
-            var actualHeaderValue = headers.GetValues(headerName);
-            Assert.Single(actualHeaderValue, headerValue);
+            Assert.True(dictionary.TryGetValue(name, out IEnumerable<string> actual));
+            Assert.Equal(expected, actual);
         }
 
-        public static void HasValue(string key, string[] expectedValue, IReadOnlyDictionary<string, string[]> headers)
+        /// <summary>
+        /// Assert if a header-style dictionary contains a specific header.
+        /// </summary>
+        public static void HasValue(string name, IEnumerable<string> expected, HttpHeaders headers)
         {
-            Assert.True(headers.TryGetValue(key, out string[] actualValue), $"dictionary does not contain key {key}");
-            Assert.Equal(expectedValue, actualValue);
+            Assert.True(headers.TryGetValues(name, out IEnumerable<string> actual));
+            Assert.Equal(expected, actual);
         }
     }
 }
