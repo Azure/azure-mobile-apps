@@ -6,26 +6,19 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Datasync.Client.Test.Helpers
 {
-    [ExcludeFromCodeCoverage(Justification = "Test suite")]
+    [ExcludeFromCodeCoverage]
     public class MockObject
     {
-        #region ITableData
-        public string Id { get; set; }
-        public DateTimeOffset? UpdatedAt { get; set; }
-        public string Version { get; set; }
-        public bool Deleted { get; set; }
-        #endregion
-
-        #region Properties
-        public bool BoolValue { get; set; }
+        public bool BooleanValue { get; set; }
         public char CharValue { get; set; }
-        public DateTime? DateTimeValue { get; set; }
-        public DateTimeOffset? DateTimeOffsetValue { get; set; }
+        public DateTime DateTimeValue { get; set; }
+        public DateTimeOffset DTOValue { get; set; }
         public decimal DecimalValue { get; set; }
         public double DoubleValue { get; set; }
         public float FloatValue { get; set; }
         public Guid GuidValue { get; set; }
+        public int IntValue { get; set; }
+        public long LongValue { get; set; }
         public string StringValue { get; set; }
-        #endregion
     }
 }

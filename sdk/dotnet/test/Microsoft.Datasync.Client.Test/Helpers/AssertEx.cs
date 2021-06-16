@@ -9,23 +9,17 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Helpers
 {
     /// <summary>
-    /// A set of additional assertions.
+    /// A set of extensions to the XUnit Assert class.
     /// </summary>
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public static class AssertEx
     {
         /// <summary>
-        /// Assert if a header-style dictionary contains a specific header.
+        /// Assert that the named header contains the values expected.
         /// </summary>
-        public static void HasValue(string name, IEnumerable<string> expected, IReadOnlyDictionary<string, IEnumerable<string>> dictionary)
-        {
-            Assert.True(dictionary.TryGetValue(name, out IEnumerable<string> actual));
-            Assert.Equal(expected, actual);
-        }
-
-        /// <summary>
-        /// Assert if a header-style dictionary contains a specific header.
-        /// </summary>
+        /// <param name="name">The named header</param>
+        /// <param name="expected">The expected values</param>
+        /// <param name="headers">The headers</param>
         public static void HasValue(string name, IEnumerable<string> expected, HttpHeaders headers)
         {
             Assert.True(headers.TryGetValues(name, out IEnumerable<string> actual));

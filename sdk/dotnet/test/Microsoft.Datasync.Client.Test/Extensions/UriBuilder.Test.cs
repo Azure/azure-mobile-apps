@@ -11,94 +11,126 @@ namespace Microsoft.Datasync.Client.Test.Extensions
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class UriBuilder_Tests
     {
-        private static readonly Uri Endpoint = new("https://localhost:443/tables/foo?a=b&c=d#fragment");
-
+        #region Normalized
         [Theory]
-        [InlineData("", "https://localhost:443/tables/foo?a=b&c=d")]
-        [InlineData("newfrag", "https://localhost:443/tables/foo?a=b&c=d#newfrag")]
-        public void WithFragment_Works(string fragment, string expected)
+        [InlineData("http://localhost", "http://localhost/")]
+        [InlineData("http://localhost/tables", "http://localhost/tables/")]
+        [InlineData("http://localhost/tables/", "http://localhost/tables/")]
+        [InlineData("http://localhost/tables/foo", "http://localhost/tables/foo/")]
+        [InlineData("http://localhost/tables/foo/", "http://localhost/tables/foo/")]
+        [InlineData("http://localhost#fragment", "http://localhost/")]
+        [InlineData("http://localhost/tables#fragment", "http://localhost/tables/")]
+        [InlineData("http://localhost/tables/#fragment", "http://localhost/tables/")]
+        [InlineData("http://localhost/tables/foo#fragment", "http://localhost/tables/foo/")]
+        [InlineData("http://localhost/tables/foo/#fragment", "http://localhost/tables/foo/")]
+        [InlineData("http://localhost?test=true", "http://localhost/")]
+        [InlineData("http://localhost/tables?test=true", "http://localhost/tables/")]
+        [InlineData("http://localhost/tables/?test=true", "http://localhost/tables/")]
+        [InlineData("http://localhost/tables/foo?test=true", "http://localhost/tables/foo/")]
+        [InlineData("http://localhost/tables/foo/?test=true", "http://localhost/tables/foo/")]
+        [InlineData("http://localhost?test=true#fragment", "http://localhost/")]
+        [InlineData("http://localhost/tables?test=true#fragment", "http://localhost/tables/")]
+        [InlineData("http://localhost/tables/?test=true#fragment", "http://localhost/tables/")]
+        [InlineData("http://localhost/tables/foo?test=true#fragment", "http://localhost/tables/foo/")]
+        [InlineData("http://localhost/tables/foo/?test=true#fragment", "http://localhost/tables/foo/")]
+        public void Normalized_Works(string sut, string expected)
         {
-            var actual = new UriBuilder(Endpoint).WithFragment(fragment).ToString();
-            Assert.Equal(expected, actual);
+            var builder = new UriBuilder(sut);
+            var actual = builder.Normalized();
+            Assert.Same(builder, actual);
+            Assert.Equal(expected, actual.Uri.ToString());
         }
+        #endregion
 
+        #region WithFragment
         [Theory]
-        [InlineData("foo.azurewebsites.net", "https://foo.azurewebsites.net:443/tables/foo?a=b&c=d#fragment")]
-        [InlineData("127.0.0.1", "https://127.0.0.1:443/tables/foo?a=b&c=d#fragment")]
-        public void WithHost_Works(string fragment, string expected)
+        [InlineData("http://localhost", null, "http://localhost/")]
+        [InlineData("http://localhost", "", "http://localhost/")]
+        [InlineData("http://localhost", "  ", "http://localhost/")]
+        [InlineData("http://localhost", "newfrag", "http://localhost/#newfrag")]
+        [InlineData("http://localhost", "  newfrag", "http://localhost/#newfrag")]
+        [InlineData("http://localhost", "newfrag  ", "http://localhost/#newfrag")]
+        [InlineData("http://localhost", "#newfrag", "http://localhost/#newfrag")]
+        [InlineData("http://localhost?__filter=foo", null, "http://localhost/?__filter=foo")]
+        [InlineData("http://localhost?__filter=foo", "", "http://localhost/?__filter=foo")]
+        [InlineData("http://localhost?__filter=foo", "  ", "http://localhost/?__filter=foo")]
+        [InlineData("http://localhost?__filter=foo", "newfrag", "http://localhost/?__filter=foo#newfrag")]
+        [InlineData("http://localhost?__filter=foo", "  newfrag", "http://localhost/?__filter=foo#newfrag")]
+        [InlineData("http://localhost?__filter=foo", "newfrag  ", "http://localhost/?__filter=foo#newfrag")]
+        [InlineData("http://localhost#fragment", null, "http://localhost/")]
+        [InlineData("http://localhost#fragment", "", "http://localhost/")]
+        [InlineData("http://localhost#fragment", "  ", "http://localhost/")]
+        [InlineData("http://localhost?a=b&c=d#fragment", "newfrag", "http://localhost/?a=b&c=d#newfrag")]
+        [InlineData("http://localhost?a=b&c=d#fragment", "  newfrag", "http://localhost/?a=b&c=d#newfrag")]
+        [InlineData("http://localhost?a=b&c=d#fragment", "newfrag  ", "http://localhost/?a=b&c=d#newfrag")]
+        public void Withfragment_Works(string sut, string q, string expected)
         {
-            var actual = new UriBuilder(Endpoint).WithHost(fragment).ToString();
-            Assert.Equal(expected, actual);
+            var builder = new UriBuilder(sut);
+            var actual = builder.WithFragment(q);
+            Assert.Same(builder, actual);
+            Assert.Equal(expected, actual.Uri.ToString());
         }
+        #endregion
 
+        #region WithQuery
         [Theory]
-        [InlineData("", "", "https://localhost:443/tables/foo?a=b&c=d#fragment")]
-        [InlineData("username", "password", "https://username:password@localhost:443/tables/foo?a=b&c=d#fragment")]
-        public void WithCredentials_Works(string username, string password, string expected)
+        [InlineData("http://localhost", null, "http://localhost/")]
+        [InlineData("http://localhost", "", "http://localhost/")]
+        [InlineData("http://localhost", "  ", "http://localhost/")]
+        [InlineData("http://localhost", "a=b&c=d", "http://localhost/?a=b&c=d")]
+        [InlineData("http://localhost", "  a=b&c=d", "http://localhost/?a=b&c=d")]
+        [InlineData("http://localhost", "a=b&c=d  ", "http://localhost/?a=b&c=d")]
+        [InlineData("http://localhost", "?a=b&c=d", "http://localhost/?a=b&c=d")]
+        [InlineData("http://localhost?__filter=foo", null, "http://localhost/")]
+        [InlineData("http://localhost?__filter=foo", "", "http://localhost/")]
+        [InlineData("http://localhost?__filter=foo", "  ", "http://localhost/")]
+        [InlineData("http://localhost?__filter=foo", "a=b&c=d", "http://localhost/?a=b&c=d")]
+        [InlineData("http://localhost?__filter=foo", "  a=b&c=d", "http://localhost/?a=b&c=d")]
+        [InlineData("http://localhost?__filter=foo", "a=b&c=d  ", "http://localhost/?a=b&c=d")]
+        [InlineData("http://localhost#fragment", null, "http://localhost/#fragment")]
+        [InlineData("http://localhost#fragment", "", "http://localhost/#fragment")]
+        [InlineData("http://localhost#fragment", "  ", "http://localhost/#fragment")]
+        [InlineData("http://localhost#fragment", "a=b&c=d", "http://localhost/?a=b&c=d#fragment")]
+        [InlineData("http://localhost#fragment", "  a=b&c=d", "http://localhost/?a=b&c=d#fragment")]
+        [InlineData("http://localhost#fragment", "a=b&c=d  ", "http://localhost/?a=b&c=d#fragment")]
+        public void WithQueryString_Works(string sut, string query, string expected)
         {
-            var actual = new UriBuilder(Endpoint).WithCredentials(username, password).ToString();
-            Assert.Equal(expected, actual);
+            var builder = new UriBuilder(sut);
+            var actual = builder.WithQuery(query);
+            Assert.Same(builder, actual);
+            Assert.Equal(expected, actual.Uri.ToString());
         }
+        #endregion
 
+        #region WithTrailingSlash
         [Theory]
-        [InlineData("/tables/bar", "https://localhost:443/tables/bar?a=b&c=d#fragment")]
-        public void WithPath_Works(string fragment, string expected)
+        [InlineData("http://localhost", "http://localhost/")]
+        [InlineData("http://localhost/tables", "http://localhost/tables/")]
+        [InlineData("http://localhost/tables/", "http://localhost/tables/")]
+        [InlineData("http://localhost/tables/foo", "http://localhost/tables/foo/")]
+        [InlineData("http://localhost/tables/foo/", "http://localhost/tables/foo/")]
+        [InlineData("http://localhost#fragment", "http://localhost/#fragment")]
+        [InlineData("http://localhost/tables#fragment", "http://localhost/tables/#fragment")]
+        [InlineData("http://localhost/tables/#fragment", "http://localhost/tables/#fragment")]
+        [InlineData("http://localhost/tables/foo#fragment", "http://localhost/tables/foo/#fragment")]
+        [InlineData("http://localhost/tables/foo/#fragment", "http://localhost/tables/foo/#fragment")]
+        [InlineData("http://localhost?test=true", "http://localhost/?test=true")]
+        [InlineData("http://localhost/tables?test=true", "http://localhost/tables/?test=true")]
+        [InlineData("http://localhost/tables/?test=true", "http://localhost/tables/?test=true")]
+        [InlineData("http://localhost/tables/foo?test=true", "http://localhost/tables/foo/?test=true")]
+        [InlineData("http://localhost/tables/foo/?test=true", "http://localhost/tables/foo/?test=true")]
+        [InlineData("http://localhost?test=true#fragment", "http://localhost/?test=true#fragment")]
+        [InlineData("http://localhost/tables?test=true#fragment", "http://localhost/tables/?test=true#fragment")]
+        [InlineData("http://localhost/tables/?test=true#fragment", "http://localhost/tables/?test=true#fragment")]
+        [InlineData("http://localhost/tables/foo?test=true#fragment", "http://localhost/tables/foo/?test=true#fragment")]
+        [InlineData("http://localhost/tables/foo/?test=true#fragment", "http://localhost/tables/foo/?test=true#fragment")]
+        public void WithTrailingSlash_Works(string sut, string expected)
         {
-            var actual = new UriBuilder(Endpoint).WithPath(fragment).ToString();
-            Assert.Equal(expected, actual);
+            var builder = new UriBuilder(sut);
+            var actual = builder.WithTrailingSlash();
+            Assert.Same(builder, actual);
+            Assert.Equal(expected, actual.Uri.ToString());
         }
-
-        [Theory]
-        [InlineData(80, "https://localhost:80/tables/foo?a=b&c=d#fragment")]
-        [InlineData(-1, "https://localhost/tables/foo?a=b&c=d#fragment")]
-        public void WithPort_Works(int port, string expected)
-        {
-            var actual = new UriBuilder(Endpoint).WithPort(port).ToString();
-            Assert.Equal(expected, actual);
-        }
-
-        [Theory]
-        [InlineData(-10)]
-        [InlineData(-0)]
-        [InlineData(128000)]
-        public void WithPort_Throws_WhenExpected(int port)
-        {
-            Assert.Throws<ArgumentOutOfRangeException>(() => new UriBuilder(Endpoint).WithPort(port).ToString());
-        }
-
-        [Theory]
-        [InlineData("trust=true", "https://localhost:443/tables/foo?trust=true#fragment")]
-        public void WithQuery_Works(string query, string expected)
-        {
-            var actual = new UriBuilder(Endpoint).WithQuery(query).ToString();
-            Assert.Equal(expected, actual);
-        }
-
-        [Theory]
-        [InlineData("http", "http://localhost:443/tables/foo?a=b&c=d#fragment")]
-        [InlineData("https", "https://localhost:443/tables/foo?a=b&c=d#fragment")]
-        public void WithScheme_Works(string scheme, string expected)
-        {
-            var actual = new UriBuilder(Endpoint).WithScheme(scheme).ToString();
-            Assert.Equal(expected, actual);
-        }
-
-        [Theory]
-        [InlineData("file")]
-        [InlineData("mailto")]
-        [InlineData("mqtt")]
-        public void WithScheme_Throws_WhenExpected(string scheme)
-        {
-            Assert.Throws<NotSupportedException>(() => new UriBuilder(Endpoint).WithScheme(scheme).ToString());
-        }
-
-        [Theory]
-        [InlineData("/tables/bar", "https://localhost:443/tables/bar/?a=b&c=d#fragment")]
-        [InlineData("/tables/bar/", "https://localhost:443/tables/bar/?a=b&c=d#fragment")]
-        public void WithTrailingSlash_Works(string path, string expected)
-        {
-            var actual = new UriBuilder(Endpoint).WithPath(path).WithTrailingSlash().ToString();
-            Assert.Equal(expected, actual);
-        }
+        #endregion
     }
 }
