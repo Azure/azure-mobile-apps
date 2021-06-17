@@ -132,5 +132,43 @@ namespace Microsoft.Datasync.Client.Test.Internal
             Assert.NotEmpty(sut);
         }
         #endregion
+
+        #region IsValidEndpoint(Uri,string)
+        [Fact]
+        public void IsValidEndpoint_Null_Throws()
+        {
+            Uri sut = null;
+            Assert.Throws<ArgumentNullException>(() => Validate.IsValidEndpoint(sut, nameof(sut)));
+        }
+
+        [Fact]
+        public void IsValidEndpoint_RelativeUri_Throws()
+        {
+            Uri sut = new("a/b", UriKind.Relative);
+            Assert.Throws<UriFormatException>(() => Validate.IsValidEndpoint(sut, nameof(sut)));
+        }
+
+        [Theory]
+        [InlineData("file://localhost/foo")]
+        [InlineData("http://foo.azurewebsites.net")]
+        public void IsValidEndpoint_InvalidUri_Throws(string endpoint)
+        {
+            var sut = new Uri(endpoint);
+            Assert.Throws<UriFormatException>(() => Validate.IsValidEndpoint(sut, nameof(sut)));
+        }
+
+        [Theory]
+        [InlineData("http://localhost")]
+        [InlineData("http://127.0.0.1")]
+        [InlineData("https://foo.azurewebsites.net")]
+        [InlineData("http://localhost/tables")]
+        [InlineData("http://127.0.0.1/tables")]
+        [InlineData("https://foo.azurewebsites.net/tables")]
+        public void IsValidEndpoint_Passes(string endpoint)
+        {
+            var sut = new Uri(endpoint);
+            Validate.IsValidEndpoint(sut, nameof(sut));
+        }
+        #endregion
     }
 }

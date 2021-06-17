@@ -79,5 +79,27 @@ namespace Microsoft.Datasync.Client.Internal
                 throw new ArgumentException($"{paramName} must be a valid RFC7232 precondition header", paramName);
             }
         }
+
+        /// <summary>
+        /// Checks that the provided Uri is a valid endpoint.
+        /// </summary>
+        /// <param name="param"></param>
+        /// <param name="paramName"></param>
+        internal static void IsValidEndpoint(Uri param, string paramName)
+        {
+            IsNotNull(param, paramName);
+            if (!param.IsAbsoluteUri)
+            {
+                throw new UriFormatException($"{paramName} is not an absolute Uri");
+            }
+            if (param.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase) && !param.IsLoopback)
+            {
+                throw new UriFormatException($"{paramName} is insecure and not localhost");
+            }
+            if (param.Scheme != Uri.UriSchemeHttp && param.Scheme != Uri.UriSchemeHttps)
+            {
+                throw new UriFormatException($"{paramName} must use http");
+            }
+        }
     }
 }
