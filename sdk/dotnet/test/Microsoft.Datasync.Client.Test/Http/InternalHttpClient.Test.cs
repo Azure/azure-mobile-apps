@@ -13,6 +13,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Http
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
+    [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Naming violations don't matter in tests")]
     public class InternalHttpClient_Tests : BaseTest
     {
         #region Helpers

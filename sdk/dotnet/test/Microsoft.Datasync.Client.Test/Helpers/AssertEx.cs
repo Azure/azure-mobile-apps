@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net.Http.Headers;
 using Xunit;
 
@@ -24,6 +26,19 @@ namespace Microsoft.Datasync.Client.Test.Helpers
         {
             Assert.True(headers.TryGetValues(name, out IEnumerable<string> actual));
             Assert.Equal(expected, actual);
+        }
+
+        /// <summary>
+        /// Assert that the named header contains the values expected.
+        /// </summary>
+        /// <param name="name">The named header</param>
+        /// <param name="expected">The expected values</param>
+        /// <param name="headers">The headers</param>
+        public static void HasValue(string name, IEnumerable<string> expected, IReadOnlyDictionary<string, IEnumerable<string>> headers)
+        {
+            var enumerable = headers.Where(hdr => hdr.Key.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+            Assert.Single(enumerable);
+            Assert.Equal(expected, enumerable.First().Value);
         }
     }
 }

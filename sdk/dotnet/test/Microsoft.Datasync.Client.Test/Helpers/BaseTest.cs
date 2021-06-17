@@ -13,10 +13,19 @@ namespace Microsoft.Datasync.Client.Test.Helpers
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public abstract class BaseTest
     {
-        protected JsonSerializerOptions SerializerOptions = new()
+        protected readonly JsonSerializerOptions SerializerOptions = new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        protected readonly JsonSerializerOptions DeserializerOptions = new()
+        {
+            AllowTrailingCommas = true,
+            NumberHandling = JsonNumberHandling.Strict,
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            ReadCommentHandling = JsonCommentHandling.Skip
         };
     }
 }
