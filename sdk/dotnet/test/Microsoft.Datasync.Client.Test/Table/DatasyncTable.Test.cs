@@ -40,6 +40,8 @@ namespace Microsoft.Datasync.Client.Test.Table
             public string Id { get; set; }
             public string StringValue { get; set; }
             public bool Equals(IdEntity other) => Id == other.Id && StringValue == other.StringValue;
+            public override bool Equals(object obj) => obj is IdEntity ide && Equals(ide);
+            public override int GetHashCode() => Id.GetHashCode() + StringValue.GetHashCode();
         }
 
         private class KeyEntity
@@ -858,7 +860,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetPageOfItems_ReturnsNextLink()
         {
             // Arrange
-            var nextLink = $"{sEndpoint}?$top=5&$skip=5";
+            const string nextLink = sEndpoint + "?$top=5&$skip=5";
             Page<IdEntity> result = new() { NextLink = new Uri(nextLink) };
             ClientHandler.AddResponse(HttpStatusCode.OK, result);
             var table = new DatasyncTable<IdEntity>(Endpoint, HttpClient, ClientOptions);
@@ -908,7 +910,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetPageOfItems_ReturnsItemsAndNextLink()
         {
             // Arrange
-            var nextLink = $"{sEndpoint}?$top=5&$skip=5";
+            const string nextLink = sEndpoint + "?$top=5&$skip=5";
             Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } }, NextLink = new Uri(nextLink) };
             ClientHandler.AddResponse(HttpStatusCode.OK, result);
             var table = new DatasyncTable<IdEntity>(Endpoint, HttpClient, ClientOptions);
@@ -934,7 +936,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetPageOfItems_ReturnsItem_Count_NextLink()
         {
             // Arrange
-            var nextLink = $"{sEndpoint}?$top=5&$skip=5";
+            const string nextLink = sEndpoint + "?$top=5&$skip=5";
             Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } }, Count = 42, NextLink = new Uri(nextLink) };
             ClientHandler.AddResponse(HttpStatusCode.OK, result);
             var table = new DatasyncTable<IdEntity>(Endpoint, HttpClient, ClientOptions);

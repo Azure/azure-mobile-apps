@@ -2,12 +2,13 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Http;
+using Microsoft.Datasync.Client.Table;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Datasync.Client.Table
+namespace Microsoft.Datasync.Client
 {
     /// <summary>
     /// Definition of the base operations you can perform on a datasync table.
