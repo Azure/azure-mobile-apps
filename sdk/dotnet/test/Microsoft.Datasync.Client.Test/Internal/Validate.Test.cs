@@ -3,6 +3,7 @@
 
 using Microsoft.Datasync.Client.Internal;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
@@ -13,6 +14,7 @@ namespace Microsoft.Datasync.Client.Test.Internal
     {
         #region IsNotNull(object,string)
         [Fact]
+        [Trait("Method", "IsNotNull")]
         public void IsNotNull_Null_Throws()
         {
             object sut = null;
@@ -20,6 +22,7 @@ namespace Microsoft.Datasync.Client.Test.Internal
         }
 
         [Fact]
+        [Trait("Method", "IsNotNull")]
         public void IsNotNull_NotNull_Passes()
         {
             object sut = new();
@@ -28,8 +31,9 @@ namespace Microsoft.Datasync.Client.Test.Internal
         }
         #endregion
 
-        #region IsNotNullOrEmpty(byte[],string)
+        #region IsNotNullOrEmpty<T>(IEnumerable<T>,string)
         [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
         public void IsNotNullOrEmpty_Byte_Null_Throws()
         {
             byte[] sut = null;
@@ -37,6 +41,7 @@ namespace Microsoft.Datasync.Client.Test.Internal
         }
 
         [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
         public void IsNotNullOrEmpty_Byte_Empty_Throws()
         {
             byte[] sut = Array.Empty<byte>();
@@ -44,33 +49,60 @@ namespace Microsoft.Datasync.Client.Test.Internal
         }
 
         [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
         public void IsNotNullOrEmpty_Byte_Filled_Passes()
         {
             byte[] sut = Guid.NewGuid().ToByteArray();
             Validate.IsNotNullOrEmpty(sut, nameof(sut));
             Assert.NotEmpty(sut);
         }
-        #endregion
 
-        #region IsNotNullOrEmpty(string,string)
         [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
         public void IsNotNullOrEmpty_String_Null_Throws()
         {
-            string sut = null;
+            const string sut = null;
             Assert.Throws<ArgumentNullException>(() => Validate.IsNotNullOrEmpty(sut, nameof(sut)));
         }
 
         [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
         public void IsNotNullOrEmpty_String_Empty_Throws()
         {
-            string sut = "";
+            const string sut = "";
             Assert.Throws<ArgumentException>(() => Validate.IsNotNullOrEmpty(sut, nameof(sut)));
         }
 
         [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
         public void IsNotNullOrEmpty_String_Filled_Passes()
         {
             string sut = Guid.NewGuid().ToString();
+            Validate.IsNotNullOrEmpty(sut, nameof(sut));
+            Assert.NotEmpty(sut);
+        }
+
+        [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
+        public void IsNotNullOrEmpty_Dictionary_Null_Throws()
+        {
+            Dictionary<string, string> sut = null;
+            Assert.Throws<ArgumentNullException>(() => Validate.IsNotNullOrEmpty(sut, nameof(sut)));
+        }
+
+        [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
+        public void IsNotNullOrEmpty_Dictionary_Empty_Throws()
+        {
+            Dictionary<string, string> sut = new();
+            Assert.Throws<ArgumentException>(() => Validate.IsNotNullOrEmpty(sut, nameof(sut)));
+        }
+
+        [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
+        public void IsNotNullOrEmpty_Dictionary_Filled_Passes()
+        {
+            Dictionary<string, string> sut = new() { { "test", "test" } };
             Validate.IsNotNullOrEmpty(sut, nameof(sut));
             Assert.NotEmpty(sut);
         }
@@ -78,9 +110,10 @@ namespace Microsoft.Datasync.Client.Test.Internal
 
         #region IsNotNullOrWhitespace(string,string)
         [Fact]
+        [Trait("Method", "IsNotNullOrWhitespace")]
         public void IsNotNullOrWhitespace_String_Null_Throws()
         {
-            string sut = null;
+            const string sut = null;
             Assert.Throws<ArgumentNullException>(() => Validate.IsNotNullOrWhitespace(sut, nameof(sut)));
         }
 
@@ -88,12 +121,14 @@ namespace Microsoft.Datasync.Client.Test.Internal
         [InlineData("")]
         [InlineData(" ")]
         [InlineData("    ")]
+        [Trait("Method", "IsNotNullOrWhitespace")]
         public void IsNotNullOrWhitespace_String_Empty_Throws(string sut)
         {
             Assert.Throws<ArgumentException>(() => Validate.IsNotNullOrWhitespace(sut, nameof(sut)));
         }
 
         [Fact]
+        [Trait("Method", "IsNotNullOrWhitespace")]
         public void IsNotNullOrWhitespace_String_Filled_Passes()
         {
             string sut = Guid.NewGuid().ToString();
@@ -104,9 +139,10 @@ namespace Microsoft.Datasync.Client.Test.Internal
 
         #region IsPreconditionheader(string,string)
         [Fact]
+        [Trait("Method", "IsPreconditionHeader")]
         public void IsPreconditionHeader_Null_Throws()
         {
-            string sut = null;
+            const string sut = null;
             Assert.Throws<ArgumentNullException>(() => Validate.IsPreconditionHeader(sut, nameof(sut)));
         }
 
@@ -116,6 +152,7 @@ namespace Microsoft.Datasync.Client.Test.Internal
         [InlineData("If-Modified-Since")]
         [InlineData("If-Unmodified-Since")]
         [InlineData("ZUMO-API-VERSION")]
+        [Trait("Method", "IsPreconditionHeader")]
         public void IsPreconditionHeader_InvalidHeader_Throws(string sut)
         {
             Assert.Throws<ArgumentException>(() => Validate.IsPreconditionHeader(sut, nameof(sut)));
@@ -126,6 +163,7 @@ namespace Microsoft.Datasync.Client.Test.Internal
         [InlineData("If-Match")]
         [InlineData("if-none-match")]
         [InlineData("If-None-Match")]
+        [Trait("Method", "IsPreconditionHeader")]
         public void IsPreconditionHeader_String_Filled_Passes(string sut)
         {
             Validate.IsPreconditionHeader(sut, nameof(sut));
@@ -135,6 +173,7 @@ namespace Microsoft.Datasync.Client.Test.Internal
 
         #region IsValidEndpoint(Uri,string)
         [Fact]
+        [Trait("Method", "IsValidEndpoint")]
         public void IsValidEndpoint_Null_Throws()
         {
             Uri sut = null;
@@ -142,6 +181,7 @@ namespace Microsoft.Datasync.Client.Test.Internal
         }
 
         [Fact]
+        [Trait("Method", "IsValidEndpoint")]
         public void IsValidEndpoint_RelativeUri_Throws()
         {
             Uri sut = new("a/b", UriKind.Relative);
@@ -151,6 +191,7 @@ namespace Microsoft.Datasync.Client.Test.Internal
         [Theory]
         [InlineData("file://localhost/foo")]
         [InlineData("http://foo.azurewebsites.net")]
+        [Trait("Method", "IsValidEndpoint")]
         public void IsValidEndpoint_InvalidUri_Throws(string endpoint)
         {
             var sut = new Uri(endpoint);
@@ -164,10 +205,49 @@ namespace Microsoft.Datasync.Client.Test.Internal
         [InlineData("http://localhost/tables")]
         [InlineData("http://127.0.0.1/tables")]
         [InlineData("https://foo.azurewebsites.net/tables")]
+        [Trait("Method", "IsValidEndpoint")]
         public void IsValidEndpoint_Passes(string endpoint)
         {
             var sut = new Uri(endpoint);
             Validate.IsValidEndpoint(sut, nameof(sut));
+        }
+        #endregion
+
+        #region IsValidId(string,string)
+        [Fact]
+        [Trait("Method", "IsValidId")]
+        public void IsValidId_Null_Throws()
+        {
+            const string sut = null;
+            Assert.Throws<ArgumentNullException>(() => Validate.IsValidId(sut, nameof(sut)));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("\t")]
+        [InlineData("abcdef gh")]
+        [InlineData("!!!")]
+        [InlineData("?")]
+        [InlineData(";")]
+        [InlineData("{EA235ADF-9F38-44EA-8DA4-EF3D24755767}")]
+        [InlineData("###")]
+        [Trait("Method", "IsValidId")]
+        public void IsValidId_InvalidId_Throws(string sut)
+        {
+            Assert.Throws<ArgumentException>(() => Validate.IsValidId(sut, nameof(sut)));
+        }
+
+        [Theory]
+        [InlineData("db0ec08d-46a9-465d-9f5e-0066a3ee5b5f")]
+        [InlineData("0123456789")]
+        [InlineData("abcdefgh")]
+        [InlineData("db0ec08d_46a9_465d_9f5e_0066a3ee5b5f")]
+        [InlineData("db0ec08d.46a9.465d.9f5e.0066a3ee5b5f")]
+        [Trait("Method", "IsValidId")]
+        public void IsValidId_Passes(string sut)
+        {
+            Validate.IsValidId(sut, nameof(sut));
         }
         #endregion
     }

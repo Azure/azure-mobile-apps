@@ -15,6 +15,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
     {
         #region WithJsonPayload
         [Fact]
+        [Trait("Method", "WithJsonPayload")]
         public void WithJsonPayload_NullPayload_Throws()
         {
             // Arrange
@@ -26,6 +27,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithJsonPayload")]
         public void WithJsonPayload_NullOptions_Throws()
         {
             // Arrange
@@ -37,6 +39,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithJsonPayload")]
         public void WithJsonPayload_NullContentType_Throws()
         {
             // Arrange
@@ -50,6 +53,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         [Theory]
         [InlineData("")]
         [InlineData("    ")]
+        [Trait("Method", "WithJsonPayload")]
         public void WithJsonPayload_EmptyContentType_Throws(string contentType)
         {
             // Arrange
@@ -61,6 +65,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithJsonPayload")]
         public void WithJsonPayload_SerializesData()
         {
             // Arrange
@@ -77,6 +82,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithJsonPayload")]
         public void WithJsonPayload_SetsMediaType()
         {
             // Arrange
@@ -95,6 +101,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
 
         #region WithPrecondition
         [Fact]
+        [Trait("Method", "WithPrecondition")]
         public void WithPrecondition_Null_DoesntChangeHeaders()
         {
             // Arrange
@@ -112,6 +119,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithPrecondition")]
         public void WithPrecondition_Exists_AddsHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -124,6 +132,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithPrecondition")]
         public void WithPrecondition_NotExists_AddsHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -136,6 +145,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithPrecondition")]
         public void WithPrecondition_MatchByte_AddsHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -149,6 +159,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithPrecondition")]
         public void WithPrecondition_MatchString_AddsHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -162,6 +173,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithPrecondition")]
         public void WithPrecondition_NotMatchByte_AddsHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -175,6 +187,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithPrecondition")]
         public void WithPrecondition_NotMatchString_AddsHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -188,6 +201,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithPrecondition")]
         public void WithPrecondition_Exists_ReplacesHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -201,6 +215,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithPrecondition")]
         public void WithPrecondition_NotExists_ReplacesHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -214,6 +229,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithPrecondition")]
         public void WithPrecondition_MatchByte_ReplacesHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -228,6 +244,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithPrecondition")]
         public void WithPrecondition_MatchString_ReplacesHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -242,6 +259,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithPrecondition")]
         public void WithPrecondition_NotMatchByte_ReplacesHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -256,6 +274,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         }
 
         [Fact]
+        [Trait("Method", "WithPrecondition")]
         public void WithPrecondition_NotMatchString_ReplacesHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -291,6 +310,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         [InlineData("http://localhost#fragment", "a=b&c=d", "http://localhost/?a=b&c=d#fragment")]
         [InlineData("http://localhost#fragment", "  a=b&c=d", "http://localhost/?a=b&c=d#fragment")]
         [InlineData("http://localhost#fragment", "a=b&c=d  ", "http://localhost/?a=b&c=d#fragment")]
+        [Trait("Method", "WithQueryString")]
         public void WithQueryString_Works(string sut, string query, string expected)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, new Uri(sut));

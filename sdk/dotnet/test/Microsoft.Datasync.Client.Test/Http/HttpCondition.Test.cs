@@ -14,6 +14,7 @@ namespace Microsoft.Datasync.Client.Test.Http
     {
         #region IfExists / IfNotExists
         [Fact]
+        [Trait("Method", "IfExists")]
         public void IfExists_GeneratesObject()
         {
             HttpCondition condition = HttpCondition.IfExists();
@@ -23,6 +24,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "IfNotExists")]
         public void IfNotExists_GeneratesObject()
         {
             HttpCondition condition = HttpCondition.IfNotExists();
@@ -34,6 +36,7 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         #region IfMatch(byte[])
         [Fact]
+        [Trait("Method", "IfMatch(byte[])")]
         public void IfMatch_NullByteArray_Throws()
         {
             byte[] version = null;
@@ -42,6 +45,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "IfMatch(byte[])")]
         public void IfMatch_EmptyByteArray_Throws()
         {
             byte[] version = Array.Empty<byte>();
@@ -50,6 +54,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "IfMatch(byte[])")]
         public void IfMatch_FilledByteArray_GeneratedObject()
         {
             byte[] version = Guid.Parse("063d5aea-03f5-431c-b0ec-261ee2490651").ToByteArray();
@@ -63,6 +68,7 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         #region IfMatch(string)
         [Fact]
+        [Trait("Method", "IfMatch(string)")]
         public void IfMatch_NullString_Throws()
         {
             const string version = null;
@@ -74,6 +80,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         [InlineData("")]
         [InlineData(" ")]
         [InlineData("    ")]
+        [Trait("Method", "IfMatch(string)")]
         public void IfMatch_EmptyString_Throws(string version)
         {
             Assert.Throws<ArgumentException>(() => HttpCondition.IfMatch(version));
@@ -83,6 +90,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         [InlineData("\"etag\"", "\"etag\"")]
         [InlineData("etag", "\"etag\"")]
         [InlineData("*", "*")]
+        [Trait("Method", "IfMatch(string)")]
         public void IfMatch_FilledString_GeneratesObject(string version, string expected)
         {
             HttpCondition condition = HttpCondition.IfMatch(version);
@@ -94,6 +102,7 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         #region IfNotMatch(byte[])
         [Fact]
+        [Trait("Method", "IfNotMatch(byte[])")]
         public void IfNotMatch_NullByteArray_Throws()
         {
             byte[] version = null;
@@ -102,6 +111,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "IfNotMatch(byte[])")]
         public void IfNotMatch_EmptyByteArray_Throws()
         {
             byte[] version = Array.Empty<byte>();
@@ -110,6 +120,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "IfNotMatch(byte[])")]
         public void IfNotMatch_FilledByteArray_GeneratedObject()
         {
             byte[] version = Guid.Parse("063d5aea-03f5-431c-b0ec-261ee2490651").ToByteArray();
@@ -123,6 +134,7 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         #region IfNotMatch(string)
         [Fact]
+        [Trait("Method", "IfNotMatch(string)")]
         public void IfNotMatch_NullString_Throws()
         {
             const string version = null;
@@ -134,6 +146,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         [InlineData("")]
         [InlineData(" ")]
         [InlineData("    ")]
+        [Trait("Method", "IfNotMatch(string)")]
         public void IfNotMatch_EmptyString_Throws(string version)
         {
             Assert.Throws<ArgumentException>(() => HttpCondition.IfNotMatch(version));
@@ -143,6 +156,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         [InlineData("\"etag\"", "\"etag\"")]
         [InlineData("etag", "\"etag\"")]
         [InlineData("*", "*")]
+        [Trait("Method", "IfNotMatch(string)")]
         public void IfNotMatch_FilledString_GeneratesObject(string version, string expected)
         {
             HttpCondition condition = HttpCondition.IfNotMatch(version);
@@ -154,12 +168,14 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         #region AddToHeaders
         [Fact]
+        [Trait("Method", "AddToHeaders")]
         public void AddToHeaders_Null_Throws()
         {
             Assert.Throws<ArgumentNullException>(() => HttpCondition.IfExists().AddToHeaders(null));
         }
 
         [Fact]
+        [Trait("Method", "AddToHeaders")]
         public void AddToHeaders_Exists_AddsHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -171,6 +187,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "AddToHeaders")]
         public void AddToHeaders_NotExists_AddsHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -182,6 +199,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "AddToHeaders")]
         public void AddToHeaders_MatchByte_AddsHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -194,6 +212,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "AddToHeaders")]
         public void AddToHeaders_MatchString_AddsHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -206,6 +225,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "AddToHeaders")]
         public void AddToHeaders_NotMatchByte_AddsHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -218,6 +238,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "AddToHeaders")]
         public void AddToHeaders_NotMatchString_AddsHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -230,6 +251,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "AddToHeaders")]
         public void AddToHeaders_Exists_ReplacesHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -242,6 +264,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "AddToHeaders")]
         public void AddToHeaders_NotExists_ReplacesHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -254,6 +277,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "AddToHeaders")]
         public void AddToHeaders_MatchByte_ReplacesHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -267,6 +291,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "AddToHeaders")]
         public void AddToHeaders_MatchString_ReplacesHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -280,6 +305,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "AddToHeaders")]
         public void AddToHeaders_NotMatchByte_ReplacesHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));
@@ -293,6 +319,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "AddToHeaders")]
         public void AddToHeaders_NotMatchString_ReplacesHeader()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost"));

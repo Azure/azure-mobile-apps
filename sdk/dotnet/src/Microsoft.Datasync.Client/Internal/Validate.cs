@@ -2,6 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.Datasync.Client.Internal
 {
@@ -10,6 +13,13 @@ namespace Microsoft.Datasync.Client.Internal
     /// </summary>
     internal static class Validate
     {
+        /// <summary>
+        /// The regular expression for a valid ID.  This is based on RFC 2396, and more importantly,
+        /// there are two conditions that must be met - firstly, it has to be a path segment of a Uri
+        /// without being escaped, and secondly, it must be case-insensitive.
+        /// </summary>
+        private static readonly Regex validIdRegex = new("^[a-z0-9-_.]{1,127}$");
+
         /// <summary>
         /// Validates that the parameter is not null.
         /// </summary>
@@ -23,29 +33,10 @@ namespace Microsoft.Datasync.Client.Internal
             }
         }
 
-        /// <summary>
-        /// Validates that the parameter is not null or empty.
-        /// </summary>
-        /// <param name="param"></param>
-        /// <param name="paramName"></param>
-        internal static void IsNotNullOrEmpty(string param, string paramName)
+        internal static void IsNotNullOrEmpty<T>(IEnumerable<T> param, string paramName)
         {
             IsNotNull(param, paramName);
-            if (string.IsNullOrEmpty(param))
-            {
-                throw new ArgumentException($"{paramName} cannot be empty", paramName);
-            }
-        }
-
-        /// <summary>
-        /// Validates that the parameter is not null or empty.
-        /// </summary>
-        /// <param name="param"></param>
-        /// <param name="paramName"></param>
-        internal static void IsNotNullOrEmpty(byte[] param, string paramName)
-        {
-            IsNotNull(param, paramName);
-            if (param.Length == 0)
+            if (!param.Any())
             {
                 throw new ArgumentException($"{paramName} cannot be empty", paramName);
             }
@@ -99,6 +90,20 @@ namespace Microsoft.Datasync.Client.Internal
             if (param.Scheme != Uri.UriSchemeHttp && param.Scheme != Uri.UriSchemeHttps)
             {
                 throw new UriFormatException($"{paramName} must use http");
+            }
+        }
+
+        /// <summary>
+        /// Throws an <see cref="ArgumentException"/> if the parameter is not a valid ID
+        /// </summary>
+        /// <param name="param"></param>
+        /// <param name="paramName"></param>
+        internal static void IsValidId(string param, string paramName)
+        {
+            IsNotNull(param, paramName);
+            if (!validIdRegex.IsMatch(param))
+            {
+                throw new ArgumentException($"{paramName} uses an invalid ID", paramName);
             }
         }
     }

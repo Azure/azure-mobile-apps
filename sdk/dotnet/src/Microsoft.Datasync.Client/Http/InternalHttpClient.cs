@@ -68,28 +68,8 @@ namespace Microsoft.Datasync.Client.Http
         /// <exception cref="InvalidOperationException">The request message was already sent by the <see cref="HttpClient"/> instance.</exception>
         /// <exception cref="HttpRequestException">The request failed due to an underlying issue such as network connectivity, DNS failure, server certificate validation or timeout.</exception>
         /// <exception cref="RequestFailedException">The request failed due to a known HTTP status code that cannot be handled.</exception>
-        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
-        {
-            var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
-            switch (response.StatusCode)
-            {
-                case HttpStatusCode.NotModified:
-                    throw new NotModifiedException(response);
-                case HttpStatusCode.BadRequest:
-                case HttpStatusCode.Forbidden:
-                case HttpStatusCode.InternalServerError:
-                case HttpStatusCode.MethodNotAllowed:
-                case HttpStatusCode.NotAcceptable:
-                case HttpStatusCode.NotFound:
-                case HttpStatusCode.RequestEntityTooLarge:
-                case HttpStatusCode.RequestUriTooLong:
-                case HttpStatusCode.ServiceUnavailable:
-                case HttpStatusCode.Unauthorized:
-                    throw new RequestFailedException(response);
-                default:
-                    return response;
-            }
-        }
+        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+            => HttpClient.SendAsync(request, token);
 
         /// <summary>
         /// Converts a list of <see cref="HttpMessageHandler"/> objects into a set of nested message handlers.

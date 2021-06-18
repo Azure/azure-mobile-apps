@@ -33,6 +33,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         [InlineData("http://localhost/tables/?test=true#fragment", "http://localhost/tables/")]
         [InlineData("http://localhost/tables/foo?test=true#fragment", "http://localhost/tables/foo/")]
         [InlineData("http://localhost/tables/foo/?test=true#fragment", "http://localhost/tables/foo/")]
+        [Trait("Method", "Normalized")]
         public void Normalized_Works(string sut, string expected)
         {
             var builder = new UriBuilder(sut);
@@ -63,6 +64,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         [InlineData("http://localhost?a=b&c=d#fragment", "newfrag", "http://localhost/?a=b&c=d#newfrag")]
         [InlineData("http://localhost?a=b&c=d#fragment", "  newfrag", "http://localhost/?a=b&c=d#newfrag")]
         [InlineData("http://localhost?a=b&c=d#fragment", "newfrag  ", "http://localhost/?a=b&c=d#newfrag")]
+        [Trait("Method", "WithFragment")]
         public void Withfragment_Works(string sut, string q, string expected)
         {
             var builder = new UriBuilder(sut);
@@ -93,6 +95,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         [InlineData("http://localhost#fragment", "a=b&c=d", "http://localhost/?a=b&c=d#fragment")]
         [InlineData("http://localhost#fragment", "  a=b&c=d", "http://localhost/?a=b&c=d#fragment")]
         [InlineData("http://localhost#fragment", "a=b&c=d  ", "http://localhost/?a=b&c=d#fragment")]
+        [Trait("Method", "WithQueryString")]
         public void WithQueryString_Works(string sut, string query, string expected)
         {
             var builder = new UriBuilder(sut);
@@ -124,6 +127,7 @@ namespace Microsoft.Datasync.Client.Test.Extensions
         [InlineData("http://localhost/tables/?test=true#fragment", "http://localhost/tables/?test=true#fragment")]
         [InlineData("http://localhost/tables/foo?test=true#fragment", "http://localhost/tables/foo/?test=true#fragment")]
         [InlineData("http://localhost/tables/foo/?test=true#fragment", "http://localhost/tables/foo/?test=true#fragment")]
+        [Trait("Method", "WithtrailingSlash")]
         public void WithTrailingSlash_Works(string sut, string expected)
         {
             var builder = new UriBuilder(sut);

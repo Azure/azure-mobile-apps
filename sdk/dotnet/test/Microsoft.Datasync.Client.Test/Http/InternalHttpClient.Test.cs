@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Extensions;
 using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Test.Helpers;
 using System;
@@ -227,58 +228,59 @@ namespace Microsoft.Datasync.Client.Test.Http
         #endregion
 
         #region SendAsync
-        [Fact]
-        public async Task SendAsync_SetsHeaders()
-        {
-            var clientHandler = new MockDelegatingHandler();
-            clientHandler.AddResponse(HttpStatusCode.NoContent);
-            var clientOptions = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { clientHandler } };
-            var client = new InternalHttpClient(new Uri("https://foo.azurewebsites.net/tables/movies"), clientOptions);
-
-            var request = new HttpRequestMessage(HttpMethod.Delete, client.Endpoint);
-            _ = await client.SendAsync(request).ConfigureAwait(false);
-
-            AssertEx.HasValue("ZUMO-API-VERSION", new[] { "3.0.0" }, clientHandler.Requests[0].Headers);
-        }
-
-        [Fact]
-        public async Task SendAsync_304NotModified_Throws()
-        {
-            var clientHandler = new MockDelegatingHandler();
-            clientHandler.AddResponse(HttpStatusCode.NotModified);
-            var clientOptions = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { clientHandler } };
-            var client = new InternalHttpClient(new Uri("https://foo.azurewebsites.net/tables/movies"), clientOptions);
-
-            var request = new HttpRequestMessage(HttpMethod.Delete, client.Endpoint);
-            var exception = await Assert.ThrowsAsync<NotModifiedException>(() => client.SendAsync(request)).ConfigureAwait(false);
-
-            Assert.Equal(HttpStatusCode.NotModified, exception.StatusCode);
-            Assert.NotNull(exception.Response);
-        }
-
         [Theory]
-        [InlineData(HttpStatusCode.BadRequest)]
-        [InlineData(HttpStatusCode.Forbidden)]
-        [InlineData(HttpStatusCode.InternalServerError)]
-        [InlineData(HttpStatusCode.MethodNotAllowed)]
-        [InlineData(HttpStatusCode.NotAcceptable)]
-        [InlineData(HttpStatusCode.NotFound)]
-        [InlineData(HttpStatusCode.RequestEntityTooLarge)]
-        [InlineData(HttpStatusCode.RequestUriTooLong)]
-        [InlineData(HttpStatusCode.ServiceUnavailable)]
-        [InlineData(HttpStatusCode.Unauthorized)]
-        public async Task SendAsync_KnownError_Throws(HttpStatusCode statusCode)
+        [InlineData(HttpStatusCode.Continue, false, false, false)]
+        [InlineData(HttpStatusCode.OK, false, true, false)]
+        [InlineData(HttpStatusCode.Created, false, true, false)]
+        [InlineData(HttpStatusCode.NoContent, false, true, false)]
+        [InlineData(HttpStatusCode.BadRequest, false, false, false)]
+        [InlineData(HttpStatusCode.Unauthorized, false, false, false)]
+        [InlineData(HttpStatusCode.Forbidden, false, false, false)]
+        [InlineData(HttpStatusCode.MethodNotAllowed, false, false, false)]
+        [InlineData(HttpStatusCode.Conflict, false, false, true)]
+        [InlineData(HttpStatusCode.PreconditionFailed, false, false, true)]
+        [InlineData(HttpStatusCode.InternalServerError, false, false, false)]
+        [InlineData(HttpStatusCode.Continue, true, false, false)]
+        [InlineData(HttpStatusCode.OK, true, true, false)]
+        [InlineData(HttpStatusCode.Created, true, true, false)]
+        [InlineData(HttpStatusCode.NoContent, true, true, false)]
+        [InlineData(HttpStatusCode.BadRequest, true, false, false)]
+        [InlineData(HttpStatusCode.Unauthorized, true, false, false)]
+        [InlineData(HttpStatusCode.Forbidden, true, false, false)]
+        [InlineData(HttpStatusCode.MethodNotAllowed, true, false, false)]
+        [InlineData(HttpStatusCode.Conflict, true, false, true)]
+        [InlineData(HttpStatusCode.PreconditionFailed, true, false, true)]
+        [InlineData(HttpStatusCode.InternalServerError, true, false, false)]
+        public async Task SendAsync_Works(HttpStatusCode statusCode, bool hasContent, bool isSuccessful, bool isConflict)
         {
             var clientHandler = new MockDelegatingHandler();
-            clientHandler.AddResponse(statusCode);
+            if (hasContent)
+            {
+                MockObject payload = new() { StringValue = "test" };
+                clientHandler.AddResponse<MockObject>(statusCode, payload);
+            }
+            else
+            {
+                clientHandler.AddResponse(statusCode);
+            }
             var clientOptions = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { clientHandler } };
             var client = new InternalHttpClient(new Uri("https://foo.azurewebsites.net/tables/movies"), clientOptions);
 
-            var request = new HttpRequestMessage(HttpMethod.Delete, client.Endpoint);
-            var exception = await Assert.ThrowsAsync<RequestFailedException>(() => client.SendAsync(request)).ConfigureAwait(false);
+            var request = new HttpRequestMessage(HttpMethod.Post, client.Endpoint);
+            var response = await client.SendAsync(request).ConfigureAwait(false);
 
-            Assert.Equal(statusCode, exception.StatusCode);
-            Assert.NotNull(exception.Response);
+            // Assert - Response
+            Assert.Equal(statusCode, response.StatusCode);
+            Assert.Equal(isSuccessful, response.IsSuccessStatusCode);
+            Assert.Equal(isConflict, response.IsConflictStatusCode());
+            if (hasContent)
+            {
+                Assert.Equal("{\"stringValue\":\"test\"}", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+            }
+
+            // Assert - Request
+            Assert.Equal(HttpMethod.Post, clientHandler.Requests[0].Method);
+            AssertEx.HasValue("ZUMO-API-VERSION", new[] { "3.0.0" }, clientHandler.Requests[0].Headers);
         }
         #endregion
 
