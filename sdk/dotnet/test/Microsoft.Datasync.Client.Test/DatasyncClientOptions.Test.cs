@@ -17,6 +17,7 @@ namespace Microsoft.Datasync.Client.Test
     {
         #region Ctor
         [Fact]
+        [Trait("Method", "Ctor")]
         public void Ctor_ProvidesDefaults()
         {
             var options = new DatasyncClientOptions();
@@ -31,6 +32,7 @@ namespace Microsoft.Datasync.Client.Test
 
         #region DeserializerOptions
         [Fact]
+        [Trait("Method", "DeserializerOptions")]
         public void DeserializerOptions_Null_Throws()
         {
             var options = new DatasyncClientOptions();
@@ -38,6 +40,7 @@ namespace Microsoft.Datasync.Client.Test
         }
 
         [Fact]
+        [Trait("Method", "DeserializerOptions")]
         public void DeserializerOptions_Roundtrips()
         {
             var options = new DatasyncClientOptions { DeserializerOptions = SerializerOptions };
@@ -47,6 +50,7 @@ namespace Microsoft.Datasync.Client.Test
 
         #region HttpPipeline
         [Fact]
+        [Trait("Method", "HttpPipeline")]
         public void HttpPipeline_Null_Throws()
         {
             var options = new DatasyncClientOptions();
@@ -54,6 +58,7 @@ namespace Microsoft.Datasync.Client.Test
         }
 
         [Fact]
+        [Trait("Method", "HttpPipeline")]
         public void HttpPipeline_Roundtrips()
         {
             var handler = new HttpClientHandler();
@@ -65,6 +70,7 @@ namespace Microsoft.Datasync.Client.Test
 
         #region SerializerOptions
         [Fact]
+        [Trait("Method", "SerilizerOptions")]
         public void SerializerOptions_Null_Throws()
         {
             var options = new DatasyncClientOptions();
@@ -72,6 +78,7 @@ namespace Microsoft.Datasync.Client.Test
         }
 
         [Fact]
+        [Trait("Method", "SerilizerOptions")]
         public void SerializerOptions_Roundtrips()
         {
             var options = new DatasyncClientOptions { SerializerOptions = SerializerOptions };
@@ -81,6 +88,7 @@ namespace Microsoft.Datasync.Client.Test
 
         #region TablesUri
         [Fact]
+        [Trait("Method", "TablesUri")]
         public void TablesUri_Null_Throws()
         {
             var options = new DatasyncClientOptions();
@@ -92,6 +100,7 @@ namespace Microsoft.Datasync.Client.Test
         [InlineData("/api", "api")]
         [InlineData("/api/", "api")]
         [InlineData("api/", "api")]
+        [Trait("Method", "TablesUri")]
         public void TablesUri_RoundTrips(string sut, string expected)
         {
             var options = new DatasyncClientOptions { TablesUri = sut };

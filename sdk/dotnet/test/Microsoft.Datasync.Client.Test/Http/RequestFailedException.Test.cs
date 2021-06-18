@@ -15,6 +15,7 @@ namespace Microsoft.Datasync.Client.Test.Http
     public class RequestFailedException_Tests
     {
         [Fact]
+        [Trait("Method", "Ctor")]
         public void Ctor_Null_Throws()
         {
             Assert.Throws<ArgumentNullException>(() => new RequestFailedException(null));
@@ -25,6 +26,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         [InlineData(HttpStatusCode.Unauthorized)]
         [InlineData(HttpStatusCode.MethodNotAllowed)]
         [InlineData(HttpStatusCode.InternalServerError)]
+        [Trait("Method", "Ctor")]
         public async Task Ctor_Stores_Response(HttpStatusCode statusCode)
         {
             var response = await HttpResponse.FromResponseAsync(new HttpResponseMessage(statusCode)).ConfigureAwait(false);
@@ -34,14 +36,21 @@ namespace Microsoft.Datasync.Client.Test.Http
             Assert.Same(response, exception.Response);
             Assert.Equal((int)statusCode, exception.StatusCode);
         }
+    }
+
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
+    public class NotModifiedException_Tests
+    {
 
         [Fact]
+        [Trait("Method", "Ctor")]
         public void NotModifiedCtor_Null_Throws()
         {
             Assert.Throws<ArgumentNullException>(() => new NotModifiedException(null));
         }
 
         [Fact]
+        [Trait("Method", "Ctor")]
         public async Task NotModifiedCtor_Stores_Response()
         {
             var response = await HttpResponse.FromResponseAsync(new HttpResponseMessage(HttpStatusCode.NotModified)).ConfigureAwait(false);

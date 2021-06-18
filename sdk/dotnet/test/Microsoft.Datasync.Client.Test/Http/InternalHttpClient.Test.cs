@@ -35,18 +35,21 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         #region Ctor
         [Fact]
+        [Trait("Method", "Ctor")]
         public void Ctor_NullEndpoint_Throws()
         {
             Assert.Throws<ArgumentNullException>(() => new InternalHttpClient(null, new DatasyncClientOptions()));
         }
 
         [Fact]
+        [Trait("Method", "Ctor")]
         public void Ctor_NullOptions_Throws()
         {
             Assert.Throws<ArgumentNullException>(() => new InternalHttpClient(new Uri("https://foo.azure-api.net/"), null));
         }
 
         [Fact]
+        [Trait("Method", "Ctor")]
         public void Ctor_RelativeEndpoint_Throws()
         {
             Assert.Throws<UriFormatException>(() => new InternalHttpClient(new Uri("a/b", UriKind.Relative), new DatasyncClientOptions()));
@@ -55,6 +58,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Theory]
         [InlineData("file://localhost/foo")]
         [InlineData("http://foo.azurewebsites.net")]
+        [Trait("Method", "Ctor")]
         public void Ctor_InvalidEndpoint_Throws(string uri)
         {
             Assert.Throws<UriFormatException>(() => new InternalHttpClient(new Uri(uri), new DatasyncClientOptions()));
@@ -86,6 +90,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         [InlineData("http://localhost/#fragment?$count=true", "http://localhost/")]
         [InlineData("http://localhost?$count=true#fragment", "http://localhost/")]
         [InlineData("http://localhost/?$count=true#fragment", "http://localhost/")]
+        [Trait("Method", "Ctor")]
         public void Ctor_GoodEndpoint_CreatesClient(string uri, string expected)
         {
             var client = new __InternalHttpClient(new Uri(uri), new DatasyncClientOptions());
@@ -97,6 +102,7 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         #region CreatePipeline
         [Fact]
+        [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_NoHandlers_CreatesPipeline()
         {
             var options = new DatasyncClientOptions { HttpPipeline = Array.Empty<HttpMessageHandler>() };
@@ -109,6 +115,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_C_CreatesPipeline()
         {
             var c = new HttpClientHandler();
@@ -123,6 +130,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_B_CreatesPipeline()
         {
             var b = new MockDelegatingHandler();
@@ -138,6 +146,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_BC_CreatesPipeline()
         {
             var b = new MockDelegatingHandler();
@@ -154,6 +163,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_AB_CreatesPipeline()
         {
             var a = new MockDelegatingHandler();
@@ -171,6 +181,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_ABC_CreatesPipeline()
         {
             var a = new MockDelegatingHandler();
@@ -189,6 +200,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_CB_ThrowsArgumentException()
         {
             var b = new MockDelegatingHandler();
@@ -201,6 +213,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_CAB_ThrowsArgumentException()
         {
             var a = new MockDelegatingHandler();
@@ -214,6 +227,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_ACB_ThrowsArgumentException()
         {
             var a = new MockDelegatingHandler();
@@ -251,6 +265,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         [InlineData(HttpStatusCode.Conflict, true, false, true)]
         [InlineData(HttpStatusCode.PreconditionFailed, true, false, true)]
         [InlineData(HttpStatusCode.InternalServerError, true, false, false)]
+        [Trait("Method", "SendAsync")]
         public async Task SendAsync_Works(HttpStatusCode statusCode, bool hasContent, bool isSuccessful, bool isConflict)
         {
             var clientHandler = new MockDelegatingHandler();
@@ -286,6 +301,7 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         #region Dispose
         [Fact]
+        [Trait("Method", "Dispose")]
         public async Task Dispose_Correctly()
         {
             var clientHandler = new MockDelegatingHandler();
@@ -300,6 +316,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
+        [Trait("Method", "Dispose")]
         public async Task Dispose_CanRepeat()
         {
             var clientHandler = new MockDelegatingHandler();

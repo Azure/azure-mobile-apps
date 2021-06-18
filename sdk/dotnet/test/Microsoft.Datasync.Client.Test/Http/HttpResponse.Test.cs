@@ -20,6 +20,7 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         #region HttpResponse.FromResponseAsync
         [Fact]
+        [Trait("Method", "HttpResponse.FromResponseAsync")]
         public async Task FromResponseAsync_Null_Throws()
         {
             await Assert.ThrowsAsync<ArgumentNullException>(() => HttpResponse.FromResponseAsync(null)).ConfigureAwait(false);
@@ -48,6 +49,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         [InlineData(HttpStatusCode.Conflict, true, false, true)]
         [InlineData(HttpStatusCode.PreconditionFailed, true, false, true)]
         [InlineData(HttpStatusCode.InternalServerError, true, false, false)]
+        [Trait("Method", "HttpResponse.FromResponseAsync")]
         public async Task FromResponseAsync_NoHeaders(HttpStatusCode statusCode, bool hasContent, bool isSuccessful, bool isConflict)
         {
             // Arrange
@@ -101,6 +103,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         [InlineData(HttpStatusCode.Conflict, true, false, true)]
         [InlineData(HttpStatusCode.PreconditionFailed, true, false, true)]
         [InlineData(HttpStatusCode.InternalServerError, true, false, false)]
+        [Trait("Method", "HttpResponse.FromResponseAsync")]
         public async Task FromResponseAsync_WithHeaders(HttpStatusCode statusCode, bool hasContent, bool isSuccessful, bool isConflict)
         {
             // Arrange
@@ -138,12 +141,14 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         #region HttpResponse.FromResponseAsync<T>
         [Fact]
+        [Trait("Method", "HttpResponse.FromResponseAsync<T>")]
         public async Task FromResponseAsyncOfT_NullResponse_Throws()
         {
             await Assert.ThrowsAsync<ArgumentNullException>(() => HttpResponse.FromResponseAsync<MockObject>(null, DeserializerOptions)).ConfigureAwait(false);
         }
 
         [Fact]
+        [Trait("Method", "HttpResponse.FromResponseAsync<T>")]
         public async Task FromResponseAsyncOfT_NullOptions_Throws()
         {
             var response = new HttpResponseMessage(HttpStatusCode.NoContent);
@@ -173,6 +178,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         [InlineData(HttpStatusCode.Conflict, true, false, true)]
         [InlineData(HttpStatusCode.PreconditionFailed, true, false, true)]
         [InlineData(HttpStatusCode.InternalServerError, true, false, false)]
+        [Trait("Method", "HttpResponse.FromResponseAsync<T>")]
         public async Task FromResponseAsyncOfT_NoHeaders(HttpStatusCode statusCode, bool hasContent, bool isSuccessful, bool isConflict)
         {
             // Arrange
@@ -229,6 +235,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         [InlineData(HttpStatusCode.Conflict, true, false, true)]
         [InlineData(HttpStatusCode.PreconditionFailed, true, false, true)]
         [InlineData(HttpStatusCode.InternalServerError, true, false, false)]
+        [Trait("Method", "HttpResponse.FromResponseAsync<T>")]
         public async Task FromResponseAsyncOfT_WithHeaders(HttpStatusCode statusCode, bool hasContent, bool isSuccessful, bool isConflict)
         {
             // Arrange
@@ -267,6 +274,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Theory, CombinatorialData]
+        [Trait("Method", "HttpResponse.FromResponseAsync<T>")]
         public async Task FromResponseAsyncOfT_ImplicitOperator(
             [CombinatorialValues(200, 201, 409, 412)] int statusCode,
             [CombinatorialValues(true, false)] bool hasContent)
