@@ -60,7 +60,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="item">The item to add to the table.</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
         /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
-        public async Task<HttpResponse<T>> CreateItemAsync(T item, CancellationToken token = default)
+        public virtual async Task<HttpResponse<T>> CreateItemAsync(T item, CancellationToken token = default)
         {
             Validate.IsNotNull(item, nameof(item));
 
@@ -68,7 +68,7 @@ namespace Microsoft.Datasync.Client.Table
             using var message = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
             if (message.IsSuccessStatusCode)
             {
-                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
                 if (!response.HasContent)
                 {
                     throw new RequestFailedException(response);
@@ -80,7 +80,7 @@ namespace Microsoft.Datasync.Client.Table
             }
             else if (message.IsConflictStatusCode())
             {
-                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
                 if (!response.HasContent)
                 {
                     throw new RequestFailedException(response);
@@ -92,7 +92,7 @@ namespace Microsoft.Datasync.Client.Table
             }
             else
             {
-                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
                 throw new RequestFailedException(response);
             }
         }
@@ -104,7 +104,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
         /// <returns>A <see cref="HttpResponse"/> object.</returns>
-        public async Task<HttpResponse> DeleteItemAsync(string id, HttpCondition? precondition = null, CancellationToken token = default)
+        public virtual async Task<HttpResponse> DeleteItemAsync(string id, HttpCondition? precondition = null, CancellationToken token = default)
         {
             Validate.IsValidId(id, nameof(id));
 
@@ -113,11 +113,11 @@ namespace Microsoft.Datasync.Client.Table
             using var message = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
             if (message.IsSuccessStatusCode)
             {
-                return await HttpResponse.FromResponseAsync(message).ConfigureAwait(false);
+                return await HttpResponse.FromResponseAsync(message, token).ConfigureAwait(false);
             }
             else if (message.IsConflictStatusCode())
             {
-                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
                 if (!response.HasContent)
                 {
                     throw new RequestFailedException(response);
@@ -129,7 +129,41 @@ namespace Microsoft.Datasync.Client.Table
             }
             else
             {
-                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+                throw new RequestFailedException(response);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a list of items based on a query.
+        /// </summary>
+        /// <typeparam name="U">The type of the items being returned - can be a subset of properties in the table entity</typeparam>
+        /// <param name="query">The query string to send to the service</param>
+        /// <param name="token">A <see cref="CancellationToken"/></param>
+        /// <returns>An <see cref="AsyncPageable{T}"/> for retrieving the items asynchronously.</returns>
+        public virtual AsyncPageable<U> GetAsyncItems<U>(string query = "", CancellationToken token = default) where U : notnull
+            => new FuncAsyncPageable<U>(nextLink => GetPageOfItemsAsync<U>(query, nextLink, token));
+
+        /// <summary>
+        /// Get a single page of items produced as a result of a query against the server.
+        /// </summary>
+        /// <typeparam name="U">The type of the items being returned.</typeparam>
+        /// <param name="requestUri">The <see cref="Uri"/> to request</param>
+        /// <param name="token">A <see cref="CancellationToken"/></param>
+        /// <returns>A <see cref="Response{T}"/> object with a <see cref="Page{T}"/> of items in it.</returns>
+        /// <exception cref="RequestFailedException">If the request fails for any reason</exception>
+        internal virtual async Task<HttpResponse<Page<U>>> GetPageOfItemsAsync<U>(string query = "", string? requestUri = null, CancellationToken token = default) where U : notnull
+        {
+            Uri uri = requestUri != null ? new Uri(requestUri) : new UriBuilder(Endpoint).WithQuery(query).Uri;
+            using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            using var message = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+            if (message.IsSuccessStatusCode)
+            {
+                return  await HttpResponse.FromResponseAsync<Page<U>>(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+            }
+            else
+            {
+                var response = await HttpResponse.FromResponseAsync(message, token).ConfigureAwait(false);
                 throw new RequestFailedException(response);
             }
         }
@@ -141,7 +175,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
         /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
-        public async Task<HttpResponse<T>> GetItemAsync(string id, HttpCondition? precondition = null, CancellationToken token = default)
+        public virtual async Task<HttpResponse<T>> GetItemAsync(string id, HttpCondition? precondition = null, CancellationToken token = default)
         {
             Validate.IsValidId(id, nameof(id));
 
@@ -150,7 +184,7 @@ namespace Microsoft.Datasync.Client.Table
             using var message = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
             if (message.IsSuccessStatusCode)
             {
-                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
                 if (!response.HasContent)
                 {
                     throw new RequestFailedException(response);
@@ -177,7 +211,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
         /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
-        public async Task<HttpResponse<T>> ReplaceItemAsync(T item, HttpCondition? precondition = null, CancellationToken token = default)
+        public virtual async Task<HttpResponse<T>> ReplaceItemAsync(T item, HttpCondition? precondition = null, CancellationToken token = default)
         {
             Validate.IsNotNull(item, nameof(item));
             var id = GetIdFromItem(item);
@@ -189,7 +223,7 @@ namespace Microsoft.Datasync.Client.Table
             using var message = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
             if (message.IsSuccessStatusCode)
             {
-                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
                 if (!response.HasContent)
                 {
                     throw new RequestFailedException(response);
@@ -201,7 +235,7 @@ namespace Microsoft.Datasync.Client.Table
             }
             else if (message.IsConflictStatusCode())
             {
-                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
                 if (!response.HasContent)
                 {
                     throw new RequestFailedException(response);
@@ -213,7 +247,7 @@ namespace Microsoft.Datasync.Client.Table
             }
             else
             {
-                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
                 throw new RequestFailedException(response);
             }
         }
@@ -226,7 +260,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
         /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
-        public async Task<HttpResponse<T>> UpdateItemAsync(string id, IReadOnlyDictionary<string, object> changes, HttpCondition? precondition = null, CancellationToken token = default)
+        public virtual async Task<HttpResponse<T>> UpdateItemAsync(string id, IReadOnlyDictionary<string, object> changes, HttpCondition? precondition = null, CancellationToken token = default)
         {
             Validate.IsValidId(id, nameof(id));
             Validate.IsNotNullOrEmpty(changes, nameof(changes));
@@ -237,7 +271,7 @@ namespace Microsoft.Datasync.Client.Table
             using var message = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
             if (message.IsSuccessStatusCode)
             {
-                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
                 if (!response.HasContent)
                 {
                     throw new RequestFailedException(response);
@@ -249,7 +283,7 @@ namespace Microsoft.Datasync.Client.Table
             }
             else if (message.IsConflictStatusCode())
             {
-                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
                 if (!response.HasContent)
                 {
                     throw new RequestFailedException(response);
@@ -261,7 +295,7 @@ namespace Microsoft.Datasync.Client.Table
             }
             else
             {
-                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+                var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
                 throw new RequestFailedException(response);
             }
         }

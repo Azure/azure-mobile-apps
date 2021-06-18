@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -34,10 +35,11 @@ namespace Microsoft.Datasync.Client.Test.Table
         private readonly DatasyncTable<IdEntity> Table;
 
         #region GetIdFromItem Test Classes
-        private class IdEntity
+        private class IdEntity : IEquatable<IdEntity>
         {
             public string Id { get; set; }
             public string StringValue { get; set; }
+            public bool Equals(IdEntity other) => Id == other.Id && StringValue == other.StringValue;
         }
 
         private class KeyEntity
@@ -64,6 +66,26 @@ namespace Microsoft.Datasync.Client.Test.Table
             ClientOptions = new() { HttpPipeline = new HttpMessageHandler[] { ClientHandler } };
             HttpClient = new InternalHttpClient(Endpoint, ClientOptions);
             Table = new DatasyncTable<IdEntity>(Endpoint, HttpClient, ClientOptions);
+        }
+
+        /// <summary>
+        /// Creates a paging response.
+        /// </summary>
+        /// <param name="count">The count of elements to return</param>
+        /// <param name="totalCount">The total count</param>
+        /// <param name="nextLink">The next link</param>
+        /// <returns></returns>
+        private Page<IdEntity> CreatePageOfItems(int count, long? totalCount = null, Uri nextLink = null)
+        {
+            List<IdEntity> items = new();
+
+            for (int i = 0; i < count; i++)
+            {
+                items.Add(new IdEntity { Id = Guid.NewGuid().ToString("N") });
+            }
+            var page = new Page<IdEntity> { Items = items, Count = totalCount, NextLink = nextLink };
+            ClientHandler.AddResponse(HttpStatusCode.OK, page);
+            return page;
         }
 
         #region Ctor
@@ -430,6 +452,196 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
         #endregion
 
+        #region GetAsyncItems
+        [Theory]
+        [InlineData(HttpStatusCode.BadRequest)]
+        [InlineData(HttpStatusCode.InternalServerError)]
+        [InlineData(HttpStatusCode.Unauthorized)]
+        [InlineData(HttpStatusCode.UnavailableForLegalReasons)]
+        [InlineData(HttpStatusCode.ExpectationFailed)]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_Throws_OnBadRequest(HttpStatusCode statusCode)
+        {
+            // Arrange
+            ClientHandler.AddResponse(statusCode);
+
+            // Act
+            var pageable = Table.GetAsyncItems<IdEntity>();
+            var enumerator = pageable.GetAsyncEnumerator();
+
+            // Assert
+            await Assert.ThrowsAsync<RequestFailedException>(async () => _ = await enumerator.MoveNextAsync().ConfigureAwait(false)).ConfigureAwait(false);
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_NoItems_WhenNoItemsReturned()
+        {
+            // Arrange
+            ClientHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
+
+            // Act
+            var pageable = Table.GetAsyncItems<IdEntity>();
+            var enumerator = pageable.GetAsyncEnumerator();
+            var hasMore = await enumerator.MoveNextAsync().ConfigureAwait(false);
+
+            // Assert - request
+            Assert.Single(ClientHandler.Requests);
+            var request = ClientHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasValue("ZUMO-API-VERSION", new[] { "3.0.0" }, request.Headers);
+
+            // Assert - response
+            Assert.False(hasMore);
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_NoItems_WhenNullResponseReturned()
+        {
+            // Technically, the whole system is set up so that we throw instead of having a null response.
+            // However, there are branches to ensure bad things don't happen if a null response is generated.
+            // This test is explicitly for those branches
+            Task<HttpResponse<Page<IdEntity>>> pageFunc(string _)
+                => HttpResponse.FromResponseAsync<Page<IdEntity>>(new HttpResponseMessage(HttpStatusCode.OK), ClientOptions.DeserializerOptions);
+            FuncAsyncPageable<IdEntity> pageable = new(pageFunc);
+
+            // Now we get the AsPages() which is an IAsyncEnumerable<Page<IdEntity>>
+            var enumerator = pageable.AsPages().GetAsyncEnumerator();
+            _ = await enumerator.MoveNextAsync().ConfigureAwait(false);
+
+            // Current should be a blank entity
+            Assert.Null(enumerator.Current.Items);
+            Assert.Null(enumerator.Current.Count);
+            Assert.Null(enumerator.Current.NextLink);
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_OnePageOfItems_WhenItemsReturned()
+        {
+            // Arrange
+            var page = CreatePageOfItems(5);
+            List<IdEntity> items = new();
+
+            // Act
+            await foreach (var item in Table.GetAsyncItems<IdEntity>())
+            {
+                items.Add(item);
+            }
+
+            // Assert - request
+            Assert.Single(ClientHandler.Requests);
+            var request = ClientHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasValue("ZUMO-API-VERSION", new[] { "3.0.0" }, request.Headers);
+
+            // Assert - response
+            Assert.Equal(page.Items, items);
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_TwoPagesOfItems_WhenItemsReturned()
+        {
+            // Arrange
+            var page1 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=2"));
+            var page2 = CreatePageOfItems(5);
+            List<IdEntity> items = new();
+
+            // Act
+            await foreach (var item in Table.GetAsyncItems<IdEntity>())
+            {
+                items.Add(item);
+            }
+
+            // Assert - request
+            Assert.Equal(2, ClientHandler.Requests.Count);
+            var request = ClientHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasValue("ZUMO-API-VERSION", new[] { "3.0.0" }, request.Headers);
+
+            request = ClientHandler.Requests[1];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal($"{sEndpoint}?page=2", request.RequestUri.ToString());
+            AssertEx.HasValue("ZUMO-API-VERSION", new[] { "3.0.0" }, request.Headers);
+
+            // Assert - response
+            Assert.Equal(10, items.Count);
+            Assert.Equal(page1.Items, items.Take(5));
+            Assert.Equal(page2.Items, items.Skip(5).Take(5));
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_ThreePagesOfItems_WhenItemsReturned()
+        {
+            // Arrange
+            var page1 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=2"));
+            var page2 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=3"));
+            ClientHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
+            List<IdEntity> items = new();
+
+            // Act
+            await foreach (var item in Table.GetAsyncItems<IdEntity>())
+            {
+                items.Add(item);
+            }
+
+            // Assert - request
+            Assert.Equal(3, ClientHandler.Requests.Count);
+            var request = ClientHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasValue("ZUMO-API-VERSION", new[] { "3.0.0" }, request.Headers);
+
+            request = ClientHandler.Requests[1];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal($"{sEndpoint}?page=2", request.RequestUri.ToString());
+            AssertEx.HasValue("ZUMO-API-VERSION", new[] { "3.0.0" }, request.Headers);
+
+            request = ClientHandler.Requests[2];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal($"{sEndpoint}?page=3", request.RequestUri.ToString());
+            AssertEx.HasValue("ZUMO-API-VERSION", new[] { "3.0.0" }, request.Headers);
+
+            // Assert - response
+            Assert.Equal(10, items.Count);
+            Assert.Equal(page1.Items, items.Take(5));
+            Assert.Equal(page2.Items, items.Skip(5).Take(5));
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_SetsCountAndResponse()
+        {
+            // Arrange
+            _ = CreatePageOfItems(5, 5);
+
+            // Act
+            var pageable = Table.GetAsyncItems<IdEntity>();
+            var enumerator = pageable.GetAsyncEnumerator();
+            _ = await enumerator.MoveNextAsync().ConfigureAwait(false);
+
+            // Assert - request
+            Assert.Single(ClientHandler.Requests);
+            var request = ClientHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasValue("ZUMO-API-VERSION", new[] { "3.0.0" }, request.Headers);
+
+            // Assert - response
+            Assert.Equal(5, pageable.Count);
+            Assert.NotNull(pageable.CurrentResponse);
+            Assert.Equal(200, pageable.CurrentResponse.StatusCode);
+            Assert.True(pageable.CurrentResponse.HasContent);
+            Assert.NotEmpty(pageable.CurrentResponse.Content);
+        }
+        #endregion
+
         #region GetItemAsync
         [Fact]
         [Trait("Method", "GetItemAsync")]
@@ -521,6 +733,247 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             var ex = await Assert.ThrowsAsync<NotModifiedException>(() => Table.GetItemAsync(sId)).ConfigureAwait(false);
             Assert.Equal(304, ex.StatusCode);
+        }
+        #endregion
+
+        #region GetPageOfItemsAsync
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("$filter=Year eq 1900&$count=true")]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ConstructsRequest_WithQuery(string query)
+        {
+            Page<IdEntity> result = new();
+            ClientHandler.AddResponse(HttpStatusCode.OK, result);
+            var expectedUri = string.IsNullOrEmpty(query) ? sEndpoint : $"{sEndpoint}?{query}";
+
+            _ = await Table.GetPageOfItemsAsync<IdEntity>(query).ConfigureAwait(false);
+
+            Assert.Single(ClientHandler.Requests);
+            var request = ClientHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(expectedUri, request.RequestUri.ToString());
+            AssertEx.HasValue("ZUMO-API-VERSION", new[] { "3.0.0" }, request.Headers);
+        }
+
+        [Theory]
+        [InlineData("https://localhost/tables/foo/?$count=true")]
+        [InlineData("https://localhost/tables/foo/?$count=true&$skip=5&$top=10")]
+        [InlineData("https://localhost/tables/foo/?$count=true&$skip=5&$top=10&__includedeleted=true")]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ConstructsRequest_WithRequestUri(string requestUri)
+        {
+            // Arrange
+            Page<IdEntity> result = new();
+            ClientHandler.AddResponse(HttpStatusCode.OK, result);
+            var table = new DatasyncTable<IdEntity>(Endpoint, HttpClient, ClientOptions);
+
+            // Act
+            _ = await table.GetPageOfItemsAsync<IdEntity>("", requestUri).ConfigureAwait(false);
+
+            // Assert
+            Assert.Single(ClientHandler.Requests);
+            var request = ClientHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(requestUri, request.RequestUri.ToString());
+            AssertEx.HasValue("ZUMO-API-VERSION", new[] { "3.0.0" }, request.Headers);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("$filter=Year eq 1900&$count=true")]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ConstructsRequest_PrefersRequestUri(string query)
+        {
+            // Arrange
+            Page<IdEntity> result = new();
+            ClientHandler.AddResponse(HttpStatusCode.OK, result);
+            var table = new DatasyncTable<IdEntity>(Endpoint, HttpClient, ClientOptions);
+            const string requestUri = "https://localhost/tables/foo?$count=true&$skip=5&$top=10&__includedeleted=true";
+
+            // Act
+            _ = await table.GetPageOfItemsAsync<IdEntity>(query, requestUri).ConfigureAwait(false);
+
+            // Assert
+            Assert.Single(ClientHandler.Requests);
+            var request = ClientHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(requestUri, request.RequestUri.ToString());
+            AssertEx.HasValue("ZUMO-API-VERSION", new[] { "3.0.0" }, request.Headers);
+        }
+
+        [Fact]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ReturnsItems()
+        {
+            // Arrange
+            Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } } };
+            ClientHandler.AddResponse(HttpStatusCode.OK, result);
+            var table = new DatasyncTable<IdEntity>(Endpoint, HttpClient, ClientOptions);
+
+            // Act
+            var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
+
+            // Assert
+            Assert.IsAssignableFrom<HttpResponse<Page<IdEntity>>>(response);
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal("{\"items\":[{\"id\":\"1234\"}]}", Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.IsAssignableFrom<Page<IdEntity>>(response.Value);
+            Assert.Single(response.Value.Items);
+            Assert.Equal("1234", response.Value.Items.First().Id);
+            Assert.Null(response.Value.Count);
+            Assert.Null(response.Value.NextLink);
+        }
+
+        [Fact]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ReturnsCount()
+        {
+            // Arrange
+            Page<IdEntity> result = new() { Count = 42 };
+            ClientHandler.AddResponse(HttpStatusCode.OK, result);
+            var table = new DatasyncTable<IdEntity>(Endpoint, HttpClient, ClientOptions);
+
+            // Act
+            var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
+
+            // Assert
+            Assert.IsAssignableFrom<HttpResponse<Page<IdEntity>>>(response);
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal("{\"count\":42}", Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.IsAssignableFrom<Page<IdEntity>>(response.Value);
+            Assert.Null(response.Value.Items);
+            Assert.Equal(42, response.Value.Count);
+            Assert.Null(response.Value.NextLink);
+        }
+
+        [Fact]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ReturnsNextLink()
+        {
+            // Arrange
+            var nextLink = $"{sEndpoint}?$top=5&$skip=5";
+            Page<IdEntity> result = new() { NextLink = new Uri(nextLink) };
+            ClientHandler.AddResponse(HttpStatusCode.OK, result);
+            var table = new DatasyncTable<IdEntity>(Endpoint, HttpClient, ClientOptions);
+
+            // Act
+            var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
+
+            // Assert
+            Assert.IsAssignableFrom<HttpResponse<Page<IdEntity>>>(response);
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal($"{{\"nextLink\":\"{nextLink}\"}}", Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.IsAssignableFrom<Page<IdEntity>>(response.Value);
+            Assert.Null(response.Value.Items);
+            Assert.Null(response.Value.Count);
+            Assert.Equal(new Uri(nextLink), response.Value.NextLink);
+        }
+
+        [Fact]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ReturnsItemsAndCount()
+        {
+            // Arrange
+            Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } }, Count = 42 };
+            ClientHandler.AddResponse(HttpStatusCode.OK, result);
+            var table = new DatasyncTable<IdEntity>(Endpoint, HttpClient, ClientOptions);
+
+            // Act
+            var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
+
+            // Assert
+            Assert.IsAssignableFrom<HttpResponse<Page<IdEntity>>>(response);
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal("{\"items\":[{\"id\":\"1234\"}],\"count\":42}", Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.IsAssignableFrom<Page<IdEntity>>(response.Value);
+            Assert.Single(response.Value.Items);
+            Assert.Equal("1234", response.Value.Items.First().Id);
+            Assert.Equal(42, response.Value.Count);
+            Assert.Null(response.Value.NextLink);
+        }
+
+        [Fact]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ReturnsItemsAndNextLink()
+        {
+            // Arrange
+            var nextLink = $"{sEndpoint}?$top=5&$skip=5";
+            Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } }, NextLink = new Uri(nextLink) };
+            ClientHandler.AddResponse(HttpStatusCode.OK, result);
+            var table = new DatasyncTable<IdEntity>(Endpoint, HttpClient, ClientOptions);
+
+            // Act
+            var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
+
+            // Assert
+            Assert.IsAssignableFrom<HttpResponse<Page<IdEntity>>>(response);
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal($"{{\"items\":[{{\"id\":\"1234\"}}],\"nextLink\":\"{nextLink}\"}}", Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.IsAssignableFrom<Page<IdEntity>>(response.Value);
+            Assert.Single(response.Value.Items);
+            Assert.Equal("1234", response.Value.Items.First().Id);
+            Assert.Null(response.Value.Count);
+            Assert.Equal(new Uri(nextLink), response.Value.NextLink);
+        }
+
+        [Fact]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ReturnsItem_Count_NextLink()
+        {
+            // Arrange
+            var nextLink = $"{sEndpoint}?$top=5&$skip=5";
+            Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } }, Count = 42, NextLink = new Uri(nextLink) };
+            ClientHandler.AddResponse(HttpStatusCode.OK, result);
+            var table = new DatasyncTable<IdEntity>(Endpoint, HttpClient, ClientOptions);
+
+            // Act
+            var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
+
+            // Assert
+            Assert.IsAssignableFrom<HttpResponse<Page<IdEntity>>>(response);
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal($"{{\"items\":[{{\"id\":\"1234\"}}],\"count\":42,\"nextLink\":\"{nextLink}\"}}", Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.IsAssignableFrom<Page<IdEntity>>(response.Value);
+            Assert.Single(response.Value.Items);
+            Assert.Equal("1234", response.Value.Items.First().Id);
+            Assert.Equal(42, response.Value.Count);
+            Assert.Equal(new Uri(nextLink), response.Value.NextLink);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.BadRequest)]
+        [InlineData(HttpStatusCode.InternalServerError)]
+        [InlineData(HttpStatusCode.Unauthorized)]
+        [InlineData(HttpStatusCode.UnavailableForLegalReasons)]
+        [InlineData(HttpStatusCode.ExpectationFailed)]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItemAsync_BadResponse_ThrowsRequestFailed(HttpStatusCode statusCode)
+        {
+            // Arrange
+            ClientHandler.AddResponse(statusCode);
+            var table = new DatasyncTable<IdEntity>(Endpoint, HttpClient, ClientOptions);
+
+            // Act
+            var exception = await Assert.ThrowsAsync<RequestFailedException>(() => table.GetPageOfItemsAsync<IdEntity>(null)).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal((int)statusCode, exception.StatusCode);
+            Assert.False(exception.Response.HasContent);
         }
         #endregion
 

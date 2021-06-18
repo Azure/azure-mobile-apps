@@ -41,6 +41,15 @@ namespace Microsoft.Datasync.Client.Table
         Task<HttpResponse> DeleteItemAsync(string id, HttpCondition? precondition = null, CancellationToken token = default);
 
         /// <summary>
+        /// Retrieves a list of items based on a query.
+        /// </summary>
+        /// <typeparam name="U">The type of the items being returned - can be a subset of properties in the table entity</typeparam>
+        /// <param name="query">The query string to send to the service</param>
+        /// <param name="token">A <see cref="CancellationToken"/></param>
+        /// <returns>An <see cref="AsyncPageable{T}"/> for retrieving the items asynchronously.</returns>
+        AsyncPageable<U> GetAsyncItems<U>(string query = "", CancellationToken token = default) where U : notnull;
+
+        /// <summary>
         /// Retrieves an item within the table.
         /// </summary>
         /// <param name="id">The ID of the item to retrieve.</param>

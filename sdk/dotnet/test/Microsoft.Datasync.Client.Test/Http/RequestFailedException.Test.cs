@@ -41,7 +41,6 @@ namespace Microsoft.Datasync.Client.Test.Http
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class NotModifiedException_Tests
     {
-
         [Fact]
         [Trait("Method", "Ctor")]
         public void NotModifiedCtor_Null_Throws()
