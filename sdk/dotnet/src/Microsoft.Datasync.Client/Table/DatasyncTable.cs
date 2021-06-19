@@ -6,9 +6,7 @@ using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Internal;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,8 +18,6 @@ namespace Microsoft.Datasync.Client.Table
     /// <typeparam name="T">The type of the entity within the table.</typeparam>
     public class DatasyncTable<T> : IDatasyncTable<T> where T : notnull
     {
-        private const string idPropertyName = "Id";
-
         /// <summary>
         /// Creates a new <see cref="DatasyncTable{T}"/> using information from the <see cref="DatasyncClient"/>.
         /// </summary>
@@ -214,7 +210,7 @@ namespace Microsoft.Datasync.Client.Table
         public virtual async Task<HttpResponse<T>> ReplaceItemAsync(T item, HttpCondition? precondition = null, CancellationToken token = default)
         {
             Validate.IsNotNull(item, nameof(item));
-            var id = GetIdFromItem(item);
+            var id = Utils.GetIdFromItem(item);
             Validate.IsValidId(id, nameof(item));
 
             var itemUri = new Uri(Endpoint, id);
@@ -298,34 +294,6 @@ namespace Microsoft.Datasync.Client.Table
                 var response = await HttpResponse.FromResponseAsync<T>(message, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
                 throw new RequestFailedException(response);
             }
-        }
-
-        /// <summary>
-        /// Finds the value of the id field via reflection.  If there is a field marked with <see cref="KeyAttribute"/>,
-        /// then that is used.  If there is a field called <see cref="Id"/> then that is used.  If neither are available,
-        /// then <see cref="MemberAccessException"/> is thrown.
-        /// </summary>
-        /// <param name="item">The item to process</param>
-        /// <returns>The id of the item</returns>
-        internal string GetIdFromItem(object item)
-        {
-            Validate.IsNotNull(item, nameof(item));
-            var idProperty = Array.Find(item.GetType().GetProperties(), prop => prop.IsDefined(typeof(KeyAttribute)))
-                ?? item.GetType().GetProperty(idPropertyName);
-            if (idProperty == null)
-            {
-                throw new MissingMemberException($"{idPropertyName} not found, and no property has the [Key] attribute.");
-            }
-            object idValue = idProperty.GetValue(item);
-            if (idValue == null)
-            {
-                throw new ArgumentNullException($"{idProperty.Name} is null", nameof(item));
-            }
-            if (idValue is string id)
-            {
-                return id;
-            }
-            throw new MemberAccessException($"{idProperty.Name} property is not a string");
         }
     }
 }

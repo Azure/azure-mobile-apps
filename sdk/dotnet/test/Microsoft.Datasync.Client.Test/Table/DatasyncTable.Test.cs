@@ -6,7 +6,6 @@ using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Test.Helpers;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
@@ -19,7 +18,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Table
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class DatasyncTable_Tests
+    public class DatasyncTable_Tests : BaseTest
     {
         private const string sEndpoint = "https://foo.azurewebsites.net/tables/movies/";
         private readonly IdEntity payload = new() { Id = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f", StringValue = "test" };
@@ -27,68 +26,6 @@ namespace Microsoft.Datasync.Client.Test.Table
         private const string sJsonPayload = "{\"id\":\"db0ec08d-46a9-465d-9f5e-0066a3ee5b5f\",\"stringValue\":\"test\"}";
         private const string sBadJson = "{this-is-bad-json";
         private const string sId = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f";
-
-        private readonly Uri Endpoint;
-        private readonly MockDelegatingHandler ClientHandler;
-        private readonly DatasyncClientOptions ClientOptions;
-        private readonly InternalHttpClient HttpClient;
-        private readonly DatasyncTable<IdEntity> Table;
-
-        #region GetIdFromItem Test Classes
-        private class IdEntity : IEquatable<IdEntity>
-        {
-            public string Id { get; set; }
-            public string StringValue { get; set; }
-            public bool Equals(IdEntity other) => Id == other.Id && StringValue == other.StringValue;
-            public override bool Equals(object obj) => obj is IdEntity ide && Equals(ide);
-            public override int GetHashCode() => Id.GetHashCode() + StringValue.GetHashCode();
-        }
-
-        private class KeyEntity
-        {
-            [Key]
-            public string KeyId { get; set; }
-        }
-
-        private class NoIdEntity
-        {
-            public string Test { get; set; }
-        }
-
-        private class NonStringIdEntity
-        {
-            public bool Id { get; set; }
-        }
-        #endregion
-
-        public DatasyncTable_Tests()
-        {
-            Endpoint = new("https://foo.azurewebsites.net/tables/movies");
-            ClientHandler = new();
-            ClientOptions = new() { HttpPipeline = new HttpMessageHandler[] { ClientHandler } };
-            HttpClient = new InternalHttpClient(Endpoint, ClientOptions);
-            Table = new DatasyncTable<IdEntity>(Endpoint, HttpClient, ClientOptions);
-        }
-
-        /// <summary>
-        /// Creates a paging response.
-        /// </summary>
-        /// <param name="count">The count of elements to return</param>
-        /// <param name="totalCount">The total count</param>
-        /// <param name="nextLink">The next link</param>
-        /// <returns></returns>
-        private Page<IdEntity> CreatePageOfItems(int count, long? totalCount = null, Uri nextLink = null)
-        {
-            List<IdEntity> items = new();
-
-            for (int i = 0; i < count; i++)
-            {
-                items.Add(new IdEntity { Id = Guid.NewGuid().ToString("N") });
-            }
-            var page = new Page<IdEntity> { Items = items, Count = totalCount, NextLink = nextLink };
-            ClientHandler.AddResponse(HttpStatusCode.OK, page);
-            return page;
-        }
 
         #region Ctor
         [Fact]
@@ -147,65 +84,6 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Ctor_NullClient_Throws()
         {
             Assert.Throws<ArgumentNullException>(() => new DatasyncTable<MockObject>(Endpoint, null, ClientOptions));
-        }
-        #endregion
-
-        #region GetIdFromItem
-        [Fact]
-        [Trait("Method", "GetIdFromItem")]
-        public void GetIdFromItem_Null_Throws()
-        {
-            Assert.Throws<ArgumentNullException>(() => Table.GetIdFromItem(null));
-        }
-
-        [Fact]
-        [Trait("Method", "GetIdFromItem")]
-        public void GetIdFromItem_IdEntity_ReturnsId()
-        {
-            IdEntity entity = new() { Id = "test" };
-            var id = Table.GetIdFromItem(entity);
-            Assert.Equal("test", id);
-        }
-
-        [Fact]
-        [Trait("Method", "GetIdFromItem")]
-        public void GetIdFromItem_IdEntity_Null_Throws()
-        {
-            IdEntity entity = new() { Id = null };
-            Assert.Throws<ArgumentNullException>(() => Table.GetIdFromItem(entity));
-        }
-
-        [Fact]
-        [Trait("Method", "GetIdFromItem")]
-        public void GetIdFromItem_KeyAttribute_ReturnsId()
-        {
-            KeyEntity entity = new() { KeyId = "test" };
-            var id = Table.GetIdFromItem(entity);
-            Assert.Equal("test", id);
-        }
-
-        [Fact]
-        [Trait("Method", "GetIdFromItem")]
-        public void GetIdFromItem_KeyAttribute_Null_Throws()
-        {
-            KeyEntity entity = new() { KeyId = null };
-            Assert.Throws<ArgumentNullException>(() => Table.GetIdFromItem(entity));
-        }
-
-        [Fact]
-        [Trait("Method", "GetIdFromItem")]
-        public void GetIdFromItem_NoId_Throws()
-        {
-            NoIdEntity entity = new() { Test = "test" };
-            Assert.Throws<MissingMemberException>(() => Table.GetIdFromItem(entity));
-        }
-
-        [Fact]
-        [Trait("Method", "GetIdFromItem")]
-        public void GetIdFromItem_NonStringId_Throws()
-        {
-            NonStringIdEntity entity = new() { Id = true };
-            Assert.Throws<MemberAccessException>(() => Table.GetIdFromItem(entity));
         }
         #endregion
 
