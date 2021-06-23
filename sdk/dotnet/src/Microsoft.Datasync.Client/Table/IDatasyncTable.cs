@@ -25,6 +25,11 @@ namespace Microsoft.Datasync.Client
         Uri Endpoint { get; }
 
         /// <summary>
+        /// The <see cref="DatasyncClientOptions"/> for the table.
+        /// </summary>
+        DatasyncClientOptions ClientOptions { get; }
+
+        /// <summary>
         /// Creates a new item within the table.
         /// </summary>
         /// <param name="item">The item to add to the table.</param>

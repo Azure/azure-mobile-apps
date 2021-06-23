@@ -71,15 +71,5 @@ namespace Microsoft.Datasync.Client
 
             return table.ReplaceItemAsync(item, HttpCondition.IfMatch(version), token);
         }
-
-        /// <summary>
-        /// Convert the table to an <see cref="IAsyncEnumerable"/>.
-        /// </summary>
-        /// <typeparam name="T">The type of the entity</typeparam>
-        /// <param name="table">The table to retrieve</param>
-        /// <param name="token">A <see cref="CancellationToken"/></param>
-        /// <returns>An <see cref="IAsyncEnumerable"/> for the items in the table.</returns>
-        public static AsyncPageable<T> ToAsyncEnumerable<T>(this IDatasyncTable<T> table, CancellationToken token = default) where T : notnull
-            => table.GetAsyncItems<T>("", token);
     }
 }

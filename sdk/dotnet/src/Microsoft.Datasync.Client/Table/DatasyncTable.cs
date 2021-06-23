@@ -48,7 +48,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <summary>
         /// The <see cref="DatasyncClientOptions"/> used for adjusting requests/responses.
         /// </summary>
-        internal DatasyncClientOptions ClientOptions { get; }
+        public DatasyncClientOptions ClientOptions { get; }
 
         /// <summary>
         /// Creates a new item within the table.
