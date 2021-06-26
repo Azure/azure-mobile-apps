@@ -92,11 +92,11 @@ namespace Microsoft.Datasync.Client.Linq
         /// <returns>The composed query</returns>
         public ITableQuery<T> IncludeDeletedItems(bool enabled = true)
         {
-            if (enabled && !QueryParameters.ContainsKey(IncludeDeletedQueryParameter))
+            if (enabled)
             {
-                QueryParameters.Add(IncludeDeletedQueryParameter, "true");
+                QueryParameters[IncludeDeletedQueryParameter] = "true";
             }
-            else if (!enabled && QueryParameters.ContainsKey(IncludeDeletedQueryParameter))
+            else
             {
                 QueryParameters.Remove(IncludeDeletedQueryParameter);
             }
@@ -111,11 +111,11 @@ namespace Microsoft.Datasync.Client.Linq
         /// <returns>The composed query</returns>
         public ITableQuery<T> IncludeTotalCount(bool enabled = true)
         {
-            if (enabled && !QueryParameters.ContainsKey(IncludeCountQueryParameter))
+            if (enabled)
             {
-                QueryParameters.Add(IncludeCountQueryParameter, "true");
+                QueryParameters[IncludeCountQueryParameter] = "true";
             }
-            else if (!enabled && QueryParameters.ContainsKey(IncludeCountQueryParameter))
+            else
             {
                 QueryParameters.Remove(IncludeCountQueryParameter);
             }
@@ -147,14 +147,7 @@ namespace Microsoft.Datasync.Client.Linq
         /// <param name="selector">The selector function</param>
         /// <returns>The composed query</returns>
         public ITableQuery<U> Select<U>(Expression<Func<T, U>> selector) where U : notnull
-        {
-            if (Table is DatasyncTable<T> sourceTable)
-            {
-                var selectorTable = new DatasyncTable<U>(sourceTable.Endpoint, sourceTable.HttpClient, sourceTable.ClientOptions);
-                return new DatasyncTableQuery<U>(selectorTable, Query.Select(selector), QueryParameters, SkipCount, TakeCount);
-            }
-            throw new InvalidOperationException("The table being used for the selection is not a datasync table");
-        }
+            => new DatasyncTableQuery<U>(Table.WithType<U>(), Query.Select(selector), QueryParameters, SkipCount, TakeCount);
 
         /// <summary>
         /// Apply the specified skip clause to the source query.
@@ -188,10 +181,7 @@ namespace Microsoft.Datasync.Client.Linq
             {
                 throw new ArgumentOutOfRangeException($"{nameof(count)} must be positive", nameof(count));
             }
-            if (count < TakeCount)
-            {
-                TakeCount = count;
-            }
+            TakeCount = (TakeCount == 0) ? count : Math.Min(count, TakeCount);
             return this;
         }
 
@@ -273,6 +263,10 @@ namespace Microsoft.Datasync.Client.Linq
         {
             Validate.IsNotNullOrWhitespace(key, nameof(key));
             Validate.IsNotNullOrWhitespace(value, nameof(value));
+            if (key.StartsWith("$") || key.StartsWith("__"))
+            {
+                throw new ArgumentException($"Parameter '{key}' is invalid", nameof(key));
+            }
             QueryParameters[key] = value;
             return this;
         }
@@ -288,7 +282,14 @@ namespace Microsoft.Datasync.Client.Linq
         public ITableQuery<T> WithParameters(IEnumerable<KeyValuePair<string, string>> parameters)
         {
             Validate.IsNotNullOrEmpty(parameters, nameof(parameters));
-            parameters.ToList().ForEach(param => QueryParameters[param.Key] = param.Value);
+            parameters.ToList().ForEach(param =>
+            {
+                if (param.Key.StartsWith("$") || param.Key.StartsWith("__"))
+                {
+                    throw new ArgumentException($"Parameter '{param.Key}' is invalid", nameof(parameters));
+                }
+                QueryParameters[param.Key] = param.Value;
+            });
             return this;
         }
     }

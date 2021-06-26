@@ -18,7 +18,6 @@ namespace Microsoft.Datasync.Client.Linq.Query
             => type switch
             {
                 ExpressionType.Add => BinaryOperatorKind.Add,
-                ExpressionType.AddChecked => BinaryOperatorKind.Add,
                 ExpressionType.AndAlso => BinaryOperatorKind.And,
                 ExpressionType.Divide => BinaryOperatorKind.Divide,
                 ExpressionType.Equal => BinaryOperatorKind.Equal,
@@ -28,11 +27,9 @@ namespace Microsoft.Datasync.Client.Linq.Query
                 ExpressionType.LessThanOrEqual => BinaryOperatorKind.LessThanOrEqual,
                 ExpressionType.Modulo => BinaryOperatorKind.Modulo,
                 ExpressionType.Multiply => BinaryOperatorKind.Multiply,
-                ExpressionType.MultiplyChecked => BinaryOperatorKind.Multiply,
                 ExpressionType.NotEqual => BinaryOperatorKind.NotEqual,
                 ExpressionType.OrElse => BinaryOperatorKind.Or,
                 ExpressionType.Subtract => BinaryOperatorKind.Subtract,
-                ExpressionType.SubtractChecked => BinaryOperatorKind.Subtract,
                 _ => throw new NotSupportedException($"The operator '{type}' is not supported in the 'Where' query expression")
             };
     }

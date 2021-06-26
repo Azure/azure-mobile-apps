@@ -38,6 +38,8 @@ namespace Microsoft.Datasync.Client.Linq.Query
     /// </summary>
     internal static class TableLookups
     {
+        private const string dateFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffzzz";
+
         private static readonly Dictionary<long, ConstantType> ConstantTypeLookupTable = new()
         {
             { (long)typeof(bool).TypeHandle.Value, ConstantType.Boolean },
@@ -91,14 +93,14 @@ namespace Microsoft.Datasync.Client.Linq.Query
                 case ConstantType.Byte:
                     return $"{value:X2}";
                 case ConstantType.Character:
-                    char ch = (char)value;
-                    return $"'{Uri.EscapeDataString(ch == '\'' ? "''" : ch.ToString())}'";
+                    string ch = (char)value == '\'' ? "''" : ((char)value).ToString();
+                    return $"'{ch}'";
                 case ConstantType.DateTime:
-                    string dt = ((DateTime)value).ToUniversalTime().ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK");
-                    return $"datetimeoffset'{Uri.EscapeDataString(dt)}'";
+                    string dt = new DateTimeOffset(((DateTime)value).ToUniversalTime()).ToString(dateFormat);
+                    return $"datetimeoffset'{dt}'";
                 case ConstantType.DateTimeOffset:
-                    string dto = ((DateTimeOffset)value).ToString("o");
-                    return $"datetimeoffset'{Uri.EscapeDataString(dto)}'";
+                    string dto = ((DateTimeOffset)value).ToUniversalTime().ToString(dateFormat);
+                    return $"datetimeoffset'{dto}'";
                 case ConstantType.Decimal:
                     return $"{value}M";
                 case ConstantType.Double:
@@ -120,7 +122,7 @@ namespace Microsoft.Datasync.Client.Linq.Query
                     return $"{value}L";
                 default:
                     string text = value.ToString().Replace("'", "''");
-                    return $"'{Uri.EscapeDataString(text)}'";
+                    return $"'{text}'";
             }
         }
 

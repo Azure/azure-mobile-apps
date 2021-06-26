@@ -33,7 +33,7 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// <summary>
         /// A list of additional parameters to send with the query.
         /// </summary>
-        internal Dictionary<string, string> Parameters { get; } = new();
+        internal Dictionary<string, string> Parameters { get; set; } = new();
 
         /// <summary>
         /// The list of projections that should be applied to each element of the query.
@@ -48,7 +48,7 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// <summary>
         /// The set of fields to return from the query.
         /// </summary>
-        internal List<string> Selection { get; set; } = new();
+        internal List<string> Selection { get; } = new();
 
         /// <summary>
         /// The number of items to skip within the query
@@ -66,39 +66,41 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// <returns>The query string</returns>
         internal string ToODataString()
         {
-            Dictionary<string, string> queryParams = new();
+            List<string> queryParams = new();
 
             if (Filter != null)
             {
-                queryParams.Add(FilterQueryParameter, ODataExpressionVisitor.ToODataString(Filter));
+                queryParams.Add($"{FilterQueryParameter}={Uri.EscapeUriString(ODataExpressionVisitor.ToODataString(Filter))}");
             }
 
             if (Ordering.Count > 0)
             {
-                queryParams.Add(OrderByQueryParameter, string.Join(",", Ordering.Select(o => o.ToODataString())));
+                queryParams.Add($"{OrderByQueryParameter}={string.Join(",", Ordering.Select(o => o.ToODataString()))}");
             }
 
             if (Selection.Count > 0)
             {
-                queryParams.Add(SelectQueryParameter, string.Join(",", Selection.Select(Uri.EscapeDataString)));
+                queryParams.Add($"{SelectQueryParameter}={string.Join(",", Selection.Select(Uri.EscapeUriString))}");
             }
 
             if (Skip > 0)
             {
-                queryParams.Add(SkipQueryParameter, Skip.ToString());
+                queryParams.Add($"{SkipQueryParameter}={Skip}");
             }
 
             if (Top > 0)
             {
-                queryParams.Add(TopQueryParameter, Top.ToString());
+                queryParams.Add($"{TopQueryParameter}={Top}");
             }
 
             if (Parameters.Count > 0)
             {
-                Parameters.ToList().ForEach(p => queryParams[Uri.EscapeDataString(p.Key)] = Uri.EscapeDataString(p.Value));
+                Parameters.ToList().ForEach(p => queryParams.Add($"{Uri.EscapeUriString(p.Key)}={Uri.EscapeUriString(p.Value)}"));
             }
 
-            return string.Join("&", queryParams.Select(p => $"{p.Key}={p.Value}"));
+            // Deterministic output order
+            queryParams.Sort();
+            return string.Join("&", queryParams);
         }
     }
 }

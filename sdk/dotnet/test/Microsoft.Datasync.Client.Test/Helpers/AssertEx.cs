@@ -40,5 +40,18 @@ namespace Microsoft.Datasync.Client.Test.Helpers
             Assert.Single(enumerable);
             Assert.Equal(expected, enumerable.First().Value);
         }
+
+        /// <summary>
+        /// Assert that the dictionary contains the values expected
+        /// </summary>
+        /// <param name="key">The key to test</param>
+        /// <param name="expected">The expected value</param>
+        /// <param name="dict">The dictionary to check</param>
+        public static void HasValue(string key, string expected, IDictionary<string, string> dict)
+        {
+            Assert.NotNull(dict);
+            Assert.True(dict.TryGetValue(key, out string value));
+            Assert.Equal(expected, value);
+        }
     }
 }

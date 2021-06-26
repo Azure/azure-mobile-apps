@@ -3,6 +3,7 @@
 
 using Microsoft.Datasync.Client.Internal;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 #nullable disable
@@ -13,6 +14,11 @@ namespace Microsoft.Datasync.Client.Linq.Query
     /// Visit all the members of specific types of expression tree nodes.  This
     /// helps reduce the number of specific visitor classes we need to declare.
     /// </summary>
+    /// <remarks>
+    /// We don't test for code coverage here, since not all paths are relevant to the product.  What
+    /// paths are relevant are tested by using the FilterBuildingExpressionVisitor.
+    /// </remarks>
+    [ExcludeFromCodeCoverage]
     internal sealed class VisitorHelper : ExpressionVisitor
     {
         /// <summary>

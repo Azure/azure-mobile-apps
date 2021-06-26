@@ -68,8 +68,6 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// <returns>An OData <see cref="QueryNode"/></returns>
         internal static QueryNode Compile(Expression expression, DatasyncClientOptions clientOptions)
         {
-            Validate.IsNotNull(expression, nameof(expression));
-
             var visitor = new FilterBuildingExpressionVisitor(clientOptions);
             visitor.Visit(expression);
             return visitor.FilterExpression.FirstOrDefault();
@@ -107,7 +105,6 @@ namespace Microsoft.Datasync.Client.Linq.Query
                 switch (node.NodeType)
                 {
                     case ExpressionType.Add:
-                    case ExpressionType.AddChecked:
                     case ExpressionType.And:
                     case ExpressionType.AndAlso:
                     case ExpressionType.ArrayIndex:
@@ -122,14 +119,12 @@ namespace Microsoft.Datasync.Client.Linq.Query
                     case ExpressionType.LessThanOrEqual:
                     case ExpressionType.Modulo:
                     case ExpressionType.Multiply:
-                    case ExpressionType.MultiplyChecked:
                     case ExpressionType.NotEqual:
                     case ExpressionType.Or:
                     case ExpressionType.OrElse:
                     case ExpressionType.Power:
                     case ExpressionType.RightShift:
                     case ExpressionType.Subtract:
-                    case ExpressionType.SubtractChecked:
                         return VisitBinaryExpression((BinaryExpression)node);
 
                     case ExpressionType.Constant:

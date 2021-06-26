@@ -295,5 +295,13 @@ namespace Microsoft.Datasync.Client.Table
                 throw new RequestFailedException(response);
             }
         }
+
+        /// <summary>
+        /// Converts the current table to a table with a new type, but the same endpoint, client, and options.
+        /// </summary>
+        /// <typeparam name="U">The new type of the supported items</typeparam>
+        /// <returns>The new table</returns>
+        public IDatasyncTable<U> WithType<U>() where U : notnull
+            => new DatasyncTable<U>(Endpoint, HttpClient, ClientOptions);
     }
 }

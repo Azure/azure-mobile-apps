@@ -1,6 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
+using Datasync.Common.Test.Extensions;
+using Datasync.Common.Test.Models;
+using Datasync.Common.Test.TestData;
+using Datasync.Webservice;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -9,12 +14,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Datasync.Common.Test;
-using Datasync.Common.Test.Extensions;
-using Datasync.Common.Test.Models;
-using Datasync.Common.Test.TestData;
-using Datasync.Webservice;
-using Microsoft.AspNetCore.Datasync.Extensions;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP

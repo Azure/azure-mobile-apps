@@ -73,10 +73,28 @@ namespace Microsoft.Datasync.Client.Linq.Query
             return node;
         }
 
+        /// <summary>
+        /// Visit a <see cref="ConstantNode"/>
+        /// </summary>
+        /// <param name="node">The node to visit</param>
+        /// <returns>The visited node</returns>
         internal override QueryNode Visit(ConstantNode node)
         {
             Expression.Append(node.ToODataString());
             return node;
+        }
+
+        /// <summary>
+        /// Visit a <see cref="ConvertNode"/>
+        /// </summary>
+        /// <remarks>
+        /// This should never happen, but it's added for compatibility with the interface
+        /// </remarks>
+        /// <param name="node">The node to visit</param>
+        /// <returns>The visited node</returns>
+        internal override QueryNode Visit(ConvertNode node)
+        {
+            throw new NotSupportedException("ConvertNode is not supported on the ODataExpressionVisitor");
         }
 
         /// <summary>

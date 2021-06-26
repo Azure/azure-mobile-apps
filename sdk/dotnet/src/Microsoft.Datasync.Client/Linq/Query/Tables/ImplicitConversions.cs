@@ -23,7 +23,6 @@ namespace Microsoft.Datasync.Client.Linq.Query.Tables
         private static readonly Type Tuint = typeof(uint);
         private static readonly Type Tulong = typeof(ulong);
         private static readonly Type Tushort = typeof(ushort);
-        private static readonly Type Tnullable = typeof(Nullable<>);
 
         /// <summary>
         /// The table of implicit numeric conversions from <see href="https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/numeric-conversions"/>
@@ -76,8 +75,9 @@ namespace Microsoft.Datasync.Client.Linq.Query.Tables
             }
         });
 
-        private static Type Unwrap(this Type type)
-            => type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == Tnullable ? Nullable.GetUnderlyingType(type) : type;
+        internal static Type Unwrap(Type type) => Nullable.GetUnderlyingType(type) ?? type;
+
+        //    => type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == Tnullable ? Nullable.GetUnderlyingType(type) : type;
 
         public static bool IsImplicitConversion(Type from, Type to)
         {

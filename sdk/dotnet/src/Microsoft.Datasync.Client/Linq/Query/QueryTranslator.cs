@@ -20,17 +20,17 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// <summary>
         /// The compiled <see cref="QueryDescription"/> generated from the expression tree.
         /// </summary>
-        private QueryDescription QueryDescription { get; }
+        protected QueryDescription QueryDescription { get; }
 
         /// <summary>
         /// The <see cref="DatasyncTableQuery{T}"/> being translated.
         /// </summary>
-        private DatasyncTableQuery<T> TableQuery { get; }
+        protected DatasyncTableQuery<T> TableQuery { get; }
 
         /// <summary>
         /// The <see cref="DatasyncClientOptions"/> for the table being referenced.
         /// </summary>
-        private DatasyncClientOptions ClientOptions { get; }
+        protected DatasyncClientOptions ClientOptions { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryTranslator{T}"/>.
@@ -43,7 +43,12 @@ namespace Microsoft.Datasync.Client.Linq.Query
 
             TableQuery = query;
             ClientOptions = clientOptions;
-            QueryDescription = new QueryDescription();
+            QueryDescription = new QueryDescription()
+            {
+                Parameters = query.QueryParameters,
+                Skip = query.SkipCount,
+                Top = query.TakeCount
+            };
         }
 
         /// <summary>
@@ -74,10 +79,10 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// </summary>
         /// <param name="expression">The expression to visit.</param>
         /// <returns>The visited expression</returns>
-        private Expression? VisitMethodCall(MethodCallExpression expression)
+        protected Expression? VisitMethodCall(MethodCallExpression expression)
         {
             // Recurse down the target of the method call.
-            if (expression?.Arguments.Count >= 1)
+            if (expression.Arguments.Count >= 1)
             {
                 Expression firstArgument = expression.Arguments[0];
                 if (firstArgument is MethodCallExpression mce && firstArgument.NodeType == ExpressionType.Call)
@@ -87,8 +92,8 @@ namespace Microsoft.Datasync.Client.Linq.Query
             }
 
             // Handle the method call itself
-            string? name = expression?.Method?.DeclaringType == typeof(Queryable) ? expression.Method.Name : null;
-            switch (name)
+            //string? name = expression.Method.DeclaringType == typeof(Queryable) ? expression.Method.Name : null;
+            switch (expression.Method.Name)
             {
                 case "OrderBy":
                     AddOrdering(expression, ascending: true, prepend: true);
@@ -109,8 +114,7 @@ namespace Microsoft.Datasync.Client.Linq.Query
                     AddFilter(expression);
                     break;
                 default:
-                    ThrowUnsupportedException(expression);
-                    break;
+                    throw new NotSupportedException($"'{expression.Method.Name} clause in query expression is not supported");
             }
             return expression;
         }
@@ -119,11 +123,11 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// Add a filtering expression to the query.
         /// </summary>
         /// <param name="expression">A Where method call expression.</param>
-        private void AddFilter(MethodCallExpression? expression)
+        protected void AddFilter(MethodCallExpression? expression)
         {
-            if (expression?.Arguments.Count >= 2 && StripQuote(expression.Arguments[1]) is LambdaExpression lambda)
+            if (IsValidLambdaExpression(expression, out LambdaExpression? lambda))
             {
-                QueryNode filter = FilterBuildingExpressionVisitor.Compile(lambda.Body, ClientOptions);
+                QueryNode filter = FilterBuildingExpressionVisitor.Compile(lambda!.Body, ClientOptions);
                 if (QueryDescription.Filter != null)
                 {
                     QueryDescription.Filter = new BinaryOperatorNode(BinaryOperatorKind.And, QueryDescription.Filter, filter);
@@ -134,7 +138,7 @@ namespace Microsoft.Datasync.Client.Linq.Query
                 }
                 return;
             }
-            ThrowUnsupportedException(expression);
+            throw new NotSupportedException("'Where' clause in query expression contains an invalid predicate");
         }
 
         /// <summary>
@@ -143,43 +147,50 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// <param name="expression">An ordering method call expression</param>
         /// <param name="ascending">True if the ordering is ascending, false otherwise</param>
         /// <param name="prepend">True to prepend the ordering to the list</param>
-        private void AddOrdering(MethodCallExpression? expression, bool ascending, bool prepend)
+        protected void AddOrdering(MethodCallExpression? expression, bool ascending, bool prepend)
         {
             // We only allow keySelectors that are x => x.member expressions (i.e. MemberAccessNode).
             // Anything else will result in a NotSupportedException
-            if (expression?.Arguments.Count >= 2 && StripQuote(expression.Arguments[1]) is LambdaExpression lambda)
+            if (IsValidLambdaExpression(expression, out LambdaExpression? lambda) && lambda!.Body is MemberExpression memberExpression)
             {
-                if (lambda.Body is MemberExpression memberExpression)
-                {
-                    string? memberName = FilterBuildingExpressionVisitor.GetTableMemberName(memberExpression, ClientOptions);
-                    if (memberName != null)
-                    {
-                        var node = new OrderByNode(new MemberAccessNode(null, memberName), ascending);
-                        if (prepend)
-                        {
-                            QueryDescription.Ordering.Insert(0, node);
-                        }
-                        else
-                        {
-                            QueryDescription.Ordering.Add(node);
-                        }
-                        return;
-                    }
-                }
+                string? memberName = FilterBuildingExpressionVisitor.GetTableMemberName(memberExpression, ClientOptions);
+                AddOrderByNode(memberName, ascending, prepend);
             }
+            else
+            {
+                throw new NotSupportedException($"'{expression?.Method.Name}' query expressions must consist of members only.");
+            }
+        }
 
-            throw new NotSupportedException($"'{expression?.Method?.Name}' query expressions must consist of members only.");
+        /// <summary>
+        /// Add an OrderByNode to the Orderings.
+        /// </summary>
+        /// <param name="memberName">The memberName to add</param>
+        /// <param name="ascending">True if an ascending sort</param>
+        /// <param name="prepend">True if the sort should be prepended to the list.</param>
+        protected void AddOrderByNode(string? memberName, bool ascending, bool prepend)
+        {
+            if (memberName == null)
+                return;
+            var node = new OrderByNode(new MemberAccessNode(null, memberName), ascending);
+            if (prepend)
+            {
+                QueryDescription.Ordering.Insert(0, node);
+            }
+            else
+            {
+                QueryDescription.Ordering.Add(node);
+            }
         }
 
         /// <summary>
         /// Add a projection to the query
         /// </summary>
         /// <param name="expression">A Select Method Call expression</param>
-        private void AddProjection(MethodCallExpression? expression)
+        protected void AddProjection(MethodCallExpression? expression)
         {
-            // We only allow projections consisting of Select(x => ...).  Anything lese throws a
-            // NotSupportedException
-            if (expression?.Arguments.Count == 2 && StripQuote(expression.Arguments[1]) is LambdaExpression lambda && lambda.Parameters.Count == 1)
+            // We only allow projections consisting of Select(x => ...).  Anything else throws a NotSupportedException
+            if (IsValidLambdaExpression(expression, out LambdaExpression? lambda) && lambda!.Parameters.Count == 1)
             {
                 QueryDescription.Projections.Add(lambda.Compile());
                 if (QueryDescription.ProjectionArgumentType == null)
@@ -194,14 +205,14 @@ namespace Microsoft.Datasync.Client.Linq.Query
                         }
                     }
 
-                    // TODO: Add all members that would be required for deserialization
+                    // TODO: Add all members that would be required for deserialization, i.e. marked as Required in ProjectionArgumentType
                     // See https://github.com/Azure/azure-mobile-apps-net-client/blob/master/src/Microsoft.Azure.Mobile.Client/Table/Query/Linq/MobileServiceTableQueryTranslator.cs#L249
                 }
 
                 return;
             }
 
-            ThrowUnsupportedException(expression);
+            throw new NotSupportedException("Invalid projection in 'Select' query expression");
         }
 
         /// <summary>
@@ -209,21 +220,23 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// </summary>
         /// <param name="expression">The expression to check.</param>
         /// <returns>An unquoted expression</returns>
-        private static Expression StripQuote(Expression expression)
+        protected static Expression StripQuote(Expression expression)
             => expression.NodeType == ExpressionType.Quote ? ((UnaryExpression)expression).Operand : expression;
 
         /// <summary>
-        /// Throws a <see cref="NotSupportedException"/> with a detail message
+        /// Determines if the provided expression is a valid LambdaExpression.
         /// </summary>
-        /// <param name="expression">The expression being evaluated</param>
-        private static void ThrowUnsupportedException(MethodCallExpression? expression)
+        /// <param name="expression">The expression</param>
+        /// <param name="lambdaExpression">The lambda expression equivalent</param>
+        /// <returns>True if a lambda expression</returns>
+        protected static bool IsValidLambdaExpression(MethodCallExpression? expression, out LambdaExpression? lambdaExpression)
         {
-            Expression? deepest = expression;
+            lambdaExpression = null;
             if (expression?.Arguments.Count >= 2 && StripQuote(expression.Arguments[1]) is LambdaExpression lambda)
             {
-                deepest = lambda.Body ?? lambda;
+                lambdaExpression = lambda;
             }
-            throw new NotSupportedException($"Expression '{deepest}' is not a supported '{expression?.Method}' query expression.");
+            return lambdaExpression != null;
         }
 
         /// <summary>
@@ -231,15 +244,12 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// </summary>
         /// <param name="expression">The expression to search</param>
         /// <returns>A collection of <see cref="MemberExpression"/> objects</returns>
-        private IEnumerable<MemberExpression> GetMemberExpressions(Expression expression)
+        protected IEnumerable<MemberExpression> GetMemberExpressions(Expression expression)
         {
             List<MemberExpression> members = new();
             VisitorHelper.VisitMembers(expression, (expr, recurse) =>
             {
-                if (expr is MemberExpression memberExpression)
-                {
-                    members.Add(memberExpression);
-                }
+                members.Add(expr);
                 return recurse(expr);
             });
             return members;
@@ -251,7 +261,7 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// </summary>
         /// <param name="expression">The expression to evaluate</param>
         /// <returns></returns>
-        private static Expression PartiallyEvaluate(Expression expression)
+        protected static Expression PartiallyEvaluate(Expression expression)
         {
             List<Expression> subtrees = FindIndependentSubtrees(expression);
             return VisitorHelper.VisitAll(expression, (expr, recurse) =>
@@ -275,7 +285,7 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// </summary>
         /// <param name="expression">The expression to analyze.</param>
         /// <returns>A collection of all the expression subtrees that are independent from the expression parameters.</returns>
-        private static List<Expression> FindIndependentSubtrees(Expression expression)
+        protected static List<Expression> FindIndependentSubtrees(Expression expression)
         {
             List<Expression> subtrees = new();
 

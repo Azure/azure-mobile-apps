@@ -20,6 +20,13 @@ namespace Microsoft.Datasync.Client
     public interface IDatasyncTable<T> where T : notnull
     {
         /// <summary>
+        /// Converts the current table to a table with a new type, but the same endpoint, client, and options.
+        /// </summary>
+        /// <typeparam name="U">The new type of the supported items</typeparam>
+        /// <returns>The new table</returns>
+        IDatasyncTable<U> WithType<U>() where U : notnull;
+
+        /// <summary>
         /// The base <see cref="Uri"/> for the table.
         /// </summary>
         Uri Endpoint { get; }
