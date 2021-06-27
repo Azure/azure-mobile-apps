@@ -44,7 +44,7 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// Initializes a new instance of the <see cref="FilterBuildingExpressionVisitor"/>
         /// </summary>
         /// <param name="clientOptions">The client options for the table being queried</param>
-        private FilterBuildingExpressionVisitor(DatasyncClientOptions clientOptions) : base()
+        internal FilterBuildingExpressionVisitor(DatasyncClientOptions clientOptions) : base()
         {
             Validate.IsNotNull(clientOptions, nameof(clientOptions));
             ClientOptions = clientOptions;
@@ -79,12 +79,17 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// <param name="expression">The expression to check</param>
         /// <param name="clientOptions">the client options for the table.</param>
         /// <returns>the table member name</returns>
+        /// <remarks>
+        /// Excluded from code coverage
+        /// TODO: we cannot test the <c>member.Expression.NodeType == ExpressionType.Parameter</c> without an example.
+        /// </remarks>
+        [ExcludeFromCodeCoverage]
         internal static string? GetTableMemberName(Expression expression, DatasyncClientOptions clientOptions)
         {
             Validate.IsNotNull(expression, nameof(expression));
             Validate.IsNotNull(clientOptions, nameof(clientOptions));
 
-            if (expression is MemberExpression member && member.Expression?.NodeType == ExpressionType.Parameter)
+            if (expression is MemberExpression member && member.Expression.NodeType == ExpressionType.Parameter)
             {
                 return ResolvePropertyName(member.Member, clientOptions);
             }
@@ -96,7 +101,7 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// </summary>
         /// <param name="node">The node to visit</param>
         /// <returns>The visited node.</returns>
-        private Expression? Visit(Expression? node)
+        internal Expression? Visit(Expression? node)
         {
             if(node != null)
             {
@@ -154,7 +159,12 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// </summary>
         /// <param name="node">The expression to visit</param>
         /// <returns>The visited expression</returns>
-        private Expression VisitBinaryExpression(BinaryExpression node)
+        /// <remarks>
+        /// Excluded from code coverage
+        /// TODO: Need a trigger statement for the IsEnumExpression path
+        /// </remarks>
+        [ExcludeFromCodeCoverage]
+        internal Expression VisitBinaryExpression(BinaryExpression node)
         {
             if (IsEnumExpression(node, out UnaryExpression? enumExpression, out ConstantExpression? constant) && enumExpression != null && constant != null)
             {
@@ -221,7 +231,7 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// </summary>
         /// <param name="node">The node to visit</param>
         /// <returns>The visited node</returns>
-        private Expression VisitMethodCallExpression(MethodCallExpression node)
+        internal Expression VisitMethodCallExpression(MethodCallExpression node)
         {
             var key = new MemberInfoKey(node.Method);
             if (MethodNames.TryGetValue(key, out string methodName, out bool isStatic))
@@ -250,7 +260,12 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// </summary>
         /// <param name="node">The node to visit</param>
         /// <returns>The visited node</returns>
-        private Expression VisitUnaryExpression(UnaryExpression node)
+        /// <remarks>
+        /// Excluded from code coverage
+        /// TODO: Find test cases for Quote, non-implciit convert and negate that will trigger here.
+        /// </remarks>
+        [ExcludeFromCodeCoverage]
+        internal Expression VisitUnaryExpression(UnaryExpression node)
         {
             switch (node.NodeType)
             {
@@ -281,6 +296,11 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// <param name="from">The type to convert from</param>
         /// <param name="to">The type to convert to</param>
         /// <returns>True if there is an implicit conversion</returns>
+        /// <remarks>
+        /// Excluded from code coverage
+        /// TODO: Need an example of a where clause which would trigger this.
+        /// </remarks>
+        [ExcludeFromCodeCoverage]
         internal bool IsConversionImplicit(UnaryExpression node, Type from, Type to)
             => GetTableMemberName(node.Operand, ClientOptions) != null && ImplicitConversions.IsImplicitConversion(from, to);
 
@@ -291,6 +311,11 @@ namespace Microsoft.Datasync.Client.Linq.Query
         /// <param name="unaryExpression">The expression which is the enum.</param>
         /// <param name="constantExpression">The constant expression containing the enum value</param>
         /// <returns>Trye if an enum expression is found.</returns>
+        /// <remarks>
+        /// Excluded from code coverage
+        /// TODO: Need an example of a where clause which would trigger this on left and right.
+        /// </remarks>
+        [ExcludeFromCodeCoverage]
         internal bool IsEnumExpression(BinaryExpression node, out UnaryExpression? unaryExpression, out ConstantExpression? constantExpression)
         {
             // Case 1: enum on the left side

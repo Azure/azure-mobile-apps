@@ -18,10 +18,9 @@ namespace Microsoft.Datasync.Client.Test.Linq.Query
     public class QueryTranslator_Tests : BaseTest
     {
         /// <summary>
-        /// A duplicate of the QueryTranslator that allows access to protected methods
+        /// A duplicate of the QueryTranslator that allows access to internal protected methods
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        [SuppressMessage("Design", "RCS1158:Static member in generic type should use a type parameter.", Justification = "Test suite")]
         internal class TestQueryTranslator<T> : QueryTranslator<T>
         {
             internal TestQueryTranslator(DatasyncTableQuery<T> query, DatasyncClientOptions options) : base(query, options)
@@ -42,10 +41,10 @@ namespace Microsoft.Datasync.Client.Test.Linq.Query
             internal void TestAddProjection(MethodCallExpression expression)
                 => AddProjection(expression);
 
-            internal static bool TestValidLambdaExpression(MethodCallExpression expression, out LambdaExpression lambda)
+            internal bool TestValidLambdaExpression(MethodCallExpression expression, out LambdaExpression lambda)
                 => IsValidLambdaExpression(expression, out lambda);
 
-            internal static Expression TestStripQuote(Expression expression)
+            internal Expression TestStripQuote(Expression expression)
                 => StripQuote(expression);
         }
 
@@ -90,7 +89,9 @@ namespace Microsoft.Datasync.Client.Test.Linq.Query
         [Trait("Method", "IsValidLambdaExpression")]
         public void IsValidLambdaExpression_Null_ReturnsFalse()
         {
-            Assert.False(TestQueryTranslator<IdEntity>.TestValidLambdaExpression(null, out LambdaExpression lambda));
+            var query = new DatasyncTableQuery<IdEntity>(Table);
+            var translator = new TestQueryTranslator<IdEntity>(query, ClientOptions);
+            Assert.False(translator.TestValidLambdaExpression(null, out LambdaExpression lambda));
             Assert.Null(lambda);
         }
 
@@ -99,7 +100,9 @@ namespace Microsoft.Datasync.Client.Test.Linq.Query
         public void StripQuote_ReturnsUnquoted()
         {
             Expression<Func<IdEntity, bool>> expression = m => m.Id != null;
-            var actual = TestQueryTranslator<IdEntity>.TestStripQuote(expression);
+            var query = new DatasyncTableQuery<IdEntity>(Table);
+            var translator = new TestQueryTranslator<IdEntity>(query, ClientOptions);
+            var actual = translator.TestStripQuote(expression);
             Assert.Same(expression, actual);
         }
 
@@ -109,7 +112,9 @@ namespace Microsoft.Datasync.Client.Test.Linq.Query
         {
             Expression<Func<IdEntity, bool>> expression = m => m.Id != null;
             var quoted = Expression.Quote(expression);
-            var actual = TestQueryTranslator<IdEntity>.TestStripQuote(quoted);
+            var query = new DatasyncTableQuery<IdEntity>(Table);
+            var translator = new TestQueryTranslator<IdEntity>(query, ClientOptions);
+            var actual = translator.TestStripQuote(expression);
             Assert.Same(expression, actual);
         }
     }

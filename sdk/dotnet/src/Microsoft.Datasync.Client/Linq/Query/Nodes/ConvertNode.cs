@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Datasync.Client.Linq.Query.Nodes
 {
@@ -30,6 +31,10 @@ namespace Microsoft.Datasync.Client.Linq.Query.Nodes
         internal Type TargetType { get; set; }
 
         /// <inheritdoc/>
+        /// <remarks>
+        /// This Accept method is never called.
+        /// </remarks>
+        [ExcludeFromCodeCoverage]
         internal override T Accept<T>(QueryNodeVisitor<T> visitor) => visitor.Visit(this);
     }
 }

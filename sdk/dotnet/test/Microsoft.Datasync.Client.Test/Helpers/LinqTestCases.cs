@@ -180,8 +180,10 @@ namespace Microsoft.Datasync.Client.Test.Helpers
 
             // Enum comparisons
             Add("where-140", m => m.Where(x => x.MovieRating == MovieRating.PG13), "$filter=(rating eq 2)");
+            Add("where-141", m => m.Where(x => x.MovieRating.ToString() == "PG13"), "$filter=(rating eq 'PG13')");
+            Add("where-142", m => m.Where(x => x.MovieRating == (MovieRating)1), "$filter=(rating eq 1)");
 
-            // Convertsions
+            // Conversions
             Add("where-160", m => m.Where(x => Math.Round(x.Duration / 60.0) == (float)2), "$filter=(round((duration div 60.0)) eq 2.0)");
             Add("where-161", m => m.Where(x => (float)x.Year < 2001.5f), "$filter=(year lt 2001.5f)");
 

@@ -85,7 +85,7 @@ namespace Microsoft.Datasync.Client.Test.Linq
         }
 
         [Fact]
-        public void Linq_NotSupportedOperators()
+        public void Linq_NotSupportedBinaryOperators()
         {
             // Arrange
             var table = new DatasyncTable<Movie>(new Uri("https://localhost/tables/movies"), HttpClient, ClientOptions);
@@ -93,6 +93,18 @@ namespace Microsoft.Datasync.Client.Test.Linq
 
             // Act
             var actual = query.Where(m => (m.Year ^ 1024) == 0) as DatasyncTableQuery<Movie>;
+            Assert.Throws<NotSupportedException>(() => actual.ToODataQueryString());
+        }
+
+        [Fact]
+        public void Linq_NotSupportedUnaryOperators()
+        {
+            // Arrange
+            var table = new DatasyncTable<Movie>(new Uri("https://localhost/tables/movies"), HttpClient, ClientOptions);
+            var query = new DatasyncTableQuery<Movie>(table);
+
+            // Act
+            var actual = query.Where(m => (5 * (-m.Duration)) > -180) as DatasyncTableQuery<Movie>;
             Assert.Throws<NotSupportedException>(() => actual.ToODataQueryString());
         }
 
@@ -136,6 +148,16 @@ namespace Microsoft.Datasync.Client.Test.Linq
             // Arrange
             var table = new DatasyncTable<Movie>(new Uri("https://localhost/tables/movies"), HttpClient, ClientOptions);
             var query = new DatasyncTableQuery<Movie>(table).OrderBy(m => m.GetHashCode()) as DatasyncTableQuery<Movie>;
+
+            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+        }
+
+        [Fact]
+        public void Linq_InvalidOrderBy_ToString()
+        {
+            // Arrange
+            var table = new DatasyncTable<Movie>(new Uri("https://localhost/tables/movies"), HttpClient, ClientOptions);
+            var query = new DatasyncTableQuery<Movie>(table).OrderBy(m => m.ReleaseDate.ToString("o")) as DatasyncTableQuery<Movie>;
 
             Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
         }

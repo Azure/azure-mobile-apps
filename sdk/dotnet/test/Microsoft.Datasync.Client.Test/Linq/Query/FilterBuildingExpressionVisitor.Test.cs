@@ -3,7 +3,9 @@
 
 using Microsoft.Datasync.Client.Linq.Query;
 using Microsoft.Datasync.Client.Test.Helpers;
+using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 using System.Text.Json;
 using Xunit;
 
