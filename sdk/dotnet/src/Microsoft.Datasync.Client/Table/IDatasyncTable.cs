@@ -2,9 +2,11 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Http;
+using Microsoft.Datasync.Client.Linq;
 using Microsoft.Datasync.Client.Table;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,13 +21,6 @@ namespace Microsoft.Datasync.Client
     /// <typeparam name="T">The type of the data stored in the datasync table</typeparam>
     public interface IDatasyncTable<T> where T : notnull
     {
-        /// <summary>
-        /// Converts the current table to a table with a new type, but the same endpoint, client, and options.
-        /// </summary>
-        /// <typeparam name="U">The new type of the supported items</typeparam>
-        /// <returns>The new table</returns>
-        IDatasyncTable<U> WithType<U>() where U : notnull;
-
         /// <summary>
         /// The base <see cref="Uri"/> for the table.
         /// </summary>
@@ -90,5 +85,142 @@ namespace Microsoft.Datasync.Client
         /// <param name="token">A <see cref="CancellationToken"/></param>
         /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
         Task<HttpResponse<T>> UpdateItemAsync(string id, IReadOnlyDictionary<string, object> changes, HttpCondition? precondition = null, CancellationToken token = default);
+
+        /// <summary>
+        /// Converts the current table to a table with a new type, but the same endpoint, client, and options.
+        /// </summary>
+        /// <typeparam name="U">The new type of the supported items</typeparam>
+        /// <returns>The new table</returns>
+        IDatasyncTable<U> WithType<U>() where U : notnull;
+
+        /// <summary>
+        /// Request the total count of items that are available with the query
+        /// (without paging)
+        /// </summary>
+        /// <param name="enabled">Set the request to enabled or disabled</param>
+        /// <returns>The composed query</returns>
+        ITableQuery<T> IncludeTotalCount(bool enabled = true);
+
+        /// <summary>
+        /// Request that deleted items are returned.
+        /// </summary>
+        /// <param name="enabled">Set the request to enabled or disabled</param>
+        /// <returns>The composed query</returns>
+        ITableQuery<T> IncludeDeletedItems(bool enabled = true);
+
+        /// <summary>
+        /// Apply the specified ascending order clause to the source query.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the member being ordered by</typeparam>
+        /// <param name="keySelector">The expression selecting the member to order by</param>
+        /// <returns>The composed query</returns>
+        ITableQuery<T> OrderBy<TKey>(Expression<Func<T, TKey>> keySelector);
+
+        /// <summary>
+        /// Apply the specified descending order clause to the source query.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the member being ordered by</typeparam>
+        /// <param name="keySelector">The expression selecting the member to order by</param>
+        /// <returns>The composed query</returns>
+        ITableQuery<T> OrderByDescending<TKey>(Expression<Func<T, TKey>> keySelector);
+
+        /// <summary>
+        /// Apply the specified selection to the source query
+        /// </summary>
+        /// <typeparam name="U">The type of the projection</typeparam>
+        /// <param name="selector">The selector function</param>
+        /// <returns>The composed query</returns>
+        ITableQuery<U> Select<U>(Expression<Func<T, U>> selector) where U : notnull;
+
+        /// <summary>
+        /// Apply the specified skip clause to the source query.
+        /// </summary>
+        /// <remarks>
+        /// Skip clauses are cumulative.
+        /// </remarks>
+        /// <param name="count">The number of items to skip</param>
+        /// <returns>The composed query</returns>
+        ITableQuery<T> Skip(int count);
+
+        /// <summary>
+        /// Apply the specified take clause to the source query.
+        /// </summary>
+        /// <remarks>
+        /// The minimum take clause is the one that is used.
+        /// </remarks>
+        /// <param name="count">The number of items to take</param>
+        /// <returns>The composed query</returns>
+        ITableQuery<T> Take(int count);
+
+        /// <summary>
+        /// Apply the specified ascending order clause to the source query.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the member being ordered by</typeparam>
+        /// <param name="keySelector">The expression selecting the member to order by</param>
+        /// <returns>The composed query</returns>
+        ITableQuery<T> ThenBy<TKey>(Expression<Func<T, TKey>> keySelector);
+
+        /// <summary>
+        /// Apply the specified descending order clause to the source query.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the member being ordered by</typeparam>
+        /// <param name="keySelector">The expression selecting the member to order by</param>
+        /// <returns>The composed query</returns>
+        ITableQuery<T> ThenByDescending<TKey>(Expression<Func<T, TKey>> keySelector);
+
+        /// <summary>
+        /// Execute the query, returning an <see cref="IAsyncEnumerable{T}"/>
+        /// </summary>
+        /// <returns>An <see cref="IAsyncEnumerable{T}"/> to iterate over the items</returns>
+        IAsyncEnumerable<T> ToAsyncEnumerable(CancellationToken token = default);
+
+        /// <summary>
+        /// Execute the query, returning an <see cref="AsyncPageable{T}"/>
+        /// </summary>
+        /// <returns>An <see cref="AsyncPageable{T}"/> to iterate over the items</returns>
+        AsyncPageable<T> ToAsyncPageable(CancellationToken token = default);
+
+        /// <summary>
+        /// Execute the query, returning an <see cref="IEnumerable{T}"/>.
+        /// </summary>
+        /// <returns>An <see cref="IEnumerable{T}"/> to iterate over the items</returns>
+        IEnumerable<T> ToEnumerable(CancellationToken token = default);
+
+        /// <summary>
+        /// Execute the query, returning a <see cref="List{T}"/>
+        /// </summary>
+        /// <returns>A <see cref="List{T}"/> to iterate over the items</returns>
+        ValueTask<List<T>> ToListAsync(CancellationToken token = default);
+
+        /// <summary>
+        /// Applies the specified filter to the source query.
+        /// </summary>
+        /// <remarks>
+        /// Consecutive Where clauses are 'AND' together.
+        /// </remarks>
+        /// <param name="predicate">The predicate to use as the filter</param>
+        /// <returns>The composed query</returns>
+        ITableQuery<T> Where(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// Add the provided parameter to the query
+        /// </summary>
+        /// <remarks>
+        /// Parameters are cumulative.
+        /// </remarks>
+        /// <param name="key">The key of the parameter</param>
+        /// <param name="value">The value of the parameter</param>
+        /// <returns>The composed query</returns>
+        ITableQuery<T> WithParameter(string key, string value);
+
+        /// <summary>
+        /// Add the provided parameters to the query
+        /// </summary>
+        /// <remarks>
+        /// Parameters are cumulative.
+        /// </remarks>
+        /// <param name="parameters">A dictionary of parameters</param>
+        /// <returns>The composed query</returns>
+        ITableQuery<T> WithParameters(IEnumerable<KeyValuePair<string, string>> parameters);
     }
 }
