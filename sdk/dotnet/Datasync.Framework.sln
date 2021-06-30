@@ -29,11 +29,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "server", "server", "{3292E2
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "client", "client", "{219BB7C0-B666-4CDB-A894-2CB685292AAF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Datasync.Client", "src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj", "{9E21CCDB-FF24-4893-8326-F3CFFD210EF9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Datasync.Client", "src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj", "{9E21CCDB-FF24-4893-8326-F3CFFD210EF9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "client", "client", "{DA0D1997-60F6-4ADB-BB7E-AB7C071E8992}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Datasync.Client.Test", "test\Microsoft.Datasync.Client.Test\Microsoft.Datasync.Client.Test.csproj", "{EEC1058E-A26F-437F-8F3C-052FCEC3FEBC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Datasync.Client.Test", "test\Microsoft.Datasync.Client.Test\Microsoft.Datasync.Client.Test.csproj", "{EEC1058E-A26F-437F-8F3C-052FCEC3FEBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Datasync.Client.Integration", "test\Microsoft.Datasync.Client.Integration\Microsoft.Datasync.Client.Integration.csproj", "{0318C4FC-1CB6-43AF-83B2-76BB438A2652}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,10 @@ Global
 		{EEC1058E-A26F-437F-8F3C-052FCEC3FEBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EEC1058E-A26F-437F-8F3C-052FCEC3FEBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EEC1058E-A26F-437F-8F3C-052FCEC3FEBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0318C4FC-1CB6-43AF-83B2-76BB438A2652}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0318C4FC-1CB6-43AF-83B2-76BB438A2652}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0318C4FC-1CB6-43AF-83B2-76BB438A2652}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0318C4FC-1CB6-43AF-83B2-76BB438A2652}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -100,6 +106,7 @@ Global
 		{9E21CCDB-FF24-4893-8326-F3CFFD210EF9} = {219BB7C0-B666-4CDB-A894-2CB685292AAF}
 		{DA0D1997-60F6-4ADB-BB7E-AB7C071E8992} = {FC1EEC9E-3B6D-487B-80AF-DF63352EC02A}
 		{EEC1058E-A26F-437F-8F3C-052FCEC3FEBC} = {DA0D1997-60F6-4ADB-BB7E-AB7C071E8992}
+		{0318C4FC-1CB6-43AF-83B2-76BB438A2652} = {DA0D1997-60F6-4ADB-BB7E-AB7C071E8992}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A0CEDA72-A2EB-4741-98C3-6E5CFA65DF02}
