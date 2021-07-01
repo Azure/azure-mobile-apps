@@ -1,0 +1,37 @@
+<Project Sdk="MSBuild.Sdk.Extras/3.0.23">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Company>Microsoft</Company>
+    <Authors>Microsoft</Authors>
+    <Description>A client package for communicating with a Microsoft Datasync service.  Formally known as Azure Mobile Apps</Description>
+    <Product>$(AssemblyName) ($(TargetFramework))</Product>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <PackageProjectUrl>https://github.com/azure/azure-mobile-apps</PackageProjectUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/azure/azure-mobile-apps</RepositoryUrl>
+    <PackageTags>azure;mobile;datasync;microsoft</PackageTags>
+
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DebugType>portable</DebugType>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <LangVersion>9.0</LangVersion>
+    <NeutralLanguage>en-US</NeutralLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\images\icon.png" PackagePath="icon.png" Pack="True" />
+  </ItemGroup>
+
+</Project>
