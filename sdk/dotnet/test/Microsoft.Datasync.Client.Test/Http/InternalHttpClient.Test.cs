@@ -329,6 +329,29 @@ namespace Microsoft.Datasync.Client.Test.Http
             AssertEx.Contains("ZUMO-API-VERSION", "3.0.0", actual.Headers);
             AssertEx.Contains("X-ZUMO-INSTALLATION-ID", options.InstallationId, actual.Headers);
         }
+
+        [Fact]
+        [Trait("Method", "SendAsync")]
+        public async Task SendAsync_ThrowsTimeout_WhenOperationCanceled()
+        {
+            var handler = new TimeoutDelegatingHandler();
+            var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { handler } };
+            var client = new IntHttpClient(Endpoint, options);
+            var request = new HttpRequestMessage(HttpMethod.Get, "");
+
+            await Assert.ThrowsAsync<TimeoutException>(() => client.IntSendAsync(request)).ConfigureAwait(false);
+        }
         #endregion
+
+        /// <summary>
+        /// A test delegating handler that simulates timeout.
+        /// </summary>
+        public class TimeoutDelegatingHandler : DelegatingHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+            {
+                throw new OperationCanceledException();
+            }
+        }
     }
 }
