@@ -10,6 +10,16 @@ namespace Microsoft.Datasync.Client.Test
     [ExcludeFromCodeCoverage]
     public class DatasyncClient_Tests : BaseTest
     {
+        private class IntDatasyncClient : DatasyncClient
+        {
+            public IntDatasyncClient(Uri endpoint, DatasyncClientOptions options = null) : base(endpoint, options)
+            {
+            }
+
+            public void IntDispose(bool disposing) => Dispose(disposing);
+            public void IntDispose() => Dispose();
+        }
+
         [Fact]
         [Trait("Method", "Ctor(string)")]
         public void CtorString_Null_Throws()
@@ -34,6 +44,7 @@ namespace Microsoft.Datasync.Client.Test
             var client = new DatasyncClient(endpoint);
             Assert.Equal(expected, client.Endpoint.ToString());
             Assert.NotNull(client.ClientOptions);
+            Assert.NotNull(client.HttpClient);
         }
 
         [Fact]
@@ -58,6 +69,7 @@ namespace Microsoft.Datasync.Client.Test
             var client = new DatasyncClient(new Uri(endpoint));
             Assert.Equal(expected, client.Endpoint.ToString());
             Assert.NotNull(client.ClientOptions);
+            Assert.NotNull(client.HttpClient);
         }
 
         [Fact]
@@ -85,6 +97,7 @@ namespace Microsoft.Datasync.Client.Test
             var client = new DatasyncClient(endpoint, options);
             Assert.Equal(expected, client.Endpoint.ToString());
             Assert.Same(options, client.ClientOptions);
+            Assert.NotNull(client.HttpClient);
         }
 
         [Fact]
@@ -110,6 +123,39 @@ namespace Microsoft.Datasync.Client.Test
             var client = new DatasyncClient(new Uri(endpoint), options);
             Assert.Equal(expected, client.Endpoint.ToString());
             Assert.Same(options, client.ClientOptions);
+            Assert.NotNull(client.HttpClient);
         }
+
+        #region IDisposable
+        [Fact]
+        [Trait("Method", "Dispose(bool)")]
+        public void Dispose_True_Disposes()
+        {
+            var client = new IntDatasyncClient(Endpoint, ClientOptions);
+            Assert.NotNull(client.HttpClient);
+            client.IntDispose(true);
+            Assert.Null(client.HttpClient);
+        }
+
+        [Fact]
+        [Trait("Method", "Dispose(bool)")]
+        public void Dispose_False_Disposes()
+        {
+            var client = new IntDatasyncClient(Endpoint, ClientOptions);
+            Assert.NotNull(client.HttpClient);
+            client.IntDispose(false);
+            Assert.NotNull(client.HttpClient);
+        }
+
+        [Fact]
+        [Trait("Method", "Dispose")]
+        public void Dispose_Disposes()
+        {
+            var client = new IntDatasyncClient(Endpoint, ClientOptions);
+            Assert.NotNull(client.HttpClient);
+            client.IntDispose();
+            Assert.Null(client.HttpClient);
+        }
+        #endregion
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -44,6 +45,7 @@ namespace Microsoft.Datasync.Client
 
             Endpoint = endpoint.NormalizeEndpoint();
             ClientOptions = clientOptions ?? new DatasyncClientOptions();
+            HttpClient = new InternalHttpClient(Endpoint, ClientOptions);
         }
 
         /// <summary>
@@ -56,24 +58,31 @@ namespace Microsoft.Datasync.Client
         /// </summary>
         public DatasyncClientOptions ClientOptions { get; }
 
+        /// <summary>
+        /// The <see cref="InternalHttpClient"/> used to communicate with the remote datasync service.
+        /// </summary>
+        internal InternalHttpClient HttpClient { get; private set; }
+
         #region IDisposable
         /// <summary>
         /// Implementation of the <see cref="IDisposable"/> pattern for derived classes to use.
         /// </summary>
         /// <param name="disposing">Indicates if being called from the <see cref="Dispose"/> method or the finalizer.</param>
-        [ExcludeFromCodeCoverage]
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
             {
-                // TODO: dispose managed state (managed objects)
+                if (HttpClient != null)
+                {
+                    HttpClient.Dispose();
+                    HttpClient = null;
+                }
             }
         }
 
         /// <summary>
         /// Implementation of the <see cref="IDisposable"/> pattern.
         /// </summary>
-        [ExcludeFromCodeCoverage]
         public void Dispose()
         {
             Dispose(disposing: true);
