@@ -72,7 +72,7 @@ namespace Microsoft.Datasync.Client
         /// <typeparam name="T">The strongly-typed model type</typeparam>
         /// <returns>A generic typed table reference.</returns>
         public IDatasyncTable<T> GetTable<T>()
-            => GetTable<T>(ClientOptions.TablesPrefix + typeof(T).Name.ToLowerInvariant());
+            => GetTable<T>(ToRelativeUri(typeof(T).Name.ToLowerInvariant()));
 
         /// <summary>
         /// Obtain an <see cref="IDatasyncTable{T}"/> instance, which provides typed data operations for the specified table.
@@ -86,10 +86,17 @@ namespace Microsoft.Datasync.Client
         /// <returns>A generic typed table reference.</returns>
         public IDatasyncTable<T> GetTable<T>(string tableName)
         {
-            string relativeUri = tableName.StartsWith("/") ? tableName : ClientOptions.TablesPrefix + tableName;
+            string relativeUri = tableName.StartsWith("/") ? tableName : ToRelativeUri(tableName);
             Validate.IsRelativeUri(relativeUri, nameof(relativeUri));
             return new DatasyncTable<T>(relativeUri, HttpClient, ClientOptions);
         }
+
+        /// <summary>
+        /// Converts the provided <paramref name="tableName"/> into a relative URI.
+        /// </summary>
+        /// <param name="tableName">The table name to convert</param>
+        /// <returns>The relative URI to the table</returns>
+        private string ToRelativeUri(string tableName) => $"/{ClientOptions.TablesPrefix.Trim('/')}/{tableName}";
 
         #region IDisposable
         /// <summary>

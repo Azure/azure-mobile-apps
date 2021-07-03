@@ -96,6 +96,23 @@ namespace Microsoft.Datasync.Client.Test
         }
 
         [Fact]
+        [Trait("Method", "TablesPrefix")]
+        public void TablesPrefix_IsSet()
+        {
+            var sut = new DatasyncClientOptions();
+            Assert.NotNull(sut.TablesPrefix);
+            Assert.Equal("/tables/", sut.TablesPrefix);
+        }
+
+        [Fact]
+        [Trait("Method", "TablesPrefix")]
+        public void TablesPrefix_Roundtrips()
+        {
+            var sut = new DatasyncClientOptions { TablesPrefix = "/api" };
+            Assert.Equal("/api", sut.TablesPrefix);
+        }
+
+        [Fact]
         [Trait("Method", "UserAgent")]
         public void UserAgent_IsNotNull()
         {
