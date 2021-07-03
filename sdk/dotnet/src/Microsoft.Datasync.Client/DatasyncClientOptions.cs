@@ -41,6 +41,11 @@ namespace Microsoft.Datasync.Client
         public JsonSerializerOptions SerializerOptions { get; set; }
 
         /// <summary>
+        /// The prefix for the tables to generate a relative URI to the table endpoint.
+        /// </summary>
+        public string TablesPrefix { get; set; } = "/tables/";
+
+        /// <summary>
         /// The value used for the <c>User-Agent</c> header.  By default, this includes enough information
         /// to do telemetry easily without being too obtrusive.  We'd prefer it if you didn't change this.
         /// </summary>

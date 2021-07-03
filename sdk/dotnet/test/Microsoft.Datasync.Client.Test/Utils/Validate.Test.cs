@@ -3,6 +3,7 @@
 
 using Microsoft.Datasync.Client.Utils;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
@@ -11,6 +12,7 @@ namespace Microsoft.Datasync.Client.Test.Utils
     [ExcludeFromCodeCoverage]
     public class Validate_Tests : BaseTest
     {
+        #region IsNotNull
         [Fact]
         [Trait("Method", "IsNotNull(object,string)")]
         public void IsNotNull_Null_Throws()
@@ -26,6 +28,115 @@ namespace Microsoft.Datasync.Client.Test.Utils
             object sut = new();
             Validate.IsNotNull(sut, nameof(sut));
         }
+        #endregion
+
+        #region IsNotNullOrEmpty<T>(IEnumerable<T>,string)
+        [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
+        public void IsNotNullOrEmpty_Byte_Null_Throws()
+        {
+            byte[] sut = null;
+            Assert.Throws<ArgumentNullException>(() => Validate.IsNotNullOrEmpty(sut, nameof(sut)));
+        }
+
+        [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
+        public void IsNotNullOrEmpty_Byte_Empty_Throws()
+        {
+            byte[] sut = Array.Empty<byte>();
+            Assert.Throws<ArgumentException>(() => Validate.IsNotNullOrEmpty(sut, nameof(sut)));
+        }
+
+        [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
+        public void IsNotNullOrEmpty_Byte_Filled_Passes()
+        {
+            byte[] sut = Guid.NewGuid().ToByteArray();
+            Validate.IsNotNullOrEmpty(sut, nameof(sut));
+            Assert.NotEmpty(sut);
+        }
+
+        [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
+        public void IsNotNullOrEmpty_String_Null_Throws()
+        {
+            const string sut = null;
+            Assert.Throws<ArgumentNullException>(() => Validate.IsNotNullOrEmpty(sut, nameof(sut)));
+        }
+
+        [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
+        public void IsNotNullOrEmpty_String_Empty_Throws()
+        {
+            const string sut = "";
+            Assert.Throws<ArgumentException>(() => Validate.IsNotNullOrEmpty(sut, nameof(sut)));
+        }
+
+        [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
+        public void IsNotNullOrEmpty_String_Filled_Passes()
+        {
+            string sut = Guid.NewGuid().ToString();
+            Validate.IsNotNullOrEmpty(sut, nameof(sut));
+            Assert.NotEmpty(sut);
+        }
+
+        [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
+        public void IsNotNullOrEmpty_Dictionary_Null_Throws()
+        {
+            Dictionary<string, string> sut = null;
+            Assert.Throws<ArgumentNullException>(() => Validate.IsNotNullOrEmpty(sut, nameof(sut)));
+        }
+
+        [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
+        public void IsNotNullOrEmpty_Dictionary_Empty_Throws()
+        {
+            Dictionary<string, string> sut = new();
+            Assert.Throws<ArgumentException>(() => Validate.IsNotNullOrEmpty(sut, nameof(sut)));
+        }
+
+        [Fact]
+        [Trait("Method", "IsNotNullOrEmpty")]
+        public void IsNotNullOrEmpty_Dictionary_Filled_Passes()
+        {
+            Dictionary<string, string> sut = new() { { "test", "test" } };
+            Validate.IsNotNullOrEmpty(sut, nameof(sut));
+            Assert.NotEmpty(sut);
+        }
+        #endregion
+
+        #region IsNotNullOrWhitespace(string,string)
+        [Fact]
+        [Trait("Method", "IsNotNullOrWhitespace")]
+        public void IsNotNullOrWhitespace_String_Null_Throws()
+        {
+            const string sut = null;
+            Assert.Throws<ArgumentNullException>(() => Validate.IsNotNullOrWhitespace(sut, nameof(sut)));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("    ")]
+        [Trait("Method", "IsNotNullOrWhitespace")]
+        public void IsNotNullOrWhitespace_String_Empty_Throws(string sut)
+        {
+            Assert.Throws<ArgumentException>(() => Validate.IsNotNullOrWhitespace(sut, nameof(sut)));
+        }
+
+        [Fact]
+        [Trait("Method", "IsNotNullOrWhitespace")]
+        public void IsNotNullOrWhitespace_String_Filled_Passes()
+        {
+            string sut = Guid.NewGuid().ToString();
+            Validate.IsNotNullOrWhitespace(sut, nameof(sut));
+            Assert.NotEmpty(sut);
+        }
+        #endregion
+
+        #region IsValidEndpoint(Uri,string)
 
         [Fact]
         [Trait("Method", "IsValidEndpoint(Uri,string)")]
@@ -51,5 +162,39 @@ namespace Microsoft.Datasync.Client.Test.Utils
             Uri sut = new(endpoint);
             Validate.IsValidEndpoint(sut, nameof(sut));
         }
+        #endregion
+
+        #region IsRelativeUri(string,string)
+        [Fact]
+        public void IsRelativeUri_Null_Throws()
+        {
+            string sut = null;
+            Assert.Throws<ArgumentNullException>(() => Validate.IsRelativeUri(sut, nameof(sut)));
+        }
+
+        [Theory]
+        [InlineData("\"")]
+        [InlineData("<")]
+        [InlineData(">")]
+        [InlineData("\\")]
+        [InlineData("^")]
+        [InlineData("`")]
+        [InlineData("{")]
+        [InlineData("|")]
+        [InlineData("}")]
+        [Trait("Method", "IsRelativeUri")]
+        public void IsRelativeUri_Invalid_Throws(string sut)
+        {
+            Assert.Throws<ArgumentException>(() => Validate.IsRelativeUri(sut, nameof(sut)));
+        }
+
+        [Theory]
+        [InlineData("tables/foo")]
+        [InlineData("/tables/foo")]
+        public void IsRelativeUri_Valid_Passes(string sut)
+        {
+            Validate.IsRelativeUri(sut, nameof(sut));
+        }
+        #endregion
     }
 }

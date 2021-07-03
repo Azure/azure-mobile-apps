@@ -23,11 +23,6 @@ namespace Microsoft.Datasync.Client.Http
         protected const string ProtocolVersion = "3.0.0";
 
         /// <summary>
-        /// The URI for the datasync service.
-        /// </summary>
-        protected readonly Uri applicationUri;
-
-        /// <summary>
         /// The installation ID of the application.
         /// </summary>
         protected readonly string installationId;
@@ -63,17 +58,23 @@ namespace Microsoft.Datasync.Client.Http
             Validate.IsValidEndpoint(endpoint, nameof(endpoint));
             Validate.IsNotNull(clientOptions, nameof(clientOptions));
 
-            applicationUri = endpoint;
+            Endpoint = endpoint;
             installationId = clientOptions.InstallationId;
             userAgentHeaderValue = clientOptions.UserAgent;
 
             httpHandler = CreatePipeline(clientOptions.HttpPipeline ?? Array.Empty<HttpMessageHandler>());
-            httpClient = new HttpClient(httpHandler) { BaseAddress = applicationUri };
+            httpClient = new HttpClient(httpHandler) { BaseAddress = Endpoint };
             httpClient.DefaultRequestHeaders.TryAddWithoutValidation(InternalHttpHeaders.UserAgent, userAgentHeaderValue);
             httpClient.DefaultRequestHeaders.Add(InternalHttpHeaders.InternalUserAgent, userAgentHeaderValue);
             httpClient.DefaultRequestHeaders.Add(InternalHttpHeaders.ProtocolVersion, ProtocolVersion);
             httpClient.DefaultRequestHeaders.Add(InternalHttpHeaders.InstallationId, installationId);
         }
+
+
+        /// <summary>
+        /// The URI for the datasync service.
+        /// </summary>
+        public Uri Endpoint { get; }
 
         /// <summary>
         /// Transform a list of <see cref="HttpMessageHandler"/> objects into a chain suitable for using

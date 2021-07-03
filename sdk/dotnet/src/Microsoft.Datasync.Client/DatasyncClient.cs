@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Http;
+using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -62,6 +63,33 @@ namespace Microsoft.Datasync.Client
         /// The <see cref="InternalHttpClient"/> used to communicate with the remote datasync service.
         /// </summary>
         internal InternalHttpClient HttpClient { get; private set; }
+
+        /// <summary>
+        /// Obtain an <see cref="IDatasyncTable{T}"/> instance, which provides typed data operations for the specified type.
+        /// The table is converted to lower case and then combined with the <see cref="DatasyncClientOptions.TablesPrefix"/>
+        /// to generate the relative URI.
+        /// </summary>
+        /// <typeparam name="T">The strongly-typed model type</typeparam>
+        /// <returns>A generic typed table reference.</returns>
+        public IDatasyncTable<T> GetTable<T>()
+            => GetTable<T>(ClientOptions.TablesPrefix + typeof(T).Name.ToLowerInvariant());
+
+        /// <summary>
+        /// Obtain an <see cref="IDatasyncTable{T}"/> instance, which provides typed data operations for the specified table.
+        /// </summary>
+        /// <remarks>
+        /// If the <paramref name="tableName"/> starts with a <c>/</c>, then it is assumed to be a relative URI
+        /// instead of a table name, and used directly.
+        /// </remarks>
+        /// <typeparam name="T">The strongly-typed model type.</typeparam>
+        /// <param name="tableName">The name of the table, or relative URI to the table.</param>
+        /// <returns>A generic typed table reference.</returns>
+        public IDatasyncTable<T> GetTable<T>(string tableName)
+        {
+            string relativeUri = tableName.StartsWith("/") ? tableName : ClientOptions.TablesPrefix + tableName;
+            Validate.IsRelativeUri(relativeUri, nameof(relativeUri));
+            return new DatasyncTable<T>(relativeUri, HttpClient, ClientOptions);
+        }
 
         #region IDisposable
         /// <summary>

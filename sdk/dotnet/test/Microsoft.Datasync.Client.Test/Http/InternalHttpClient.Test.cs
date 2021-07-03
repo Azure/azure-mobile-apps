@@ -24,7 +24,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             internal IntHttpClient(Uri endpoint, DatasyncClientOptions options) : base(endpoint, options)
             {
             }
-            internal string Endpoint { get => applicationUri.ToString(); }
+            internal string IntEndpoint { get => Endpoint.ToString(); }
             internal HttpMessageHandler HttpHandler { get => httpHandler; }
             internal HttpClient HttpClient { get => httpClient; }
             internal void IntDispose(bool dispose) => base.Dispose(dispose);
@@ -63,7 +63,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         public void Ctor_ValidEndpoint_CreatesClient(string endpoint, string normalized)
         {
             var client = new IntHttpClient(new Uri(normalized), ClientOptions);
-            Assert.Equal(normalized, client.Endpoint);
+            Assert.Equal(normalized, client.IntEndpoint);
             Assert.NotNull(client.HttpHandler);
             Assert.NotNull(client.HttpClient);
 
@@ -84,7 +84,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         {
             var options = new DatasyncClientOptions { HttpPipeline = null, InstallationId = "test-int-id", UserAgent = "test-user-agent" };
             var client = new IntHttpClient(new Uri(normalized), options);
-            Assert.Equal(normalized, client.Endpoint);
+            Assert.Equal(normalized, client.IntEndpoint);
             Assert.NotNull(client.HttpHandler);
             Assert.NotNull(client.HttpClient);
 
