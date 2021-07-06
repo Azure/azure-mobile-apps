@@ -4,6 +4,7 @@
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Net.Http;
 
 namespace Microsoft.Datasync.Client
@@ -38,5 +39,10 @@ namespace Microsoft.Datasync.Client
         /// The resulting response message
         /// </summary>
         public HttpResponseMessage Response { get; }
+
+        /// <summary>
+        /// If true, this exception was thrown due to a service conflict.
+        /// </summary>
+        public bool IsConflictStatusCode { get => Response?.StatusCode == HttpStatusCode.Conflict || Response?.StatusCode == HttpStatusCode.PreconditionFailed;  }
     }
 }

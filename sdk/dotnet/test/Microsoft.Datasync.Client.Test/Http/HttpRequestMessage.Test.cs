@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
 using Microsoft.Datasync.Client.Http;
-using Microsoft.Datasync.Client.Test.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -29,7 +29,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         {
             var sut = new HttpRequestMessage(HttpMethod.Post, "");
             var result = sut.WithHeader("X-ZUMO-TEST", "value");
-            AssertEx.Contains("X-ZUMO-TEST", "value", result.Headers);
+            AssertEx.HasHeader(result.Headers, "X-ZUMO-TEST", "value");
             Assert.Same(sut, result);
         }
 
@@ -75,8 +75,8 @@ namespace Microsoft.Datasync.Client.Test.Http
             var result = sut.WithHeaders(dict);
             Assert.Equal(expectedCount + 2, result.Headers.Count());
             Assert.Same(sut, result);
-            AssertEx.Contains("X-ZUMO-FEATURES", "TT", result.Headers);
-            AssertEx.Contains("X-ZUMO-TEST", "value", result.Headers);
+            AssertEx.HasHeader(result.Headers, "X-ZUMO-FEATURES", "TT");
+            AssertEx.HasHeader(result.Headers, "X-ZUMO-TEST", "value");
         }
 
         [Fact]
@@ -140,7 +140,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         {
             var sut = new HttpRequestMessage(HttpMethod.Get, "");
             var result = sut.WithFeatureHeader(features);
-            AssertEx.Contains("X-ZUMO-FEATURES", expected, result.Headers);
+            AssertEx.HasHeader(result.Headers, "X-ZUMO-FEATURES", expected);
         }
         #endregion
 

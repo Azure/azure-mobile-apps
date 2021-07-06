@@ -10,7 +10,7 @@ namespace Microsoft.Datasync.Client
     /// <summary>
     /// A precondition header that suggests only do the operation if the precondition matches.
     /// </summary>
-    public class IfMatch : Precondition
+    public sealed class IfMatch : Precondition
     {
         private const string headerName = "If-Match";
 
@@ -42,6 +42,5 @@ namespace Microsoft.Datasync.Client
         /// </summary>
         /// <param name="version">The version</param>
         public static IfMatch Version(byte[] version) => new(version);
-
     }
 }

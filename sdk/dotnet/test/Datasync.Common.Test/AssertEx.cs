@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Datasync.Extensions;
@@ -21,6 +22,26 @@ namespace Datasync.Common.Test
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public static class AssertEx
     {
+        /// <summary>
+        /// Asserts if the header dictionary contains the provided value.
+        /// </summary>
+        /// <param name="key">the header name</param>
+        /// <param name="expected">the header value</param>
+        /// <param name="headers">The headers</param>
+        public static void Contains(string key, string expected, IReadOnlyDictionary<string, IEnumerable<string>> headers)
+        {
+            Assert.True(headers.TryGetValue(key, out IEnumerable<string> values), $"Dictionary does not contain key {key}");
+            Assert.True(values.Count() == 1, $"Dictionary contains multiple values for {key}");
+            Assert.Equal(expected, values.Single());
+        }
+
+        /// <summary>
+        /// Asserts if the two dates are "close" to one another (enough so to be valid in terms of test speed)
+        /// timings)
+        /// </summary>
+        /// <param name="expected"></param>
+        /// <param name="actual"></param>
+        /// <param name="interval"></param>
         public static void CloseTo(DateTimeOffset expected, DateTimeOffset actual, int interval = 2000)
         {
             Assert.NotNull(expected);
@@ -29,20 +50,40 @@ namespace Datasync.Common.Test
             Assert.True(ms < interval, $"Date {expected} and {actual} are {ms}ms apart");
         }
 
+        /// <summary>
+        /// Asserts if the headers contains the specific header provided
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="headerName"></param>
+        /// <param name="expected"></param>
         public static void ResponseHasHeader(HttpResponseMessage response, string headerName, string expected)
         {
-            var hasHeader = (headerName == "Last-Modified")
-                ? response.Content.Headers.TryGetValues(headerName, out IEnumerable<string> headerValues)
-                : response.Headers.TryGetValues(headerName, out headerValues);
-            Assert.True(hasHeader, $"The response does not contain header {headerName}");
-            Assert.NotNull(headerValues);
-            Assert.True(headerValues.Count() == 1, $"There are {headerValues.Count()} values for header {headerName}");
-            Assert.Equal(expected, headerValues.Single());
+            if (headerName.Equals("Last-Modified", StringComparison.InvariantCultureIgnoreCase) || headerName.StartsWith("Content-", StringComparison.InvariantCultureIgnoreCase))
+            {
+                HasHeader(response.Content.Headers, headerName, expected);
+            }
+            else
+            {
+                HasHeader(response.Headers, headerName, expected);
+            }
+        }
+
+        /// <summary>
+        /// Asserts if the headers contaisn the specific header provided
+        /// </summary>
+        /// <param name="headers"></param>
+        /// <param name="headerName"></param>
+        /// <param name="expected"></param>
+        public static void HasHeader(HttpHeaders headers, string headerName, string expected)
+        {
+            Assert.True(headers.TryGetValues(headerName, out IEnumerable<string> values), $"The header does not contain header {headerName}");
+            Assert.True(values.Count() == 1, $"There are {values.Count()} values for header {headerName}");
+            Assert.Equal(expected, values.Single());
         }
 
         public static void SystemPropertiesSet(ITableData entity)
         {
-            AssertEx.CloseTo(DateTimeOffset.Now, entity.UpdatedAt);
+            CloseTo(DateTimeOffset.Now, entity.UpdatedAt);
             Assert.NotEmpty(entity.Version);
         }
 

@@ -5,6 +5,7 @@ using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -57,9 +58,28 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="item">The item to add to the table.</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
         /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
-        public Task<ServiceResponse<T>> CreateItemAsync(T item, CancellationToken token = default)
+        public virtual async Task<ServiceResponse<T>> CreateItemAsync(T item, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            Validate.IsNotNull(item, nameof(item));
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
+                .WithFeatureHeader(DatasyncFeatures.TypedTable)
+                .WithContent(item, ClientOptions.SerializerOptions);
+
+            try
+            {
+                using var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+                return await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+            }
+            catch (DatasyncOperationException ex)
+            {
+                if (ex.IsConflictStatusCode)
+                {
+                    var serviceResponse = await ServiceResponse.FromResponseAsync<T>(ex.Response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+                    throw new DatasyncConflictException<T>(ex, serviceResponse.Value);
+                }
+                throw;
+            }
         }
 
         /// <summary>
@@ -69,7 +89,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
         /// <returns>A <see cref="HttpResponse"/> object.</returns>
-        public Task<ServiceResponse> DeleteItemAsync(string id, IfMatch precondition = null, CancellationToken token = default)
+        public virtual async Task<ServiceResponse> DeleteItemAsync(string id, IfMatch precondition = null, CancellationToken token = default)
         {
             throw new NotImplementedException();
         }
@@ -81,7 +101,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="query">The query string to send to the service</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
         /// <returns>An <see cref="AsyncPageable{T}"/> for retrieving the items asynchronously.</returns>
-        public AsyncPageable<U> GetAsyncItems<U>(string query = "", CancellationToken token = default)
+        public virtual AsyncPageable<U> GetAsyncItems<U>(string query = "", CancellationToken token = default)
         {
             throw new NotImplementedException();
         }
@@ -93,7 +113,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
         /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
-        public Task<ServiceResponse<T>> GetItemAsync(string id, IfNoneMatch precondition = null, CancellationToken token = default)
+        public virtual async Task<ServiceResponse<T>> GetItemAsync(string id, IfNoneMatch precondition = null, CancellationToken token = default)
         {
             throw new NotImplementedException();
         }
@@ -106,7 +126,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
         /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
-        public Task<ServiceResponse<T>> ReplaceItemAsync(T item, IfMatch precondition = null, CancellationToken token = default)
+        public virtual async Task<ServiceResponse<T>> ReplaceItemAsync(T item, IfMatch precondition = null, CancellationToken token = default)
         {
             throw new NotImplementedException();
         }
@@ -119,7 +139,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
         /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
-        public Task<ServiceResponse<T>> UpdateItemAsync(string id, IReadOnlyDictionary<string, object> changes, IfMatch precondition = null, CancellationToken token = default)
+        public virtual async Task<ServiceResponse<T>> UpdateItemAsync(string id, IReadOnlyDictionary<string, object> changes, IfMatch precondition = null, CancellationToken token = default)
         {
             throw new NotImplementedException();
         }
@@ -129,10 +149,10 @@ namespace Microsoft.Datasync.Client.Table
         /// </summary>
         /// <typeparam name="U">The new type of the supported items</typeparam>
         /// <returns>The new table</returns>
-        public IDatasyncTable<U> WithType<U>() where U : notnull
-        {
-            throw new NotImplementedException();
-        }
+        //public virtual IDatasyncTable<U> WithType<U>()
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         /// <summary>
         /// Request the total count of items that are available with the query

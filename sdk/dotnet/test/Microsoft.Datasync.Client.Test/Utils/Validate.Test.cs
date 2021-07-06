@@ -168,7 +168,7 @@ namespace Microsoft.Datasync.Client.Test.Utils
         [Fact]
         public void IsRelativeUri_Null_Throws()
         {
-            string sut = null;
+            const string sut = null;
             Assert.Throws<ArgumentNullException>(() => Validate.IsRelativeUri(sut, nameof(sut)));
         }
 

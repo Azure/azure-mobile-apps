@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test.Models;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Xunit;
@@ -20,6 +21,7 @@ namespace Microsoft.Datasync.Client.Test
             public void IntDispose() => Dispose();
         }
 
+        #region Ctor
         [Fact]
         [Trait("Method", "Ctor(string)")]
         public void CtorString_Null_Throws()
@@ -84,6 +86,7 @@ namespace Microsoft.Datasync.Client.Test
         [Trait("Method", "Ctor(string,DatasyncClientOptions)")]
         [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case does not check for normalization")]
         [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case does not check for normalization")]
+        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Test case does not check for normalization")]
         public void CtorStringOptions_Invalid_Throws(string endpoint, bool isRelative)
         {
             Assert.Throws<UriFormatException>(() => new DatasyncClient(endpoint));
@@ -125,6 +128,86 @@ namespace Microsoft.Datasync.Client.Test
             Assert.Same(options, client.ClientOptions);
             Assert.NotNull(client.HttpClient);
         }
+        #endregion
+
+        #region GetTable<T>()
+        [Fact]
+        [Trait("Method", "GetTable")]
+        public void GetTable_ProducesTable_WithNormalOptions()
+        {
+            var client = new DatasyncClient(Endpoint);
+            var table = client.GetTable<ClientMovie>();
+            Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
+            var expectedUri = new Uri(Endpoint, "tables/clientmovie");
+            Assert.Equal(expectedUri, table.Endpoint);
+            Assert.Same(client.ClientOptions, table.ClientOptions);
+        }
+
+        [Fact]
+        [Trait("Method", "GetTable")]
+        public void GetTable_ProducesTable_WithTablesPrefix()
+        {
+            var options = new DatasyncClientOptions { TablesPrefix = "/api" };
+            var client = new DatasyncClient(Endpoint, options);
+            var table = client.GetTable<ClientMovie>();
+            Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
+            var expectedUri = new Uri(Endpoint, "api/clientmovie");
+            Assert.Equal(expectedUri, table.Endpoint);
+            Assert.Same(options, table.ClientOptions);
+        }
+        #endregion
+
+        #region GetTable<T>(string)
+        [Fact]
+        [Trait("Method", "GetTable")]
+        public void GetTable_stringTable_ProducesTable()
+        {
+            var client = new DatasyncClient(Endpoint);
+            var table = client.GetTable<ClientMovie>("movies");
+            Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
+            var expectedUri = new Uri(Endpoint, "tables/movies");
+            Assert.Equal(expectedUri, table.Endpoint);
+            Assert.Same(client.ClientOptions, table.ClientOptions);
+        }
+
+        [Fact]
+        [Trait("Method", "GetTable")]
+        public void GetTable_stringTable_ProducesTable_WithTablesPrefix()
+        {
+            var options = new DatasyncClientOptions { TablesPrefix = "/api" };
+            var client = new DatasyncClient(Endpoint, options);
+            var table = client.GetTable<ClientMovie>("movies");
+            Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
+            var expectedUri = new Uri(Endpoint, "api/movies");
+            Assert.Equal(expectedUri, table.Endpoint);
+            Assert.Same(options, table.ClientOptions);
+        }
+
+        [Fact]
+        [Trait("Method", "GetTable")]
+        public void GetTable_stringRelativeUri_ProducesTable()
+        {
+            var client = new DatasyncClient(Endpoint);
+            var table = client.GetTable<ClientMovie>("/api/movies");
+            Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
+            var expectedUri = new Uri(Endpoint, "api/movies");
+            Assert.Equal(expectedUri, table.Endpoint);
+            Assert.Same(client.ClientOptions, table.ClientOptions);
+        }
+
+        [Fact]
+        [Trait("Method", "GetTable")]
+        public void GetTable_stringRelativeUri_ProducesTable_WithTablesPrefix()
+        {
+            var options = new DatasyncClientOptions { TablesPrefix = "/api" };
+            var client = new DatasyncClient(Endpoint, options);
+            var table = client.GetTable<ClientMovie>("/foo/movies");
+            Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
+            var expectedUri = new Uri(Endpoint, "foo/movies");
+            Assert.Equal(expectedUri, table.Endpoint);
+            Assert.Same(options, table.ClientOptions);
+        }
+        #endregion
 
         #region IDisposable
         [Fact]

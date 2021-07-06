@@ -5,6 +5,7 @@ using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,7 +71,6 @@ namespace Microsoft.Datasync.Client.Http
             httpClient.DefaultRequestHeaders.Add(InternalHttpHeaders.InstallationId, installationId);
         }
 
-
         /// <summary>
         /// The URI for the datasync service.
         /// </summary>
@@ -126,18 +126,20 @@ namespace Microsoft.Datasync.Client.Http
         /// <param name="request">The <see cref="HttpRequestMessage"/> to be sent.</param>
         /// <param name="token">A <see cref="CancellationToken"/> for the request</param>
         /// <returns>The response from the server</returns>
-        protected virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+        internal virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
         {
             Validate.IsNotNull(request, nameof(request));
 
             try
             {
                 var response = await httpClient.SendAsync(request, token).ConfigureAwait(false);
-                if (!response.IsSuccessStatusCode)
+
+                if (response.IsSuccessStatusCode)
                 {
-                    throw new DatasyncOperationException(request, response);
+                    return response;
                 }
-                return response;
+                throw new DatasyncOperationException(request, response);
+
             }
             catch (OperationCanceledException) when (!token.IsCancellationRequested)
             {

@@ -90,7 +90,7 @@ namespace Microsoft.Datasync.Client
         /// </summary>
         /// <typeparam name="U">The new type of the supported items</typeparam>
         /// <returns>The new table</returns>
-        IDatasyncTable<U> WithType<U>() where U : notnull;
+        //IDatasyncTable<U> WithType<U>();
 
         /// <summary>
         /// Request the total count of items that are available with the query

@@ -137,7 +137,6 @@ namespace Microsoft.Datasync.Client.Test.Platforms
 
             // Storage an item within the storage.
             const string key = "appstorage-test-key1";
-            var value = Guid.NewGuid().ToString();
 
             // Make sure we clean up after a prior run
             storage.RemoveValue(key);

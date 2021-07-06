@@ -10,7 +10,7 @@ namespace Microsoft.Datasync.Client
     /// <summary>
     /// A precondition header that suggests only do the operation if the precondition does not match.
     /// </summary>
-    public class IfNoneMatch : Precondition
+    public sealed class IfNoneMatch : Precondition
     {
         private const string headerName = "If-None-Match";
 
@@ -42,6 +42,5 @@ namespace Microsoft.Datasync.Client
         /// </summary>
         /// <param name="version">The version of the entity</param>
         public static IfNoneMatch Version(byte[] version) => new(version);
-
     }
 }

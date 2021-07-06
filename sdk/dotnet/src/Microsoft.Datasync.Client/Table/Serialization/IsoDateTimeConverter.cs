@@ -23,7 +23,7 @@ namespace Microsoft.Datasync.Client.Table.Serialization
         /// <param name="options">The <see cref="JsonSerializerOptions"/></param>
         /// <returns>The value of the field</returns>
         public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-            => DateTime.ParseExact(reader.GetString(), DateTimeFormat, CultureInfo.InvariantCulture).ToLocalTime();
+            => DateTime.Parse(reader.GetString(), CultureInfo.InvariantCulture).ToLocalTime();
 
         /// <summary>
         /// Write a <see cref="DateTimeOffset"/> to the JSON stream

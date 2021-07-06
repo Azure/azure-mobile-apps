@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
 using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Test.Helpers;
 using System;
@@ -69,9 +70,9 @@ namespace Microsoft.Datasync.Client.Test.Http
 
             // DefaultRequestHeaders must contain the list of headers
             Assert.Equal(ClientOptions.UserAgent, client.HttpClient.DefaultRequestHeaders.UserAgent.ToString());
-            AssertEx.Contains("X-ZUMO-VERSION", ClientOptions.UserAgent, client.HttpClient.DefaultRequestHeaders);
-            AssertEx.Contains("ZUMO-API-VERSION", "3.0.0", client.HttpClient.DefaultRequestHeaders);
-            AssertEx.Contains("X-ZUMO-INSTALLATION-ID", ClientOptions.InstallationId, client.HttpClient.DefaultRequestHeaders);
+            AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-VERSION", ClientOptions.UserAgent);
+            AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-INSTALLATION-ID", ClientOptions.InstallationId);
             Assert.Equal(normalized, client.HttpClient.BaseAddress.ToString());
         }
 
@@ -90,9 +91,9 @@ namespace Microsoft.Datasync.Client.Test.Http
 
             // DefaultRequestHeaders must contain the list of headers
             Assert.Equal("test-user-agent", client.HttpClient.DefaultRequestHeaders.UserAgent.ToString());
-            AssertEx.Contains("X-ZUMO-VERSION", "test-user-agent", client.HttpClient.DefaultRequestHeaders);
-            AssertEx.Contains("ZUMO-API-VERSION", "3.0.0", client.HttpClient.DefaultRequestHeaders);
-            AssertEx.Contains("X-ZUMO-INSTALLATION-ID", "test-int-id", client.HttpClient.DefaultRequestHeaders);
+            AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-VERSION", "test-user-agent");
+            AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-INSTALLATION-ID", "test-int-id");
             Assert.Equal(normalized, client.HttpClient.BaseAddress.ToString());
         }
         #endregion
@@ -325,9 +326,9 @@ namespace Microsoft.Datasync.Client.Test.Http
             var actual = handler.Requests[0];
 
             Assert.Equal(options.UserAgent, actual.Headers.UserAgent.ToString());
-            AssertEx.Contains("X-ZUMO-VERSION", options.UserAgent, actual.Headers);
-            AssertEx.Contains("ZUMO-API-VERSION", "3.0.0", actual.Headers);
-            AssertEx.Contains("X-ZUMO-INSTALLATION-ID", options.InstallationId, actual.Headers);
+            AssertEx.HasHeader(actual.Headers, "X-ZUMO-VERSION", options.UserAgent);
+            AssertEx.HasHeader(actual.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(actual.Headers, "X-ZUMO-INSTALLATION-ID", options.InstallationId);
         }
 
         [Fact]
