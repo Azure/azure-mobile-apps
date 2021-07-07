@@ -35,6 +35,7 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         #region CreateItemAsync
         [Theory, CombinatorialData]
+        [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemsAsync_Basic(bool hasId)
         {
             // Arrange
@@ -68,6 +69,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
 
         [Theory, CombinatorialData]
+        [Trait("Method", "CreateItemAsync")]
         public async Task CreateAsync_OverwriteSystemProperties(bool useUpdatedAt, bool useVersion)
         {
             // Arrange
@@ -114,6 +116,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [InlineData("year", 1900)]
         [InlineData("year", 2035)]
         [InlineData("year", null)]
+        [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_ValidationTest(string propName, object propValue)
         {
             // Arrange
@@ -149,6 +152,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
 
         [Theory, CombinatorialData]
+        [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_Conflict([CombinatorialRange(0, Movies.Count)] int index)
         {
             // Arrange
@@ -174,6 +178,140 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal<IMovie>(expectedMovie, entity);
             Assert.Equal<ITableData>(expectedMovie, entity);
             AssertEx.ResponseHasConditionalHeaders(entity, exception.Response);
+        }
+        #endregion
+
+        #region DeleteItemAsync
+        [Theory, CombinatorialData]
+        [Trait("Method", "DeleteItemAsync")]
+        public async Task DeleteItemAsync_Basic([CombinatorialRange(0, Movies.Count)] int index)
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var repository = GetRepository<InMemoryMovie>();
+            var entityCount = repository.Entities.Count;
+            var id = GetMovieId(index);
+
+            // Act
+            var table = client.GetTable<ClientMovie>("movies");
+            var response = await table.DeleteItemAsync(id).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(204, response.StatusCode);
+            Assert.Equal(entityCount - 1, repository.Entities.Count);
+            Assert.Null(repository.GetEntity(id));
+        }
+
+        [Fact]
+        [Trait("Method", "DeleteItemAsync")]
+        public async Task DeleteItemAsync_NotFound()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var repository = GetRepository<InMemoryMovie>();
+            var entityCount = repository.Entities.Count;
+            const string id = "not-found";
+
+            // Act
+            var table = client.GetTable<ClientMovie>("movies");
+            var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(id)).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, exception.Response.StatusCode);
+            Assert.Equal(entityCount, repository.Entities.Count);
+        }
+
+        [Fact]
+        [Trait("Method", "DeleteItemAsync")]
+        public async Task DeleteItemAsync_ConditionalSuccess()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var repository = GetRepository<InMemoryMovie>();
+            var entityCount = repository.Entities.Count;
+            const string id = "id-107";
+            var expected = repository.GetEntity(id);
+            var etag = Convert.ToBase64String(expected.Version);
+
+            // Act
+            var table = client.GetTable<ClientMovie>("movies");
+            var response = await table.DeleteItemAsync(id, IfMatch.Version(etag)).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(204, response.StatusCode);
+            Assert.Equal(entityCount - 1, repository.Entities.Count);
+            Assert.Null(repository.GetEntity(id));
+        }
+
+        [Fact]
+        [Trait("Method", "DeleteItemAsync")]
+        public async Task DeleteItemAsync_ConditionalFailure()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var repository = GetRepository<InMemoryMovie>();
+            var entityCount = repository.Entities.Count;
+            const string id = "id-107";
+            var expected = repository.GetEntity(id).Clone();
+            const string etag = "dGVzdA==";
+
+            // Act
+            var table = client.GetTable<ClientMovie>("movies");
+            var exception = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.DeleteItemAsync(id, IfMatch.Version(etag))).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.PreconditionFailed, exception.Response.StatusCode);
+            Assert.Equal(entityCount, repository.Entities.Count);
+            var entity = repository.GetEntity(id);
+            Assert.NotNull(entity);
+            AssertEx.SystemPropertiesSet(entity);
+            AssertEx.SystemPropertiesMatch(entity, exception.ServerItem);
+            Assert.Equal<IMovie>(expected, exception.ServerItem);
+            Assert.Equal<IMovie>(expected, entity);
+            Assert.Equal<ITableData>(expected, entity);
+            AssertEx.ResponseHasConditionalHeaders(entity, exception.Response);
+        }
+
+        [Fact]
+        [Trait("Method", "DeleteItemAsync")]
+        public async Task DeleteItemAsync_SoftDelete()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var repository = GetRepository<SoftMovie>();
+            var entityCount = repository.Entities.Count;
+            const string id = "id-024";
+
+            // Act
+            var table = client.GetTable<ClientMovie>("soft");
+            var response = await table.DeleteItemAsync(id).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(204, response.StatusCode);
+            Assert.Equal(entityCount, repository.Entities.Count);
+            var entity = repository.GetEntity(id);
+            Assert.True(entity.Deleted);
+        }
+
+        [Fact]
+        [Trait("Method", "DeleteItemAsync")]
+        public async Task DeleteItemAsync_GoneWhenDeleted()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var repository = GetRepository<SoftMovie>();
+            var entityCount = repository.Entities.Count;
+            const string id = "id-025";
+
+            // Act
+            var table = client.GetTable<ClientMovie>("soft");
+            var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(id)).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Gone, exception.Response.StatusCode);
+            Assert.Equal(entityCount, repository.Entities.Count);
+            var entity = repository.GetEntity(id);
+            Assert.True(entity.Deleted);
         }
         #endregion
     }

@@ -136,34 +136,6 @@ namespace Microsoft.Datasync.Client.Test.Utils
         }
         #endregion
 
-        #region IsValidEndpoint(Uri,string)
-
-        [Fact]
-        [Trait("Method", "IsValidEndpoint(Uri,string)")]
-        public void IsValidEndpoint_Null_Throws()
-        {
-            Uri sut = null;
-            Assert.Throws<ArgumentNullException>(() => Validate.IsValidEndpoint(sut, nameof(sut)));
-        }
-
-        [Theory, ClassData(typeof(TestCases.Invalid_Endpoints))]
-        [Trait("Method", "IsValidEndpoint(Uri,string)")]
-        public void IsValidEndpoint_Invalid_Throws(string endpoint, bool isRelative = false)
-        {
-            Assert.Throws<UriFormatException>(() => Validate.IsValidEndpoint(isRelative ? new Uri(endpoint, UriKind.Relative) : new Uri(endpoint), "sut"));
-        }
-
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
-        [Trait("Method", "IsValidEndpoint(Uri,string)")]
-        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case does not check for normalization")]
-        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case does not check for normalization")]
-        public void IsValidEndpoint_Valid_Passes(string endpoint, string normalizedEndpoint)
-        {
-            Uri sut = new(endpoint);
-            Validate.IsValidEndpoint(sut, nameof(sut));
-        }
-        #endregion
-
         #region IsRelativeUri(string,string)
         [Fact]
         public void IsRelativeUri_Null_Throws()
@@ -194,6 +166,72 @@ namespace Microsoft.Datasync.Client.Test.Utils
         public void IsRelativeUri_Valid_Passes(string sut)
         {
             Validate.IsRelativeUri(sut, nameof(sut));
+        }
+        #endregion
+
+        #region IsValidEndpoint(Uri,string)
+
+        [Fact]
+        [Trait("Method", "IsValidEndpoint(Uri,string)")]
+        public void IsValidEndpoint_Null_Throws()
+        {
+            Uri sut = null;
+            Assert.Throws<ArgumentNullException>(() => Validate.IsValidEndpoint(sut, nameof(sut)));
+        }
+
+        [Theory, ClassData(typeof(TestCases.Invalid_Endpoints))]
+        [Trait("Method", "IsValidEndpoint(Uri,string)")]
+        public void IsValidEndpoint_Invalid_Throws(string endpoint, bool isRelative = false)
+        {
+            Assert.Throws<UriFormatException>(() => Validate.IsValidEndpoint(isRelative ? new Uri(endpoint, UriKind.Relative) : new Uri(endpoint), "sut"));
+        }
+
+        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Trait("Method", "IsValidEndpoint(Uri,string)")]
+        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case does not check for normalization")]
+        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case does not check for normalization")]
+        public void IsValidEndpoint_Valid_Passes(string endpoint, string normalizedEndpoint)
+        {
+            Uri sut = new(endpoint);
+            Validate.IsValidEndpoint(sut, nameof(sut));
+        }
+        #endregion
+
+        #region IsValidId(string,string)
+        [Fact]
+        [Trait("Method", "IsValidId")]
+        public void IsValidId_Null_Throws()
+        {
+            const string sut = null;
+            Assert.Throws<ArgumentNullException>(() => Validate.IsValidId(sut, nameof(sut)));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("\t")]
+        [InlineData("abcdef gh")]
+        [InlineData("!!!")]
+        [InlineData("?")]
+        [InlineData(";")]
+        [InlineData("{EA235ADF-9F38-44EA-8DA4-EF3D24755767}")]
+        [InlineData("###")]
+        [Trait("Method", "IsValidId")]
+        public void IsValidId_InvalidId_Throws(string sut)
+        {
+            Assert.Throws<ArgumentException>(() => Validate.IsValidId(sut, nameof(sut)));
+        }
+
+        [Theory]
+        [InlineData("db0ec08d-46a9-465d-9f5e-0066a3ee5b5f")]
+        [InlineData("0123456789")]
+        [InlineData("abcdefgh")]
+        [InlineData("db0ec08d_46a9_465d_9f5e_0066a3ee5b5f")]
+        [InlineData("db0ec08d.46a9.465d.9f5e.0066a3ee5b5f")]
+        [Trait("Method", "IsValidId")]
+        public void IsValidId_Passes(string sut)
+        {
+            Validate.IsValidId(sut, nameof(sut));
         }
         #endregion
     }

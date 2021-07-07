@@ -107,10 +107,8 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
         /// <returns>The body of the request</returns>
         internal static async Task<string> GetBodyAsStringAsync(this HttpRequest request)
         {
-            using (var streamReader = new StreamReader(request.Body, Encoding.UTF8))
-            {
-                return await streamReader.ReadToEndAsync().ConfigureAwait(false);
-            }
+            using var streamReader = new StreamReader(request.Body, Encoding.UTF8);
+            return await streamReader.ReadToEndAsync().ConfigureAwait(false);
         }
     }
 }

@@ -32,7 +32,7 @@ namespace Microsoft.Datasync.Client.Table
             Validate.IsNotNull(client, nameof(client));
             Validate.IsNotNull(options, nameof(options));
 
-            Endpoint = new Uri(client.Endpoint, relativeUri.TrimStart('/'));
+            Endpoint = new Uri(client.Endpoint, relativeUri.TrimStart('/')).NormalizeEndpoint();
             HttpClient = client;
             ClientOptions = options;
         }
@@ -91,7 +91,26 @@ namespace Microsoft.Datasync.Client.Table
         /// <returns>A <see cref="HttpResponse"/> object.</returns>
         public virtual async Task<ServiceResponse> DeleteItemAsync(string id, IfMatch precondition = null, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            Validate.IsValidId(id, nameof(id));
+
+            using var request = new HttpRequestMessage(HttpMethod.Delete, new Uri(Endpoint, id))
+                .WithFeatureHeader(DatasyncFeatures.TypedTable)
+                .WithHeader(precondition?.HeaderName, precondition?.HeaderValue);
+
+            try
+            {
+                using var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+                return await ServiceResponse.FromResponseAsync(response, token).ConfigureAwait(false);
+            }
+            catch (DatasyncOperationException ex)
+            {
+                if (ex.IsConflictStatusCode)
+                {
+                    var serviceResponse = await ServiceResponse.FromResponseAsync<T>(ex.Response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+                    throw new DatasyncConflictException<T>(ex, serviceResponse.Value);
+                }
+                throw;
+            }
         }
 
         /// <summary>

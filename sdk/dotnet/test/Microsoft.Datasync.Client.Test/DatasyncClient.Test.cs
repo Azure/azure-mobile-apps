@@ -138,7 +138,7 @@ namespace Microsoft.Datasync.Client.Test
             var client = new DatasyncClient(Endpoint);
             var table = client.GetTable<ClientMovie>();
             Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
-            var expectedUri = new Uri(Endpoint, "tables/clientmovie");
+            var expectedUri = new Uri(Endpoint, "tables/clientmovie/");
             Assert.Equal(expectedUri, table.Endpoint);
             Assert.Same(client.ClientOptions, table.ClientOptions);
         }
@@ -151,7 +151,7 @@ namespace Microsoft.Datasync.Client.Test
             var client = new DatasyncClient(Endpoint, options);
             var table = client.GetTable<ClientMovie>();
             Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
-            var expectedUri = new Uri(Endpoint, "api/clientmovie");
+            var expectedUri = new Uri(Endpoint, "api/clientmovie/");
             Assert.Equal(expectedUri, table.Endpoint);
             Assert.Same(options, table.ClientOptions);
         }
@@ -165,7 +165,7 @@ namespace Microsoft.Datasync.Client.Test
             var client = new DatasyncClient(Endpoint);
             var table = client.GetTable<ClientMovie>("movies");
             Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
-            var expectedUri = new Uri(Endpoint, "tables/movies");
+            var expectedUri = new Uri(Endpoint, "tables/movies/");
             Assert.Equal(expectedUri, table.Endpoint);
             Assert.Same(client.ClientOptions, table.ClientOptions);
         }
@@ -178,7 +178,7 @@ namespace Microsoft.Datasync.Client.Test
             var client = new DatasyncClient(Endpoint, options);
             var table = client.GetTable<ClientMovie>("movies");
             Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
-            var expectedUri = new Uri(Endpoint, "api/movies");
+            var expectedUri = new Uri(Endpoint, "api/movies/");
             Assert.Equal(expectedUri, table.Endpoint);
             Assert.Same(options, table.ClientOptions);
         }
@@ -190,7 +190,7 @@ namespace Microsoft.Datasync.Client.Test
             var client = new DatasyncClient(Endpoint);
             var table = client.GetTable<ClientMovie>("/api/movies");
             Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
-            var expectedUri = new Uri(Endpoint, "api/movies");
+            var expectedUri = new Uri(Endpoint, "api/movies/");
             Assert.Equal(expectedUri, table.Endpoint);
             Assert.Same(client.ClientOptions, table.ClientOptions);
         }
@@ -203,7 +203,7 @@ namespace Microsoft.Datasync.Client.Test
             var client = new DatasyncClient(Endpoint, options);
             var table = client.GetTable<ClientMovie>("/foo/movies");
             Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
-            var expectedUri = new Uri(Endpoint, "foo/movies");
+            var expectedUri = new Uri(Endpoint, "foo/movies/");
             Assert.Equal(expectedUri, table.Endpoint);
             Assert.Same(options, table.ClientOptions);
         }
