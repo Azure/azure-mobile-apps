@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Http;
+using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Net.Http;
 using System.Text.Json;
@@ -26,11 +27,15 @@ namespace Microsoft.Datasync.Client
 
         internal static async Task<DatasyncConflictException<T>> CreateAsync(HttpRequestMessage request, HttpResponseMessage response, JsonSerializerOptions deserializerOptions, CancellationToken token = default)
         {
+            Validate.IsNotNull(request, nameof(request));
+            Validate.IsNotNull(response, nameof(response));
+            Validate.IsNotNull(deserializerOptions, nameof(deserializerOptions));
+
             var content = await response.Content.ReadAsByteArrayAsync(token).ConfigureAwait(false);
             return new DatasyncConflictException<T>(request, response)
             {
                 Content = content,
-                ServerItem = JsonSerializer.Deserialize<T>(content, deserializerOptions)
+                ServerItem = content.Length > 0 ? JsonSerializer.Deserialize<T>(content, deserializerOptions) : default
             };
         }
 

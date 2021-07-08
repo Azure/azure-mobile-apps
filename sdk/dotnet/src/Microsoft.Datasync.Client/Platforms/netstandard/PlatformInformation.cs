@@ -34,6 +34,7 @@ namespace Microsoft.Datasync.Client.Platforms
         /// <remarks>
         /// Excluded from code coverage because the string.Empty version will never be returned in a test situation.
         /// </remarks>
+        [ExcludeFromCodeCoverage]
         private static string UnderTest => Debugger.IsAttached ? ";test" : string.Empty;
 
         /// <summary>
