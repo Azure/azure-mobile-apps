@@ -7,7 +7,7 @@ using System.Net;
 using System.Net.Http;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Http
+namespace Microsoft.Datasync.Client.Test.Exceptions
 {
     [ExcludeFromCodeCoverage]
     public class DatasyncOperationException_Test : BaseTest
@@ -34,7 +34,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var response = new HttpResponseMessage(HttpStatusCode.Conflict);
             var exception = new DatasyncOperationException(request, response);
 
-            Assert.IsAssignableFrom<InvalidOperationException>(exception);
+            Assert.IsAssignableFrom<Exception>(exception);
             Assert.Same(request, exception.Request);
             Assert.Same(response, exception.Response);
             Assert.Equal("Conflict", exception.Message);

@@ -62,24 +62,17 @@ namespace Microsoft.Datasync.Client.Table
         {
             Validate.IsNotNull(item, nameof(item));
 
-            using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
+            var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
                 .WithFeatureHeader(DatasyncFeatures.TypedTable)
                 .WithContent(item, ClientOptions.SerializerOptions);
+            var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 
-            try
+            return (int)response.StatusCode switch
             {
-                using var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
-                return await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
-            }
-            catch (DatasyncOperationException ex)
-            {
-                if (ex.IsConflictStatusCode)
-                {
-                    var serviceResponse = await ServiceResponse.FromResponseAsync<T>(ex.Response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
-                    throw new DatasyncConflictException<T>(ex, serviceResponse.Value);
-                }
-                throw;
-            }
+                200 or 201 => await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
+                409 or 412 => throw await DatasyncConflictException<T>.CreateAsync(request, response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
+                _ => throw new DatasyncOperationException(request, response)
+            };
         }
 
         /// <summary>
@@ -93,24 +86,17 @@ namespace Microsoft.Datasync.Client.Table
         {
             Validate.IsValidId(id, nameof(id));
 
-            using var request = new HttpRequestMessage(HttpMethod.Delete, new Uri(Endpoint, id))
+            var request = new HttpRequestMessage(HttpMethod.Delete, new Uri(Endpoint, id))
                 .WithFeatureHeader(DatasyncFeatures.TypedTable)
                 .WithHeader(precondition?.HeaderName, precondition?.HeaderValue);
+            var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 
-            try
+            return (int)response.StatusCode switch
             {
-                using var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
-                return await ServiceResponse.FromResponseAsync(response, token).ConfigureAwait(false);
-            }
-            catch (DatasyncOperationException ex)
-            {
-                if (ex.IsConflictStatusCode)
-                {
-                    var serviceResponse = await ServiceResponse.FromResponseAsync<T>(ex.Response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
-                    throw new DatasyncConflictException<T>(ex, serviceResponse.Value);
-                }
-                throw;
-            }
+                204 => await ServiceResponse.FromResponseAsync(response, token).ConfigureAwait(false),
+                409 or 412 => throw await DatasyncConflictException<T>.CreateAsync(request, response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
+                _ => throw new DatasyncOperationException(request, response)
+            };
         }
 
         /// <summary>
@@ -134,7 +120,19 @@ namespace Microsoft.Datasync.Client.Table
         /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
         public virtual async Task<ServiceResponse<T>> GetItemAsync(string id, IfNoneMatch precondition = null, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            Validate.IsValidId(id, nameof(id));
+
+            var request = new HttpRequestMessage(HttpMethod.Get, new Uri(Endpoint, id))
+                .WithFeatureHeader(DatasyncFeatures.TypedTable)
+                .WithHeader(precondition?.HeaderName, precondition?.HeaderValue);
+            var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+
+            return (int)response.StatusCode switch
+            {
+                200 => await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
+                304 => throw new EntityNotModifiedException(request, response),
+                _ => throw new DatasyncOperationException(request, response)
+            };
         }
 
         /// <summary>

@@ -291,7 +291,7 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         [Fact]
         [Trait("Method", "SendAsync")]
-        public async Task SendAsync_Throws_OnBadRequest()
+        public async Task SendAsync_OnBadRequest()
         {
             var handler = new TestDelegatingHandler();
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { handler } };
@@ -300,15 +300,23 @@ namespace Microsoft.Datasync.Client.Test.Http
             handler.Responses.Add(response);
             var request = new HttpRequestMessage(HttpMethod.Get, "");
 
-            var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => client.IntSendAsync(request)).ConfigureAwait(false);
+            var actualResponse = await client.IntSendAsync(request).ConfigureAwait(false);
 
-            Assert.Same(request, exception.Request);
-            Assert.Same(response, exception.Response);
+            Assert.Same(response, actualResponse);      // We get the provided response back.
+
+            // Check that the right headers were applied to the request
+            Assert.Single(handler.Requests);
+            var actual = handler.Requests[0];
+
+            Assert.Equal(options.UserAgent, actual.Headers.UserAgent.ToString());
+            AssertEx.HasHeader(actual.Headers, "X-ZUMO-VERSION", options.UserAgent);
+            AssertEx.HasHeader(actual.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(actual.Headers, "X-ZUMO-INSTALLATION-ID", options.InstallationId);
         }
 
         [Fact]
         [Trait("Method", "SendAsync")]
-        public async Task SendAsync_SendsProperRequest()
+        public async Task SendAsync_OnSuccessfulRequest()
         {
             var handler = new TestDelegatingHandler();
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { handler } };

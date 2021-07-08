@@ -146,7 +146,9 @@ namespace Microsoft.Datasync.Client.Test.Table
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.CreateItemAsync(movieToAdd)).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal(HttpStatusCode.BadRequest, exception.Response.StatusCode);
+            Assert.NotNull(exception.Request);
+            Assert.NotNull(exception.Response);
+            Assert.Equal(400, exception.StatusCode);
             Assert.Equal(expectedCount, repository.Entities.Count);
             Assert.Null(repository.GetEntity("test-id"));
         }
@@ -168,7 +170,9 @@ namespace Microsoft.Datasync.Client.Test.Table
             var exception = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.CreateItemAsync(movieToAdd)).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal(HttpStatusCode.Conflict, exception.Response.StatusCode);
+            Assert.NotNull(exception.Request);
+            Assert.NotNull(exception.Response);
+            Assert.Equal(409, exception.StatusCode);
             Assert.Equal(expectedCount, repository.Entities.Count);
             var entity = repository.GetEntity(movieToAdd.Id);
             Assert.NotNull(entity);
@@ -217,7 +221,9 @@ namespace Microsoft.Datasync.Client.Test.Table
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(id)).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal(HttpStatusCode.NotFound, exception.Response.StatusCode);
+            Assert.NotNull(exception.Request);
+            Assert.NotNull(exception.Response);
+            Assert.Equal(404, exception.StatusCode);
             Assert.Equal(entityCount, repository.Entities.Count);
         }
 
@@ -260,7 +266,9 @@ namespace Microsoft.Datasync.Client.Test.Table
             var exception = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.DeleteItemAsync(id, IfMatch.Version(etag))).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal(HttpStatusCode.PreconditionFailed, exception.Response.StatusCode);
+            Assert.NotNull(exception.Request);
+            Assert.NotNull(exception.Response);
+            Assert.Equal(412, exception.StatusCode);
             Assert.Equal(entityCount, repository.Entities.Count);
             var entity = repository.GetEntity(id);
             Assert.NotNull(entity);
@@ -308,10 +316,137 @@ namespace Microsoft.Datasync.Client.Test.Table
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(id)).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal(HttpStatusCode.Gone, exception.Response.StatusCode);
+            Assert.NotNull(exception.Request);
+            Assert.NotNull(exception.Response);
+            Assert.Equal(410, exception.StatusCode);
             Assert.Equal(entityCount, repository.Entities.Count);
             var entity = repository.GetEntity(id);
             Assert.True(entity.Deleted);
+        }
+        #endregion
+
+        #region GetItemAsync
+        [Theory, CombinatorialData]
+        [Trait("Method", "GetItemAsync")]
+        public async Task GetItemAsync_Basic([CombinatorialRange(0, Movies.Count)] int index)
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var repository = GetRepository<InMemoryMovie>();
+            var id = GetMovieId(index);
+            var expected = repository.GetEntity(id).Clone();
+
+            // Act
+            var table = client.GetTable<ClientMovie>("movies");
+            var response = await table.GetItemAsync(id).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(200, response.StatusCode);
+            Assert.Equal<IMovie>(expected, response.Value);
+            AssertEx.SystemPropertiesMatch(expected, response.Value);
+            AssertEx.Contains("ETag", $"\"{response.Value.Version}\"", response.Headers);
+        }
+
+        [Fact]
+        [Trait("Method", "GetItemAsync")]
+        public async Task GetItemAsync_NotFound()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            const string id = "not-found";
+
+            // Act
+            var table = client.GetTable<ClientMovie>("movies");
+            var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.GetItemAsync(id)).ConfigureAwait(false);
+
+            // Assert
+            Assert.NotNull(exception.Request);
+            Assert.NotNull(exception.Response);
+            Assert.Equal(404, exception.StatusCode);
+        }
+
+        [Fact]
+        [Trait("Method", "GetItemAsync")]
+        public async Task GetItemAsync_GetIfChanged()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var repository = GetRepository<InMemoryMovie>();
+            var id = GetMovieId(107);
+            var expected = repository.GetEntity(id).Clone();
+
+            // Act
+            var table = client.GetTable<ClientMovie>("movies");
+            var response = await table.GetItemAsync(id, IfNoneMatch.Version("dGVzdA==")).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(200, response.StatusCode);
+            Assert.Equal<IMovie>(expected, response.Value);
+            AssertEx.SystemPropertiesMatch(expected, response.Value);
+            AssertEx.Contains("ETag", $"\"{response.Value.Version}\"", response.Headers);
+        }
+
+        [Fact]
+        [Trait("Method", "GetItemAsync")]
+        public async Task GetItemAsync_FailIfSame()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var repository = GetRepository<InMemoryMovie>();
+            var id = GetMovieId(107);
+            var expected = repository.GetEntity(id).Clone();
+            var etag = Convert.ToBase64String(expected.Version);
+
+            // Act
+            var table = client.GetTable<ClientMovie>("movies");
+            var exception = await Assert.ThrowsAsync<EntityNotModifiedException>(() => table.GetItemAsync(id, IfNoneMatch.Version(etag))).ConfigureAwait(false);
+
+            // Assert
+            Assert.NotNull(exception.Request);
+            Assert.NotNull(exception.Response);
+            Assert.Equal(304, exception.StatusCode);
+        }
+
+        [Fact]
+        [Trait("Method", "GetItemAsync")]
+        public async Task GetItemAsync_GetIfNotSoftDeleted()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var repository = GetRepository<SoftMovie>();
+            var id = GetMovieId(24);
+            var expected = repository.GetEntity(id).Clone();
+
+            // Act
+            var table = client.GetTable<ClientMovie>("soft");
+            var response = await table.GetItemAsync(id).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(200, response.StatusCode);
+            Assert.Equal<IMovie>(expected, response.Value);
+            AssertEx.SystemPropertiesMatch(expected, response.Value);
+            AssertEx.Contains("ETag", $"\"{response.Value.Version}\"", response.Headers);
+        }
+
+        [Fact]
+        [Trait("Method", "GetItemAsync")]
+        public async Task GetItemAsync_GoneIfSoftDeleted()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var repository = GetRepository<SoftMovie>();
+            var id = GetMovieId(25);
+            var expected = repository.GetEntity(id).Clone();
+            var etag = Convert.ToBase64String(expected.Version);
+
+            // Act
+            var table = client.GetTable<ClientMovie>("soft");
+            var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.GetItemAsync(id, IfNoneMatch.Version(etag))).ConfigureAwait(false);
+
+            // Assert
+            Assert.NotNull(exception.Request);
+            Assert.NotNull(exception.Response);
+            Assert.Equal(410, exception.StatusCode);
         }
         #endregion
     }

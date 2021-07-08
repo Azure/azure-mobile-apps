@@ -4,7 +4,6 @@
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Net.Http;
 
 namespace Microsoft.Datasync.Client
@@ -13,15 +12,15 @@ namespace Microsoft.Datasync.Client
     /// Exception that provides additional details of an invalid operation specific to a datasync service.
     /// </summary>
     [SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "Specialized Exception")]
-    public class DatasyncOperationException : InvalidOperationException
+    public class DatasyncOperationException : Exception
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DatasyncOperationException"/> class.
+        /// Creates a new <see cref="DatasyncOperationException"/> based on the provided request
+        /// and response.
         /// </summary>
-        /// <param name="request">The request message</param>
-        /// <param name="response">The response message</param>
-        public DatasyncOperationException(HttpRequestMessage request, HttpResponseMessage response)
-            : base(response?.ReasonPhrase)
+        /// <param name="request">The <see cref="HttpRequestMessage"/></param>
+        /// <param name="response">The <see cref="HttpResponseMessage"/></param>
+        internal DatasyncOperationException(HttpRequestMessage request, HttpResponseMessage response) : base(response?.ReasonPhrase)
         {
             Validate.IsNotNull(request, nameof(request));
             Validate.IsNotNull(response, nameof(response));
@@ -31,18 +30,18 @@ namespace Microsoft.Datasync.Client
         }
 
         /// <summary>
-        /// The originating request message
+        /// The HTTP request message that generated the error.
         /// </summary>
         public HttpRequestMessage Request { get; }
 
         /// <summary>
-        /// The resulting response message
+        /// The HTTP response message that generated the error.
         /// </summary>
         public HttpResponseMessage Response { get; }
 
         /// <summary>
-        /// If true, this exception was thrown due to a service conflict.
+        /// The integer status code.
         /// </summary>
-        public bool IsConflictStatusCode { get => Response?.StatusCode == HttpStatusCode.Conflict || Response?.StatusCode == HttpStatusCode.PreconditionFailed;  }
+        public int StatusCode { get => (int)Response.StatusCode; }
     }
 }

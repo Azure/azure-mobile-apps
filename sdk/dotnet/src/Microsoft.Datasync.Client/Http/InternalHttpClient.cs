@@ -132,14 +132,7 @@ namespace Microsoft.Datasync.Client.Http
 
             try
             {
-                var response = await httpClient.SendAsync(request, token).ConfigureAwait(false);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return response;
-                }
-                throw new DatasyncOperationException(request, response);
-
+                return await httpClient.SendAsync(request, token).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (!token.IsCancellationRequested)
             {
