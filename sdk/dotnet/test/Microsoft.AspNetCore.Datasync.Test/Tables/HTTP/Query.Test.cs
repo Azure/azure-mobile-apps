@@ -14,7 +14,6 @@ using Datasync.Common.Test.Extensions;
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
 using Datasync.Webservice;
-using Microsoft.AspNetCore.Datasync.Extensions;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP

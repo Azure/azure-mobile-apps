@@ -2,8 +2,10 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Platforms;
+using Moq;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.IO.IsolatedStorage;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Platforms
@@ -11,10 +13,17 @@ namespace Microsoft.Datasync.Client.Test.Platforms
     [ExcludeFromCodeCoverage]
     public class ApplicationStorage_Test : BaseTest
     {
+        private IsolatedStorageFile defaultStore;
+
+        public ApplicationStorage_Test()
+        {
+            defaultStore = IsolatedStorageFile.GetUserStoreForApplication();
+        }
+
         [Fact]
         public void Storage_CanCreateDefaultContainer()
         {
-            var storage = new ApplicationStorage();
+            var storage = new ApplicationStorage(defaultStore);
 
             // Storage an item within the storage.
             const string key = "appstorage-test-key1";
@@ -30,7 +39,7 @@ namespace Microsoft.Datasync.Client.Test.Platforms
             Assert.Equal(value, value1);
 
             // Create a new instance of the storage
-            var newStore = new ApplicationStorage();
+            var newStore = new ApplicationStorage(defaultStore);
 
             Assert.True(newStore.TryGetValue(key, out string value2));
             Assert.Equal(value, value2);
@@ -48,7 +57,7 @@ namespace Microsoft.Datasync.Client.Test.Platforms
             Assert.Null(value4);
 
             // Create yet another new store and repeat check
-            var checkStore = new ApplicationStorage();
+            var checkStore = new ApplicationStorage(defaultStore);
             Assert.False(checkStore.TryGetValue(key, out string value5));
             Assert.Null(value5);
         }
@@ -57,7 +66,7 @@ namespace Microsoft.Datasync.Client.Test.Platforms
         public void Storage_CanCreateNonDefaultContainer()
         {
             const string containerName = "test2-container-name";
-            var storage = new ApplicationStorage(containerName);
+            var storage = new ApplicationStorage(defaultStore, containerName);
 
             // Storage an item within the storage.
             const string key = "appstorage-test-key2";
@@ -73,7 +82,7 @@ namespace Microsoft.Datasync.Client.Test.Platforms
             Assert.Equal(value, value1);
 
             // Create a new instance of the storage
-            var newStore = new ApplicationStorage(containerName);
+            var newStore = new ApplicationStorage(defaultStore, containerName);
 
             Assert.True(newStore.TryGetValue(key, out string value2));
             Assert.Equal(value, value2);
@@ -91,7 +100,7 @@ namespace Microsoft.Datasync.Client.Test.Platforms
             Assert.Null(value4);
 
             // Create yet another new store and repeat check
-            var checkStore = new ApplicationStorage(containerName);
+            var checkStore = new ApplicationStorage(defaultStore, containerName);
             Assert.False(checkStore.TryGetValue(key, out string value5));
             Assert.Null(value5);
         }
@@ -100,7 +109,7 @@ namespace Microsoft.Datasync.Client.Test.Platforms
         public void Storage_ContainersAreSeparate()
         {
             const string containerName = "test3-container-name";
-            var storage = new ApplicationStorage(containerName);
+            var storage = new ApplicationStorage(defaultStore, containerName);
 
             // Storage an item within the storage.
             const string key = "appstorage-test-key3";
@@ -116,7 +125,7 @@ namespace Microsoft.Datasync.Client.Test.Platforms
             Assert.Equal(value, value1);
 
             // Create a new instance of the storage
-            var newStore = new ApplicationStorage();
+            var newStore = new ApplicationStorage(defaultStore);
 
             Assert.False(newStore.TryGetValue(key, out string value2));
             Assert.Null(value2);
@@ -126,14 +135,14 @@ namespace Microsoft.Datasync.Client.Test.Platforms
         public void Storage_CanClearEmptyStorage()
         {
             const string containerName = "test4-container-name";
-            var storage = new ApplicationStorage(containerName);
+            var storage = new ApplicationStorage(defaultStore, containerName);
             storage.ClearValues();
         }
 
         [Fact]
         public void Storage_CanClearFilledStorage()
         {
-            var storage = new ApplicationStorage();
+            var storage = new ApplicationStorage(defaultStore);
 
             // Storage an item within the storage.
             const string key = "appstorage-test-key1";

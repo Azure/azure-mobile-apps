@@ -5,6 +5,7 @@ using Datasync.Common.Test.Extensions;
 using Datasync.Webservice;
 using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Datasync.Client.Test.Helpers;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
@@ -27,6 +28,11 @@ namespace Microsoft.Datasync.Client.Test
         protected Uri Endpoint { get => _testServer.Value.BaseAddress; }
 
         /// <summary>
+        /// The mock handler that allows us to set responses and see requests.
+        /// </summary>
+        protected TestDelegatingHandler MockHandler { get; } = new TestDelegatingHandler();
+
+        /// <summary>
         /// Gets a client reference for the test server.
         /// </summary>
         /// <returns></returns>
@@ -34,6 +40,16 @@ namespace Microsoft.Datasync.Client.Test
         {
             var handler = _testServer.Value.CreateHandler();
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { handler } };
+            return new DatasyncClient(Endpoint, options);
+        }
+
+        /// <summary>
+        /// Gets a client reference for mocking
+        /// </summary>
+        /// <returns></returns>
+        protected DatasyncClient CreateClientForMocking()
+        {
+            var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { MockHandler } };
             return new DatasyncClient(Endpoint, options);
         }
 

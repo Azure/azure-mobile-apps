@@ -16,8 +16,9 @@ namespace Microsoft.Datasync.Client.Platforms
     /// </summary>
     internal class ApplicationStorage : IApplicationStorage
     {
-        internal ApplicationStorage(string containerName = "")
+        internal ApplicationStorage(IsolatedStorageFile storageLocation, string containerName = "")
         {
+            StorageLocation = storageLocation;
             SharedContainerName = string.IsNullOrWhiteSpace(containerName) ? "ms-datasync-client" : containerName;
             LoadPreferences();
         }
@@ -28,6 +29,11 @@ namespace Microsoft.Datasync.Client.Platforms
         private string SharedContainerName { get; }
 
         /// <summary>
+        /// The storage location for preferences
+        /// </summary>
+        private IsolatedStorageFile StorageLocation { get; }
+
+        /// <summary>
         /// Internal storage for the preferences file.
         /// </summary>
         private Dictionary<string, string> Preferences { get; set; }
@@ -36,12 +42,13 @@ namespace Microsoft.Datasync.Client.Platforms
         /// Clear all the values within the store.
         /// </summary>
         /// <remarks>We can't test the catch block, but rest of this method is covered.</remarks>
+        [ExcludeFromCodeCoverage]
         public void ClearValues()
         {
             Preferences.Clear();
             try
             {
-                IsolatedStorageFile.GetUserStoreForApplication().Remove();
+                StorageLocation.Remove();
             }
             catch
             {
@@ -104,8 +111,7 @@ namespace Microsoft.Datasync.Client.Platforms
         {
             try
             {
-                using var store = IsolatedStorageFile.GetUserStoreForApplication();
-                using var stream = store.OpenFile(Filename, FileMode.OpenOrCreate, FileAccess.Read);
+                using var stream = StorageLocation.OpenFile(Filename, FileMode.OpenOrCreate, FileAccess.Read);
                 using var reader = new StreamReader(stream);
                 var jsonText = reader.ReadToEnd();
                 Preferences = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonText);
@@ -130,8 +136,7 @@ namespace Microsoft.Datasync.Client.Platforms
             try
             {
                 var jsonText = JsonSerializer.Serialize(Preferences);
-                using var store = IsolatedStorageFile.GetUserStoreForApplication();
-                using var stream = store.OpenFile(Filename, FileMode.OpenOrCreate, FileAccess.Write);
+                using var stream = StorageLocation.OpenFile(Filename, FileMode.OpenOrCreate, FileAccess.Write);
                 using var writer = new StreamWriter(stream);
                 writer.WriteLine(jsonText);
             }

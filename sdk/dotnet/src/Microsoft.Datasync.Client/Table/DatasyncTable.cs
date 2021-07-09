@@ -6,6 +6,7 @@ using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,6 +21,11 @@ namespace Microsoft.Datasync.Client.Table
     /// <typeparam name="T">The type of the data stored in the datasync table</typeparam>
     internal class DatasyncTable<T> : IDatasyncTable<T>
     {
+        /// <summary>
+        /// The name of the default Id property.
+        /// </summary>
+        private const string idPropertyName = "Id";
+
         /// <summary>
         /// Creates a new <see cref="DatasyncTable{T}"/> at the provided endpoint.
         /// </summary>
@@ -57,7 +63,7 @@ namespace Microsoft.Datasync.Client.Table
         /// </summary>
         /// <param name="item">The item to add to the table.</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
-        /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
+        /// <returns>A <see cref="ServiceResponse{T}"/> object with the item that was stored.</returns>
         public virtual async Task<ServiceResponse<T>> CreateItemAsync(T item, CancellationToken token = default)
         {
             Validate.IsNotNull(item, nameof(item));
@@ -81,7 +87,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="id">The ID of the item to delete.</param>
         /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
-        /// <returns>A <see cref="HttpResponse"/> object.</returns>
+        /// <returns>A <see cref="ServiceResponse"/> object.</returns>
         public virtual async Task<ServiceResponse> DeleteItemAsync(string id, IfMatch precondition = null, CancellationToken token = default)
         {
             Validate.IsValidId(id, nameof(id));
@@ -107,8 +113,29 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="token">A <see cref="CancellationToken"/></param>
         /// <returns>An <see cref="AsyncPageable{T}"/> for retrieving the items asynchronously.</returns>
         public virtual AsyncPageable<U> GetAsyncItems<U>(string query = "", CancellationToken token = default)
+            => new FuncAsyncPageable<U>(nextLink => GetPageOfItemsAsync<U>(query, nextLink, token));
+
+        /// <summary>
+        /// Gets a single page of items produced as a result of a query against the server.
+        /// </summary>
+        /// <typeparam name="U">The type of the items being returned - can be a subset of properties in the table entity</typeparam>
+        /// <param name="query">The query string to send to the service</param>
+        /// <param name="requestUri">The request URI to send (if multiple pages)</param>
+        /// <param name="token">A <see cref="CancellationToken"/></param>
+        /// <returns>A <see cref="ServiceResponse{T}"/> containing the page of items</returns>
+        internal virtual async Task<ServiceResponse<Page<U>>> GetPageOfItemsAsync<U>(string query = "", string requestUri = null, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            Uri uri = requestUri != null ? new Uri(requestUri) : new UriBuilder(Endpoint).WithQuery(query).Uri;
+
+            var request = new HttpRequestMessage(HttpMethod.Get, uri)
+                .WithFeatureHeader(DatasyncFeatures.TypedTable);
+            var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+
+            return (int)response.StatusCode switch
+            {
+                200 => await ServiceResponse.FromResponseAsync<Page<U>>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
+                _ => throw new DatasyncOperationException(request, response)
+            };
         }
 
         /// <summary>
@@ -117,7 +144,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="id">The ID of the item to retrieve.</param>
         /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
-        /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
+        /// <returns>A <see cref="ServiceResponse{T}"/> object with the item that was stored.</returns>
         public virtual async Task<ServiceResponse<T>> GetItemAsync(string id, IfNoneMatch precondition = null, CancellationToken token = default)
         {
             Validate.IsValidId(id, nameof(id));
@@ -142,10 +169,25 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="item">the replacement item</param>
         /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
-        /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
+        /// <returns>A <see cref="ServiceResponse{T}"/> object with the item that was stored.</returns>
         public virtual async Task<ServiceResponse<T>> ReplaceItemAsync(T item, IfMatch precondition = null, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            Validate.IsNotNull(item, nameof(item));
+            var id = GetIdFromItem(item);
+            Validate.IsValidId(id, nameof(item));
+
+            var request = new HttpRequestMessage(HttpMethod.Put, new Uri(Endpoint, id))
+                .WithFeatureHeader(DatasyncFeatures.TypedTable)
+                .WithHeader(precondition?.HeaderName, precondition?.HeaderValue)
+                .WithContent(item, ClientOptions.SerializerOptions);
+            var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+
+            return (int)response.StatusCode switch
+            {
+                200 => await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
+                409 or 412 => throw await DatasyncConflictException<T>.CreateAsync(request, response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
+                _ => throw new DatasyncOperationException(request, response)
+            };
         }
 
         /// <summary>
@@ -155,10 +197,56 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="changes">A list of changes to apply to the item</param>
         /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
         /// <param name="token">A <see cref="CancellationToken"/></param>
-        /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
+        /// <returns>A <see cref="ServiceResponse{T}"/> object with the item that was stored.</returns>
         public virtual async Task<ServiceResponse<T>> UpdateItemAsync(string id, IReadOnlyDictionary<string, object> changes, IfMatch precondition = null, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            Validate.IsValidId(id, nameof(id));
+            Validate.IsNotNullOrEmpty(changes, nameof(changes));
+
+            var request = new HttpRequestMessage(new HttpMethod("PATCH"), new Uri(Endpoint, id))
+                .WithFeatureHeader(DatasyncFeatures.TypedTable)
+                .WithHeader(precondition?.HeaderName, precondition?.HeaderValue)
+                .WithContent(changes, ClientOptions.SerializerOptions);
+            var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
+
+            return (int)response.StatusCode switch
+            {
+                200 => await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
+                409 or 412 => throw await DatasyncConflictException<T>.CreateAsync(request, response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
+                _ => throw new DatasyncOperationException(request, response)
+            };
+        }
+
+        /// <summary>
+        /// Finds the value of the id field via reflection.  If there is a field marked with <see cref="IdAttribute"/>,
+        /// then that is used.  If there is a field called <see cref="Id"/> then that is used.  If neither are available,
+        /// then <see cref="MemberAccessException"/> is thrown.
+        /// </summary>
+        /// <param name="item">The item to process</param>
+        /// <returns>The id of the item</returns>
+        internal static string GetIdFromItem(T item)
+        {
+            Validate.IsNotNull(item, nameof(item));
+
+            var idProperty = Array.Find(item.GetType().GetProperties(), prop => prop.IsDefined(typeof(IdAttribute)))
+                ?? item.GetType().GetProperty(idPropertyName);
+            if (idProperty == null)
+            {
+                throw new MissingMemberException($"{idPropertyName} not found, and no property has the [Id] attribute.");
+            }
+            object idValue = idProperty.GetValue(item);
+            if (idValue == null)
+            {
+                throw new ArgumentException($"{idProperty.Name} is null", nameof(item));
+            }
+            else if (idValue is string id)
+            {
+                return id;
+            }
+            else
+            {
+                throw new MemberAccessException($"{idProperty.Name} property is not a string");
+            }
         }
 
         /// <summary>
@@ -278,9 +366,7 @@ namespace Microsoft.Datasync.Client.Table
         /// </summary>
         /// <returns>An <see cref="AsyncPageable{T}"/> to iterate over the items</returns>
         public AsyncPageable<T> ToAsyncPageable(CancellationToken token = default)
-        {
-            throw new NotImplementedException();
-        }
+            => GetAsyncItems<T>("$count=true", token);
 
         /// <summary>
         /// Applies the specified filter to the source query.

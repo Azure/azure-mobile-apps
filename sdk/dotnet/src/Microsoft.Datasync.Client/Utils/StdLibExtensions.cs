@@ -24,5 +24,17 @@ namespace Microsoft.Datasync.Client.Utils
             builder.Path = builder.Path.TrimEnd('/') + "/";
             return builder.Uri;
         }
+
+        /// <summary>
+        /// Sets the query parameters of a Uri.
+        /// </summary>
+        /// <param name="builder">The <see cref="UriBuilder"/> to modify</param>
+        /// <param name="queryString">the query to set</param>
+        /// <returns>The updated <see cref="UriBuilder"/></returns>
+        internal static UriBuilder WithQuery(this UriBuilder builder, string queryString)
+        {
+            builder.Query = string.IsNullOrWhiteSpace(queryString) ? string.Empty : queryString.Trim();
+            return builder;
+        }
     }
 }

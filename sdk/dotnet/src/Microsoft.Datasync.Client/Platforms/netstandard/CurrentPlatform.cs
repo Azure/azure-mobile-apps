@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Utils;
+using System.IO.IsolatedStorage;
 using System;
 
 namespace Microsoft.Datasync.Client.Platforms
@@ -14,7 +15,7 @@ namespace Microsoft.Datasync.Client.Platforms
         /// <summary>
         /// Lazy initializer for the <see cref="IApplicationStorage"/> implementation.
         /// </summary>
-        private readonly Lazy<IApplicationStorage> _applicationStorage = new(() => new ApplicationStorage());
+        private readonly Lazy<IApplicationStorage> _applicationStorage = new(() => new ApplicationStorage(IsolatedStorageFile.GetUserStoreForApplication()));
 
         /// <summary>
         /// Accessor for the platform-specific <see cref="IApplicationStorage"/> implementation.
