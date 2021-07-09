@@ -446,6 +446,109 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Theory, CombinatorialData]
         [Trait("Method", "DeleteItemAsync")]
+        public async Task DeleteItemAsync_FormulatesCorrectResponse(bool hasPrecondition)
+        {
+            MockHandler.AddResponse(HttpStatusCode.NoContent);
+            var client = CreateClientForMocking();
+            var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+
+            var response = await table.DeleteItemAsync(sId, hasPrecondition ? IfMatch.Version("etag") : null).ConfigureAwait(false);
+
+            // Check Request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Delete, request.Method);
+            Assert.Equal($"{sEndpoint}{sId}", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            if (hasPrecondition)
+            {
+                AssertEx.HasHeader(request.Headers, "If-Match", "\"etag\"");
+            }
+            else
+            {
+                Assert.False(request.Headers.Contains("If-Match"));
+            }
+
+            // Check Response
+            Assert.Equal(204, response.StatusCode);
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.False(response.IsConflictStatusCode);
+            Assert.False(response.HasContent);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.PreconditionFailed)]
+        [Trait("Method", "DeleteItemAsync")]
+        public async Task DeleteItemAsync_Conflict_FormulatesCorrectResponse(HttpStatusCode statusCode)
+        {
+            MockHandler.AddResponse(statusCode, payload);
+            var client = CreateClientForMocking();
+            var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.DeleteItemAsync(sId)).ConfigureAwait(false);
+
+            // Check Response
+            Assert.Equal((int)statusCode, ex.StatusCode);
+            Assert.False(ex.Response.IsSuccessStatusCode);
+            Assert.Equal(Encoding.UTF8.GetBytes(sJsonPayload), ex.Content);
+            Assert.Equal("test", ex.ServerItem.StringValue);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.PreconditionFailed)]
+        [Trait("Method", "DeleteItemAsync")]
+        public async Task DeleteItemAsync_ConflictNoContent_FormulatesCorrectResponse(HttpStatusCode statusCode)
+        {
+            MockHandler.AddResponse(statusCode);
+            var client = CreateClientForMocking();
+            var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.DeleteItemAsync(sId)).ConfigureAwait(false);
+
+            // Check Response
+            Assert.Equal((int)statusCode, ex.StatusCode);
+            Assert.False(ex.Response.IsSuccessStatusCode);
+            Assert.Empty(ex.Content);
+            Assert.Null(ex.ServerItem);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.PreconditionFailed)]
+        [Trait("Method", "DeleteItemAsync")]
+        public async Task DeleteItemAsync_ConflictWithBadJson_Throws(HttpStatusCode statusCode)
+        {
+            var response = new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(sBadJson, Encoding.UTF8, "application/json")
+            };
+            MockHandler.Responses.Add(response);
+            var client = CreateClientForMocking();
+            var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+
+            await Assert.ThrowsAsync<JsonException>(() => table.DeleteItemAsync(sId)).ConfigureAwait(false);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.BadRequest)]
+        [InlineData(HttpStatusCode.MethodNotAllowed)]
+        [InlineData(HttpStatusCode.Unauthorized)]
+        [InlineData(HttpStatusCode.InternalServerError)]
+        [Trait("Method", "DeleteItemAsync")]
+        public async Task DeleteItemAsync_RequestFailed_Throws(HttpStatusCode statusCode)
+        {
+            MockHandler.AddResponse(statusCode);
+            var client = CreateClientForMocking();
+            var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+
+            var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(sId)).ConfigureAwait(false);
+            Assert.Equal((int)statusCode, ex.StatusCode);
+        }
+
+        [Theory, CombinatorialData]
+        [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_Basic([CombinatorialRange(0, Movies.Count)] int index)
         {
             // Arrange
