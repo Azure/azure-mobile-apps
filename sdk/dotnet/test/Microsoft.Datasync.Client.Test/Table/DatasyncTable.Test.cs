@@ -7,7 +7,6 @@ using Datasync.Common.Test.TestData;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Table;
-using Microsoft.Datasync.Client.Test.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -75,6 +74,26 @@ namespace Microsoft.Datasync.Client.Test.Table
             Title = "Black Panther",
             Year = 2018
         };
+
+        /// <summary>
+        /// Creates a paging response.
+        /// </summary>
+        /// <param name="count">The count of elements to return</param>
+        /// <param name="totalCount">The total count</param>
+        /// <param name="nextLink">The next link</param>
+        /// <returns></returns>
+        protected Page<IdEntity> CreatePageOfItems(int count, long? totalCount = null, Uri nextLink = null)
+        {
+            List<IdEntity> items = new();
+
+            for (int i = 0; i < count; i++)
+            {
+                items.Add(new IdEntity { Id = Guid.NewGuid().ToString("N") });
+            }
+            var page = new Page<IdEntity> { Items = items, Count = totalCount, NextLink = nextLink };
+            MockHandler.AddResponse(HttpStatusCode.OK, page);
+            return page;
+        }
         #endregion
 
         #region Ctor
@@ -143,7 +162,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Post, request.Method);
             Assert.Equal(sEndpoint, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            Assert.Equal(sJsonPayload, await request.Content.ReadAsStringAsync());
+            Assert.Equal(sJsonPayload, await request.Content.ReadAsStringAsync().ConfigureAwait(false));
             Assert.Equal("application/json", request.Content.Headers.ContentType.MediaType);
 
             // Check Response
@@ -745,6 +764,69 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
         #endregion
 
+        #region GetAsyncItems
+        [Theory]
+        [InlineData(HttpStatusCode.BadRequest)]
+        [InlineData(HttpStatusCode.InternalServerError)]
+        [InlineData(HttpStatusCode.Unauthorized)]
+        [InlineData(HttpStatusCode.UnavailableForLegalReasons)]
+        [InlineData(HttpStatusCode.ExpectationFailed)]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetAsyncItems_Throws_OnBadRequest(HttpStatusCode statusCode)
+        {
+            // Arrange
+            MockHandler.AddResponse(statusCode);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<ClientMovie>("movies");
+
+            // Act
+            var pageable = table.GetAsyncItems<ClientMovie>();
+            var enumerator = pageable.GetAsyncEnumerator();
+
+            // Assert
+            var ex = await Assert.ThrowsAsync<DatasyncOperationException>(async () => await enumerator.MoveNextAsync().ConfigureAwait(false)).ConfigureAwait(false);
+            Assert.Equal(statusCode, ex.Response.StatusCode);
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetAsyncItems_NoItems()
+        {
+            // Arrange
+            MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+
+            // Act
+            var enumerator = table.GetAsyncItems<IdEntity>().GetAsyncEnumerator();
+            var hasMore = await enumerator.MoveNextAsync().ConfigureAwait(false);
+
+            // Assert
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            Assert.False(hasMore);
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_NoItems_WhenNullResponse()
+        {
+            Task<ServiceResponse<Page<IdEntity>>> pageFunc(string _)
+                => ServiceResponse.FromResponseAsync<Page<IdEntity>>(new HttpResponseMessage(HttpStatusCode.OK), ClientOptions.DeserializerOptions);
+            FuncAsyncPageable<IdEntity> pageable = new(pageFunc);
+
+            var enumerator = pageable.AsPages().GetAsyncEnumerator();
+            _ = await enumerator.MoveNextAsync().ConfigureAwait(false);
+
+            Assert.Null(enumerator.Current.Items);
+            Assert.Null(enumerator.Current.Count);
+            Assert.Null(enumerator.Current.NextLink);
+        }
+        #endregion
+
         #region GetItemAsync
         [Fact]
         [Trait("Method", "GetItemAsync")]
@@ -894,6 +976,203 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.NotNull(exception.Request);
             Assert.NotNull(exception.Response);
             Assert.Equal(410, exception.StatusCode);
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_OnePageOfItems_WhenItemsReturned()
+        {
+            // Arrange
+            var page = CreatePageOfItems(5);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+            List<IdEntity> items = new();
+
+            // Act
+            await foreach (var item in table.GetAsyncItems<IdEntity>())
+            {
+                items.Add(item);
+            }
+
+            // Assert - request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+
+            // Assert - response
+            Assert.Equal(page.Items, items);
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_TwoPagesOfItems_WhenItemsReturned()
+        {
+            // Arrange
+            var page1 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=2"));
+            var page2 = CreatePageOfItems(5);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+            List<IdEntity> items = new();
+
+            // Act
+            await foreach (var item in table.GetAsyncItems<IdEntity>())
+            {
+                items.Add(item);
+            }
+
+            // Assert - request
+            Assert.Equal(2, MockHandler.Requests.Count);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+
+            request = MockHandler.Requests[1];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal($"{sEndpoint}?page=2", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+
+            // Assert - response
+            Assert.Equal(10, items.Count);
+            Assert.Equal(page1.Items, items.Take(5));
+            Assert.Equal(page2.Items, items.Skip(5).Take(5));
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_ThreePagesOfItems_WhenItemsReturned()
+        {
+            // Arrange
+            var page1 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=2"));
+            var page2 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=3"));
+            MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+            List<IdEntity> items = new();
+
+            // Act
+            await foreach (var item in table.GetAsyncItems<IdEntity>())
+            {
+                items.Add(item);
+            }
+
+            // Assert - request
+            Assert.Equal(3, MockHandler.Requests.Count);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+
+            request = MockHandler.Requests[1];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal($"{sEndpoint}?page=2", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+
+            request = MockHandler.Requests[2];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal($"{sEndpoint}?page=3", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+
+            // Assert - response
+            Assert.Equal(10, items.Count);
+            Assert.Equal(page1.Items, items.Take(5));
+            Assert.Equal(page2.Items, items.Skip(5).Take(5));
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_SetsCountAndResponse()
+        {
+            // Arrange
+            _ = CreatePageOfItems(5, 5);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+
+            // Act
+            var pageable = table.GetAsyncItems<IdEntity>();
+            var enumerator = pageable.GetAsyncEnumerator();
+            _ = await enumerator.MoveNextAsync().ConfigureAwait(false);
+
+            // Assert - request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+
+            // Assert - response
+            Assert.Equal(5, pageable.Count);
+            Assert.NotNull(pageable.CurrentResponse);
+            Assert.Equal(200, pageable.CurrentResponse.StatusCode);
+            Assert.True(pageable.CurrentResponse.HasContent);
+            Assert.NotEmpty(pageable.CurrentResponse.Content);
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetAsyncItems_RetrievesItems()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var repository = GetRepository<InMemoryMovie>();
+            var table = client.GetTable<ClientMovie>("movies");
+            int count = 0;
+
+            var pageable = table.GetAsyncItems<ClientMovie>("$count=true");
+            Assert.NotNull(pageable);
+
+            var enumerator = pageable.GetAsyncEnumerator();
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                count++;
+                var item = enumerator.Current;
+
+                Assert.NotNull(item);
+                Assert.NotNull(item.Id);
+
+                var expected = repository.GetEntity(item.Id);
+                Assert.Equal<IMovie>(expected, item);
+
+                Assert.Equal(Movies.Count, pageable.Count);
+                Assert.NotNull(pageable.CurrentResponse);
+            }
+
+            Assert.Equal(Movies.Count, count);
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetAsyncItems_AsPages_RetrievesItems()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var repository = GetRepository<InMemoryMovie>();
+            var table = client.GetTable<ClientMovie>("movies");
+            int itemCount = 0, pageCount = 0;
+
+            var pageable = table.GetAsyncItems<ClientMovie>().AsPages();
+            Assert.NotNull(pageable);
+
+            var enumerator = pageable.GetAsyncEnumerator();
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                pageCount++;
+
+                var page = enumerator.Current;
+                Assert.NotNull(page);
+                foreach (var item in page.Items)
+                {
+                    itemCount++;
+                    Assert.NotNull(item.Id);
+                    var expected = repository.GetEntity(item.Id);
+                    Assert.Equal<IMovie>(expected, item);
+                }
+            }
+
+            Assert.Equal(Movies.Count, itemCount);
+            Assert.Equal(3, pageCount);
         }
         #endregion
 
@@ -1263,7 +1542,6 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
             var table = client.GetTable<ClientMovie>("movies") as DatasyncTable<ClientMovie>;
 
             List<string> selection = new();
