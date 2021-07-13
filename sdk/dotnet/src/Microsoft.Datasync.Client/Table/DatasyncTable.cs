@@ -5,6 +5,7 @@ using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading;
@@ -33,12 +34,23 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="client">The <see cref="InternalHttpClient"/> to use for communication.</param>
         /// <param name="options">The client options for adjusting the request and response.</param>
         public DatasyncTable(string relativeUri, InternalHttpClient client, DatasyncClientOptions options)
+            : this(new Uri(client.Endpoint, relativeUri.TrimStart('/')).NormalizeEndpoint(), client, options)
         {
-            Validate.IsRelativeUri(relativeUri, nameof(relativeUri));
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="DatasyncTable{T}"/> at the provided endpoint.
+        /// </summary>
+        /// <param name="endpoint">The absolute Uri to the table endpoint.</param>
+        /// <param name="client">The <see cref="InternalHttpClient"/> to use for communication.</param>
+        /// <param name="options">The client options for adjusting the request and response.</param>
+        public DatasyncTable(Uri endpoint, InternalHttpClient client, DatasyncClientOptions options)
+        {
+            Validate.IsValidEndpoint(endpoint, nameof(endpoint));
             Validate.IsNotNull(client, nameof(client));
             Validate.IsNotNull(options, nameof(options));
 
-            Endpoint = new Uri(client.Endpoint, relativeUri.TrimStart('/')).NormalizeEndpoint();
+            Endpoint = endpoint;
             HttpClient = client;
             ClientOptions = options;
         }
@@ -254,10 +266,8 @@ namespace Microsoft.Datasync.Client.Table
         /// </summary>
         /// <typeparam name="U">The new type of the supported items</typeparam>
         /// <returns>The new table</returns>
-        //public virtual IDatasyncTable<U> WithType<U>()
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public virtual IDatasyncTable<U> WithType<U>()
+            => new DatasyncTable<U>(Endpoint, HttpClient, ClientOptions);
 
         /// <summary>
         /// Request the total count of items that are available with the query
@@ -265,20 +275,16 @@ namespace Microsoft.Datasync.Client.Table
         /// </summary>
         /// <param name="enabled">Set the request to enabled or disabled</param>
         /// <returns>The composed query</returns>
-        //public ITableQuery<T> IncludeTotalCount(bool enabled = true)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public ITableQuery<T> IncludeTotalCount(bool enabled = true)
+            => new DatasyncTableQuery<T>(this).IncludeTotalCount(enabled);
 
         /// <summary>
         /// Request that deleted items are returned.
         /// </summary>
         /// <param name="enabled">Set the request to enabled or disabled</param>
         /// <returns>The composed query</returns>
-        //public ITableQuery<T> IncludeDeletedItems(bool enabled = true)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public ITableQuery<T> IncludeDeletedItems(bool enabled = true)
+            => new DatasyncTableQuery<T>(this).IncludeDeletedItems(enabled);
 
         /// <summary>
         /// Apply the specified ascending order clause to the source query.
@@ -286,10 +292,8 @@ namespace Microsoft.Datasync.Client.Table
         /// <typeparam name="TKey">The type of the member being ordered by</typeparam>
         /// <param name="keySelector">The expression selecting the member to order by</param>
         /// <returns>The composed query</returns>
-        //public ITableQuery<T> OrderBy<TKey>(Expression<Func<T, TKey>> keySelector)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public ITableQuery<T> OrderBy<TKey>(Expression<Func<T, TKey>> keySelector)
+            => new DatasyncTableQuery<T>(this).OrderBy(keySelector);
 
         /// <summary>
         /// Apply the specified descending order clause to the source query.
@@ -297,10 +301,8 @@ namespace Microsoft.Datasync.Client.Table
         /// <typeparam name="TKey">The type of the member being ordered by</typeparam>
         /// <param name="keySelector">The expression selecting the member to order by</param>
         /// <returns>The composed query</returns>
-        //public ITableQuery<T> OrderByDescending<TKey>(Expression<Func<T, TKey>> keySelector)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public ITableQuery<T> OrderByDescending<TKey>(Expression<Func<T, TKey>> keySelector)
+            => new DatasyncTableQuery<T>(this).OrderByDescending(keySelector);
 
         /// <summary>
         /// Apply the specified selection to the source query
@@ -308,10 +310,8 @@ namespace Microsoft.Datasync.Client.Table
         /// <typeparam name="U">The type of the projection</typeparam>
         /// <param name="selector">The selector function</param>
         /// <returns>The composed query</returns>
-        //public ITableQuery<U> Select<U>(Expression<Func<T, U>> selector)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public ITableQuery<U> Select<U>(Expression<Func<T, U>> selector) where U : notnull
+            => new DatasyncTableQuery<T>(this).Select(selector);
 
         /// <summary>
         /// Apply the specified skip clause to the source query.
@@ -321,10 +321,8 @@ namespace Microsoft.Datasync.Client.Table
         /// </remarks>
         /// <param name="count">The number of items to skip</param>
         /// <returns>The composed query</returns>
-        //public ITableQuery<T> Skip(int count)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public ITableQuery<T> Skip(int count)
+            => new DatasyncTableQuery<T>(this).Skip(count);
 
         /// <summary>
         /// Apply the specified take clause to the source query.
@@ -334,10 +332,8 @@ namespace Microsoft.Datasync.Client.Table
         /// </remarks>
         /// <param name="count">The number of items to take</param>
         /// <returns>The composed query</returns>
-        //public ITableQuery<T> Take(int count)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public ITableQuery<T> Take(int count)
+            => new DatasyncTableQuery<T>(this).Take(count);
 
         /// <summary>
         /// Apply the specified ascending order clause to the source query.
@@ -345,10 +341,8 @@ namespace Microsoft.Datasync.Client.Table
         /// <typeparam name="TKey">The type of the member being ordered by</typeparam>
         /// <param name="keySelector">The expression selecting the member to order by</param>
         /// <returns>The composed query</returns>
-        //public ITableQuery<T> ThenBy<TKey>(Expression<Func<T, TKey>> keySelector)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public ITableQuery<T> ThenBy<TKey>(Expression<Func<T, TKey>> keySelector)
+            => new DatasyncTableQuery<T>(this).ThenBy(keySelector);
 
         /// <summary>
         /// Apply the specified descending order clause to the source query.
@@ -356,10 +350,8 @@ namespace Microsoft.Datasync.Client.Table
         /// <typeparam name="TKey">The type of the member being ordered by</typeparam>
         /// <param name="keySelector">The expression selecting the member to order by</param>
         /// <returns>The composed query</returns>
-        //public ITableQuery<T> ThenByDescending<TKey>(Expression<Func<T, TKey>> keySelector)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public ITableQuery<T> ThenByDescending<TKey>(Expression<Func<T, TKey>> keySelector)
+            => new DatasyncTableQuery<T>(this).ThenByDescending(keySelector);
 
         /// <summary>
         /// Execute the query, returning an <see cref="AsyncPageable{T}"/>
@@ -376,10 +368,8 @@ namespace Microsoft.Datasync.Client.Table
         /// </remarks>
         /// <param name="predicate">The predicate to use as the filter</param>
         /// <returns>The composed query</returns>
-        //public ITableQuery<T> Where(Expression<Func<T, bool>> predicate)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public ITableQuery<T> Where(Expression<Func<T, bool>> predicate)
+            => new DatasyncTableQuery<T>(this).Where(predicate);
 
         /// <summary>
         /// Add the provided parameter to the query
@@ -390,10 +380,8 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="key">The key of the parameter</param>
         /// <param name="value">The value of the parameter</param>
         /// <returns>The composed query</returns>
-        //public ITableQuery<T> WithParameter(string key, string value)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public ITableQuery<T> WithParameter(string key, string value)
+            => new DatasyncTableQuery<T>(this).WithParameter(key, value);
 
         /// <summary>
         /// Add the provided parameters to the query
@@ -403,9 +391,7 @@ namespace Microsoft.Datasync.Client.Table
         /// </remarks>
         /// <param name="parameters">A dictionary of parameters</param>
         /// <returns>The composed query</returns>
-        //public ITableQuery<T> WithParameters(IEnumerable<KeyValuePair<string, string>> parameters)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public ITableQuery<T> WithParameters(IEnumerable<KeyValuePair<string, string>> parameters)
+            => new DatasyncTableQuery<T>(this).WithParameters(parameters);
     }
 }
