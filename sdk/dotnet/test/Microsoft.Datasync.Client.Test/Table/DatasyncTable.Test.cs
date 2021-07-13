@@ -61,6 +61,12 @@ namespace Microsoft.Datasync.Client.Test.Table
         private const string sBadJson = "{this-is-bad-json";
         private const string sId = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f";
 
+        private readonly IReadOnlyDictionary<string, object> EntityUpdates = new Dictionary<string, object>()
+        {
+            { "Title", "Replacement Title" },
+            { "Rating", "PG-13" }
+        };
+
         /// <summary>
         /// A basic movie without any adornment that does not exist in the movie data. Tests must clone this
         /// object and then adjust.
@@ -2049,6 +2055,137 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Theory, CombinatorialData]
         [Trait("Method", "ReplaceItemAsync")]
+        public async Task ReplaceItemAsync_Success_FormulatesCorrectResponse(bool hasPrecondition)
+        {
+            MockHandler.AddResponse(HttpStatusCode.OK, payload);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+
+            var response = hasPrecondition
+                ? await table.ReplaceItemAsync(payload, IfMatch.Version("etag")).ConfigureAwait(false)
+                : await table.ReplaceItemAsync(payload).ConfigureAwait(false);
+
+            // Check Request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Put, request.Method);
+            Assert.Equal($"{sEndpoint}{payload.Id}", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            if (hasPrecondition)
+            {
+                AssertEx.HasHeader(request.Headers, "If-Match", "\"etag\"");
+            }
+            else
+            {
+                Assert.False(request.Headers.Contains("If-Match"));
+            }
+
+            // Check Response
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.False(response.IsConflictStatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal(sJsonPayload, Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.Equal("test", response.Value.StringValue);
+        }
+
+        [Fact]
+        [Trait("Method", "ReplaceItemAsync")]
+        public async Task ReplaceItemAsync_SuccessNoContent()
+        {
+            MockHandler.AddResponse(HttpStatusCode.OK);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+
+            var response = await table.ReplaceItemAsync(payload).ConfigureAwait(false);
+
+            // Check Request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Put, request.Method);
+            Assert.Equal($"{sEndpoint}{payload.Id}", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+
+            // Check Response
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.False(response.IsConflictStatusCode);
+            Assert.False(response.HasContent);
+            Assert.Empty(response.Content);
+            Assert.False(response.HasValue);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.PreconditionFailed)]
+        [Trait("Method", "ReplaceItemAsync")]
+        public async Task ReplaceItemAsync_Conflict_FormulatesCorrectResponse(HttpStatusCode statusCode)
+        {
+            MockHandler.AddResponse(statusCode, payload);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
+
+            // Check Response
+            Assert.Equal((int)statusCode, ex.StatusCode);
+            Assert.False(ex.Response.IsSuccessStatusCode);
+            Assert.NotEmpty(ex.Content);
+            Assert.Equal("test", ex.ServerItem.StringValue);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.PreconditionFailed)]
+        [Trait("Method", "ReplaceItemAsync")]
+        public async Task ReplaceItemAsync_ConflictNoContent(HttpStatusCode statusCode)
+        {
+            MockHandler.AddResponse(statusCode);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
+            Assert.Equal((int)statusCode, ex.StatusCode);
+            Assert.Empty(ex.Content);
+            Assert.Null(ex.ServerItem);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.PreconditionFailed)]
+        [Trait("Method", "ReplaceItemAsync")]
+        public async Task ReplaceItemAsync_ConflictWithBadJson_Throws(HttpStatusCode statusCode)
+        {
+            var response = new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(sBadJson, Encoding.UTF8, "application/json")
+            };
+            MockHandler.Responses.Add(response);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+
+            await Assert.ThrowsAsync<JsonException>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.BadRequest)]
+        [InlineData(HttpStatusCode.MethodNotAllowed)]
+        [InlineData(HttpStatusCode.Unauthorized)]
+        [InlineData(HttpStatusCode.InternalServerError)]
+        [Trait("Method", "ReplaceItemAsync")]
+        public async Task ReplaceItemAsync_RequestFailed_Throws(HttpStatusCode statusCode)
+        {
+            MockHandler.AddResponse(statusCode);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+
+            var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
+            Assert.Equal((int)statusCode, ex.StatusCode);
+        }
+
+        [Theory, CombinatorialData]
+        [Trait("Method", "ReplaceItemAsync")]
         public async Task ReplaceItemAsync_Basic([CombinatorialRange(0, Movies.Count)] int index)
         {
             // Arrange
@@ -2308,12 +2445,6 @@ namespace Microsoft.Datasync.Client.Test.Table
         #endregion
 
         #region UpdateItemAsync
-        private readonly IReadOnlyDictionary<string, object> EntityUpdates = new Dictionary<string, object>()
-        {
-            { "Title", "Replacement Title" },
-            { "Rating", "PG-13" }
-        };
-
         [Fact]
         [Trait("Method", "UpdateItemAsync")]
         public async Task UpdateItemAsync_ThrowsOnNullId()
@@ -2358,6 +2489,138 @@ namespace Microsoft.Datasync.Client.Test.Table
             var client = CreateClientForTestServer();
             var table = client.GetTable<ClientMovie>("movies");
             await Assert.ThrowsAsync<ArgumentException>(() => table.UpdateItemAsync(id, EntityUpdates)).ConfigureAwait(false);
+        }
+
+        [Theory, CombinatorialData]
+        [Trait("Method", "UpdateItemAsync")]
+        public async Task UpdateItemAsync_Success_FormulatesCorrectResponse(bool hasPrecondition)
+        {
+            MockHandler.AddResponse(HttpStatusCode.OK, payload);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+
+            var response = hasPrecondition
+                ? await table.UpdateItemAsync(sId, changes, IfMatch.Version("etag")).ConfigureAwait(false)
+                : await table.UpdateItemAsync(sId, changes).ConfigureAwait(false);
+
+            // Check Request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal("patch", request.Method.ToString().ToLower());
+            Assert.Equal($"{sEndpoint}{sId}", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION","3.0.0");
+            if (hasPrecondition)
+            {
+                AssertEx.HasHeader(request.Headers, "If-Match", "\"etag\"");
+            }
+            else
+            {
+                Assert.False(request.Headers.Contains("If-Match"));
+            }
+
+            // Check Response
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.False(response.IsConflictStatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal(sJsonPayload, Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.Equal("test", response.Value.StringValue);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.PreconditionFailed)]
+        [Trait("Method", "UpdateItemAsync")]
+        public async Task UpdateItemAsync_Conflict_FormulatesCorrectResponse(HttpStatusCode statusCode)
+        {
+            MockHandler.AddResponse(statusCode, payload);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.UpdateItemAsync(sId, changes)).ConfigureAwait(false);
+
+            // Check Response
+            Assert.Equal((int)statusCode, ex.StatusCode);
+            Assert.False(ex.Response.IsSuccessStatusCode);
+            Assert.NotEmpty(ex.Content);
+            Assert.Equal("test", ex.ServerItem.StringValue);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.PreconditionFailed)]
+        [Trait("Method", "UpdateItemAsync")]
+        public async Task UpdateItemAsync_ConflictNoContent_throws(HttpStatusCode statusCode)
+        {
+            MockHandler.AddResponse(statusCode);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.UpdateItemAsync(sId, changes)).ConfigureAwait(false);
+            Assert.Equal((int)statusCode, ex.StatusCode);
+            Assert.Empty(ex.Content);
+            Assert.Null(ex.ServerItem);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.PreconditionFailed)]
+        [Trait("Method", "UpdateItemAsync")]
+        public async Task UpdateItemAsync_ConflictWithBadJson_Throws(HttpStatusCode statusCode)
+        {
+            var response = new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(sBadJson, Encoding.UTF8, "application/json")
+            };
+            MockHandler.Responses.Add(response);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+
+            await Assert.ThrowsAsync<JsonException>(() => table.UpdateItemAsync(sId, changes)).ConfigureAwait(false);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.BadRequest)]
+        [InlineData(HttpStatusCode.MethodNotAllowed)]
+        [InlineData(HttpStatusCode.Unauthorized)]
+        [InlineData(HttpStatusCode.InternalServerError)]
+        [Trait("Method", "UpdateItemAsync")]
+        public async Task UpdateItemAsync_RequestFailed_Throws(HttpStatusCode statusCode)
+        {
+            MockHandler.AddResponse(statusCode);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+
+            var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.UpdateItemAsync(sId, changes)).ConfigureAwait(false);
+            Assert.Equal((int)statusCode, ex.StatusCode);
+        }
+
+        [Fact]
+        [Trait("Method", "UpdateItemAsync")]
+        public async Task UpdateItemAsync_SuccessNoContent_Throws()
+        {
+            MockHandler.AddResponse(HttpStatusCode.OK);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies");
+
+            var response = await table.UpdateItemAsync(sId, changes).ConfigureAwait(false);
+
+            // Check Request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal("patch", request.Method.ToString().ToLower());
+            Assert.Equal($"{sEndpoint}{sId}", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+
+            // Check Response
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.False(response.IsConflictStatusCode);
+            Assert.False(response.HasContent);
+            Assert.Empty(response.Content);
+            Assert.False(response.HasValue);
+            Assert.Null(response.Value);
         }
 
         [Theory, CombinatorialData]
