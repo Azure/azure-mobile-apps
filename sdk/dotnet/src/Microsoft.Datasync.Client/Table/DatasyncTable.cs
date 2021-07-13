@@ -34,8 +34,14 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="client">The <see cref="InternalHttpClient"/> to use for communication.</param>
         /// <param name="options">The client options for adjusting the request and response.</param>
         public DatasyncTable(string relativeUri, InternalHttpClient client, DatasyncClientOptions options)
-            : this(new Uri(client.Endpoint, relativeUri.TrimStart('/')).NormalizeEndpoint(), client, options)
         {
+            Validate.IsRelativeUri(relativeUri, nameof(relativeUri));
+            Validate.IsNotNull(client, nameof(client));
+            Validate.IsNotNull(options, nameof(options));
+
+            Endpoint = new Uri(client.Endpoint, relativeUri.TrimStart('/')).NormalizeEndpoint();
+            HttpClient = client;
+            ClientOptions = options;
         }
 
         /// <summary>

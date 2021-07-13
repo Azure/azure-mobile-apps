@@ -23,6 +23,18 @@ namespace Datasync.Common.Test
     public static class AssertEx
     {
         /// <summary>
+        /// Asserts if the dictionary contains the provided value.
+        /// </summary>
+        /// <param name="key">the header name</param>
+        /// <param name="expected">the header value</param>
+        /// <param name="dict">The dictionary to check</param>
+        public static void Contains(string key, string expected, IDictionary<string, string> dict)
+        {
+            Assert.True(dict.TryGetValue(key, out string value), $"Dictionary does not contain key {key}");
+            Assert.Equal(expected, value);
+        }
+
+        /// <summary>
         /// Asserts if the header dictionary contains the provided value.
         /// </summary>
         /// <param name="key">the header name</param>

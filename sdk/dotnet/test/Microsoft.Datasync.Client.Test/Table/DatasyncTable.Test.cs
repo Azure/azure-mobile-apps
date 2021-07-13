@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -23,44 +24,10 @@ namespace Microsoft.Datasync.Client.Test.Table
     [ExcludeFromCodeCoverage]
     public class DatasyncTable_Tests : BaseTest
     {
-        #region Test Classes for GetIdFromItem
-        public class IdEntity : IEquatable<IdEntity>
-        {
-            public string Id { get; set; }
-            public string Version { get; set; }
-            public string StringValue { get; set; }
-            public bool Equals(IdEntity other) => Id == other.Id && StringValue == other.StringValue;
-            public override bool Equals(object obj) => obj is IdEntity ide && Equals(ide);
-            public override int GetHashCode() => Id.GetHashCode() + StringValue.GetHashCode();
-        }
-
-        public class KeyEntity
-        {
-            [Id]
-            public string KeyId { get; set; }
-            public string KeyVersion { get; set; }
-        }
-
-        public class NoIdEntity
-        {
-            public string Test { get; set; }
-        }
-
-        public class NonStringIdEntity
-        {
-            public bool Id { get; set; }
-            public bool Version { get; set; }
-        }
-        #endregion
-
         #region Test Artifacts
-        private const string sEndpoint = "http://localhost/tables/movies/";
-        private readonly IdEntity payload = new() { Id = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f", StringValue = "test" };
-        private readonly Dictionary<string, object> changes = new() { { "stringValue", "test" } };
-        private const string sJsonPayload = "{\"id\":\"db0ec08d-46a9-465d-9f5e-0066a3ee5b5f\",\"stringValue\":\"test\"}";
-        private const string sBadJson = "{this-is-bad-json";
-        private const string sId = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f";
-
+        /// <summary>
+        /// The common changes to the entity when we go against the test service.
+        /// </summary>
         private readonly IReadOnlyDictionary<string, object> EntityUpdates = new Dictionary<string, object>()
         {
             { "Title", "Replacement Title" },
@@ -68,37 +35,11 @@ namespace Microsoft.Datasync.Client.Test.Table
         };
 
         /// <summary>
-        /// A basic movie without any adornment that does not exist in the movie data. Tests must clone this
-        /// object and then adjust.
+        /// Testing for Select operations
         /// </summary>
-        private readonly ClientMovie blackPantherMovie = new()
+        private class IdOnly
         {
-            BestPictureWinner = true,
-            Duration = 134,
-            Rating = "PG-13",
-            ReleaseDate = DateTimeOffset.Parse("16-Feb-2018"),
-            Title = "Black Panther",
-            Year = 2018
-        };
-
-        /// <summary>
-        /// Creates a paging response.
-        /// </summary>
-        /// <param name="count">The count of elements to return</param>
-        /// <param name="totalCount">The total count</param>
-        /// <param name="nextLink">The next link</param>
-        /// <returns></returns>
-        protected Page<IdEntity> CreatePageOfItems(int count, long? totalCount = null, Uri nextLink = null)
-        {
-            List<IdEntity> items = new();
-
-            for (int i = 0; i < count; i++)
-            {
-                items.Add(new IdEntity { Id = Guid.NewGuid().ToString("N") });
-            }
-            var page = new Page<IdEntity> { Items = items, Count = totalCount, NextLink = nextLink };
-            MockHandler.AddResponse(HttpStatusCode.OK, page);
-            return page;
+            public string Id { get; set; }
         }
         #endregion
 
@@ -120,7 +61,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Ctor_NullEndpoint_Throws()
         {
             var client = CreateClientForMocking();
-            Assert.Throws<ArgumentNullException>(() => new DatasyncTable<IdEntity>(null, client.HttpClient, client.ClientOptions));
+            const string relativeUri = null;
+            Assert.Throws<ArgumentNullException>(() => new DatasyncTable<IdEntity>(relativeUri, client.HttpClient, client.ClientOptions));
         }
 
         [Fact]
@@ -2816,6 +2758,635 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(410, exception.StatusCode);
             Assert.Equal<IMovie>(original, stored);
             Assert.Equal<ITableData>(original, stored);
+        }
+        #endregion
+
+        #region IncludeDeletedItems
+        [Fact]
+        [Trait("Method", "IncludeDeletedItems")]
+        public void IncludeDeletedItems_Enabled_AddsKey()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.IncludeDeletedItems(true) as DatasyncTableQuery<IdEntity>;
+
+            AssertEx.Contains("__includedeleted", "true", query.QueryParameters);
+        }
+
+        [Fact]
+        [Trait("Method", "IncludeDeletedItems")]
+        public void IncludeDeletedItems_Disabled_Empty()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.IncludeDeletedItems(false) as DatasyncTableQuery<IdEntity>;
+            Assert.Empty(query.QueryParameters);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "IncludeDeletedItems")]
+        public void ToODataQueryString_IncludeDeletedItems_IsWellFormed()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.IncludeDeletedItems() as DatasyncTableQuery<IdEntity>;
+            var odata = query.ToODataQueryString();
+            Assert.Equal("__includedeleted=true", odata);
+        }
+        #endregion
+
+        #region IncludeTotalCount
+        [Fact]
+        [Trait("Method", "IncludeTotalCount")]
+        public void IncludeTotalCount_Enabled_AddsKey()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.IncludeTotalCount(true) as DatasyncTableQuery<IdEntity>;
+            AssertEx.Contains("$count", "true", query.QueryParameters);
+        }
+
+        [Fact]
+        [Trait("Method", "IncludeTotalCount")]
+        public void IncludeTotalCount_Disabled_WorksWithEmptyParameters()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.IncludeTotalCount(false) as DatasyncTableQuery<IdEntity>;
+            Assert.False(query.QueryParameters.ContainsKey("$count"));
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "IncludeTotalCount")]
+        public void ToOdataQueryString_IncludeTotalCount_IsWellFormed()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.IncludeTotalCount() as DatasyncTableQuery<IdEntity>;
+            var odata = query.ToODataQueryString();
+            Assert.Equal("$count=true", odata);
+        }
+        #endregion
+
+        #region OrderBy
+        [Fact]
+        [Trait("Method", "OrderBy")]
+        public void OrderBy_Null_Throws()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+            Expression<Func<IdEntity, string>> keySelector = null;
+            Assert.Throws<ArgumentNullException>(() => table.OrderBy(keySelector));
+        }
+
+        [Fact]
+        [Trait("Method", "OrderBy")]
+        public void OrderBy_UpdatesQuery()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.OrderBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            Assert.IsAssignableFrom<MethodCallExpression>(query.Query.Expression);
+            var expression = query.Query.Expression as MethodCallExpression;
+            Assert.Equal("OrderBy", expression.Method.Name);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "OrderBy")]
+        public void ToODataQueryString_OrderBy_IsWellFormed()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.OrderBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            var odata = query.ToODataQueryString();
+            Assert.Equal("$orderby=id", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "OrderBy")]
+        public void ToODataQueryString_OrderBy_ThrowsNotSupported()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.OrderBy(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
+            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+        }
+        #endregion
+
+        #region OrderByDescending
+        [Fact]
+        [Trait("Method", "OrderByDescending")]
+        public void OrderByDescending_Null_Throws()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+            Expression<Func<IdEntity, string>> keySelector = null;
+            Assert.Throws<ArgumentNullException>(() => table.OrderByDescending(keySelector));
+        }
+
+        [Fact]
+        [Trait("Method", "OrderByDescending")]
+        public void OrderByDescending_UpdatesQuery()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.OrderByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            Assert.IsAssignableFrom<MethodCallExpression>(query.Query.Expression);
+            var expression = query.Query.Expression as MethodCallExpression;
+            Assert.Equal("OrderByDescending", expression.Method.Name);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "OrderByDescending")]
+        public void ToODataQueryString_OrderByDescending_IsWellFormed()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.OrderByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            var odata = query.ToODataQueryString();
+            Assert.Equal("$orderby=id desc", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "OrderByDescending")]
+        public void ToODataQueryString_OrderByDescending_ThrowsNotSupported()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.OrderByDescending(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
+            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+        }
+        #endregion
+
+        #region Select
+        [Fact]
+        [Trait("Method", "Select")]
+        public void Select_Null_Throws()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            Expression<Func<IdEntity, IdOnly>> selector = null;
+            Assert.Throws<ArgumentNullException>(() => table.Select(selector));
+        }
+
+        [Fact]
+        [Trait("Method", "Select")]
+        public void Select_UpdatesQuery()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.Select(m => new IdOnly { Id = m.Id }) as DatasyncTableQuery<IdOnly>;
+            Assert.IsAssignableFrom<MethodCallExpression>(query.Query.Expression);
+            var expression = query.Query.Expression as MethodCallExpression;
+            Assert.Equal("Select", expression.Method.Name);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "Select")]
+        public void ToODataQueryString_Select_IsWellFormed()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.Select(m => new IdOnly { Id = m.Id }) as DatasyncTableQuery<IdOnly>;
+            var odata = query.ToODataQueryString();
+            Assert.Equal("$select=id", odata);
+        }
+        #endregion
+
+        #region Skip
+        [Theory, CombinatorialData]
+        [Trait("Method", "Skip")]
+        public void Skip_Throws_OutOfRange([CombinatorialValues(-10, -1)] int skip)
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => table.Skip(skip));
+        }
+
+        [Fact]
+        [Trait("Method", "Skip")]
+        public void Skip_Sets_SkipCount()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.Skip(5) as DatasyncTableQuery<IdEntity>;
+            Assert.Equal(5, query.SkipCount);
+        }
+
+        [Fact]
+        [Trait("Method", "Skip")]
+        public void Skip_IsCumulative()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.Skip(5).Skip(20) as DatasyncTableQuery<IdEntity>;
+            Assert.Equal(25, query.SkipCount);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "Skip")]
+        public void ToODataQueryString_Skip_IsWellFormed()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.Skip(5) as DatasyncTableQuery<IdEntity>;
+            var odata = query.ToODataQueryString();
+            Assert.Equal("$skip=5", odata);
+        }
+        #endregion
+
+        #region Take
+        [Theory, CombinatorialData]
+        [Trait("Method", "Take")]
+        public void Take_ThrowsOutOfRange([CombinatorialValues(-10, -1, 0)] int take)
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => table.Take(take));
+        }
+
+        [Theory]
+        [InlineData(5, 2, 2)]
+        [InlineData(2, 5, 2)]
+        [InlineData(5, 20, 5)]
+        [InlineData(20, 5, 5)]
+        [Trait("Method", "Take")]
+        public void Take_MinimumWins(int first, int second, int expected)
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.Take(first).Take(second) as DatasyncTableQuery<IdEntity>;
+            Assert.Equal(expected, query.TakeCount);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "Take")]
+        public void ToODataQueryString_Take_IsWellFormed()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.Take(5) as DatasyncTableQuery<IdEntity>;
+            var odata = query.ToODataQueryString();
+            Assert.Equal("$top=5", odata);
+        }
+        #endregion
+
+        #region ThenBy
+        [Fact]
+        [Trait("Method", "ThenBy")]
+        public void ThenBy_Null_Throws()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+            Expression<Func<IdEntity, string>> keySelector = null;
+            Assert.Throws<ArgumentNullException>(() => table.ThenBy(keySelector));
+        }
+
+        [Fact]
+        [Trait("Method", "ThenBy")]
+        public void ThenBy_UpdatesQuery()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.ThenBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            Assert.IsAssignableFrom<MethodCallExpression>(query.Query.Expression);
+            var expression = query.Query.Expression as MethodCallExpression;
+            Assert.Equal("ThenBy", expression.Method.Name);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ThenBy")]
+        public void ToODataQueryString_ThenBy_IsWellFormed()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.ThenBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            var odata = query.ToODataQueryString();
+            Assert.Equal("$orderby=id", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ThenBy")]
+        public void ToODataQueryString_ThenBy_ThrowsNotSupported()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.ThenBy(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
+            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+        }
+        #endregion
+
+        #region ThenByDescending
+        [Fact]
+        [Trait("Method", "ThenByDescending")]
+        public void ThenByDescending_Null_Throws()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+            Expression<Func<IdEntity, string>> keySelector = null;
+            Assert.Throws<ArgumentNullException>(() => table.ThenByDescending(keySelector));
+        }
+
+        [Fact]
+        [Trait("Method", "ThenByDescending")]
+        public void ThenByDescending_UpdatesQuery()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.ThenByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            Assert.IsAssignableFrom<MethodCallExpression>(query.Query.Expression);
+            var expression = query.Query.Expression as MethodCallExpression;
+            Assert.Equal("ThenByDescending", expression.Method.Name);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ThenByDescending")]
+        public void ToODataQueryString_ThenByDescending_IsWellFormed()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.ThenByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            var odata = query.ToODataQueryString();
+            Assert.Equal("$orderby=id desc", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ThenByDescending")]
+        public void ToODataQueryString_ThenByDescending_ThrowsNotSupported()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.ThenByDescending(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
+            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+        }
+        #endregion
+
+        #region Where
+        [Fact]
+        [Trait("Method", "Where")]
+        public void Where_Null_Throws()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+            Expression<Func<IdEntity, bool>> predicate = null;
+            Assert.Throws<ArgumentNullException>(() => table.Where(predicate));
+        }
+
+        [Fact]
+        [Trait("Method", "Where")]
+        public void Where_UpdatesQuery()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.Where(m => m.Id.Contains("foo")) as DatasyncTableQuery<IdEntity>;
+            Assert.IsAssignableFrom<MethodCallExpression>(query.Query.Expression);
+            var expression = query.Query.Expression as MethodCallExpression;
+            Assert.Equal("Where", expression.Method.Name);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "Where")]
+        public void ToODataQueryString_Where_IsWellFormed()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.Where(m => m.Id == "foo") as DatasyncTableQuery<IdEntity>;
+            var odata = query.ToODataQueryString();
+            Assert.Equal("$filter=(id%20eq%20'foo')", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "Where")]
+        public void ToODataQueryString_Where_ThrowsNotSupported()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.ThenByDescending(m => m.Id.Normalize() == "foo") as DatasyncTableQuery<IdEntity>;
+            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+        }
+        #endregion
+
+        #region WithParameter
+        [Theory]
+        [InlineData(null, "test")]
+        [InlineData("test", null)]
+        [Trait("Method", "WithParameter")]
+        public void WithParameter_Null_Throws(string key, string value)
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            Assert.Throws<ArgumentNullException>(() => table.WithParameter(key, value));
+        }
+
+        [Theory]
+        [InlineData("testkey", "")]
+        [InlineData("testkey", " ")]
+        [InlineData("testkey", "   ")]
+        [InlineData("testkey", "\t")]
+        [InlineData("", "testvalue")]
+        [InlineData(" ", "testvalue")]
+        [InlineData("   ", "testvalue")]
+        [InlineData("\t", "testvalue")]
+        [InlineData("$count", "true")]
+        [InlineData("__includedeleted", "true")]
+        [Trait("Method", "WithParameter")]
+        public void WithParameter_Illegal_Throws(string key, string value)
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            Assert.Throws<ArgumentException>(() => table.WithParameter(key, value));
+        }
+
+        [Fact]
+        [Trait("Method", "WithParameter")]
+        public void WithParameter_SetsParameter()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.WithParameter("testkey", "testvalue") as DatasyncTableQuery<IdEntity>;
+            AssertEx.Contains("testkey", "testvalue", query.QueryParameters);
+        }
+
+        [Fact]
+        [Trait("Method", "WithParameter")]
+        public void WithParameter_Overwrites()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.WithParameter("testkey", "testvalue");
+            var actual = query.WithParameter("testkey", "replacement") as DatasyncTableQuery<IdEntity>;
+            AssertEx.Contains("testkey", "replacement", actual.QueryParameters);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "WithParameter")]
+        public void ToODataQueryString_WithParameter_isWellFormed()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.WithParameter("testkey", "testvalue") as DatasyncTableQuery<IdEntity>;
+            var odata = query.ToODataQueryString();
+            Assert.Equal("testkey=testvalue", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "WithParameter")]
+        public void ToODataQueryString_WithParameter_EncodesValue()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.WithParameter("testkey", "test value") as DatasyncTableQuery<IdEntity>;
+            var odata = query.ToODataQueryString();
+            Assert.Equal("testkey=test%20value", odata);
+        }
+        #endregion
+
+        #region WithParameters
+        [Fact]
+        [Trait("Method", "WithParameters")]
+        public void WithParameters_Null_Throws()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            Assert.Throws<ArgumentNullException>(() => table.WithParameters(null));
+        }
+
+        [Fact]
+        [Trait("Method", "WithParameters")]
+        public void WithParameters_Empty_Throws()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+            var sut = new Dictionary<string, string>();
+            Assert.Throws<ArgumentException>(() => table.WithParameters(sut));
+        }
+
+        [Fact]
+        [Trait("Method", "WithParameters")]
+        public void WithParameters_CopiesParams()
+        {
+            var sut = new Dictionary<string, string>()
+            {
+                { "key1", "value1" },
+                { "key2", "value2" }
+            };
+
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.WithParameters(sut) as DatasyncTableQuery<IdEntity>;
+            AssertEx.Contains("key1", "value1", query.QueryParameters);
+            AssertEx.Contains("key2", "value2", query.QueryParameters);
+        }
+
+        [Fact]
+        [Trait("Method", "WithParameters")]
+        public void WithParameters_MergesParams()
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.WithParameter("key1", "value1");
+            var sut = new Dictionary<string, string>()
+            {
+                { "key1", "replacement" },
+                { "key2", "value2" }
+            };
+
+            var actual = query.WithParameters(sut) as DatasyncTableQuery<IdEntity>;
+            AssertEx.Contains("key1", "replacement", actual.QueryParameters);
+            AssertEx.Contains("key2", "value2", actual.QueryParameters);
+        }
+
+        [Theory]
+        [InlineData("$count")]
+        [InlineData("__includedeleted")]
+        [Trait("Method", "WithParameters")]
+        public void WithParameters_CannotSetIllegalParams(string key)
+        {
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var sut = new Dictionary<string, string>()
+            {
+                { key, "true" },
+                { "key2", "value2" }
+            };
+
+            Assert.Throws<ArgumentException>(() => table.WithParameters(sut));
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "WithParameters")]
+        public void ToODataQueryString_WithParameters_isWellFormed()
+        {
+            var pairs = new Dictionary<string, string>()
+            {
+                {  "key1", "value1" },
+                {  "key2", "value 2" }
+            };
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>();
+
+            var query = table.WithParameters(pairs) as DatasyncTableQuery<IdEntity>;
+            var odata = query.ToODataQueryString();
+            Assert.Equal("key1=value1&key2=value%202", odata);
         }
         #endregion
     }
