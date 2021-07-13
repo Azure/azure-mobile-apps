@@ -1274,6 +1274,255 @@ namespace Microsoft.Datasync.Client.Test.Table
         #endregion
 
         #region GetPageOfItemsAsync
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("$filter=Year eq 1900&$count=true")]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ConstructsRequest_WithQuery(string query)
+        {
+            Page<IdEntity> result = new();
+            MockHandler.AddResponse(HttpStatusCode.OK, result);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var expectedUri = string.IsNullOrEmpty(query) ? sEndpoint : $"{sEndpoint}?{query}";
+
+            _ = await table.GetPageOfItemsAsync<IdEntity>(query).ConfigureAwait(false);
+
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(expectedUri, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+        }
+
+        [Theory]
+        [InlineData("https://localhost/tables/foo/?$count=true")]
+        [InlineData("https://localhost/tables/foo/?$count=true&$skip=5&$top=10")]
+        [InlineData("https://localhost/tables/foo/?$count=true&$skip=5&$top=10&__includedeleted=true")]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ConstructsRequest_WithRequestUri(string requestUri)
+        {
+            // Arrange
+            Page<IdEntity> result = new();
+            MockHandler.AddResponse(HttpStatusCode.OK, result);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+
+            // Act
+            _ = await table.GetPageOfItemsAsync<IdEntity>("", requestUri).ConfigureAwait(false);
+
+            // Assert
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(requestUri, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("$filter=Year eq 1900&$count=true")]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ConstructsRequest_PrefersRequestUri(string query)
+        {
+            // Arrange
+            Page<IdEntity> result = new();
+            MockHandler.AddResponse(HttpStatusCode.OK, result);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            const string requestUri = "https://localhost/tables/foo?$count=true&$skip=5&$top=10&__includedeleted=true";
+
+            // Act
+            _ = await table.GetPageOfItemsAsync<IdEntity>(query, requestUri).ConfigureAwait(false);
+
+            // Assert
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(requestUri, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+        }
+
+        [Fact]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ReturnsItems()
+        {
+            // Arrange
+            Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } } };
+            MockHandler.AddResponse(HttpStatusCode.OK, result);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+
+            // Act
+            var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
+
+            // Assert
+            Assert.IsAssignableFrom<ServiceResponse<Page<IdEntity>>>(response);
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal("{\"items\":[{\"id\":\"1234\"}]}", Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.IsAssignableFrom<Page<IdEntity>>(response.Value);
+            Assert.Single(response.Value.Items);
+            Assert.Equal("1234", response.Value.Items.First().Id);
+            Assert.Null(response.Value.Count);
+            Assert.Null(response.Value.NextLink);
+        }
+
+        [Fact]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ReturnsCount()
+        {
+            // Arrange
+            Page<IdEntity> result = new() { Count = 42 };
+            MockHandler.AddResponse(HttpStatusCode.OK, result);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+
+            // Act
+            var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
+
+            // Assert
+            Assert.IsAssignableFrom<ServiceResponse<Page<IdEntity>>>(response);
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal("{\"count\":42}", Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.IsAssignableFrom<Page<IdEntity>>(response.Value);
+            Assert.Null(response.Value.Items);
+            Assert.Equal(42, response.Value.Count);
+            Assert.Null(response.Value.NextLink);
+        }
+
+        [Fact]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ReturnsNextLink()
+        {
+            // Arrange
+            const string nextLink = sEndpoint + "?$top=5&$skip=5";
+            Page<IdEntity> result = new() { NextLink = new Uri(nextLink) };
+            MockHandler.AddResponse(HttpStatusCode.OK, result);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+
+            // Act
+            var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
+
+            // Assert
+            Assert.IsAssignableFrom<ServiceResponse<Page<IdEntity>>>(response);
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal($"{{\"nextLink\":\"{nextLink}\"}}", Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.IsAssignableFrom<Page<IdEntity>>(response.Value);
+            Assert.Null(response.Value.Items);
+            Assert.Null(response.Value.Count);
+            Assert.Equal(new Uri(nextLink), response.Value.NextLink);
+        }
+
+        [Fact]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ReturnsItemsAndCount()
+        {
+            // Arrange
+            Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } }, Count = 42 };
+            MockHandler.AddResponse(HttpStatusCode.OK, result);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+
+            // Act
+            var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
+
+            // Assert
+            Assert.IsAssignableFrom<ServiceResponse<Page<IdEntity>>>(response);
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal("{\"items\":[{\"id\":\"1234\"}],\"count\":42}", Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.IsAssignableFrom<Page<IdEntity>>(response.Value);
+            Assert.Single(response.Value.Items);
+            Assert.Equal("1234", response.Value.Items.First().Id);
+            Assert.Equal(42, response.Value.Count);
+            Assert.Null(response.Value.NextLink);
+        }
+
+        [Fact]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ReturnsItemsAndNextLink()
+        {
+            // Arrange
+            const string nextLink = sEndpoint + "?$top=5&$skip=5";
+            Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } }, NextLink = new Uri(nextLink) };
+            MockHandler.AddResponse(HttpStatusCode.OK, result);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+
+            // Act
+            var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
+
+            // Assert
+            Assert.IsAssignableFrom<ServiceResponse<Page<IdEntity>>>(response);
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal($"{{\"items\":[{{\"id\":\"1234\"}}],\"nextLink\":\"{nextLink}\"}}", Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.IsAssignableFrom<Page<IdEntity>>(response.Value);
+            Assert.Single(response.Value.Items);
+            Assert.Equal("1234", response.Value.Items.First().Id);
+            Assert.Null(response.Value.Count);
+            Assert.Equal(new Uri(nextLink), response.Value.NextLink);
+        }
+
+        [Fact]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ReturnsItem_Count_NextLink()
+        {
+            // Arrange
+            const string nextLink = sEndpoint + "?$top=5&$skip=5";
+            Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } }, Count = 42, NextLink = new Uri(nextLink) };
+            MockHandler.AddResponse(HttpStatusCode.OK, result);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+
+            // Act
+            var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
+
+            // Assert
+            Assert.IsAssignableFrom<ServiceResponse<Page<IdEntity>>>(response);
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal($"{{\"items\":[{{\"id\":\"1234\"}}],\"count\":42,\"nextLink\":\"{nextLink}\"}}", Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.IsAssignableFrom<Page<IdEntity>>(response.Value);
+            Assert.Single(response.Value.Items);
+            Assert.Equal("1234", response.Value.Items.First().Id);
+            Assert.Equal(42, response.Value.Count);
+            Assert.Equal(new Uri(nextLink), response.Value.NextLink);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.BadRequest)]
+        [InlineData(HttpStatusCode.InternalServerError)]
+        [InlineData(HttpStatusCode.Unauthorized)]
+        [InlineData(HttpStatusCode.UnavailableForLegalReasons)]
+        [InlineData(HttpStatusCode.ExpectationFailed)]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItemAsync_BadResponse_ThrowsRequestFailed(HttpStatusCode statusCode)
+        {
+            // Arrange
+            MockHandler.AddResponse(statusCode);
+            var client = CreateClientForMocking();
+            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+
+            // Act
+            var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.GetPageOfItemsAsync<IdEntity>(null)).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal((int)statusCode, exception.StatusCode);
+        }
+
         /// <summary>
         /// Basic query tests - these will do tests against tables/movies in various modes to ensure that the OData
         /// query items pass.
