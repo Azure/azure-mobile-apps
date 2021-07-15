@@ -15,6 +15,9 @@ namespace Microsoft.Datasync.Client.Test
         public string Id { get; set; }
         public string Version { get; set; }
         public string StringValue { get; set; }
+
+        public string StringField;
+
         public bool Equals(IdEntity other) => Id == other.Id && StringValue == other.StringValue;
         public override bool Equals(object obj) => obj is IdEntity ide && Equals(ide);
         public override int GetHashCode() => Id.GetHashCode() + StringValue.GetHashCode();

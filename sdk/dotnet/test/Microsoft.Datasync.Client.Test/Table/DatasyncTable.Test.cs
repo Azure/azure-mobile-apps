@@ -2319,6 +2319,36 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
         #endregion
 
+        #region ToAsyncEnumerable
+        [Fact]
+        [Trait("Method", "ToAsyncEnumerable")]
+        public async Task ToAsyncEnumerable_RetrievesItems()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var repository = GetRepository<InMemoryMovie>();
+            var table = client.GetTable<ClientMovie>("movies");
+            int count = 0;
+
+            var result = table.ToAsyncEnumerable();
+
+            var enumerator = result.GetAsyncEnumerator();
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                count++;
+                var item = enumerator.Current;
+
+                Assert.NotNull(item);
+                Assert.NotNull(item.Id);
+
+                var expected = repository.GetEntity(item.Id);
+                Assert.Equal<IMovie>(expected, item);
+            }
+
+            Assert.Equal(Movies.Count, count);
+        }
+        #endregion
+
         #region ToAsyncPageable
         [Fact]
         [Trait("Method", "ToAsyncPageable")]

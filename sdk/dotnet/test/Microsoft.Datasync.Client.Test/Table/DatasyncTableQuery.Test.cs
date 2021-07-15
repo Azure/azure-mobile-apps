@@ -844,7 +844,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case doesn't use values")]
         [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case doesn't use values")]
 
-        internal async Task LinqODataWithLiveServer(string testCase, Func<ITableQuery<Movie>, ITableQuery<Movie>> func, string expectedOData, int expectedCount, string[] expectedIds)
+        internal async Task ToAsyncPageable_WithLiveServer(string testCase, Func<ITableQuery<Movie>, ITableQuery<Movie>> func, string expectedOData, int expectedCount, string[] expectedIds)
         {
             // Arrange
             var client = CreateClientForTestServer();
@@ -853,6 +853,29 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Act
             var pageable = func.Invoke(query).ToAsyncPageable();
+            var list = await pageable.ToListAsync().ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(expectedCount, list.Count);
+            var actualItems = list.Take(expectedIds.Length).Select(m => m.Id).ToArray();
+            Assert.Equal(expectedIds, actualItems);
+        }
+
+        [Theory]
+        [ClassData(typeof(LinqTestCases))]
+        [Trait("Method", "ToAsyncEnumerable")]
+        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case doesn't use values")]
+        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case doesn't use values")]
+
+        internal async Task ToAsyncEnumerable_WithLiveServer(string testCase, Func<ITableQuery<Movie>, ITableQuery<Movie>> func, string expectedOData, int expectedCount, string[] expectedIds)
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var table = client.GetTable<Movie>("movies");
+            var query = new DatasyncTableQuery<Movie>(table as DatasyncTable<Movie>);
+
+            // Act
+            var pageable = func.Invoke(query).ToAsyncEnumerable();
             var list = await pageable.ToListAsync().ConfigureAwait(false);
 
             // Assert
