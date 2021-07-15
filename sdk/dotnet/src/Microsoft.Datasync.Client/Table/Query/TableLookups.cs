@@ -38,7 +38,7 @@ namespace Microsoft.Datasync.Client.Table.Query
     /// </summary>
     internal static class TableLookups
     {
-        private const string dateFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffzzz";
+        private const string DateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffZ";
 
         private static readonly Dictionary<long, ConstantType> ConstantTypeLookupTable = new()
         {
@@ -96,11 +96,11 @@ namespace Microsoft.Datasync.Client.Table.Query
                     string ch = (char)value == '\'' ? "''" : ((char)value).ToString();
                     return $"'{ch}'";
                 case ConstantType.DateTime:
-                    string dt = new DateTimeOffset(((DateTime)value).ToUniversalTime()).ToString(dateFormat);
-                    return $"datetimeoffset'{dt}'";
+                    string dt = new DateTimeOffset(((DateTime)value).ToUniversalTime()).ToString(DateTimeFormat);
+                    return $"cast({dt},Edm.DateTimeOffset)";
                 case ConstantType.DateTimeOffset:
-                    string dto = ((DateTimeOffset)value).ToUniversalTime().ToString(dateFormat);
-                    return $"datetimeoffset'{dto}'";
+                    string dto = ((DateTimeOffset)value).ToUniversalTime().ToString(DateTimeFormat);
+                    return $"cast({dto},Edm.DateTimeOffset)";
                 case ConstantType.Decimal:
                     return $"{value}M";
                 case ConstantType.Double:
@@ -108,7 +108,7 @@ namespace Microsoft.Datasync.Client.Table.Query
                     return (d.Contains("E") || d.Contains(".")) ? d : $"{d}.0";
                 case ConstantType.Guid:
                     Guid guid = (Guid)value;
-                    return $"guid'{guid:D}'";
+                    return $"cast({guid:D},Edm.Guid)";
                 case ConstantType.Float:
                     return $"{value}f";
                 case ConstantType.Int:

@@ -13,11 +13,11 @@ namespace Microsoft.Datasync.Client.Test.Table.Query
     public class TableLookups_Tests
     {
         private static readonly Guid guid = Guid.Parse("775db25a-754a-455d-9ade-68d327e41c43");
-        private const string sGuid = "guid'775db25a-754a-455d-9ade-68d327e41c43'";
+        private const string sGuid = "cast(775db25a-754a-455d-9ade-68d327e41c43,Edm.Guid)";
 
         private static readonly DateTime dt1 = new(1994, 10, 14, 0, 0, 0, DateTimeKind.Utc);
         private static readonly DateTimeOffset dto1 = new(1994, 10, 14, 0, 0, 0, TimeSpan.Zero);
-        private const string dts1 = "datetimeoffset'1994-10-14T00:00:00.000+00:00'";
+        private const string dts1 = "cast(1994-10-14T00:00:00.000Z,Edm.DateTimeOffset)";
 
         [Fact]
         [Trait("Method", "BinaryOperatorKind.ToODataString")]

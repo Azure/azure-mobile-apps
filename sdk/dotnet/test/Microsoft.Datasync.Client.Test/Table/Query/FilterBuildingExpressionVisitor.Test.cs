@@ -23,9 +23,9 @@ namespace Microsoft.Datasync.Client.Test.Table.Query
         [Trait("Method", "ResolvePropertyName")]
         public void ResolvePropertyName_ResolvesToJsonPropertyName()
         {
-            var info = typeof(Movie).GetProperty("Rating");
+            var info = typeof(Movie).GetProperty("MpaaRating");
             var name = FilterBuildingExpressionVisitor.ResolvePropertyName(info, ClientOptions);
-            Assert.Equal("mpaaRating", name);
+            Assert.Equal("rating", name);
         }
 
         [Fact]

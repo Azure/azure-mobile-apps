@@ -19,7 +19,6 @@ namespace Microsoft.Datasync.Client.Table.Query.Tables
         private const string endsWithFilterMethod = "endswith";
         private const string indexOfFilterMethod = "indexof";
         private const string containsFilterMethod = "contains";
-        private const string replaceFilterMethod = "replace";
         private const string substringFilterMethod = "substring";
 
         // Static OData filter method names
@@ -40,8 +39,6 @@ namespace Microsoft.Datasync.Client.Table.Query.Tables
             { new MemberInfoKey(typeof(string), "IndexOf", true, true, typeof(string)), indexOfFilterMethod },
             { new MemberInfoKey(typeof(string), "IndexOf", true, true, typeof(char)), indexOfFilterMethod },
             { new MemberInfoKey(typeof(string), "Contains", true, true, typeof(string)), containsFilterMethod },
-            { new MemberInfoKey(typeof(string), "Replace", true, true, typeof(string), typeof(string)), replaceFilterMethod },
-            { new MemberInfoKey(typeof(string), "Replace", true, true, typeof(char), typeof(char)), replaceFilterMethod },
             { new MemberInfoKey(typeof(string), "Substring", true, true, typeof(int)), substringFilterMethod },
             { new MemberInfoKey(typeof(string), "Substring", true, true, typeof(int), typeof(int)), substringFilterMethod },
         });

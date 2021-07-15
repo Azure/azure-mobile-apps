@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
+using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Test.Helpers;
 using System;
@@ -791,7 +792,10 @@ namespace Microsoft.Datasync.Client.Test.Table
         #region Linq Tests
         [Theory]
         [ClassData(typeof(LinqTestCases))]
-        internal void LinqODataConversions(string testCase, Func<ITableQuery<Movie>, ITableQuery<Movie>> func, string expected)
+        [Trait("Method", "ToODataQueryString")]
+        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case doesn't use values")]
+        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case doesn't use values")]
+        internal void LinqODataConversions(string testCase, Func<ITableQuery<Movie>, ITableQuery<Movie>> func, string expected, int expectedCount, string[] expectedIds)
         {
             // Arrange
             var client = CreateClientForMocking();
@@ -809,7 +813,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Theory]
         [ClassData(typeof(LinqTestCases))]
-        internal void LinqODataWithSelectConversions(string testCase, Func<ITableQuery<Movie>, ITableQuery<Movie>> func, string expected)
+        [Trait("Method", "ToODataQueryString")]
+        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case doesn't use values")]
+        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case doesn't use values")]
+        internal void LinqODataWithSelectConversions(string testCase, Func<ITableQuery<Movie>, ITableQuery<Movie>> func, string expected, int expectedCount, string[] expectedIds)
         {
             // Arrange
             var client = CreateClientForMocking();
@@ -829,6 +836,29 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Assert
             Assert.NotNull(actual);
             Assert.True(tester.Equals(expectedWithSelect), $"Test '{testCase}' did not match (with select)\nExpected: {expectedWithSelect}\nActual  : {tester}");
+        }
+
+        [Theory]
+        [ClassData(typeof(LinqTestCases))]
+        [Trait("Method", "ToAsyncPageable")]
+        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case doesn't use values")]
+        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case doesn't use values")]
+
+        internal async Task LinqODataWithLiveServer(string testCase, Func<ITableQuery<Movie>, ITableQuery<Movie>> func, string expectedOData, int expectedCount, string[] expectedIds)
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var table = client.GetTable<Movie>("movies");
+            var query = new DatasyncTableQuery<Movie>(table as DatasyncTable<Movie>);
+
+            // Act
+            var pageable = func.Invoke(query).ToAsyncPageable();
+            var list = await pageable.ToListAsync().ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal(expectedCount, list.Count);
+            var actualItems = list.Take(expectedIds.Length).Select(m => m.Id).ToArray();
+            Assert.Equal(expectedIds, actualItems);
         }
 
         [Fact]

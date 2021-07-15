@@ -41,15 +41,6 @@ namespace Microsoft.Datasync.Client.Test
         public bool Version { get; set; }
     }
 
-    public enum MovieRating
-    {
-        G,
-        PG,
-        PG13,
-        R,
-        NC17
-    }
-
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class Movie : DatasyncClientData
     {
@@ -66,14 +57,8 @@ namespace Microsoft.Datasync.Client.Test
         /// <summary>
         /// The MPAA rating for the movie, if available.
         /// </summary>
-        [JsonPropertyName("mpaaRating")]
-        public string Rating { get; set; }
-
-        /// <summary>
-        /// The rating as an enum.
-        /// </summary>
         [JsonPropertyName("rating")]
-        public MovieRating? MovieRating { get; set; }
+        public string MpaaRating { get; set; }
 
         /// <summary>
         /// The release date of the movie.
@@ -99,7 +84,7 @@ namespace Microsoft.Datasync.Client.Test
             => other != null
             && other.BestPictureWinner == BestPictureWinner
             && other.Duration == Duration
-            && other.Rating == Rating
+            && other.MpaaRating == MpaaRating
             && other.ReleaseDate == ReleaseDate
             && other.Title == Title
             && other.Year == Year;
@@ -116,7 +101,7 @@ namespace Microsoft.Datasync.Client.Test
             Version = this.Version,
             BestPictureWinner = this.BestPictureWinner,
             Duration = this.Duration,
-            Rating = this.Rating,
+            MpaaRating = this.MpaaRating,
             ReleaseDate = this.ReleaseDate,
             Title = this.Title,
             Year = this.Year
