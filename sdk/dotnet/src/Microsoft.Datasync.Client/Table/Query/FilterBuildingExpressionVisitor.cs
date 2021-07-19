@@ -267,6 +267,7 @@ namespace Microsoft.Datasync.Client.Table.Query
         /// Excluded from code coverage
         /// TODO: Find test cases for Quote, non-implciit convert and negate that will trigger here.
         /// </remarks>
+        [ExcludeFromCodeCoverage]
         internal Expression VisitUnaryExpression(UnaryExpression node)
         {
             switch (node.NodeType)
@@ -302,6 +303,7 @@ namespace Microsoft.Datasync.Client.Table.Query
         /// Excluded from code coverage
         /// TODO: Need an example of a where clause which would trigger this.
         /// </remarks>
+        [ExcludeFromCodeCoverage]
         internal bool IsConversionImplicit(UnaryExpression node, Type from, Type to)
             => GetTableMemberName(node.Operand, ClientOptions) != null && ImplicitConversions.IsImplicitConversion(from, to);
 
@@ -316,6 +318,7 @@ namespace Microsoft.Datasync.Client.Table.Query
         /// Excluded from code coverage
         /// TODO: Need an example of a where clause which would trigger this on left and right.
         /// </remarks>
+        [ExcludeFromCodeCoverage]
         internal static bool IsEnumExpression(BinaryExpression node, out UnaryExpression unaryExpression, out ConstantExpression constantExpression)
         {
             // Case 1: enum on the left side

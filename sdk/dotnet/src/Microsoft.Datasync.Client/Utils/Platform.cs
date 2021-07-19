@@ -14,7 +14,7 @@ namespace Microsoft.Datasync.Client.Utils
         /// <summary>
         /// Internal lazy initializer for the platform-specific API.
         /// </summary>
-        private static Lazy<IPlatform> _currentPlatform = new(() => new CurrentPlatform());
+        private static readonly Lazy<IPlatform> _currentPlatform = new(() => new CurrentPlatform());
 
         /// <summary>
         /// The key for the installation ID within the application storage handler.

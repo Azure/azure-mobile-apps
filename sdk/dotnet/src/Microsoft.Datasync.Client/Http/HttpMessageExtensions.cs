@@ -5,16 +5,19 @@ using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Datasync.Client.Http
 {
     /// <summary>
     /// A set of <see cref="HttpRequestMessage"/> extensions for handling requests with a fluent interface
     /// </summary>
-    internal static class HttpRequestMessageExtensions
+    internal static class HttpMessageExtensions
     {
         /// <summary>
         /// List of all the telemetry features in the DatasyncFeatures set.
@@ -98,5 +101,22 @@ namespace Microsoft.Datasync.Client.Http
             request.Content = new StringContent(JsonSerializer.Serialize(content, serializerOptions), Encoding.UTF8, mediaType);
             return request;
         }
+
+        /// <summary>
+        /// Returns true if the status code is a conflict.
+        /// </summary>
+        /// <param name="response">The response message</param>
+        /// <returns>True if indicating a conflict</returns>
+        internal static bool IsConflictStatusCode(this HttpResponseMessage response)
+            => response.StatusCode == HttpStatusCode.Conflict || response.StatusCode == HttpStatusCode.PreconditionFailed;
+
+        /// <summary>
+        /// Reads the content of the <see cref="HttpContent"/> object as a byte array, with cancellation.
+        /// </summary>
+        /// <param name="content">The <see cref="HttpContent"/> object to process</param>
+        /// <param name="token">A <see cref="CancellationToken"/></param>
+        /// <returns>The content as a byte array, asynchronously</returns>
+        internal static Task<byte[]> ReadAsByteArrayAsync(this HttpContent content, CancellationToken token)
+            => Task.Run(() => content.ReadAsByteArrayAsync(), token);
     }
 }

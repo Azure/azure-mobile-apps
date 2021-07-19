@@ -77,6 +77,44 @@ namespace Microsoft.Datasync.Client.Table
         public DatasyncClientOptions ClientOptions { get; }
 
         /// <summary>
+        /// An event that is fired when the table is modified - an entity is either
+        /// created, deleted, or updated.
+        /// </summary>
+        public event EventHandler<DatasyncTableEventArgs> TableModified;
+
+        /// <summary>
+        /// Fires the <see cref="TableModified"/> event handlers.
+        /// </summary>
+        /// <param name="operation">The operation being performed</param>
+        /// <param name="entity">The resulting entity</param>
+        private void OnTableModified(TableOperation operation, T entity)
+        {
+            TableModified?.Invoke(this, new DatasyncTableEventArgs
+            {
+                TableEndpoint = Endpoint,
+                Operation = operation,
+                Id = GetIdFromItem(entity),
+                Entity = entity
+            });
+        }
+
+        /// <summary>
+        /// Fires the <see cref="TableModified"/> event handlers when an
+        /// entity is deleted.
+        /// </summary>
+        /// <param name="id">The ID of the entity that was deleted.</param>
+        private void OnEntityDeleted(string id)
+        {
+            TableModified?.Invoke(this, new DatasyncTableEventArgs
+            {
+                TableEndpoint = Endpoint,
+                Operation = TableOperation.Delete,
+                Id = id,
+                Entity = null
+            });
+        }
+
+        /// <summary>
         /// Creates a new item within the table.
         /// </summary>
         /// <param name="item">The item to add to the table.</param>
@@ -91,12 +129,20 @@ namespace Microsoft.Datasync.Client.Table
                 .WithContent(item, ClientOptions.SerializerOptions);
             var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 
-            return (int)response.StatusCode switch
+            if (response.IsSuccessStatusCode)
             {
-                200 or 201 => await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
-                409 or 412 => throw await DatasyncConflictException<T>.CreateAsync(request, response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
-                _ => throw new DatasyncOperationException(request, response)
-            };
+                var result = await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+                OnTableModified(TableOperation.Create, result.Value);
+                return result;
+            }
+            else if (response.IsConflictStatusCode())
+            {
+                throw await DatasyncConflictException<T>.CreateAsync(request, response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+            }
+            else
+            {
+                throw new DatasyncOperationException(request, response);
+            }
         }
 
         /// <summary>
@@ -115,12 +161,20 @@ namespace Microsoft.Datasync.Client.Table
                 .WithHeader(precondition?.HeaderName, precondition?.HeaderValue);
             var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 
-            return (int)response.StatusCode switch
+            if (response.IsSuccessStatusCode)
             {
-                204 => await ServiceResponse.FromResponseAsync(response, token).ConfigureAwait(false),
-                409 or 412 => throw await DatasyncConflictException<T>.CreateAsync(request, response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
-                _ => throw new DatasyncOperationException(request, response)
-            };
+                var result = await ServiceResponse.FromResponseAsync(response, token).ConfigureAwait(false);
+                OnEntityDeleted(id);
+                return result;
+            }
+            else if (response.IsConflictStatusCode())
+            {
+                throw await DatasyncConflictException<T>.CreateAsync(request, response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+            }
+            else
+            {
+                throw new DatasyncOperationException(request, response);
+            }
         }
 
         /// <summary>
@@ -200,12 +254,20 @@ namespace Microsoft.Datasync.Client.Table
                 .WithContent(item, ClientOptions.SerializerOptions);
             var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 
-            return (int)response.StatusCode switch
+            if (response.IsSuccessStatusCode)
             {
-                200 => await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
-                409 or 412 => throw await DatasyncConflictException<T>.CreateAsync(request, response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
-                _ => throw new DatasyncOperationException(request, response)
-            };
+                var result = await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+                OnTableModified(TableOperation.Update, result.Value);
+                return result;
+            }
+            else if (response.IsConflictStatusCode())
+            {
+                throw await DatasyncConflictException<T>.CreateAsync(request, response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+            }
+            else
+            {
+                throw new DatasyncOperationException(request, response);
+            }
         }
 
         /// <summary>
@@ -227,12 +289,20 @@ namespace Microsoft.Datasync.Client.Table
                 .WithContent(changes, ClientOptions.SerializerOptions);
             var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 
-            return (int)response.StatusCode switch
+            if (response.IsSuccessStatusCode)
             {
-                200 => await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
-                409 or 412 => throw await DatasyncConflictException<T>.CreateAsync(request, response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false),
-                _ => throw new DatasyncOperationException(request, response)
-            };
+                var result = await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+                OnTableModified(TableOperation.Update, result.Value);
+                return result;
+            }
+            else if (response.IsConflictStatusCode())
+            {
+                throw await DatasyncConflictException<T>.CreateAsync(request, response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+            }
+            else
+            {
+                throw new DatasyncOperationException(request, response);
+            }
         }
 
         /// <summary>

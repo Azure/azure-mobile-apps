@@ -279,8 +279,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             if (useUpdatedAt) { movieToAdd.UpdatedAt = DateTimeOffset.Parse("2018-12-31T01:01:01.000Z"); }
             if (useVersion) { movieToAdd.Version = Convert.ToBase64String(Guid.NewGuid().ToByteArray()); }
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var response = await table.CreateItemAsync(movieToAdd).ConfigureAwait(false);
 
             // Assert
@@ -300,6 +304,13 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal<IMovie>(movieToAdd, entity);
             AssertEx.Contains("Location", new Uri(Endpoint, $"tables/movies/{result.Id}").ToString(), response.Headers);
             AssertEx.Contains("ETag", $"\"{result.Version}\"", response.Headers);
+
+            Assert.Single(modifications);
+            var modArg = modifications[0];
+            Assert.Same(table.Endpoint, modArg.TableEndpoint);
+            Assert.Equal(TableOperation.Create, modArg.Operation);
+            Assert.Equal(result.Id, modArg.Id);
+            Assert.Equal<IMovie>(result, modArg.Entity as IMovie);
         }
 
         [Theory]
@@ -339,8 +350,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             else
                 movieToAdd[propName] = propValue;
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<Dictionary<string, object>>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.CreateItemAsync(movieToAdd)).ConfigureAwait(false);
 
             // Assert
@@ -349,6 +364,8 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(400, exception.StatusCode);
             Assert.Equal(expectedCount, repository.Entities.Count);
             Assert.Null(repository.GetEntity("test-id"));
+
+            Assert.Empty(modifications);
         }
 
         [Theory, CombinatorialData]
@@ -363,8 +380,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             movieToAdd.Id = GetMovieId(index);
             var expectedMovie = repository.GetEntity(movieToAdd.Id).Clone();
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var exception = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.CreateItemAsync(movieToAdd)).ConfigureAwait(false);
 
             // Assert
@@ -380,6 +401,8 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal<IMovie>(expectedMovie, entity);
             Assert.Equal<ITableData>(expectedMovie, entity);
             AssertEx.ResponseHasConditionalHeaders(entity, exception.Response);
+
+            Assert.Empty(modifications);
         }
         #endregion
 
@@ -524,14 +547,25 @@ namespace Microsoft.Datasync.Client.Test.Table
             var entityCount = repository.Entities.Count;
             var id = GetMovieId(index);
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var response = await table.DeleteItemAsync(id).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(204, response.StatusCode);
             Assert.Equal(entityCount - 1, repository.Entities.Count);
             Assert.Null(repository.GetEntity(id));
+
+            Assert.Single(modifications);
+            var modArg = modifications[0];
+            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
+            Assert.Equal(TableOperation.Delete, modArg.Operation);
+            Assert.Equal(id, modArg.Id);
+            Assert.Null(modArg.Entity);
         }
 
         [Fact]
@@ -544,8 +578,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             var entityCount = repository.Entities.Count;
             const string id = "not-found";
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(id)).ConfigureAwait(false);
 
             // Assert
@@ -553,6 +591,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.NotNull(exception.Response);
             Assert.Equal(404, exception.StatusCode);
             Assert.Equal(entityCount, repository.Entities.Count);
+            Assert.Empty(modifications);
         }
 
         [Fact]
@@ -567,14 +606,25 @@ namespace Microsoft.Datasync.Client.Test.Table
             var expected = repository.GetEntity(id);
             var etag = Convert.ToBase64String(expected.Version);
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var response = await table.DeleteItemAsync(id, IfMatch.Version(etag)).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(204, response.StatusCode);
             Assert.Equal(entityCount - 1, repository.Entities.Count);
             Assert.Null(repository.GetEntity(id));
+
+            Assert.Single(modifications);
+            var modArg = modifications[0];
+            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
+            Assert.Equal(TableOperation.Delete, modArg.Operation);
+            Assert.Equal(id, modArg.Id);
+            Assert.Null(modArg.Entity);
         }
 
         [Fact]
@@ -589,8 +639,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             var expected = repository.GetEntity(id).Clone();
             const string etag = "dGVzdA==";
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var exception = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.DeleteItemAsync(id, IfMatch.Version(etag))).ConfigureAwait(false);
 
             // Assert
@@ -606,6 +660,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal<IMovie>(expected, entity);
             Assert.Equal<ITableData>(expected, entity);
             AssertEx.ResponseHasConditionalHeaders(entity, exception.Response);
+            Assert.Empty(modifications);
         }
 
         [Fact]
@@ -618,8 +673,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             var entityCount = repository.Entities.Count;
             const string id = "id-024";
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("soft");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var response = await table.DeleteItemAsync(id).ConfigureAwait(false);
 
             // Assert
@@ -627,6 +686,13 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(entityCount, repository.Entities.Count);
             var entity = repository.GetEntity(id);
             Assert.True(entity.Deleted);
+
+            Assert.Single(modifications);
+            var modArg = modifications[0];
+            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
+            Assert.Equal(TableOperation.Delete, modArg.Operation);
+            Assert.Equal(id, modArg.Id);
+            Assert.Null(modArg.Entity);
         }
 
         [Fact]
@@ -639,8 +705,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             var entityCount = repository.Entities.Count;
             const string id = "id-025";
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("soft");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(id)).ConfigureAwait(false);
 
             // Assert
@@ -650,6 +720,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(entityCount, repository.Entities.Count);
             var entity = repository.GetEntity(id);
             Assert.True(entity.Deleted);
+            Assert.Empty(modifications);
         }
         #endregion
 
@@ -2139,8 +2210,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var response = await table.ReplaceItemAsync(expected).ConfigureAwait(false);
             var stored = repository.GetEntity(id);
 
@@ -2150,6 +2225,13 @@ namespace Microsoft.Datasync.Client.Test.Table
             AssertEx.SystemPropertiesChanged(original, stored);
             AssertEx.SystemPropertiesMatch(stored, response.Value);
             AssertEx.Contains("ETag", $"\"{response.Value.Version}\"", response.Headers);
+
+            Assert.Single(modifications);
+            var modArg = modifications[0];
+            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
+            Assert.Equal(TableOperation.Update, modArg.Operation);
+            Assert.Equal(response.Value.Id, modArg.Id);
+            Assert.Equal<IMovie>(response.Value, modArg.Entity as IMovie);
         }
 
         [Theory]
@@ -2180,8 +2262,12 @@ namespace Microsoft.Datasync.Client.Test.Table
                 case "year": entity.Year = (int)propValue; break;
             }
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.ReplaceItemAsync(entity)).ConfigureAwait(false);
             var stored = repository.GetEntity(id).Clone();
 
@@ -2189,6 +2275,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(400, exception.StatusCode);
             Assert.Equal<IMovie>(expected, stored);
             Assert.Equal<ITableData>(original, stored);
+            Assert.Empty(modifications);
         }
 
         [Fact]
@@ -2199,13 +2286,17 @@ namespace Microsoft.Datasync.Client.Test.Table
             var client = CreateClientForTestServer();
             var obj = blackPantherMovie.Clone();
             obj.Id = "not-found";
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
 
             // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.ReplaceItemAsync(obj)).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(404, exception.StatusCode);
+            Assert.Empty(modifications);
         }
 
         [Fact]
@@ -2221,8 +2312,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var response = await table.ReplaceItemAsync(expected, IfMatch.Version(expected.Version)).ConfigureAwait(false);
             var stored = repository.GetEntity(id);
 
@@ -2232,6 +2327,13 @@ namespace Microsoft.Datasync.Client.Test.Table
             AssertEx.SystemPropertiesChanged(original, stored);
             AssertEx.SystemPropertiesMatch(stored, response.Value);
             AssertEx.Contains("ETag", $"\"{response.Value.Version}\"", response.Headers);
+
+            Assert.Single(modifications);
+            var modArg = modifications[0];
+            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
+            Assert.Equal(TableOperation.Update, modArg.Operation);
+            Assert.Equal(response.Value.Id, modArg.Id);
+            Assert.Equal<IMovie>(response.Value, modArg.Entity as IMovie);
         }
 
         [Fact]
@@ -2249,8 +2351,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             expected.Rating = "PG-13";
             const string etag = "dGVzdA==";
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var exception = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.ReplaceItemAsync(expected, IfMatch.Version(etag))).ConfigureAwait(false);
 
             // Assert
@@ -2266,6 +2372,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal<IMovie>(original, entity);
             Assert.Equal<ITableData>(original, entity);
             AssertEx.ResponseHasConditionalHeaders(entity, exception.Response);
+            Assert.Empty(modifications);
         }
 
         [Fact]
@@ -2281,8 +2388,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("soft");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var response = await table.ReplaceItemAsync(expected).ConfigureAwait(false);
             var stored = repository.GetEntity(id).Clone();
 
@@ -2292,6 +2403,13 @@ namespace Microsoft.Datasync.Client.Test.Table
             AssertEx.SystemPropertiesChanged(original, stored);
             AssertEx.SystemPropertiesMatch(stored, response.Value);
             AssertEx.Contains("ETag", $"\"{response.Value.Version}\"", response.Headers);
+
+            Assert.Single(modifications);
+            var modArg = modifications[0];
+            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
+            Assert.Equal(TableOperation.Update, modArg.Operation);
+            Assert.Equal(response.Value.Id, modArg.Id);
+            Assert.Equal<IMovie>(response.Value, modArg.Entity as IMovie);
         }
 
         [Fact]
@@ -2307,8 +2425,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("soft");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.ReplaceItemAsync(expected)).ConfigureAwait(false);
             var stored = repository.GetEntity(id).Clone();
 
@@ -2316,6 +2438,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(410, exception.StatusCode);
             Assert.Equal<IMovie>(original, stored);
             Assert.Equal<ITableData>(original, stored);
+            Assert.Empty(modifications);
         }
         #endregion
 
@@ -2608,8 +2731,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var response = await table.UpdateItemAsync(id, EntityUpdates).ConfigureAwait(false);
             var stored = repository.GetEntity(id);
 
@@ -2619,6 +2746,13 @@ namespace Microsoft.Datasync.Client.Test.Table
             AssertEx.SystemPropertiesChanged(original, stored);
             AssertEx.SystemPropertiesMatch(stored, response.Value);
             AssertEx.Contains("ETag", $"\"{response.Value.Version}\"", response.Headers);
+
+            Assert.Single(modifications);
+            var modArg = modifications[0];
+            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
+            Assert.Equal(TableOperation.Update, modArg.Operation);
+            Assert.Equal(response.Value.Id, modArg.Id);
+            Assert.Equal<IMovie>(response.Value, modArg.Entity as IMovie);
         }
 
         [Theory]
@@ -2654,8 +2788,12 @@ namespace Microsoft.Datasync.Client.Test.Table
                 { propName, propValue }
             };
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.UpdateItemAsync(id, updates)).ConfigureAwait(false);
             var stored = repository.GetEntity(id).Clone();
 
@@ -2663,6 +2801,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(400, exception.StatusCode);
             Assert.Equal<IMovie>(expected, stored);
             Assert.Equal<ITableData>(original, stored);
+            Assert.Empty(modifications);
         }
 
         [Fact]
@@ -2671,13 +2810,17 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
 
             // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.UpdateItemAsync("not-found", EntityUpdates)).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(404, exception.StatusCode);
+            Assert.Empty(modifications);
         }
 
         [Fact]
@@ -2693,8 +2836,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var response = await table.UpdateItemAsync(id, EntityUpdates, IfMatch.Version(expected.Version)).ConfigureAwait(false);
             var stored = repository.GetEntity(id);
 
@@ -2704,6 +2851,13 @@ namespace Microsoft.Datasync.Client.Test.Table
             AssertEx.SystemPropertiesChanged(original, stored);
             AssertEx.SystemPropertiesMatch(stored, response.Value);
             AssertEx.Contains("ETag", $"\"{response.Value.Version}\"", response.Headers);
+
+            Assert.Single(modifications);
+            var modArg = modifications[0];
+            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
+            Assert.Equal(TableOperation.Update, modArg.Operation);
+            Assert.Equal(response.Value.Id, modArg.Id);
+            Assert.Equal<IMovie>(response.Value, modArg.Entity as IMovie);
         }
 
         [Fact]
@@ -2721,8 +2875,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             expected.Rating = "PG-13";
             const string etag = "dGVzdA==";
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var exception = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.UpdateItemAsync(id, EntityUpdates, IfMatch.Version(etag))).ConfigureAwait(false);
 
             // Assert
@@ -2738,6 +2896,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal<IMovie>(original, entity);
             Assert.Equal<ITableData>(original, entity);
             AssertEx.ResponseHasConditionalHeaders(entity, exception.Response);
+            Assert.Empty(modifications);
         }
 
         [Fact]
@@ -2753,8 +2912,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("soft");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var response = await table.UpdateItemAsync(id, EntityUpdates).ConfigureAwait(false);
             var stored = repository.GetEntity(id).Clone();
 
@@ -2764,6 +2927,13 @@ namespace Microsoft.Datasync.Client.Test.Table
             AssertEx.SystemPropertiesChanged(original, stored);
             AssertEx.SystemPropertiesMatch(stored, response.Value);
             AssertEx.Contains("ETag", $"\"{response.Value.Version}\"", response.Headers);
+
+            Assert.Single(modifications);
+            var modArg = modifications[0];
+            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
+            Assert.Equal(TableOperation.Update, modArg.Operation);
+            Assert.Equal(response.Value.Id, modArg.Id);
+            Assert.Equal<IMovie>(response.Value, modArg.Entity as IMovie);
         }
 
         [Fact]
@@ -2779,8 +2949,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
 
-            // Act
+            // Set up event handler
             var table = client.GetTable<ClientMovie>("soft");
+            var modifications = new List<DatasyncTableEventArgs>();
+            table.TableModified += (_, args) => modifications.Add(args);
+
+            // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.UpdateItemAsync(id, EntityUpdates)).ConfigureAwait(false);
             var stored = repository.GetEntity(id).Clone();
 
@@ -2788,6 +2962,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(410, exception.StatusCode);
             Assert.Equal<IMovie>(original, stored);
             Assert.Equal<ITableData>(original, stored);
+            Assert.Empty(modifications);
         }
         #endregion
 

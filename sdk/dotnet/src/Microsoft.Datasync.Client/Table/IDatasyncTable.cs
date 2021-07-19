@@ -31,6 +31,12 @@ namespace Microsoft.Datasync.Client
         DatasyncClientOptions ClientOptions { get; }
 
         /// <summary>
+        /// An event that is fired when the table is modified - an entity is either
+        /// created, deleted, or updated.
+        /// </summary>
+        event EventHandler<DatasyncTableEventArgs> TableModified;
+
+        /// <summary>
         /// Creates a new item within the table.
         /// </summary>
         /// <param name="item">The item to add to the table.</param>
