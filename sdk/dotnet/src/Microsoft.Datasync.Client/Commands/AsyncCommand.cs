@@ -3,8 +3,6 @@
 
 using Microsoft.Datasync.Client.Utils;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -16,28 +14,41 @@ namespace Microsoft.Datasync.Client.Commands
     /// </summary>
     public class AsyncCommand : IAsyncCommand
     {
+        private bool _isExecuting;
+
         /// <summary>
         /// An event handler that is triggered when <see cref="CanExecute"/> is changed.
         /// </summary>
         public event EventHandler CanExecuteChanged;
 
-        private bool _isExecuting;
-        private readonly Func<Task> _execute;
-        private readonly Func<bool> _canExecute;
-        private IAsyncExceptionHandler _handler;
+        /// <summary>
+        /// The Executor Function
+        /// </summary>
+        protected Func<Task> ExecuteFunc { get; }
+
+        /// <summary>
+        /// The CanExecute Function
+        /// </summary>
+        protected Func<bool> CanExecuteFunc { get; }
+
+        /// <summary>
+        /// The error handler.
+        /// </summary>
+        protected IAsyncExceptionHandler ExceptionHandler { get; }
 
         /// <summary>
         /// Creates a new <see cref="AsyncCommand"/>
         /// </summary>
         /// <param name="execute">The function to execute asynchronously</param>
-        /// <param name="canExecute">A boolean indicating whether it is ok to execute</param>
+        /// <param name="canExecute">A boolean indicating whether it is OK to execute</param>
+        /// <param name="handler">The exception handler</param>
         public AsyncCommand(Func<Task> execute, Func<bool> canExecute = null, IAsyncExceptionHandler handler = null)
         {
             Validate.IsNotNull(execute, nameof(execute));
 
-            _execute = execute;
-            _canExecute = canExecute;
-            _handler = handler;
+            ExecuteFunc = execute;
+            CanExecuteFunc = canExecute;
+            ExceptionHandler = handler;
         }
 
         /// <summary>
@@ -45,7 +56,7 @@ namespace Microsoft.Datasync.Client.Commands
         /// </summary>
         /// <returns>true if the execution can happen</returns>
         public bool CanExecute()
-            => !_isExecuting && (_canExecute?.Invoke() ?? true);
+            => !_isExecuting && (CanExecuteFunc?.Invoke() ?? true);
 
         /// <summary>
         /// Executes the task.
@@ -57,7 +68,7 @@ namespace Microsoft.Datasync.Client.Commands
                 try
                 {
                     _isExecuting = true;
-                    await _execute();
+                    await ExecuteFunc();
                 }
                 finally
                 {
@@ -80,7 +91,7 @@ namespace Microsoft.Datasync.Client.Commands
         /// Defines the method to be called when the command is invoked.
         /// </summary>
         /// <param name="parameter"></param>
-        void ICommand.Execute(object parameter) => ExecuteAsync().FireAndForgetSafeAsync(_handler);
+        void ICommand.Execute(object parameter) => ExecuteAsync().FireAndForgetSafeAsync(ExceptionHandler);
         #endregion
     }
 }
