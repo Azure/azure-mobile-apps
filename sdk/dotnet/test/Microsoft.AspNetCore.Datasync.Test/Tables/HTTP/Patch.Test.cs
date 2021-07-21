@@ -21,6 +21,8 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class Patch_Tests
     {
+        private readonly DateTimeOffset startTime = DateTimeOffset.Now;
+
         [Theory, CombinatorialData]
         public async Task BasicPatchTests([CombinatorialRange(0, Movies.Count)] int index, [CombinatorialValues("movies", "movies_pagesize")] string table)
         {
@@ -47,6 +49,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             var result = response.DeserializeContent<ClientMovie>();
             var stored = repository.GetEntity(id);
 
+            AssertEx.SystemPropertiesSet(stored, startTime);
             AssertEx.SystemPropertiesChanged(expected, stored);
             AssertEx.SystemPropertiesMatch(stored, result);
             Assert.Equal<IMovie>(expected, result);
@@ -110,6 +113,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             var result = response.DeserializeContent<ClientMovie>();
             var stored = repository.GetEntity(id);
 
+            AssertEx.SystemPropertiesSet(stored, startTime);
             AssertEx.SystemPropertiesChanged(expected, stored);
             AssertEx.SystemPropertiesMatch(stored, result);
             Assert.Equal<IMovie>(expected, result);
@@ -230,6 +234,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
                 var result = response.DeserializeContent<ClientMovie>();
+                AssertEx.SystemPropertiesSet(stored, startTime);
                 AssertEx.SystemPropertiesChanged(expected, stored);
                 AssertEx.SystemPropertiesMatch(stored, result);
                 Assert.Equal<IMovie>(expected, result);
@@ -277,6 +282,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
                     expected.Title = "Test Movie Title";
                     expected.Rating = "PG-13";
 
+                    AssertEx.SystemPropertiesSet(stored, startTime);
                     AssertEx.SystemPropertiesChanged(expected, stored);
                     AssertEx.SystemPropertiesMatch(stored, actual);
                     Assert.Equal<IMovie>(expected, actual);
@@ -336,6 +342,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             var result = response.DeserializeContent<ClientMovie>();
             var stored = repository.GetEntity(id);
 
+            AssertEx.SystemPropertiesSet(stored, startTime);
             AssertEx.SystemPropertiesChanged(expected, stored);
             AssertEx.SystemPropertiesMatch(stored, result);
             Assert.Equal<IMovie>(expected, result);
@@ -369,6 +376,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             var result = response.DeserializeContent<ClientMovie>();
             var stored = repository.GetEntity(id);
 
+            AssertEx.SystemPropertiesSet(stored, startTime);
             AssertEx.SystemPropertiesChanged(expected, stored);
             AssertEx.SystemPropertiesMatch(stored, result);
             Assert.Equal<IMovie>(expected, result);

@@ -63,6 +63,19 @@ namespace Datasync.Common.Test
         }
 
         /// <summary>
+        /// Asserts if the provided actual date is in between the provided start and end dates.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="actual"></param>
+        public static void IsBetween(DateTimeOffset start, DateTimeOffset end, DateTimeOffset actual)
+        {
+            Assert.NotNull(actual);
+            Assert.True(actual >= start, $"Date {actual} is earlier than expected start date {start}");
+            Assert.True(actual <= end, $"Date {actual} is later than expected end date {end}");
+        }
+
+        /// <summary>
         /// Asserts if the headers contains the specific header provided
         /// </summary>
         /// <param name="response"></param>
@@ -81,7 +94,7 @@ namespace Datasync.Common.Test
         }
 
         /// <summary>
-        /// Asserts if the headers contaisn the specific header provided
+        /// Asserts if the headers contains the specific header provided
         /// </summary>
         /// <param name="headers"></param>
         /// <param name="headerName"></param>
@@ -93,9 +106,20 @@ namespace Datasync.Common.Test
             Assert.Equal(expected, values.Single());
         }
 
-        public static void SystemPropertiesSet(ITableData entity)
+        /// <summary>
+        /// Asserts if the system properties are set.
+        /// </summary>
+        /// <param name="entity">The entity that is being checked</param>
+        public static void SystemPropertiesSet(ITableData entity, DateTimeOffset? startTime = null)
         {
-            CloseTo(DateTimeOffset.Now, entity.UpdatedAt);
+            if (startTime.HasValue)
+            {
+                IsBetween(startTime.Value, DateTimeOffset.Now, entity.UpdatedAt);
+            }
+            else
+            {
+                CloseTo(DateTimeOffset.Now, entity.UpdatedAt);
+            }
             Assert.NotEmpty(entity.Version);
         }
 
