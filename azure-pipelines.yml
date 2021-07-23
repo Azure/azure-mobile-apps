@@ -10,8 +10,8 @@ variables:
   NUGET_VERSION: $[format('{0}-{1}.{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['BUILD_NUMBER'])]
 
 jobs:
-  - job: prebuild
-    displayName: 'Prebuild Tasks'
+  - job: buildsdk
+    displayName: 'Build Datasync SDK'
     steps:
     - task: UseDotNet@2
       displayName: 'Install .NET Core SDK'
@@ -20,10 +20,6 @@ jobs:
         performMultiLevelLookup: true
         includePreviewVersions: true
 
-  - job: buildsdk
-    dependsOn: [ 'prebuild' ]
-    displayName: 'Build Datasync SDK'
-    steps:
     - task: DotNetCoreCLI@2
       displayName: 'Restore packages'
       inputs:
@@ -49,9 +45,15 @@ jobs:
         includesymbols: true
 
   - job: buildtemplate
-    dependsOn: [ 'prebuild' ]
     displayName: 'Build dotnet template'
     steps:
+    - task: UseDotNet@2
+      displayName: 'Install .NET Core SDK'
+      inputs:
+        version: '5.0.x'
+        performMultiLevelLookup: true
+        includePreviewVersions: true
+
     - task: DotNetCoreCLI@2
       displayName: 'dotnet pack'
       inputs:
