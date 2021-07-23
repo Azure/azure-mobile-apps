@@ -1,3 +1,10 @@
+trigger:
+  - main
+  - refs/tags/*
+
+pr:
+  - main
+  
 pool:
     vmImage: 'windows-2019'
 
