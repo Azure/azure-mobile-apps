@@ -50,7 +50,7 @@ jobs:
         run: msbuild /p:Configuration=Release
       - 
         name: Test library
-        run: dotnet test -c Release
+        run: dotnet test -c Release --no-build
       - 
         name: Pack library
         run: dotnet pack -v normal -c Release --no-restore --include-symbols --include-source -p:PackageVersion="$BASE_VERSION-preview.$GITHUB_RUN_ID"

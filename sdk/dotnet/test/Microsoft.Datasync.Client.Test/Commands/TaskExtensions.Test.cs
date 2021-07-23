@@ -63,7 +63,7 @@ namespace Microsoft.Datasync.Client.Test.Commands
             Task.Run(() => throw new NotSupportedException()).FireAndForgetSafeAsync(errorHandler);
 
             // Sleep some time because async is hard
-            Thread.Sleep(2500);
+            Assert.True(await WaitUntil(() => errorHandler.Received.Count > 0, 1000), "Timeout waiting for error hanlder to be called");
 
             Assert.Single(errorHandler.Received);
             Assert.IsAssignableFrom<NotSupportedException>(errorHandler.Received[0]);
