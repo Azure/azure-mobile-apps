@@ -4,7 +4,7 @@ trigger:
 
 pr:
   - main
-  
+
 pool:
     vmImage: 'windows-2019'
 
@@ -60,6 +60,13 @@ jobs:
         version: '5.0.x'
         performMultiLevelLookup: true
         includePreviewVersions: true
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore packages'
+      inputs:
+        projects: '$(workingDirectory)/*.sln'
+        command: restore
+        verbosityRestore: 'Minimal'
 
     - task: DotNetCoreCLI@2
       displayName: 'dotnet pack'
