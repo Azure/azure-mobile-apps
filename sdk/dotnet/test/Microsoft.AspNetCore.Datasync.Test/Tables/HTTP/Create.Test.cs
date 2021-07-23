@@ -33,6 +33,11 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             Title = "Black Panther",
             Year = 2018
         };
+
+        /// <summary>
+        /// The time the test started
+        /// </summary>
+        private readonly DateTimeOffset startTime = DateTimeOffset.Now;
         #endregion
 
         [Theory, CombinatorialData]
@@ -62,7 +67,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             var entity = repository.GetEntity(result.Id);
             Assert.NotNull(entity);
 
-            AssertEx.SystemPropertiesSet(entity);
+            AssertEx.SystemPropertiesSet(entity, startTime);
             AssertEx.SystemPropertiesMatch(entity, result);
             Assert.Equal<IMovie>(movieToAdd, result);
             Assert.Equal<IMovie>(movieToAdd, entity);
@@ -95,7 +100,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             var entity = repository.GetEntity(result.Id);
             Assert.NotNull(entity);
 
-            AssertEx.SystemPropertiesSet(entity);
+            AssertEx.SystemPropertiesSet(entity, startTime);
             AssertEx.SystemPropertiesMatch(entity, result);
             if (useUpdatedAt)
                 Assert.NotEqual(movieToAdd.UpdatedAt, result.UpdatedAt);
@@ -172,7 +177,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             var result = response.DeserializeContent<ClientMovie>();
             var entity = repository.GetEntity(movieToAdd.Id);
             Assert.NotNull(entity);
-            AssertEx.SystemPropertiesSet(entity);
+            AssertEx.SystemPropertiesSet(entity, startTime);
             AssertEx.SystemPropertiesMatch(entity, result);
             Assert.Equal<IMovie>(expectedMovie, result);
             Assert.Equal<IMovie>(expectedMovie, entity);
@@ -220,7 +225,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
                 var entity = repository.GetEntity(result.Id);
                 Assert.NotNull(entity);
 
-                AssertEx.SystemPropertiesSet(entity);
+                AssertEx.SystemPropertiesSet(entity, startTime);
                 AssertEx.SystemPropertiesMatch(entity, result);
                 Assert.Equal<IMovie>(expectedMovie, result);
                 Assert.Equal<IMovie>(expectedMovie, entity);
@@ -252,7 +257,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             var result = response.DeserializeContent<ClientMovie>();
             var entity = repository.GetEntity(movieToAdd.Id);
             Assert.NotNull(entity);
-            AssertEx.SystemPropertiesSet(entity);
+            AssertEx.SystemPropertiesSet(entity, startTime);
             AssertEx.SystemPropertiesMatch(entity, result);
             Assert.Equal<IMovie>(expectedMovie, result);
             Assert.Equal<IMovie>(expectedMovie, entity);
@@ -288,7 +293,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             var entity = repository.GetEntity(result.Id);
             Assert.NotNull(entity);
 
-            AssertEx.SystemPropertiesSet(entity);
+            AssertEx.SystemPropertiesSet(entity, startTime);
             AssertEx.SystemPropertiesMatch(entity, result);
             Assert.Equal<IMovie>(movieToAdd, result);
             Assert.Equal<IMovie>(movieToAdd, entity);

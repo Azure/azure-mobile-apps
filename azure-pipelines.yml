@@ -5,10 +5,8 @@ trigger:
 pr:
   - main
 
-pool:
-  vmImage: 'ubuntu-latest'
-
 variables:
+  AREA_PATH: 'DevDiv/Xamarin SDK'
   BASE_VERSION: 5.0.0
   PREVIEW_LABEL: 'preview'
   BUILD_NUMBER: $[counter(format('{0}_{1}_{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['Build.SourceBranch']), 1)]
@@ -17,28 +15,57 @@ variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_NOLOGO: true
 
-steps:
-- task: UseDotNet@2
-  inputs:
-    version: '5.0.301'
+  resources:
+    repositories:
+      - repository: internal-templates
+        type: github
+        name: xamarin/yaml-templates
+        endpoint: xamarin
+      - repository: components
+        type: github
+        name: xamarin/XamarinComponents
+        endpoint: xamarin
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'restore'
-  workingDirectory: 'sdk/dotnet'
-
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
-    arguments: '-c Release --no-restore'
-  workingDirectory: 'sdk/dotnet'
-
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'test'
-    arguments: '-c Release'
-  workingDirectory: 'sdk/dotnet'
-
-
-
-  
+        stages:
+          - stage: build
+            displayName: Build
+            workingDirectory: sdk/dotnet
+            dependsOn: []
+            jobs:
+              - template: .ci/build.yml@components
+                parameters:
+                  publishJob: windows
+                  areaPath: $(AREA_PATH)
+                  validPackagePrefixes:
+                    - Microsoft.AspNetCore.Datasync
+                    - Microsoft.Datasync.Client
+                  preBuildSteps:
+                    - pwsh: |
+                        $pr = "pr." + $env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER
+                        $nuget = $env:BASE_VERSION + "-" + $pr + "." + $env:BUILD_NUMBER
+                        Write-Host "Preview label: $pr"
+                        Write-Host "NuGet version: $nuget"
+                        Write-Host "##vso[task.setvariable variable=PREVIEW_LABEL]$pr"
+                        Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$nuget"
+                      displayName: Use a special preview label for PRs
+                      condition: eq(variables['Build.Reason'], 'PullRequest')
+                    - pwsh: |
+                        $tagVersion = $env:BUILD_SOURCEBRANCHNAME
+                        Write-Host "Tag version: $tagVersion"
+                        Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$tagVersion"
+                      displayName: Override version for tags
+                      condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+                    - pwsh: |
+                        Write-Host "##vso[build.updatebuildnumber]$env:NUGET_VERSION"
+                      displayName: Update the build number with a more readable one
+        
+          - ${{ if eq(variables['System.TeamProject'], 'devdiv') }}:
+            - stage: signing
+              displayName: Signing
+              workingDirectory: sdk/dotnet
+              dependsOn: [ 'build' ]
+              jobs:
+                - template: sign-artifacts/jobs/v2.yml@internal-templates
+                  parameters:
+                    codeSignOverride: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+        

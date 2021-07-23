@@ -5,3 +5,4 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Microsoft.AspNetCore.Datasync.Test")]
 [assembly: InternalsVisibleTo("Microsoft.AspNetCore.Datasync.InMemory.Test")]
+[assembly: InternalsVisibleTo("Microsoft.Datasync.Client.Test")]

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AspNetCore.Datasync;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
@@ -71,5 +72,34 @@ namespace Datasync.Common.Test.Models
                 Title = this.Title,
                 Year = this.Year
             };
+
+        /// <summary>
+        /// Creates a <see cref="ClientMovie"/> from a server object
+        /// </summary>
+        /// <param name="source">The source object</param>
+        /// <returns>The client object</returns>
+        public static ClientMovie From(object source)
+        {
+            var entity = new ClientMovie();
+            if (source is IMovie movie)
+            {
+                entity.BestPictureWinner = movie.BestPictureWinner;
+                entity.Duration = movie.Duration;
+                entity.Rating = movie.Rating;
+                entity.ReleaseDate = movie.ReleaseDate;
+                entity.Title = movie.Title;
+                entity.Year = movie.Year;
+            }
+
+            if (source is ITableData tableData)
+            {
+                entity.Id = tableData.Id;
+                entity.UpdatedAt = tableData.UpdatedAt;
+                entity.Version = Convert.ToBase64String(tableData.Version);
+                entity.Deleted = tableData.Deleted;
+            }
+
+            return entity;
+        }
     }
 }
