@@ -30,7 +30,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-Then, in the `Configure()` method, update the `UseEndpoints()` callback to include `endpoints.EnableDatasyncControllers()`.  For example:
+Then, in the `Configure()` method, update the `UseEndpoints()` callback to include `endpoints.EnableTableControllers()`.  For example:
 
 ``` csharp
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

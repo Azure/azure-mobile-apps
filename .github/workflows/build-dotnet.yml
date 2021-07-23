@@ -45,7 +45,7 @@ jobs:
       - 
         name: Build library
         # run: dotnet build -c Release --no-restore
-        run: $MSBUILD_PATH /p:Configuration=Release
+        run: "$MSBUILD_PATH /p:Configuration=Release"
       - 
         name: Test library
         run: dotnet test -c Release
