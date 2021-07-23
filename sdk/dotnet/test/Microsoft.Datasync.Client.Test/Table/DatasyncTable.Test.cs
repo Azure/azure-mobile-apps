@@ -5,8 +5,10 @@ using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
 using Microsoft.AspNetCore.Datasync;
+using Microsoft.Datasync.Client.Commands;
 using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Table;
+using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -2536,6 +2538,32 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             Assert.Equal(Movies.Count, itemCount);
             Assert.Equal(3, pageCount);
+        }
+        #endregion
+
+        #region ToLazyObservableCollection
+        [Fact]
+        [Trait("Method", "ToLazyObservableCollection")]
+        public async Task ToLazyObservableCollection_LoadsData()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var table = client.GetTable<ClientMovie>("movies");
+            int loops = 0;
+            const int maxLoops = (Movies.Count / 20) + 1;
+
+            // Act
+            var sut = table.ToLazyObservableCollection() as InternalLazyObservableCollection<ClientMovie>;
+            var loadMore = sut.LoadMoreCommand as IAsyncCommand;
+            await WaitUntil(() => !sut.IsBusy).ConfigureAwait(false);
+            while (loops < maxLoops && sut.HasMoreItems)
+            {
+                loops++;
+                await loadMore.ExecuteAsync().ConfigureAwait(false);
+            }
+
+            Assert.False(sut.HasMoreItems);
+            Assert.Equal(Movies.Count, sut.Count);
         }
         #endregion
 

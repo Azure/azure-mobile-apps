@@ -2,9 +2,11 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
-using Datasync.Common.Test.Models;
+using Datasync.Common.Test.TestData;
+using Microsoft.Datasync.Client.Commands;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Test.Helpers;
+using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -574,6 +576,36 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(200, pageable.CurrentResponse.StatusCode);
             Assert.True(pageable.CurrentResponse.HasContent);
             Assert.NotEmpty(pageable.CurrentResponse.Content);
+        }
+        #endregion
+
+        #region ToLazyObservableCollection
+        [Theory]
+        [ClassData(typeof(LinqTestCases))]
+        [Trait("Method", "ToODataQueryString")]
+        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case doesn't use values")]
+        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case doesn't use values")]
+        internal async Task ToLazyObservableCollection_WithLinq(string testCase, Func<ITableQuery<Movie>, ITableQuery<Movie>> func, string expected, int expectedCount, string[] expectedIds)
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var table = client.GetTable<Movie>("movies");
+            int loops = 0;
+            const int maxLoops = (Movies.Count / 20) + 1;
+            var query = new DatasyncTableQuery<Movie>(table);
+
+            // Act
+            var sut = (func.Invoke(query) as DatasyncTableQuery<Movie>)?.ToLazyObservableCollection() as InternalLazyObservableCollection<Movie>;
+            var loadMore = sut.LoadMoreCommand as IAsyncCommand;
+            await WaitUntil(() => !sut.IsBusy).ConfigureAwait(false);
+            while (loops < maxLoops && sut.HasMoreItems)
+            {
+                loops++;
+                await loadMore.ExecuteAsync().ConfigureAwait(false);
+            }
+
+            Assert.False(sut.HasMoreItems);
+            Assert.Equal(expectedCount, sut.Count);
         }
         #endregion
 
