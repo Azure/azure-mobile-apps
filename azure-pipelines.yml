@@ -1,0 +1,21 @@
+pool:
+    vmImage: 'windows-2019'
+
+variables:
+  buildConfiguration: 'Release'
+  workingDirectory: '$(Build.SourcesDirectory)/sdk/dotnet'
+
+steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      version: '5.0.x'
+      performMultiLevelLookup: true
+      includePreviewVersions: true
+
+  - task: MSBuild@1
+    inputs:
+      solution: '$(workingDirectory)/*.sln'
+      configuration: $(buildConfiguration)
+      restoreNuGetPackages: true
+      
