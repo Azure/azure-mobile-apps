@@ -13,9 +13,16 @@ steps:
       performMultiLevelLookup: true
       includePreviewVersions: true
 
+  - task: DotNetCoreCLI@2
+    displayName: Restore NuGet Packages
+    inputs:
+      command: restore
+      workingDirectory: $(workingDirectory)
+      configuration: $(buildConfiguration)
+      includeNuGetOrg: true
+
   - task: MSBuild@1
     inputs:
       solution: '$(workingDirectory)/*.sln'
       configuration: $(buildConfiguration)
       restoreNuGetPackages: true
-      
