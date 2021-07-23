@@ -41,7 +41,7 @@ namespace Datasync.Webservice
         public void ConfigureServices(IServiceCollection services)
         {
             // Implement logging!
-            services.AddLogging(options => options.AddConsole());
+            // services.AddLogging(options => options.AddConsole());
 
             // Add singletons for each InMemoryRepository to be used.
             var seedData = Movies.OfType<InMemoryMovie>();
