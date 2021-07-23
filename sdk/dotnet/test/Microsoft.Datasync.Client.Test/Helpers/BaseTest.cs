@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Microsoft.Datasync.Client.Test
 {
@@ -117,6 +118,60 @@ namespace Microsoft.Datasync.Client.Test
             var page = new Page<IdEntity> { Items = items, Count = totalCount, NextLink = nextLink };
             MockHandler.AddResponse(HttpStatusCode.OK, page);
             return page;
+        }
+
+        /// <summary>
+        /// A basic AsyncEnumerator.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        protected async IAsyncEnumerable<int> RangeAsync(int start, int count, int ms = 1)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                await Task.Delay(ms).ConfigureAwait(false);
+                yield return start + i;
+            }
+        }
+
+        /// <summary>
+        /// An alternate basic AsyncEnumerator that throws half way through.
+        /// </summary>
+        /// <returns></returns>
+        protected async IAsyncEnumerable<int> ThrowAsync()
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                await Task.Delay(1).ConfigureAwait(false);
+                if (i < 10)
+                {
+                    yield return i;
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Wait until a condition is met - useful for testing async processes.
+        /// </summary>
+        /// <param name="func"></param>
+        /// <param name="ms"></param>
+        /// <param name="maxloops"></param>
+        /// <returns></returns>
+        protected static async Task<bool> WaitUntil(Func<bool> func, int ms = 10, int maxloops = 500)
+        {
+            int waitCtr = 0;
+
+            do
+            {
+                waitCtr++;
+                await Task.Delay(ms).ConfigureAwait(false);
+            } while (!func.Invoke() && waitCtr < maxloops);
+            return waitCtr < maxloops;
         }
     }
 }

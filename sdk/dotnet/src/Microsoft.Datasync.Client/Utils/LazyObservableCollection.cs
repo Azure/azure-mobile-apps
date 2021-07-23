@@ -18,7 +18,7 @@ namespace Microsoft.Datasync.Client
     /// </summary>
     /// <typeparam name="T">The type of entity being loaded</typeparam>
     [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "This is a deliberate choice for API concerns")]
-    public interface LazyObservableCollection<T> : ICollection<T>
+    public interface LazyObservableCollection<T> : ICollection<T>, INotifyPropertyChanged
     {
         /// <summary>
         /// A <see cref="ICommand"/> that can be triggered to load more items into the collection
@@ -61,6 +61,8 @@ namespace Microsoft.Datasync.Client.Utils
         /// <param name="handler">An error handler for async exceptions</param>
         internal InternalLazyObservableCollection(IAsyncEnumerable<T> enumerable, int pageCount = DefaultPageCount, IAsyncExceptionHandler handler = null)
         {
+            Validate.IsNotNull(enumerable, nameof(enumerable));
+
             _enumerable = enumerable;
             _enumerator = _enumerable.GetAsyncEnumerator();
             _count = pageCount;
@@ -75,7 +77,7 @@ namespace Microsoft.Datasync.Client.Utils
         /// </summary>
         /// <param name="enumerable">The <see cref="IAsyncEnumerable{T}"/> to use to get items</param>
         /// <param name="handler">An error handler for async exceptions</param>
-        internal InternalLazyObservableCollection(IAsyncEnumerable<T> enumerable, IAsyncExceptionHandler handler = null)
+        internal InternalLazyObservableCollection(IAsyncEnumerable<T> enumerable, IAsyncExceptionHandler handler)
             : this(enumerable, DefaultPageCount, handler)
         {
         }
@@ -113,11 +115,6 @@ namespace Microsoft.Datasync.Client.Utils
         /// <returns>True if the field is set</returns>
         private bool SetField<P>(ref P field, P value, string propertyName)
         {
-            if (EqualityComparer<P>.Default.Equals(field, value))
-            {
-                return false;
-            }
-
             field = value;
             base.OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
             return true;
@@ -134,8 +131,7 @@ namespace Microsoft.Datasync.Client.Utils
             {
                 if (IsBusy)
                     return;
-                else
-                    IsBusy = true;
+                IsBusy = true;
             }
 
             for (var i = 0; i < _count; i++)

@@ -1,4 +1,7 @@
-﻿using Microsoft.Datasync.Client.Commands;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.Datasync.Client.Commands;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -23,28 +26,29 @@ namespace Microsoft.Datasync.Client.Test.Commands
 
         [Fact]
         [Trait("Method", "FireAndForgetSafeAsync")]
-        public void FireAndForget_RunsTask_NoErrorHandler()
+        public async Task FireAndForget_RunsTask_NoErrorHandler()
         {
             int count = 0;
-            Task.Run(() => { count++; }).FireAndForgetSafeAsync();
+            Task.Run(() => count++).FireAndForgetSafeAsync();
 
-            // Sleep some time because async is hard
-            Thread.Sleep(2500);
+            // Wait with a timeout
+            Assert.True(await WaitUntil(() => count == 1).ConfigureAwait(false), "Timeout waiting for IsBusy to settle");
+
 
             Assert.Equal(1, count);
         }
 
         [Fact]
         [Trait("Method", "FireAndForgetSafeAsync")]
-        public void FireAndForget_RunsTask_WithErrorHandler()
+        public async Task FireAndForget_RunsTask_WithErrorHandler()
         {
             int count = 0;
             var errorHandler = new ErrorHandler();
 
-            Task.Run(() => { count++; }).FireAndForgetSafeAsync(errorHandler);
+            Task.Run(() => count++).FireAndForgetSafeAsync(errorHandler);
 
-            // Sleep some time because async is hard
-            Thread.Sleep(2500);
+            // Wait with a timeout
+            Assert.True(await WaitUntil(() => count == 1).ConfigureAwait(false), "Timeout waiting for IsBusy to settle");
 
             Assert.Equal(1, count);
             Assert.Empty(errorHandler.Received);
