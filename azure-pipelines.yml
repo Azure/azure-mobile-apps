@@ -15,57 +15,57 @@ variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_NOLOGO: true
 
-  resources:
-    repositories:
-      - repository: internal-templates
-        type: github
-        name: xamarin/yaml-templates
-        endpoint: xamarin
-      - repository: components
-        type: github
-        name: xamarin/XamarinComponents
-        endpoint: xamarin
+resources:
+  repositories:
+    - repository: internal-templates
+      type: github
+      name: xamarin/yaml-templates
+      endpoint: xamarin
+    - repository: components
+      type: github
+      name: xamarin/XamarinComponents
+      endpoint: xamarin
 
-        stages:
-          - stage: build
-            displayName: Build
+stages:
+  - stage: build
+    displayName: Build
+    dependsOn: []
+    jobs:
+      - template: .ci/build.yml@components
+        parameters:
+          workingDirectory: sdk/dotnet
+          publishJob: windows
+          areaPath: $(AREA_PATH)
+          validPackagePrefixes:
+            - Microsoft.AspNetCore.Datasync
+            - Microsoft.Datasync.Client
+          preBuildSteps:
+            - pwsh: |
+                $pr = "pr." + $env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER
+                $nuget = $env:BASE_VERSION + "-" + $pr + "." + $env:BUILD_NUMBER
+                Write-Host "Preview label: $pr"
+                Write-Host "NuGet version: $nuget"
+                Write-Host "##vso[task.setvariable variable=PREVIEW_LABEL]$pr"
+                Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$nuget"
+              displayName: Use a special preview label for PRs
+              condition: eq(variables['Build.Reason'], 'PullRequest')
+            - pwsh: |
+                $tagVersion = $env:BUILD_SOURCEBRANCHNAME
+                Write-Host "Tag version: $tagVersion"
+                Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$tagVersion"
+              displayName: Override version for tags
+              condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+            - pwsh: |
+                Write-Host "##vso[build.updatebuildnumber]$env:NUGET_VERSION"
+              displayName: Update the build number with a more readable one
+
+  - ${{ if eq(variables['System.TeamProject'], 'devdiv') }}:
+    - stage: signing
+      displayName: Signing
+      dependsOn: [ 'build' ]
+      jobs:
+        - template: sign-artifacts/jobs/v2.yml@internal-templates
+          parameters:
             workingDirectory: sdk/dotnet
-            dependsOn: []
-            jobs:
-              - template: .ci/build.yml@components
-                parameters:
-                  publishJob: windows
-                  areaPath: $(AREA_PATH)
-                  validPackagePrefixes:
-                    - Microsoft.AspNetCore.Datasync
-                    - Microsoft.Datasync.Client
-                  preBuildSteps:
-                    - pwsh: |
-                        $pr = "pr." + $env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER
-                        $nuget = $env:BASE_VERSION + "-" + $pr + "." + $env:BUILD_NUMBER
-                        Write-Host "Preview label: $pr"
-                        Write-Host "NuGet version: $nuget"
-                        Write-Host "##vso[task.setvariable variable=PREVIEW_LABEL]$pr"
-                        Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$nuget"
-                      displayName: Use a special preview label for PRs
-                      condition: eq(variables['Build.Reason'], 'PullRequest')
-                    - pwsh: |
-                        $tagVersion = $env:BUILD_SOURCEBRANCHNAME
-                        Write-Host "Tag version: $tagVersion"
-                        Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$tagVersion"
-                      displayName: Override version for tags
-                      condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
-                    - pwsh: |
-                        Write-Host "##vso[build.updatebuildnumber]$env:NUGET_VERSION"
-                      displayName: Update the build number with a more readable one
-        
-          - ${{ if eq(variables['System.TeamProject'], 'devdiv') }}:
-            - stage: signing
-              displayName: Signing
-              workingDirectory: sdk/dotnet
-              dependsOn: [ 'build' ]
-              jobs:
-                - template: sign-artifacts/jobs/v2.yml@internal-templates
-                  parameters:
-                    codeSignOverride: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+            codeSignOverride: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
         
