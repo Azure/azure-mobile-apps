@@ -11,6 +11,7 @@ variables:
 
 jobs:
   - job: prebuild
+    displayName: 'Prebuild Tasks'
     steps:
     - task: UseDotNet@2
       displayName: 'Install .NET Core SDK'
@@ -26,7 +27,7 @@ jobs:
     - task: DotNetCoreCLI@2
       displayName: 'Restore packages'
       inputs:
-        workingDirectory: $(workingDirectory)
+        projects: '$(workingDirectory)/*.sln'
         command: restore
 
     - task: MSBuild@1
