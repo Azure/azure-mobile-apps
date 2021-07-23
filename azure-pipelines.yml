@@ -4,22 +4,33 @@ pool:
 variables:
   buildConfiguration: 'Release'
   workingDirectory: '$(Build.SourcesDirectory)/sdk/dotnet'
+  BASE_VERSION: 4.2.0
+  PREVIEW_LABEL: 'preview'
+  BUILD_NUMBER: $[counter(format('{0}_{1}_{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['Build.SourceBranch']), 1)]
+  NUGET_VERSION: $[format('{0}-{1}.{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['BUILD_NUMBER'])]
 
-steps:
-  - task: UseDotNet@2
-    displayName: 'Install .NET Core SDK'
-    inputs:
-      version: '5.0.x'
-      performMultiLevelLookup: true
-      includePreviewVersions: true
+jobs:
+  - job: prebuild
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Install .NET Core SDK'
+      inputs:
+        version: '5.0.x'
+        performMultiLevelLookup: true
+        includePreviewVersions: true
 
-  - script: |
-      dotnet restore -c $(buildConfiguration)
-    displayName: 'Restore SDK packages'
-    workingDirectory: $(workingDirectory)
-    
-  - task: MSBuild@1
-    inputs:
-      solution: '$(workingDirectory)/*.sln'
-      configuration: $(buildConfiguration)
-      restoreNuGetPackages: true
+  - job: buildsdk
+    dependsOn: [ 'prebuild' ]
+    displayName: 'Build Datasync SDK'
+    steps:
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore packages'
+      inputs:
+        workingDirectory: $(workingDirectory)
+        command: restore
+
+    - task: MSBuild@1
+      displayName: 'Run MSBuild'
+      inputs:
+        solution: '$(workingDirectory)/*.sln'
+        configuration: $(buildConfiguration)
