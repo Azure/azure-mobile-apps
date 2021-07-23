@@ -34,6 +34,7 @@ stages:
       - template: .ci/build.yml@components
         parameters:
           publishJob: windows
+          workingDirectory: sdk/dotnet
           areaPath: $(AREA_PATH)
           validPackagePrefixes:
             - Microsoft.AspNetCore.Datasync

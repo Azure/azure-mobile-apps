@@ -19,7 +19,7 @@ Task("Build")
     Information("Building with NuGet version: {0}", nugetVersion);
     Information("Building with assembly version: {0}", baseVersion);
 
-    MSBuild(".sdk/dotnet/Datasync.Framework.sln", c => c
+    MSBuild("./Datasync.Framework.sln", c => c
         .SetConfiguration(configuration)
         .EnableBinaryLogger("./output/build.binlog")
         .WithRestore()
@@ -43,7 +43,7 @@ Task("Test")
 
     var failCount = 0;
 
-    var projectFiles = GetFiles("./sdk/dotnet/test/**/*.csproj");
+    var projectFiles = GetFiles("./test/**/*.csproj");
     foreach(var file in projectFiles)
     {
         settings.Logger = "trx;LogFileName=" + file.GetFilenameWithoutExtension() + "-Results.trx";
