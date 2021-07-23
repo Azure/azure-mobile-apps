@@ -22,7 +22,7 @@ env:
   GiTHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   # Base version for the prerelease builds
   BASE_VERSION: 5.0.0
-  MSBUILD_PATH: "%programfiles(x86)%\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin"
+  MSBUILD_PATH: "%programfiles(x86)%\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe"
 
 jobs:
   build:
@@ -45,7 +45,7 @@ jobs:
       - 
         name: Build library
         # run: dotnet build -c Release --no-restore
-        run: $MSBUILD_PATH\\msbuild.exe /p:Configuration=Release
+        run: $MSBUILD_PATH /p:Configuration=Release
       - 
         name: Test library
         run: dotnet test -c Release
