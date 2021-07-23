@@ -33,7 +33,6 @@ stages:
     jobs:
       - template: .ci/build.yml@components
         parameters:
-          workingDirectory: sdk/dotnet
           publishJob: windows
           areaPath: $(AREA_PATH)
           validPackagePrefixes:
@@ -66,6 +65,5 @@ stages:
       jobs:
         - template: sign-artifacts/jobs/v2.yml@internal-templates
           parameters:
-            workingDirectory: sdk/dotnet
             codeSignOverride: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
         
