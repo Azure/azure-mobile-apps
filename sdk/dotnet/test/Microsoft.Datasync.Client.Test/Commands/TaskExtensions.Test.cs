@@ -56,7 +56,7 @@ namespace Microsoft.Datasync.Client.Test.Commands
 
         [Fact]
         [Trait("Method", "FireAndForgetSafeAsync")]
-        public void FireAndForget_CallsErrorHandler()
+        public async Task FireAndForget_CallsErrorHandler()
         {
             var errorHandler = new ErrorHandler();
 
