@@ -24,28 +24,21 @@ jobs:
       - task: NuGetToolInstaller@1
 
       - task: NuGetCommand@2
+        displayName: 'Restore Packages'
         inputs:
           restoreSolution: $(sdkSolution)
       
       - task: MSBuild@1
+        displayName: 'Build SDK'
         inputs:
           configuration: $(buildConfiguration)
           solution: $(sdkSolution)
           msbuildArguments: '-t:Build -p:PackageVersion=$(NUGET_VERSION)'
 
       - task: DotNetCoreCLI@2
+        displayName: 'Unit Tests'
         inputs:
           command: test
           configuration: $(buildConfiguration)
           workingDirectory: $(sdkDirectory)
           nobuild: true
-
-      - task: PublishTestResults@2
-        displayName: 'Publish the test results'
-        inputs:
-          testResultsFormat: xUnit
-          testResultsFiles: '$(sdkDirectory)/output/**/*TestResults.xml'
-          testRunTitle: 'xUnit test results for $(System.JobName)'
-
-
-

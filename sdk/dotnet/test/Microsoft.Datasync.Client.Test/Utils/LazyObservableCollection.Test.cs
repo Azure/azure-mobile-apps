@@ -63,6 +63,7 @@ namespace Microsoft.Datasync.Client.Test.Utils
             var loadMore = sut.LoadMoreCommand as IAsyncCommand;
 
             // Wait a little bit for the first page to be loaded.
+            await Task.Delay(250).ConfigureAwait(false);
             Assert.True(await WaitUntil(() => !sut.IsBusy).ConfigureAwait(false), "Timeout waiting for IsBusy to settle");
 
             int loop = 1;

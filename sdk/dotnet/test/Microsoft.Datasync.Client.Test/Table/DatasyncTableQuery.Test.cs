@@ -591,7 +591,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var client = CreateClientForTestServer();
             var table = client.GetTable<Movie>("movies");
             int loops = 0;
-            const int maxLoops = (Movies.Count / 20) + 1;
+            const int maxLoops = (Movies.Count / 20) + 2;
             var query = new DatasyncTableQuery<Movie>(table);
 
             // Act
@@ -604,8 +604,12 @@ namespace Microsoft.Datasync.Client.Test.Table
                 await loadMore.ExecuteAsync().ConfigureAwait(false);
             }
 
-            Assert.False(sut.HasMoreItems);
+            // Do one more load to make sure.
+            await loadMore.ExecuteAsync().ConfigureAwait(false);
+
             Assert.Equal(expectedCount, sut.Count);
+            Assert.False(sut.HasMoreItems);
+
         }
         #endregion
 

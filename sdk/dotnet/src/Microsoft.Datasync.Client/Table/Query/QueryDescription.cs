@@ -4,6 +4,7 @@
 using Microsoft.Datasync.Client.Table.Query.Nodes;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace Microsoft.Datasync.Client.Table.Query
@@ -98,7 +99,7 @@ namespace Microsoft.Datasync.Client.Table.Query
                 Parameters.ToList().ForEach(p => queryParams.Add($"{Uri.EscapeUriString(p.Key)}={Uri.EscapeUriString(p.Value)}"));
             }
 
-            queryParams.Sort(); // Deterministic output order for testing
+            queryParams.Sort(StringComparer.InvariantCulture); // Deterministic output order for testing
             return string.Join("&", queryParams);
         }
     }

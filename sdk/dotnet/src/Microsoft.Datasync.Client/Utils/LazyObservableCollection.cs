@@ -68,7 +68,7 @@ namespace Microsoft.Datasync.Client.Utils
             _count = pageCount;
 
             LoadMoreCommand = new AsyncCommand(LoadMoreItemsAsync, () => HasMoreItems, handler);
-            ((AsyncCommand)LoadMoreCommand).ExecuteAsync().FireAndForgetSafeAsync(handler);
+            LoadMoreItemsAsync().FireAndForgetSafeAsync(handler); // Load the first batch of items
         }
 
         /// <summary>
