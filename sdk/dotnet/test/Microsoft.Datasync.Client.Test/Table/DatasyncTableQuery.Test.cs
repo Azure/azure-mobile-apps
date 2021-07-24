@@ -3,6 +3,7 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.TestData;
+using FluentAssertions;
 using Microsoft.Datasync.Client.Commands;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Test.Helpers;
@@ -609,7 +610,6 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             Assert.Equal(expectedCount, sut.Count);
             Assert.False(sut.HasMoreItems);
-
         }
         #endregion
 
@@ -844,7 +844,11 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Assert
             Assert.NotNull(actual);
-            Assert.True(tester.Equals(expected), $"Test '{testCase}' did not match\nExpected: {expected}\nActual  : {tester}");
+
+            var expectedParams = expected.Split('&').ToList();
+            var actualParams = tester.Split('&').ToList();
+            // actualParams and expectedParams need to be the same, but can be in different order
+            actualParams.Should().BeEquivalentTo(expectedParams, $"Test Case {testCase} OData String");
         }
 
         [Theory]
