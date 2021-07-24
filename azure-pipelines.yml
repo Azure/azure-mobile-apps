@@ -10,6 +10,7 @@ pool:
 
 variables:
   buildConfiguration: 'Release'
+  sdkDirectory: 'sdk/dotnet'
   sdkSolution: 'sdk/dotnet/Datasync.Framework.sln'
   BASE_VERSION: 5.0.0
   PREVIEW_LABEL: 'preview'
@@ -36,7 +37,15 @@ jobs:
         inputs:
           command: test
           configuration: $(buildConfiguration)
+          workingDirectory: $(sdkDirectory)
           nobuild: true
+
+      - task: PublishTestResults@2
+        displayName: 'Publish the test results'
+        inputs:
+          testResultsFormat: xUnit
+          testResultsFiles: '$(sdkDirectory)/output/**/*TestResults.xml'
+          testRunTitle: 'xUnit test results for $(System.JobName)'
 
 
 
