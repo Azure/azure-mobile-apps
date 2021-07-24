@@ -17,7 +17,7 @@ variables:
   NUGET_VERSION: $[format('{0}-{1}.{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['BUILD_NUMBER'])]
 
 jobs:
-  - job: build-sdk
+  - job: buildsdk
     displayName: 'Build .NET SDK'
     steps:
       - task: NuGetToolInstaller@1
