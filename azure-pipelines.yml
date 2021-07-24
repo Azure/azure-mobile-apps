@@ -10,67 +10,33 @@ pool:
 
 variables:
   buildConfiguration: 'Release'
-  workingDirectory: '$(Build.SourcesDirectory)/sdk/dotnet'
+  sdkSolution: 'sdk/dotnet/Datasync.Framework.sln'
   BASE_VERSION: 5.0.0
   PREVIEW_LABEL: 'preview'
   BUILD_NUMBER: $[counter(format('{0}_{1}_{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['Build.SourceBranch']), 1)]
   NUGET_VERSION: $[format('{0}-{1}.{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['BUILD_NUMBER'])]
 
 jobs:
-  - job: buildsdk
-    displayName: 'Build Datasync SDK'
+  - job: build-sdk
+    displayName: 'Build .NET SDK'
     steps:
-    - task: UseDotNet@2
-      displayName: 'Install .NET Core SDK'
-      inputs:
-        version: '5.0.x'
-        performMultiLevelLookup: true
-        includePreviewVersions: true
+      - task: NuGetToolInstaller@1
 
-    - task: DotNetCoreCLI@2
-      displayName: 'Restore packages'
-      inputs:
-        projects: '$(workingDirectory)/*.sln'
-        command: restore
-        verbosityRestore: 'Minimal'
+      - task: NuGetCommand@2
+        inputs:
+          restoreSolution: $(sdkSolution)
+      
+      - task: MSBuild@1
+        inputs:
+          configuration: $(buildConfiguration)
+          solution: $(sdkSolution)
+          msbuildArguments: '-t:Build -p:PackageVersion=$(NUGET_VERSION)'
 
-    - task: MSBuild@1
-      displayName: 'Run MSBuild'
-      inputs:
-        solution: '$(workingDirectory)/*.sln'
-        configuration: $(buildConfiguration)
+      - task: DotNetCoreCLI@2
+        inputs:
+          command: test
+          configuration: $(buildConfiguration)
+          nobuild: true
 
-    - task: DotNetCoreCLI@2
-      displayName: 'Pack for NuGet'
-      inputs:
-        projects: '$(workingDirectory)/*.sln'
-        command: pack
-        arguments: '-p:PackageVersion="$(NUGET_VERSION)"'
-        verbosityPack: 'Normal'
-        configuration: $(buildConfiguration)
-        includesource: true
-        includesymbols: true
 
-  - job: buildtemplate
-    displayName: 'Build dotnet template'
-    steps:
-    - task: UseDotNet@2
-      displayName: 'Install .NET Core SDK'
-      inputs:
-        version: '5.0.x'
-        performMultiLevelLookup: true
-        includePreviewVersions: true
 
-    - task: DotNetCoreCLI@2
-      displayName: 'Restore packages'
-      inputs:
-        projects: '$(workingDirectory)/*.sln'
-        command: restore
-        verbosityRestore: 'Minimal'
-
-    - task: DotNetCoreCLI@2
-      displayName: 'dotnet pack'
-      inputs:
-        projects: '$(templateDirectory)/*.csproj'
-        command: pack
-        configuration: $(buildConfiguration)

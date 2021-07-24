@@ -1,0 +1,5 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <FirstParty Include="Microsoft.AspNetCore.Datasync.dll"/>
+    <FirstParty Include="Microsoft.AspNetCore.Datasync.*.dll"/>
+    <FirstParty Include="Microsoft.Datasync.Client.dll"/>
+</Project>
