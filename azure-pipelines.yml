@@ -21,12 +21,17 @@ jobs:
   - job: buildsdk
     displayName: 'Build .NET SDK'
     steps:
-      - task: NuGetToolInstaller@1
-
+      - task: UseDotNet@2
+        displayName: 'Setup .NET Core SDK'
+        inputs:
+          version: '5.0.x'
+          performMultiLevelLookup: true
+          
       - task: DotNetCoreCLI@2
         displayName: 'Restore Packages'
         inputs:
           command: restore
+          projects: '$(sdkDirectory)/**/*.csproj'
           workingDirectory: $(sdkDirectory)
           verbosityRestore: 'normal'
       
