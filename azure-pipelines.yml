@@ -41,13 +41,12 @@ jobs:
           configuration: $(buildConfiguration)
           msbuildArguments: '/t:build /p:PackageVersion=$(NUGET_VERSION)'
           
-      - task: VSTest@2
+      - task: DotNetCoreCLI@2
+        displayName: 'Run unit tests'
         inputs:
-          testAssemblyVer2: |
-            $(sdkDirectory)\test\**\$(buildConfiguration)\**\*.Test.dll
-            !**\Datasync.Common.Test.dll
-          codeCoverageEnabled: true
-          diagnosticsEnabled: true
-          rerunFailedTests: true
-          testRunTitle: '$(Build.DefinitionName) | $(Build.Reason) | $(Build.SourceVersion)'
-          configuration: $(buildConfiguration)
+          command: 'test'
+          projects: |
+            $(sdkDirectory)/test/**/*.Test.csproj
+            !**/Datasync.Common.Test.csproj
+          arguments: '--no-restore --no-build'
+          
