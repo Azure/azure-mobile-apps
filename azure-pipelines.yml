@@ -78,6 +78,7 @@ stages:
 
           - script: |
               dotnet pack -c $(buildConfiguration)
+            displayName: 'Pack Template'
             workingDirectory: $(templatePath)
 
           - task: PublishBuildArtifacts@1
