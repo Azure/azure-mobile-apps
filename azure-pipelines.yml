@@ -11,6 +11,8 @@ pool:
 variables:
   AREA_PATH: 'DevDiv/Xamarin SDK'
   sdkPath: 'sdk/dotnet'
+  templatePath: 'templates/dotnet'
+  buildConfiguration: 'Release'
   BASE_VERSION: 5.0.0
   PREVIEW_LABEL: 'preview'
   BUILD_NUMBER: $[counter(format('{0}_{1}_{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['Build.SourceBranch']), 1)]
@@ -66,3 +68,23 @@ stages:
                 Write-Host "##vso[build.updatebuildnumber]$env:NUGET_VERSION"
               displayName: Update the build number with a more readable one
 
+  - stage: buildtemplate
+    displayName: Build Server template
+    dependsOn: []
+    jobs:
+      - job: buildsteps
+        steps:
+          - task: UseDotNet@2
+            inputs:
+              version: '5.0.x'
+              performMultiLevelLookup: true
+
+          - script: |
+              dotnet pack -c $(buildConfiguration)
+            workingDirectory: $(templatePath)
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: '$(templatePath)/bin/$(buildConfiguration)'
+              artifactName: 'DotNetTemplates'
+              FileCopyOptions: '**/*.nupkg'
