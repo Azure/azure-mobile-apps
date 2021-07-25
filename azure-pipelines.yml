@@ -9,6 +9,8 @@ pool:
     vmImage: 'windows-2019'
 
 variables:
+  AREA_PATH: 'DevDiv/Xamarin SDK'
+  sdkPath: 'sdk/dotnet'
   BASE_VERSION: 5.0.0
   PREVIEW_LABEL: 'preview'
   BUILD_NUMBER: $[counter(format('{0}_{1}_{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['Build.SourceBranch']), 1)]
@@ -26,15 +28,21 @@ resources:
       endpoint: xamarin
 
 stages:
-  - stage: build
-    displayName: Build SDK
+  - stage: buildsdk
+    displayName: Build .NET SDK
     dependsOn: []
     jobs:
       - template: .ci/build.yml@components
         parameters:
           publishJob: windows
+          # Disable building on mac and linux - we only build on Windows
+          macosImage: ''
+          linuxImage: ''
+          windowsImage: 'windows-2019'
+          # Our stuff is in sdk/dotnet, so need to adjust the artifacts-path
+          artifactsPath: '$(sdkPath)/output'
           areaPath: $(AREA_PATH)
-          cakeFile: sdk/dotnet/build.cake
+          cakeFile: '$(sdkPath)/build.cake'
           validPackagePrefixes:
             - Microsoft.AspNetCore.Datasync
             - Microsoft.Datasync.Client
