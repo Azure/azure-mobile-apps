@@ -9,7 +9,7 @@ pool:
     vmImage: 'windows-2019'
 
 variables:
-  AREA_PATH: 'DevDiv/Xamarin SDK'
+  AREA_PATH: 'DevDiv\Xamarin SDK'
   sdkPath: 'sdk/dotnet'
   templatePath: 'templates/dotnet'
   buildConfiguration: 'Release'
@@ -69,6 +69,7 @@ stages:
               displayName: Update the build number with a more readable one
 
       - job: buildtemplate
+        displayName: 'Build .NET Core Template'
         steps:
           - task: UseDotNet@2
             inputs:
@@ -84,3 +85,12 @@ stages:
               pathToPublish: '$(templatePath)/bin/$(buildConfiguration)'
               artifactName: 'DotNetTemplates'
               FileCopyOptions: '**/*.nupkg'
+
+  - ${{ if eq(variables['System.TeamProject'], 'devdiv') }}:
+    - stage: signing
+      displayName: Signing
+      dependsOn: [ 'build' ]
+      jobs:
+        - template: sign-artifacts/jobs/v2.yml@internal-templates
+          parameters:
+            codeSignOverride: startsWith(variables['Build.SourceBranch'], 'refs/tags/')

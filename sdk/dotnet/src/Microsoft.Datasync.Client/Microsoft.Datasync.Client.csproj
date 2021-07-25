@@ -61,9 +61,6 @@
   <ItemGroup Condition="$(TargetFramework.StartsWith('netstandard'))">
     <Compile Include="Platforms\netstandard\*.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <None Remove="Platforms\netstandard\ApplicationStorage.cs" />
-  </ItemGroup>
 
   <!-- Common package requirements -->
   <ItemGroup>
