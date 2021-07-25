@@ -45,6 +45,7 @@ jobs:
         displayName: 'Run unit tests'
         inputs:
           command: 'test'
+          configuration: $(buildConfiguration)
           projects: |
             $(sdkDirectory)/test/**/*.Test.csproj
             !**/Datasync.Common.Test.csproj
