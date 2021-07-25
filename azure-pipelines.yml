@@ -26,21 +26,28 @@ jobs:
         inputs:
           version: '5.0.x'
           performMultiLevelLookup: true
-      
-      - task: NuGetToolInstaller@1
 
-      - task: NuGetCommand@2
-        inputs:
-          restoreSolution: $(sdkSolution)
-
-      - task: VSBuild@1
+      - task: MSBuild@1
+        displayName: 'Restore packages'
         inputs:
           solution: $(sdkSolution)
           configuration: $(buildConfiguration)
+          msbuildArguments: '/t:restore'
 
-      - task: DotNetCoreCLI@2
-        displayName: 'Run Unit Tests'
+      - task: MSBuild@1
+        displayName: 'Build SDK'
         inputs:
-          command: 'test'
+          solution: $(sdkSolution)
           configuration: $(buildConfiguration)
-          arguments: '--no-build --no-restore'
+          msbuildArguments: '/t:build /p:PackageVersion=$(NUGET_VERSION)'
+          
+      - task: VSTest@2
+        inputs:
+          testAssemblyVer2: |
+            $(sdkDirectory)\test\**\$(buildConfiguration)\**\*.Test.dll
+            !**\Datasync.Common.Test.dll
+          codeCoverageEnabled: true
+          diagnosticsEnabled: true
+          rerunFailedTests: true
+          testRunTitle: '$(Build.DefinitionName) | $(Build.Reason) | $(Build.SourceVersion)'
+          configuration: $(buildConfiguration)
