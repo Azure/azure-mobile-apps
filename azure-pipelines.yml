@@ -36,6 +36,7 @@ stages:
     jobs:
       - template: .ci/build.yml@components
         parameters:
+          displayName: 'Build Libraries'
           publishJob: windows
           # Disable building on mac and linux - we only build on Windows
           macosImage: ''

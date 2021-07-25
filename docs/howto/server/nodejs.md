@@ -203,14 +203,11 @@ You will also have to create a username and password that Azure Mobile Apps can 
 
 Be sure to record the username and password that you selected. You  might need to assign additional server roles or permissions, depending on your database requirements.
 
-The Node.js application reads the `SQLCONNSTR_MS_TableConnectionString` environment variable for
-the connection string for this database. You can set this variable in your environment. For example, you can use PowerShell to set this environment variable:
+The Node.js application reads the `SQLCONNSTR_MS_TableConnectionString` environment variable for the connection string for this database. You can set this variable in your environment. For example, you can use PowerShell to set this environment variable:
 
 ``` powershell
-$env:SQLCONNSTR_MS_TableConnectionString = "Server=127.0.0.1; Database=mytestdatabase; User Id=azuremobile; Password=T3stPa55word;"
+$env:SQLCONNSTR_MS_TableConnectionString = "Server=127.0.0.1; Database=mytestdatabase; User Id=********; Password=********;"
 ```
-
-Access the database through a TCP/IP connection. Provide a username and password for the connection.
 
 ### Configure your project for local development
 
@@ -233,8 +230,8 @@ module.exports = {
         provider: 'mssql',
         server: '127.0.0.1',
         database: 'mytestdatabase',
-        user: 'azuremobile',
-        password: 'T3stPa55word'
+        user: '*******',
+        password: '********'
     },
     logging: {
         level: 'verbose'
