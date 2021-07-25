@@ -89,7 +89,7 @@ stages:
   - ${{ if eq(variables['System.TeamProject'], 'devdiv') }}:
     - stage: signing
       displayName: Signing
-      dependsOn: [ 'build' ]
+      dependsOn: [ 'buildsdk', 'buildtemplate' ]
       jobs:
         - template: sign-artifacts/jobs/v2.yml@internal-templates
           parameters:
