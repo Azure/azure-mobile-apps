@@ -68,11 +68,7 @@ stages:
                 Write-Host "##vso[build.updatebuildnumber]$env:NUGET_VERSION"
               displayName: Update the build number with a more readable one
 
-  - stage: buildtemplate
-    displayName: Build Server template
-    dependsOn: []
-    jobs:
-      - job: buildsteps
+      - job: buildtemplate
         steps:
           - task: UseDotNet@2
             inputs:
