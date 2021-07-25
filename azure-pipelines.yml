@@ -23,10 +23,12 @@ jobs:
     steps:
       - task: NuGetToolInstaller@1
 
-      - task: NuGetCommand@2
+      - task: DotNetCoreCLI@2
         displayName: 'Restore Packages'
         inputs:
-          restoreSolution: $(sdkSolution)
+          command: restore
+          workingDirectory: $(sdkDirectory)
+          verbosityRestore: 'normal'
       
       - task: MSBuild@1
         displayName: 'Build SDK'
@@ -39,6 +41,7 @@ jobs:
         displayName: 'Unit Tests'
         inputs:
           command: test
+          arguments: '--no-build --no-restore'
           configuration: $(buildConfiguration)
           workingDirectory: $(sdkDirectory)
-          nobuild: true
+          
