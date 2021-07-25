@@ -30,7 +30,7 @@ resources:
       endpoint: xamarin
 
 stages:
-  - stage: buildsdk
+  - stage: buildnetsdk
     displayName: Build .NET SDK
     dependsOn: []
     jobs:
@@ -88,8 +88,8 @@ stages:
 
   - ${{ if eq(variables['System.TeamProject'], 'devdiv') }}:
     - stage: signing
-      displayName: Signing
-      dependsOn: [ 'buildsdk', 'buildtemplate' ]
+      displayName: Sign .NET SDK
+      dependsOn: [ 'buildnetsdk' ]
       jobs:
         - template: sign-artifacts/jobs/v2.yml@internal-templates
           parameters:
