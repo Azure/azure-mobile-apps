@@ -26,27 +26,21 @@ jobs:
         inputs:
           version: '5.0.x'
           performMultiLevelLookup: true
-          
-      - task: DotNetCoreCLI@2
-        displayName: 'Restore Packages'
-        inputs:
-          command: restore
-          projects: '$(sdkDirectory)/**/*.csproj'
-          workingDirectory: $(sdkDirectory)
-          verbosityRestore: 'normal'
       
-      - task: MSBuild@1
-        displayName: 'Build SDK'
+      - task: NuGetToolInstaller@1
+
+      - task: NuGetCommand@2
         inputs:
-          configuration: $(buildConfiguration)
+          restoreSolution: $(sdkSolution)
+
+      - task: VSBuild@1
+        inputs:
           solution: $(sdkSolution)
-          msbuildArguments: '-t:Build -p:PackageVersion=$(NUGET_VERSION)'
+          configuration: $(buildConfiguration)
 
       - task: DotNetCoreCLI@2
-        displayName: 'Unit Tests'
+        displayName: 'Run Unit Tests'
         inputs:
-          command: test
-          arguments: '--no-build --no-restore'
+          command: 'test'
           configuration: $(buildConfiguration)
-          workingDirectory: $(sdkDirectory)
-          
+          arguments: '--no-build --no-restore'
