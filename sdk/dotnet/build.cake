@@ -22,7 +22,7 @@ Task("Build").Does(() =>
         .SetConfiguration(configuration)
         .EnableBinaryLogger("./output/build.binlog")
         .WithRestore()
-        .WithTarget("Build")
+        .WithTarget("Pack")/*.WithTarget("Build")*/
         .WithProperty("PackageOutputPath", MakeAbsolute((DirectoryPath)"./output/").FullPath)
         .WithProperty("PackageVersion", nugetVersion)
         .WithProperty("Version", baseVersion));
