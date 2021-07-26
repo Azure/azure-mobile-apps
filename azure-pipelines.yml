@@ -37,8 +37,8 @@ stages:
       - job: prebuild
         displayName: 'Prebuild Steps'
         steps:
-          - script: |
-              mkdir './output'
+          - pwsh: |
+              New-Item -Path './output' -ItemType Directory
 
       - job: buildtemplate
         displayName: 'Build .NET Core Template'
@@ -67,8 +67,6 @@ stages:
           macosImage: ''
           linuxImage: ''
           windowsImage: 'windows-2019'
-          # Our stuff is in sdk/dotnet, so need to adjust the artifacts-path
-          #artifactsPath: '$(sdkPath)/output'
           areaPath: $(AREA_PATH)
           cakeFile: '$(sdkPath)/build.cake'
           validPackagePrefixes:
