@@ -8,6 +8,7 @@ var nugetVersion = Argument("nugetVersion", EnvironmentVariable("NUGET_VERSION")
 var baseVersion = nugetVersion.Contains("-")
     ? nugetVersion.Substring(0, nugetVersion.IndexOf("-"))
     : nugetVersion;
+var outputDirectory = Argument("artifactsPath", "../../output");
 
 ///////////////////////////////////////////////////////////////////////////////
 // TASKS
@@ -20,10 +21,10 @@ Task("Build").Does(() =>
 
     MSBuild("./Datasync.Framework.sln", c => c
         .SetConfiguration(configuration)
-        .EnableBinaryLogger("./output/build.binlog")
+        .EnableBinaryLogger($"{outputDirectory}/build.binlog")
         .WithRestore()
-        .WithTarget("Pack")/*.WithTarget("Build")*/
-        .WithProperty("PackageOutputPath", MakeAbsolute((DirectoryPath)"./output/").FullPath)
+        .WithTarget("Pack")
+        .WithProperty("PackageOutputPath", MakeAbsolute((DirectoryPath)outputDirectory).FullPath)
         .WithProperty("PackageVersion", nugetVersion)
         .WithProperty("Version", baseVersion));
 });
@@ -35,7 +36,7 @@ Task("Test").IsDependentOn("Build").Does(() =>
         Configuration = configuration,
         NoBuild = true,
         NoRestore = true,
-        ResultsDirectory = "./output/unittests-results"
+        ResultsDirectory = $"{outputDirectory}/unittests-results"
     };
 
     var failCount = 0;

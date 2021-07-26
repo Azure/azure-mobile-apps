@@ -43,7 +43,7 @@ stages:
           linuxImage: ''
           windowsImage: 'windows-2019'
           # Our stuff is in sdk/dotnet, so need to adjust the artifacts-path
-          artifactsPath: '$(sdkPath)/output'
+          #artifactsPath: '$(sdkPath)/output'
           areaPath: $(AREA_PATH)
           cakeFile: '$(sdkPath)/build.cake'
           validPackagePrefixes:
