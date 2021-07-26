@@ -23,7 +23,7 @@ Task("Build").Does(() =>
         .SetConfiguration(configuration)
         .EnableBinaryLogger($"./output/build.binlog")
         .WithRestore()
-        .WithTarget("Pack")
+        .WithTarget("Build")
         .WithProperty("PackageOutputPath", MakeAbsolute((DirectoryPath)"./output").FullPath)
         .WithProperty("PackageVersion", nugetVersion)
         .WithProperty("Version", baseVersion));
@@ -58,7 +58,25 @@ Task("Test").IsDependentOn("Build").Does(() =>
         throw new Exception($"There were {failCount} test failures.");
 });
 
-Task("Copy").Does(() => {
+Task("Pack").IsDependentOn("Build").Does(() => {
+    var settings = new DotNetCorePackSettings
+    {
+        Configuration = configuration,
+        NoBuild = true,
+        NoRestore = true,
+        IncludeSource = true,
+        IncludeSymbols = true,
+        OutputDirectory = "./output"
+    };
+
+    var projectFiles = GetFiles("./src/**/*.csproj");
+    foreach (var file in profileFiles) 
+    {
+        DotNetCorePack(file.FullPath, settings);
+    }
+});
+
+Task("Copy").IsDependentOn("Pack").IsDependentOn("Test").Does(() => {
     CopyFiles("./output/**", (DirectoryPath)"../../output/");
 });
 
@@ -69,11 +87,13 @@ Task("Copy").Does(() => {
 Task("Default")
     .IsDependentOn("Build")
     .IsDependentOn("Test")
+    .IsDependentOn("Pack")
     .IsDependentOn("Copy");
 
 Task("ci")
     .IsDependentOn("Build")
     .IsDependentOn("Test")
+    .IsDependentOn("Pack")
     .IsDependentOn("Copy");
 
 RunTarget(target);
