@@ -21,10 +21,10 @@ Task("Build").Does(() =>
 
     MSBuild("./Datasync.Framework.sln", c => c
         .SetConfiguration(configuration)
-        .EnableBinaryLogger($"{outputDirectory}/build.binlog")
+        .EnableBinaryLogger($"./output/build.binlog")
         .WithRestore()
         .WithTarget("Pack")
-        .WithProperty("PackageOutputPath", MakeAbsolute((DirectoryPath)outputDirectory).FullPath)
+        .WithProperty("PackageOutputPath", MakeAbsolute((DirectoryPath)"./output").FullPath)
         .WithProperty("PackageVersion", nugetVersion)
         .WithProperty("Version", baseVersion));
 });
@@ -36,7 +36,7 @@ Task("Test").IsDependentOn("Build").Does(() =>
         Configuration = configuration,
         NoBuild = true,
         NoRestore = true,
-        ResultsDirectory = $"{outputDirectory}/unittests-results"
+        ResultsDirectory = $"./output/unittests-results"
     };
 
     var failCount = 0;
@@ -58,16 +58,22 @@ Task("Test").IsDependentOn("Build").Does(() =>
         throw new Exception($"There were {failCount} test failures.");
 });
 
+Task("Copy").Does(() => {
+    CopyFiles("./output/**", (DirectoryPath)"../../output/");
+});
+
 ///////////////////////////////////////////////////////////////////////////////
 // ENTRYPOINTS
 ///////////////////////////////////////////////////////////////////////////////
 
 Task("Default")
     .IsDependentOn("Build")
-    .IsDependentOn("Test");
+    .IsDependentOn("Test")
+    .IsDependentOn("Copy");
 
 Task("ci")
     .IsDependentOn("Build")
-    .IsDependentOn("Test");
+    .IsDependentOn("Test")
+    .IsDependentOn("Copy");
 
 RunTarget(target);
