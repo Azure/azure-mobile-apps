@@ -4,6 +4,7 @@
     <Company>Microsoft Corporation</Company>
     <Copyright>Copyright (c) 2021 Microsoft Corporation.</Copyright>
     <Description>An Entity Framework Core based repository for use with the ASP.NET Core Datasync framework.</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
     <LangVersion>9.0</LangVersion>
     <NeutralLanguage>en</NeutralLanguage>

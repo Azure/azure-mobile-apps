@@ -58,25 +58,21 @@ Task("Test").IsDependentOn("Build").Does(() =>
         throw new Exception($"There were {failCount} test failures.");
 });
 
-Task("Pack").IsDependentOn("Build").Does(() => {
-    var settings = new DotNetCorePackSettings
-    {
-        Configuration = configuration,
-        NoBuild = true,
-        NoRestore = true,
-        IncludeSource = true,
-        IncludeSymbols = true,
-        OutputDirectory = "./output"
-    };
+Task("Pack").IsDependentOn("Build").Does(() => 
+{
+    Information("Packing with NuGet version: {0}", nugetVersion);
+    Information("Packing with assembly version: {0}", baseVersion);
 
-    var projectFiles = GetFiles("./src/**/*.csproj");
-    foreach (var file in projectFiles) 
-    {
-        DotNetCorePack(file.FullPath, settings);
-    }
+    MSBuild("./Datasync.Framework.sln", c => c
+        .SetConfiguration(configuration)
+        .EnableBinaryLogger($"./output/pack.binlog")
+        .WithTarget("Pack")
+        .WithProperty("PackageOutputPath", MakeAbsolute((DirectoryPath)"./output").FullPath)
+        .WithProperty("PackageVersion", nugetVersion)
+        .WithProperty("Version", baseVersion));
 });
 
-Task("Copy").IsDependentOn("Pack").IsDependentOn("Test").Does(() => {
+Task("Copy").IsDependentOn("Test").Does(() => {
     CopyFiles("./output/**", (DirectoryPath)"../../output/");
 });
 
@@ -87,13 +83,11 @@ Task("Copy").IsDependentOn("Pack").IsDependentOn("Test").Does(() => {
 Task("Default")
     .IsDependentOn("Build")
     .IsDependentOn("Test")
-    .IsDependentOn("Pack")
     .IsDependentOn("Copy");
 
 Task("ci")
     .IsDependentOn("Build")
     .IsDependentOn("Test")
-    .IsDependentOn("Pack")
     .IsDependentOn("Copy");
 
 RunTarget(target);

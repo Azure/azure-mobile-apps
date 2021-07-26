@@ -13,6 +13,7 @@
     <Description>A client package for communicating with a Microsoft Datasync service.  Formally known as Azure Mobile Apps</Description>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/azure/azure-mobile-apps</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/azure/azure-mobile-apps</RepositoryUrl>
