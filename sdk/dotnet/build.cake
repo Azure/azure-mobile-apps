@@ -70,7 +70,7 @@ Task("Pack").IsDependentOn("Build").Does(() => {
     };
 
     var projectFiles = GetFiles("./src/**/*.csproj");
-    foreach (var file in profileFiles) 
+    foreach (var file in projectFiles) 
     {
         DotNetCorePack(file.FullPath, settings);
     }
