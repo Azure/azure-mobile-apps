@@ -34,9 +34,27 @@ stages:
     displayName: Build .NET SDK
     dependsOn: []
     jobs:
+      - job: buildtemplate
+        displayName: 'Build .NET Core Template'
+        steps:
+          - task: UseDotNet@2
+            inputs:
+              version: '5.0.x'
+              performMultiLevelLookup: true
+
+          - script: |
+              dotnet pack -c $(buildConfiguration)
+            displayName: 'Pack Template'
+            workingDirectory: $(templatePath)
+
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: '$(templatePath)/bin/$(buildConfiguration)'
+              targetFolder: './output'
+
       - template: .ci/build.yml@components
         parameters:
-          displayName: 'Build Libraries'
+          displayName: 'Build .NET on'
           publishJob: windows
           # Disable building on mac and linux - we only build on Windows
           macosImage: ''
@@ -69,24 +87,7 @@ stages:
                 Write-Host "##vso[build.updatebuildnumber]$env:NUGET_VERSION"
               displayName: Update the build number with a more readable one
 
-      - job: buildtemplate
-        displayName: 'Build .NET Core Template'
-        steps:
-          - task: UseDotNet@2
-            inputs:
-              version: '5.0.x'
-              performMultiLevelLookup: true
 
-          - script: |
-              dotnet pack -c $(buildConfiguration)
-            displayName: 'Pack Template'
-            workingDirectory: $(templatePath)
-
-          - task: PublishBuildArtifacts@1
-            inputs:
-              pathToPublish: '$(templatePath)/bin/$(buildConfiguration)'
-              artifactName: 'DotNetTemplates'
-              FileCopyOptions: '**/*.nupkg'
 
   - ${{ if eq(variables['System.TeamProject'], 'devdiv') }}:
     - stage: signing
