@@ -34,6 +34,12 @@ stages:
     displayName: Build .NET SDK
     dependsOn: []
     jobs:
+      - job: prebuild
+        displayName: 'Prebuild Steps'
+        steps:
+          - script: |
+              mkdir './output'
+
       - job: buildtemplate
         displayName: 'Build .NET Core Template'
         steps:
