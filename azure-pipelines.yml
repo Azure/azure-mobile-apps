@@ -48,7 +48,8 @@ stages:
               Write-Host "##vso[task.setvariable variable=PREVIEW_LABEL]$pr"
               Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$nuget"
             displayName: Use a special preview label for PRs
-          
+            condition: eq(variables['Build.Reason'], 'PullRequest')
+            
           - pwsh: |
               $tagVersion = $env:BUILD_SOURCEBRANCHNAME
               Write-Host "Tag version: $tagVersion"
