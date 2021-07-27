@@ -50,10 +50,14 @@ stages:
           - task: VSTest@2
             displayName: 'Run Unit Tests'
             inputs:
-              testAssemblyVer2: '**\Microsoft.*.Test.dll'
+              testAssemblyVer2: |
+                **\Microsoft.*.Test.dll
+                !**\obj\**
+                !**\bin\**\ref\**
               searchFolder: $(netSdkPath)
               codeCoverageEnabled: true
               diagnosticsEnabled: true
+              runTestsInIsolation: true
               configuration: $(buildConfiguration)
 
           - task: PublishBuildArtifacts@1
