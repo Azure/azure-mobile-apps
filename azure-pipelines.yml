@@ -47,7 +47,7 @@ stages:
               Write-Host "NuGet version: $nuget"
               Write-Host "##vso[task.setvariable variable=PREVIEW_LABEL]$pr"
               Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$nuget"
-            displayName: Use a special preview label for PRs
+            displayName: Override version for PRs
             condition: eq(variables['Build.Reason'], 'PullRequest')
 
           - pwsh: |
@@ -105,7 +105,7 @@ stages:
               Write-Host "NuGet version: $nuget"
               Write-Host "##vso[task.setvariable variable=PREVIEW_LABEL]$pr"
               Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$nuget"
-            displayName: Use a special preview label for PRs
+            displayName: Override version for PRs
             condition: eq(variables['Build.Reason'], 'PullRequest')
             
           - pwsh: |
@@ -122,7 +122,7 @@ stages:
           - pwsh: |
               dotnet pack DatasyncTemplates.csproj --configuration $(buildConfiguration) /p:PackageVersion=$(NUGET_VERSION)
             displayName: Build Template
-            workingDirectory: '$(netSdk)'
+            workingDirectory: $(netSdkPath)
             
           - task: PublishBuildArtifacts@1
             displayName: Publish NuGet Packages
