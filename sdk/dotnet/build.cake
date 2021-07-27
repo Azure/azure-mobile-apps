@@ -29,6 +29,21 @@ Task("Build").Does(() =>
         .WithProperty("Version", baseVersion));
 });
 
+Task("Template").Does(() => 
+{
+    var settings = new DotNetCorePackSettings 
+    {
+        Configuration = configuration,
+        OutputDirectory = "./output"
+    };
+
+    var projectFiles = GetFiles("./templates/*.csproj");
+    foreach (var file in projectFiles) 
+    {
+        DotNetCorePack(file.FullPath, settings);
+    }
+});
+
 Task("Test").IsDependentOn("Build").Does(() =>
 {
     var settings = new DotNetCoreTestSettings
@@ -72,7 +87,7 @@ Task("Pack").IsDependentOn("Build").Does(() =>
         .WithProperty("Version", baseVersion));
 });
 
-Task("Copy").IsDependentOn("Test").Does(() => {
+Task("Copy").IsDependentOn("Test").IsDependentOn("Template").Does(() => {
     CopyFiles("./output/**", (DirectoryPath)"../../output/");
 });
 
@@ -83,11 +98,13 @@ Task("Copy").IsDependentOn("Test").Does(() => {
 Task("Default")
     .IsDependentOn("Build")
     .IsDependentOn("Test")
+    .IsDependentOn("Template")
     .IsDependentOn("Copy");
 
 Task("ci")
     .IsDependentOn("Build")
     .IsDependentOn("Test")
+    .IsDependentOn("Template")
     .IsDependentOn("Copy");
 
 RunTarget(target);

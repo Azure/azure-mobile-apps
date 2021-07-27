@@ -34,31 +34,6 @@ stages:
     displayName: Build .NET SDK
     dependsOn: []
     jobs:
-      - job: prebuild
-        displayName: 'Prebuild Steps'
-        steps:
-          - pwsh: |
-              New-Item -Path './output' -ItemType Directory
-
-      - job: buildtemplate
-        displayName: 'Build .NET Core Template'
-        dependsOn: [ 'prebuild' ]
-        steps:
-          - task: UseDotNet@2
-            inputs:
-              version: '5.0.x'
-              performMultiLevelLookup: true
-
-          - script: |
-              dotnet pack -c $(buildConfiguration)
-            displayName: 'Pack Template'
-            workingDirectory: $(templatePath)
-
-          - task: CopyFiles@2
-            inputs:
-              SourceFolder: '$(templatePath)/bin/$(buildConfiguration)'
-              targetFolder: './output'
-
       - template: .ci/build.yml@components
         parameters:
           displayName: 'Build .NET on'
@@ -73,6 +48,9 @@ stages:
             - Microsoft.AspNetCore.Datasync
             - Microsoft.Datasync.Client
           preBuildSteps:
+            - pwsh: |
+                New-Item -Path 'output' -ItemType Directory
+              displayName: Precreate output directory
             - pwsh: |
                 $pr = "pr." + $env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER
                 $nuget = $env:BASE_VERSION + "-" + $pr + "." + $env:BUILD_NUMBER
