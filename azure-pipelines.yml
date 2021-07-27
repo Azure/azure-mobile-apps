@@ -104,9 +104,9 @@ stages:
               fileCopyOptions: |
                 bin/$(buildConfiguration)/**/*.nupkg
 
-  - stage: signing
+  - stage: sign
     displayName: Sign SDK
-    dependsOn: [ 'buildsdk' ]
+    dependsOn: [ 'build' ]
     jobs:
       - template: sign-artifacts/jobs/v2.yml@internal-templates
         parameters:
