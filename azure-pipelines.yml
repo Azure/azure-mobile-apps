@@ -127,7 +127,7 @@ stages:
           - task: PublishBuildArtifacts@1
             displayName: Publish NuGet Packages
             inputs:
-              pathToPublish: '$(netSdk)/templates'
+              pathToPublish: '$(netSdkPath)/templates'
               artifactName: nuget
               fileCopyOptions: |
                 **/bin/$(buildConfiguration)/**/*.nupkg
