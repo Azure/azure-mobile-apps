@@ -119,20 +119,18 @@ stages:
               Write-Host "##vso[build.updatebuildnumber]$env:NUGET_VERSION"
             displayName: Update the build number with a more readable one
 
-          - task: DotNetCoreCLI@2
-            displayName: 'Build Template'
-            inputs:
-              command: pack
-              projects: '$(netSdkPath)/templates/*.csproj'
-              configuration: $(buildConfiguration)
-
+          - pwsh: |
+              dotnet pack DatasyncTemplates.csproj --configuration $(buildConfiguration) /p:PackageVersion=$(NUGET_VERSION)
+            displayName: Build Template
+            workingDirectory: '$(netSdk)'
+            
           - task: PublishBuildArtifacts@1
             displayName: Publish NuGet Packages
             inputs:
-              pathToPublish: $(netSdk)
+              pathToPublish: '$(netSdk)/templates'
               artifactName: nuget
               fileCopyOptions: |
-                bin/$(buildConfiguration)/**/*.nupkg
+                **/bin/$(buildConfiguration)/**/*.nupkg
 
   - stage: sign
     displayName: Sign SDK
