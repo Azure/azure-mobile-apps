@@ -17,7 +17,7 @@ steps:
     displayName: Create Artifacts Storage
 
   - pwsh: |
-      $directories = Get-ChildItem -Path '${{ parameters.sourceDirectory }}'' -Directory -Recurse | Where-Object { $_.FullName -match "\\bin\\${{ parameters.buildConfiguration }}$" }
+      $directories = Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse | Where-Object { $_.FullName -match "\\bin\\${{ parameters.buildConfiguration }}$" }
       $directories | Foreach-Object {
         Write-Host "Directory: $_"
         $directory = $_
