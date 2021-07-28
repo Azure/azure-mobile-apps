@@ -84,12 +84,16 @@ stages:
               pathToPublish: $(Build.ArtifactStagingDirectory)
               artifactName: build
 
+          - pwsh: |
+              New-Item -Force -Path './artifacts-nuget' -ItemType Directory
+              Get-ChildItem -Path '$(netSdkPath)/templates -Include *.nupkg,*.nuspec -Recurse' | Copy-Item -Destination './artifacts-nuget'
+            displayName: Consolidate NuGet artifacts
+
           - task: PublishBuildArtifacts@1
             displayName: Publish NuGet Packages
             inputs:
-              PathtoPublish: $(Build.ArtifactStagingDirectory)
+              PathtoPublish: './artifacts-nuget'
               artifactName: nuget
-              fileCopyOptions: '*.nu*'
 
           - task: VSTest@2
             displayName: 'Run Unit Tests'
@@ -146,6 +150,11 @@ stages:
               Get-ChildItem -Path '$(netSdkPath)/templates' -Include *.dll,*.pdb,*.binlog,*.nupkg,*.nuspec -Recurse | Copy-Item -Destination '$(Build.ArtifactStagingDirectory)'
             displayName: Consolidate build artifacts
 
+          - pwsh: |
+              New-Item -Force -Path './artifacts-nuget' -ItemType Directory
+              Get-ChildItem -Path '$(netSdkPath)/templates -Include *.nupkg,*.nuspec -Recurse' | Copy-Item -Destination './artifacts-nuget'
+            displayName: Consolidate NuGet artifacts
+
           - task: PublishBuildArtifacts@1
             displayName: Publish Build Artifacts
             inputs:
@@ -155,9 +164,8 @@ stages:
           - task: PublishBuildArtifacts@1
             displayName: Publish NuGet Packages
             inputs:
-              PathtoPublish: $(Build.ArtifactStagingDirectory)
+              PathtoPublish: ./artifacts-nuget
               artifactName: nuget
-              fileCopyOptions: '*.nu*'
 
   - stage: sign
     displayName: Sign SDK
