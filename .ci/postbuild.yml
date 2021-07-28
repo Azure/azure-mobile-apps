@@ -21,11 +21,10 @@ steps:
         $directory = $_
         Get-ChildItem -Path $directory -Filter '*Datasync*' -File -Recurse | Foreach-Object {
           $base = [IO.Path]::GetRelativePath($directory, $_.FullName)
-          $src = $_.FullName
-          $dest = "${{ parameters.buildArtifactDirectory }}\" + $base
+          $dest = "${{ parameters.buildArtifactDirectory }}\$base"
           $destdir = [IO.Path]::GetDirectoryName($dest)
           New-Item -Path $destdir -ItemType Directory -Force
-          Copy-Item -Verbose -Path $src -Destination $dest
+          Copy-Item -Verbose -Path $_.FullName -Destination $dest
         }
       }
     displayName: Consolidate build artifacts
@@ -36,7 +35,7 @@ steps:
         $directory = $_
         Get-ChildItem -Path $directory -Include @( "*.nupkg", "*.nuspec" ) -File -Recurse | %{
           Write-Host "Copy-Item -Path $_ -Destination ${{ parameters.nugetArtifactDirectory }}"
-          Copy-Item -Path $_ -Destination '${{ parameters.nugetArtifactDirectory }}'
+          Copy-Item -Verbose -Path $_ -Destination '${{ parameters.nugetArtifactDirectory }}'
         }
       }
     displayName: Consolidate NuGet artifacts
