@@ -7,6 +7,10 @@ parameters:
   
 steps:
   - pwsh: |
+      Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Recurse | Write-Host
+    displayName: Show Build Artifacts
+
+  - pwsh: |
       New-Item -Force -Path '$(Build.ArtifactStagingDirectory)' -ItemType Directory
       New-Item -Force -Path '${{ parameters.nugetArtifactDirectory }}' -ItemType Directory
     displayName: Create Artifacts Storage
