@@ -11,7 +11,6 @@ pool:
 variables:
   buildConfiguration: 'Release'
   netSdkPath: 'sdk/dotnet'
-  netSdkSolution: '$(netSdkPath)/Datasync.Framework.sln'
   BASE_VERSION: 5.0.0
   PREVIEW_LABEL: 'preview'
   BUILD_NUMBER: $[counter(format('{0}_{1}_{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['Build.SourceBranch']), 1)]
@@ -37,7 +36,7 @@ stages:
             displayName: 'Build SDK'
             inputs:
               configuration: $(buildConfiguration)
-              solution: $(netSdkSolution)
+              solution: '$(netSdkPath)/Datasync.Framework.sln'
               msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
 
           - task: VSTest@2
@@ -49,8 +48,6 @@ stages:
                 !**\bin\**\ref\**
               searchFolder: $(netSdkPath)
               codeCoverageEnabled: true
-              diagnosticsEnabled: true
-              runTestsInIsolation: true
               configuration: $(buildConfiguration)
 
           - template: .ci/postbuild.yml
