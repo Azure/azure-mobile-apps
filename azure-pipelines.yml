@@ -68,10 +68,6 @@ stages:
               solution: $(netSdkSolution)
               msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
 
-          - pwsh: |
-              Copy-Item -Verbose -Path '$(netSdkPath/src/Microsoft.*/bin/$(buildConfiguration)' -Include '$(buildArtifacts)' -Destination '$(Build.ArtifactStagingDirectory)' -Recurse
-            displayName: Consolidate build artifacts
-
           - task: VSTest@2
             displayName: 'Run Unit Tests'
             inputs:
