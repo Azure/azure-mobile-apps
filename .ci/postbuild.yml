@@ -33,7 +33,11 @@ steps:
   - pwsh: |
       $directories = Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse | Where-Object { $_.FullName -match "\\(bin|obj)\\${{ parameters.buildConfiguration }}$" }
       $directories | Foreach-Object {
-        Get-ChildItem -Path $directory -Include @( "*.nupkg", "*.nuspec" ) -File -Recurse | Copy-Item -Force -Destination '${{ parameters.nugetArtifactDirectory }}'
+        $directory = $_
+        Get-ChildItem -Path $directory -Include @( "*.nupkg", "*.nuspec" ) -File -Recurse | %{
+          Write-Host "Copy-Item -Path $_ -Destination ${{ parameters.nugetArtifactDirectory }}"
+          Copy-Item -Path $_ -Destination '${{ parameters.nugetArtifactDirectory }}'
+        }
       }
     displayName: Consolidate NuGet artifacts
 
