@@ -73,7 +73,9 @@ stages:
               msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
 
           - pwsh: |
-              Get-ChildItem -Path '$(netSdkPath)' -Include *.dll,*.pdb,*.binlog,*.nupkg,*.nuspec -Recurse | Copy-Item -Destination '$(Build.ArtifactStagingDirectory)'
+              Get-ChildItem -Path '$(netSdkPath)/src' -Include *.dll,*.pdb,*.binlog,*.nupkg,*.nuspec -Recurse \
+              | Where-Item { $_.DirectoryName -match 'bin/$(buildConfiguration)' }
+              | Copy-Item -Destination '$(Build.ArtifactStagingDirectory)'
             displayName: Consolidate build artifacts
 
           - task: PublishBuildArtifacts@1
@@ -81,6 +83,13 @@ stages:
             inputs:
               pathToPublish: $(Build.ArtifactStagingDirectory)
               artifactName: build
+
+          - task: PublishBuildArtifacts@1
+            displayName: Publish NuGet Packages
+            inputs:
+              PathtoPublish: $(Build.ArtifactStagingDirectory)
+              artifactName: nuget
+              fileCopyOptions: '*.nu*'
 
           - task: VSTest@2
             displayName: 'Run Unit Tests'
@@ -142,6 +151,13 @@ stages:
             inputs:
               pathToPublish: '$(Build.ArtifactStagingDirectory)'
               artifactName: build
+
+          - task: PublishBuildArtifacts@1
+            displayName: Publish NuGet Packages
+            inputs:
+              PathtoPublish: $(Build.ArtifactStagingDirectory)
+              artifactName: nuget
+              fileCopyOptions: '*.nu*'
 
   - stage: sign
     displayName: Sign SDK
