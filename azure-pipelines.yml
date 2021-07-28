@@ -62,7 +62,7 @@ stages:
             displayName: Update the build number with a more readable one 
 
           - pwsh: |
-              New-Item -Force -Path '$(Build.ArtifactStagingDirectory)' -FileType Directory
+              New-Item -Force -Path '$(Build.ArtifactStagingDirectory)' -ItemType Directory
             displayName: Create Artifacts Storage
 
           - task: MSBuild@1
@@ -73,11 +73,7 @@ stages:
               msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
 
           - pwsh: |
-              Get-ChildItem -Path '$(netSdkPath)\*.dll' -Recurse | Copy-Item '$(Build.ArtifactStagingDirectory)'
-              Get-ChildItem -Path '$(netSdkPath)\*.pdb' -Recurse | Copy-Item '$(Build.ArtifactStagingDirectory)'
-              Get-ChildItem -Path '$(netSdkPath)\*.binlog' -Recurse | Copy-Item '$(Build.ArtifactStagingDirectory)'
-              Get-ChildItem -Path '$(netSdkPath)\*.nupkg' -Recurse | Copy-Item '$(Build.ArtifactStagingDirectory)'
-              Get-ChildItem -Path '$(netSdkPath)\*.nuspec' -Recurse | Copy-Item '$(Build.ArtifactStagingDirectory)'
+              Get-ChildItem -Path '$(netSdkPath)' -Include *.dll,*.pdb,*.binlog,*.nupkg,*.nuspec -Recurse | Copy-Item '$(Build.ArtifactStagingDirectory)'
             displayName: Consolidate build artifacts
 
           - task: PublishBuildArtifacts@1
@@ -134,12 +130,11 @@ stages:
             workingDirectory: '$(netSdkPath)/templates'
             
           - pwsh: |
-              New-Item -Force -Path '$(Build.ArtifactStagingDirectory)' -FileType Directory
+              New-Item -Force -Path '$(Build.ArtifactStagingDirectory)' -ItemType Directory
             displayName: Create Artifacts Storage
 
           - pwsh: |
-              Get-ChildItem -Path '$(netSdkPath)\*.nupkg' -Recurse | Copy-Item '$(Build.ArtifactStagingDirectory)'
-              Get-ChildItem -Path '$(netSdkPath)\*.nuspec' -Recurse | Copy-Item '$(Build.ArtifactStagingDirectory)'
+              Get-ChildItem -Path '$(netSdkPath)/templates' -Include *.dll,*.pdb,*.binlog,*.nupkg,*.nuspec -Recurse | Copy-Item '$(Build.ArtifactStagingDirectory)'
             displayName: Consolidate build artifacts
 
           - task: PublishBuildArtifacts@1
