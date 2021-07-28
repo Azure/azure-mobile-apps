@@ -1,32 +1,32 @@
 parameters:
-  directory: ''
+  sourceDirectory: '.'
+  buildArtifactDirectory: '$(Build.ArtifactStagingDirectory)'
   nugetArtifactDirectory: 'output-nuget'
   buildArtifacts: '*Datasync*.dll,*Datasync*.pdb,*.binlog'
   nugetArtifacts: '*.nupkg,*.nuspec'
   
-
 steps:
   - pwsh: |
       New-Item -Force -Path '$(Build.ArtifactStagingDirectory)' -ItemType Directory
-      New-Item -Force -Path '$(nugetArtifactDirectory)' -ItemType Directory
+      New-Item -Force -Path '${{ parameters.nugetArtifactDirectory }}' -ItemType Directory
     displayName: Create Artifacts Storage
 
   - pwsh: |
-      Copy-Item -Verbose -Path '$(directory)' -Include '$(buildArtifacts)' -Destination '$(Build.ArtifactStagingDirectory)' -Recurse
+      Copy-Item -Verbose -Path '${{ parameters.sourceDirectory }}' -Include '${{ parameters.buildArtifacts }}' -Destination '${{ parameters.buildArtifactDirectory }}' -Recurse
     displayName: Consolidate build artifacts
 
   - pwsh: |
-      Copy-Item -Verbose -Path '$(directory)' -Include '$(nugetArtifacts)' -Destination '$(nugetArtifactDirectory)' -Recurse
+      Copy-Item -Verbose -Path '${{ parameters.sourceDirectory }}' -Include '${{ parameters.nugetArtifacts }}' -Destination '${{ parameters.nugetArtifactDirectory }}' -Recurse
     displayName: Consolidate NuGet artifacts
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Build Artifacts
     inputs:
-      pathToPublish: '$(Build.ArtifactStagingDirectory)'
+      pathToPublish: '${{ parameters.buildArtifactDirectory }}'
       artifactName: build
 
   - task: PublishBuildArtifacts@1
     displayName: Publish NuGet Packages
     inputs:
-      PathtoPublish: $(nugetArtifactDirectory)
+      PathtoPublish: ${{ parameters.nugetArtifactDirectory }}
       artifactName: nuget

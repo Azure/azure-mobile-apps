@@ -83,7 +83,7 @@ stages:
 
           - template: .ci/publish.yml
             parameters:
-              directory: '$(netSdkPath)/Microsoft.*/bin/$(buildConfiguration)'
+              sourceDirectory: '$(netSdkPath)/Microsoft.*/bin/$(buildConfiguration)'
 
       - job: buildnettemplate
         displayName: Build .NET Core Template
@@ -121,7 +121,7 @@ stages:
 
           - template: .ci/publish.yml
             parameters:
-              directory: '$(netSdkPath)/templates/bin/$(buildConfiguration)'
+              sourceDirectory: '$(netSdkPath)/templates/bin/$(buildConfiguration)'
 
   - stage: sign
     displayName: Sign SDK
