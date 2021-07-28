@@ -22,7 +22,7 @@ steps:
         Get-ChildItem -Path $_ -Filter '*Datasync*' -File -Recurse | Foreach-Object {
           $base = [IO.Path]::GetRelativePath($directory, $_.FullName)
           $src = $_.FullName
-          $dest = $Destination + "\" + $base
+          $dest = "${{ parameters.buildArtifactDirector }}\" + $base
           $destdir = [IO.Path]::GetDirectoryName($dest)
           New-Item -Path $destdir -ItemType Directory -Force
           Copy-Item -Verbose -Path $src -Destination $dest
