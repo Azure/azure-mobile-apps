@@ -16,20 +16,27 @@ steps:
       New-Item -Force -Path '${{ parameters.nugetArtifactDirectory }}' -ItemType Directory
     displayName: Create Artifacts Storage
 
-  - pwsh: >
-        Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse 
-        | Where-Object { $_.FullName -match '\\(bin|obj)\\${{ parameters.buildConfiguration }}$' } 
-        | Foreach-Object { 
-            Get-ChildItem -Path $_ -Include ${{ parameters.buildArtifacts }} | Copy-Item -Destination '${{ parameters.buildArtifactDirectory }}' -PassThru | Write-Host 
-          }
+  - pwsh: |
+      $directories = Get-ChildItem -Path '${{ parameters.sourceDirectory }}'' -Directory -Recurse | Where-Object { $_.FullName -match "\\bin\\${{ parameters.buildConfiguration }}$" }
+      $directories | Foreach-Object {
+        Write-Host "Directory: $_"
+        $directory = $_
+        Get-ChildItem -Path $_ -Filter '*Datasync*' -File -Recurse | Foreach-Object {
+          $base = [IO.Path]::GetRelativePath($directory, $_.FullName)
+          $src = $_.FullName
+          $dest = $Destination + "\" + $base
+          $destdir = [IO.Path]::GetDirectoryName($dest)
+          New-Item -Path $destdir -ItemType Directory -Force
+          Copy-Item -Verbose -Path $src -Destination $dest
+        }
+      }
     displayName: Consolidate build artifacts
 
-  - pwsh: >
-        Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse 
-        | Where-Object { $_.FullName -match '\\(bin|obj)\\${{ parameters.buildConfiguration }}$' } 
-        | Foreach-Object { 
-            Get-ChildItem -Path $_ -Include ${{ parameters.nugetArtifacts }} | Copy-Item -Destination '${{ parameters.nugetArtifactDirectory }}' -PassThru | Write-Host 
-          }
+  - pwsh: |
+      $directories = Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse | Where-Object { $_.FullName -match "\\(bin|obj)\\${{ parameters.buildConfiguration }}$" }
+      $directories | Foreach-Object {
+        Get-ChildItem -Path $directory -Filter '*.nu*' -File -Recurse | Copy-Item -Destination '${{ parameters.nugetArtifactDirectory }}'
+      }
     displayName: Consolidate NuGet artifacts
 
   - task: PublishBuildArtifacts@1
