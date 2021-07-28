@@ -3,8 +3,6 @@ parameters:
   buildConfiguration: 'Release'
   buildArtifactDirectory: '$(Build.ArtifactStagingDirectory)'
   nugetArtifactDirectory: 'output-nuget'
-  buildArtifacts: '*Datasync*.dll,*Datasync*.pdb,*.binlog'
-  nugetArtifacts: '*.nupkg,*.nuspec'
   
 steps:
   - pwsh: |
@@ -35,7 +33,7 @@ steps:
   - pwsh: |
       $directories = Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse | Where-Object { $_.FullName -match "\\(bin|obj)\\${{ parameters.buildConfiguration }}$" }
       $directories | Foreach-Object {
-        Get-ChildItem -Path $directory -Filter '*.nu*' -File -Recurse | Copy-Item -Destination '${{ parameters.nugetArtifactDirectory }}'
+        Get-ChildItem -Path $directory -Include @( "*.nupkg", "*.nuspec" ) -File -Recurse | Copy-Item -Destination '${{ parameters.nugetArtifactDirectory }}'
       }
     displayName: Consolidate NuGet artifacts
 
