@@ -73,7 +73,7 @@ stages:
               msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
 
           - pwsh: |
-              Get-ChildItem -Path '$(netSdkPath)' -Include *.dll,*.pdb,*.binlog,*.nupkg,*.nuspec -Recurse | Copy-Item '$(Build.ArtifactStagingDirectory)'
+              Get-ChildItem -Path '$(netSdkPath)' -Include *.dll,*.pdb,*.binlog,*.nupkg,*.nuspec -Recurse | Copy-Item -Destination '$(Build.ArtifactStagingDirectory)'
             displayName: Consolidate build artifacts
 
           - task: PublishBuildArtifacts@1
@@ -134,7 +134,7 @@ stages:
             displayName: Create Artifacts Storage
 
           - pwsh: |
-              Get-ChildItem -Path '$(netSdkPath)/templates' -Include *.dll,*.pdb,*.binlog,*.nupkg,*.nuspec -Recurse | Copy-Item '$(Build.ArtifactStagingDirectory)'
+              Get-ChildItem -Path '$(netSdkPath)/templates' -Include *.dll,*.pdb,*.binlog,*.nupkg,*.nuspec -Recurse | Copy-Item -Destination '$(Build.ArtifactStagingDirectory)'
             displayName: Consolidate build artifacts
 
           - task: PublishBuildArtifacts@1
