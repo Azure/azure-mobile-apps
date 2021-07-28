@@ -16,16 +16,20 @@ steps:
       New-Item -Force -Path '${{ parameters.nugetArtifactDirectory }}' -ItemType Directory
     displayName: Create Artifacts Storage
 
-  - pwsh: |
-        Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse | \
-          Where-Object { $_.FullName -match '\\(bin|obj)\\${{ parameters.buildConfiguration }}$' } | \
-          Foreach { Get-ChildItem -Path $_ -Include ${{ parameters.buildArtifacts }} | Copy-Item -Destination '${{ parameters.buildArtifactDirectory }}' -PassThru | Write-Host }
+  - pwsh: >
+        Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse 
+        | Where-Object { $_.FullName -match '\\(bin|obj)\\${{ parameters.buildConfiguration }}$' } 
+        | Foreach-Object { 
+            Get-ChildItem -Path $_ -Include ${{ parameters.buildArtifacts }} | Copy-Item -Destination '${{ parameters.buildArtifactDirectory }}' -PassThru | Write-Host 
+          }
     displayName: Consolidate build artifacts
 
-  - pwsh: |
-        Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse | \
-          Where-Object { $_.FullName -match '\\(bin|obj)\\${{ parameters.buildConfiguration }}$' } | \
-          Foreach { Get-ChildItem -Path $_ -Include ${{ parameters.nugetArtifacts }} | Copy-Item -Destination '${{ parameters.nugetArtifactDirectory }}' -PassThru | Write-Host }
+  - pwsh: >
+        Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse 
+        | Where-Object { $_.FullName -match '\\(bin|obj)\\${{ parameters.buildConfiguration }}$' } 
+        | Foreach-Object { 
+            Get-ChildItem -Path $_ -Include ${{ parameters.nugetArtifacts }} | Copy-Item -Destination '${{ parameters.nugetArtifactDirectory }}' -PassThru | Write-Host 
+          }
     displayName: Consolidate NuGet artifacts
 
   - task: PublishBuildArtifacts@1
