@@ -73,9 +73,7 @@ stages:
               msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
 
           - pwsh: |
-              Get-ChildItem -Path '$(netSdkPath)/src' -Include *.dll,*.pdb,*.binlog,*.nupkg,*.nuspec -Recurse \
-              | Where-Item { $_.DirectoryName -match 'bin/$(buildConfiguration)' }
-              | Copy-Item -Destination '$(Build.ArtifactStagingDirectory)'
+              Get-ChildItem -Path '$(netSdkPath)/src' -Include *Datasync*.dll,*Datasync*.pdb,*.binlog,*.nupkg,*.nuspec -Recurse | Copy-Item -Destination '$(Build.ArtifactStagingDirectory)'
             displayName: Consolidate build artifacts
 
           - task: PublishBuildArtifacts@1
@@ -147,12 +145,12 @@ stages:
             displayName: Create Artifacts Storage
 
           - pwsh: |
-              Get-ChildItem -Path '$(netSdkPath)/templates' -Include *.dll,*.pdb,*.binlog,*.nupkg,*.nuspec -Recurse | Copy-Item -Destination '$(Build.ArtifactStagingDirectory)'
+              Get-ChildItem -Path '$(netSdkPath)/templates' -Include *Datasync*.dll,*Datasync*.pdb,*.binlog,*.nupkg,*.nuspec -Recurse | Copy-Item -Destination '$(Build.ArtifactStagingDirectory)'
             displayName: Consolidate build artifacts
 
           - pwsh: |
               New-Item -Force -Path './artifacts-nuget' -ItemType Directory
-              Get-ChildItem -Path '$(netSdkPath)/templates -Include *.nupkg,*.nuspec -Recurse' | Copy-Item -Destination './artifacts-nuget'
+              Get-ChildItem -Path '$(netSdkPath)/templates' -Include *.nupkg,*.nuspec -Recurse | Copy-Item -Destination './artifacts-nuget'
             displayName: Consolidate NuGet artifacts
 
           - task: PublishBuildArtifacts@1
