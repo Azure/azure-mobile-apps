@@ -73,7 +73,7 @@ stages:
               msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
 
           - pwsh: |
-              Get-ChildItem -Path '$(netSdkPath)/src' -Include *Datasync*.dll,*Datasync*.pdb,*.binlog -Recurse | Copy-Item - Verbose -Destination '$(Build.ArtifactStagingDirectory)'
+              Get-ChildItem -Path '$(netSdkPath)/src' -Include *Datasync*.dll,*Datasync*.pdb,*.binlog -Recurse | Copy-Item -Verbose -Destination '$(Build.ArtifactStagingDirectory)'
             displayName: Consolidate build artifacts
 
           - task: PublishBuildArtifacts@1
