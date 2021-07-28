@@ -55,7 +55,8 @@ stages:
 
           - template: .ci/postbuild.yml
             parameters:
-              sourceDirectory: '$(netSdkPath)/Microsoft.*/bin/$(buildConfiguration)'
+              sourceDirectory: '$(netSdkPath)/src'
+              buildConfiguration: '$(buildConfiguration)'
 
       - job: buildnettemplate
         displayName: Build .NET Core Template
@@ -69,7 +70,8 @@ stages:
 
           - template: .ci/postbuild.yml
             parameters:
-              sourceDirectory: '$(netSdkPath)/templates/bin/$(buildConfiguration)'
+              sourceDirectory: '$(netSdkPath)/templates'
+              buildConfiguration: '$(buildConfiguration)'
 
   - stage: sign
     displayName: Sign SDK

@@ -1,5 +1,6 @@
 parameters:
   sourceDirectory: '.'
+  buildConfiguration: 'Release'
   buildArtifactDirectory: '$(Build.ArtifactStagingDirectory)'
   nugetArtifactDirectory: 'output-nuget'
   buildArtifacts: '*Datasync*.dll,*Datasync*.pdb,*.binlog'
@@ -7,8 +8,8 @@ parameters:
   
 steps:
   - pwsh: |
-      Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Recurse | Write-Host
-    displayName: Show Build Artifacts
+      Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse | Where-Object { $_.FullName -match '\\(bin|obj)\\${{ parameters.buildConfiguration }}$' } | Write-Host
+    displayName: Show Build Directories
 
   - pwsh: |
       New-Item -Force -Path '$(Build.ArtifactStagingDirectory)' -ItemType Directory
@@ -16,11 +17,15 @@ steps:
     displayName: Create Artifacts Storage
 
   - pwsh: |
-      Copy-Item -Verbose -Path '${{ parameters.sourceDirectory }}' -Include '${{ parameters.buildArtifacts }}' -Destination '${{ parameters.buildArtifactDirectory }}' -Recurse
+        Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse | \
+          Where-Object { $_.FullName -match '\\(bin|obj)\\${{ parameters.buildConfiguration }}$' } | \
+          Foreach { Get-ChildItem -Path $_ -Include ${{ parameters.buildArtifacts }} | Copy-Item -Destination '${{ parameters.buildArtifactDirectory }}' -PassThru | Write-Host }
     displayName: Consolidate build artifacts
 
   - pwsh: |
-      Copy-Item -Verbose -Path '${{ parameters.sourceDirectory }}' -Include '${{ parameters.nugetArtifacts }}' -Destination '${{ parameters.nugetArtifactDirectory }}' -Recurse
+        Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse | \
+          Where-Object { $_.FullName -match '\\(bin|obj)\\${{ parameters.buildConfiguration }}$' } | \
+          Foreach { Get-ChildItem -Path $_ -Include ${{ parameters.nugetArtifacts }} | Copy-Item -Destination '${{ parameters.nugetArtifactDirectory }}' -PassThru | Write-Host }
     displayName: Consolidate NuGet artifacts
 
   - task: PublishBuildArtifacts@1
