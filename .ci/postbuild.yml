@@ -1,7 +1,7 @@
 parameters:
   sourceDirectory: '.'
   buildConfiguration: 'Release'
-  buildArtifactDirectory: '$(Build.ArtifactStagingDirectory)'
+  buildArtifactDirectory: 'output-build'
   nugetArtifactDirectory: 'output-nuget'
   
 steps:
@@ -19,10 +19,10 @@ steps:
       $directories | Foreach-Object {
         Write-Host "Directory: $_"
         $directory = $_
-        Get-ChildItem -Path $_ -Filter '*Datasync*' -File -Recurse | Foreach-Object {
+        Get-ChildItem -Path $directory -Filter '*Datasync*' -File -Recurse | Foreach-Object {
           $base = [IO.Path]::GetRelativePath($directory, $_.FullName)
           $src = $_.FullName
-          $dest = "${{ parameters.buildArtifactDirector }}\" + $base
+          $dest = "${{ parameters.buildArtifactDirectory }}\" + $base
           $destdir = [IO.Path]::GetDirectoryName($dest)
           New-Item -Path $destdir -ItemType Directory -Force
           Copy-Item -Verbose -Path $src -Destination $dest
