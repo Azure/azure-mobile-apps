@@ -74,6 +74,15 @@ stages:
     displayName: Sign SDK
     dependsOn: [ 'build' ]
     jobs:
+      - job: presign
+        displayName: Pre-signing Tasks
+        steps: 
+        - task: PublishBuildArtifacts@1
+          displayName: Publish SignList.xml
+          inputs:
+            pathtoPublish: '$(netSdkPath)/SignList.xml'
+            artifactName: nuget
+
       - template: sign-artifacts/jobs/v2.yml@internal-templates
         parameters:
           codeSignOverride: startsWith(variables['Build.SourceBranch'], 'refs/tags/')

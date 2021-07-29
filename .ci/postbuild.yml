@@ -10,7 +10,7 @@ steps:
     displayName: Show Build Directories
 
   - pwsh: |
-      New-Item -Force -Path '$(Build.ArtifactStagingDirectory)' -ItemType Directory
+      New-Item -Force -Path '${{ parameters.buildArtifactDirectory }}' -ItemType Directory
       New-Item -Force -Path '${{ parameters.nugetArtifactDirectory }}' -ItemType Directory
     displayName: Create Artifacts Storage
 
