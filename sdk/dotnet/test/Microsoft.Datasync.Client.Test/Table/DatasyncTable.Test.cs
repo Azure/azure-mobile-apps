@@ -5,6 +5,7 @@ using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
 using Microsoft.AspNetCore.Datasync;
+using Microsoft.Datasync.Client.Authentication;
 using Microsoft.Datasync.Client.Commands;
 using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Table;
@@ -43,6 +44,17 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             public string Id { get; set; }
         }
+
+        private static readonly AuthenticationToken basicToken = new()
+        {
+            DisplayName = "John Smith",
+            ExpiresOn = DateTimeOffset.Now.AddMinutes(5),
+            Token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJkYXRhc3luYy1mcmFtZXdvcmstdGVzdHMiLCJpYXQiOjE2Mjc2NTk4MTMsImV4cCI6MTY1OTE5NTgxMywiYXVkIjoiZGF0YXN5bmMtZnJhbWV3b3JrLXRlc3RzLmNvbnRvc28uY29tIiwic3ViIjoidGhlX2RvY3RvckBjb250b3NvLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG4iLCJTdXJuYW1lIjoiU21pdGgiLCJFbWFpbCI6InRoZV9kb2N0b3JAY29udG9zby5jb20ifQ.6Sm-ghJBKLB1vC4NuCqYKwL1mbRnJ9ziSHQT5VlNVEY",
+            UserId = "the_doctor"
+        };
+
+        private static readonly Func<Task<AuthenticationToken>> requestor = () => Task.FromResult(basicToken);
+        private readonly AuthenticationProvider authProvider = new GenericAuthenticationProvider(requestor, "X-ZUMO-AUTH");
         #endregion
 
         #region Ctor
@@ -98,7 +110,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [InlineData(HttpStatusCode.OK)]
         [InlineData(HttpStatusCode.Created)]
         [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_Success_FormulatesCorrectResponse(HttpStatusCode statusCode)
+        public async Task CreateItemAsync_Success_FormulatesCorrectRequest(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode, payload);
             var client = CreateClientForMocking();
@@ -112,6 +124,37 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Post, request.Method);
             Assert.Equal(sEndpoint, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            Assert.Equal(sJsonPayload, await request.Content.ReadAsStringAsync().ConfigureAwait(false));
+            Assert.Equal("application/json", request.Content.Headers.ContentType.MediaType);
+
+            // Check Response
+            Assert.Equal((int)statusCode, response.StatusCode);
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.False(response.IsConflictStatusCode);
+            Assert.True(response.HasContent);
+            Assert.True(response.HasValue);
+            Assert.Equal("test", response.Value.StringValue);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.OK)]
+        [InlineData(HttpStatusCode.Created)]
+        [Trait("Method", "CreateItemAsync")]
+        public async Task CreateItemAsync_Success_FormulatesCorrectRequest_WithAuth(HttpStatusCode statusCode)
+        {
+            MockHandler.AddResponse(statusCode, payload);
+            var client = CreateClientForMocking(authProvider);
+            var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+
+            var response = await sut.CreateItemAsync(payload).ConfigureAwait(false);
+
+            // Check Request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Post, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
             Assert.Equal(sJsonPayload, await request.Content.ReadAsStringAsync().ConfigureAwait(false));
             Assert.Equal("application/json", request.Content.Headers.ContentType.MediaType);
 
@@ -467,6 +510,40 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.False(response.IsConflictStatusCode);
             Assert.False(response.HasContent);
         }
+
+        [Theory, CombinatorialData]
+        [Trait("Method", "DeleteItemAsync")]
+        public async Task DeleteItemAsync_FormulatesCorrectResponse_WithAuth(bool hasPrecondition)
+        {
+            MockHandler.AddResponse(HttpStatusCode.NoContent);
+            var client = CreateClientForMocking(authProvider);
+            var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+
+            var response = await table.DeleteItemAsync(sId, hasPrecondition ? IfMatch.Version("etag") : null).ConfigureAwait(false);
+
+            // Check Request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Delete, request.Method);
+            Assert.Equal($"{sEndpoint}{sId}", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            if (hasPrecondition)
+            {
+                AssertEx.HasHeader(request.Headers, "If-Match", "\"etag\"");
+            }
+            else
+            {
+                Assert.False(request.Headers.Contains("If-Match"));
+            }
+
+            // Check Response
+            Assert.Equal(204, response.StatusCode);
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.False(response.IsConflictStatusCode);
+            Assert.False(response.HasContent);
+        }
+
 
         [Theory]
         [InlineData(HttpStatusCode.Conflict)]
@@ -833,6 +910,29 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "GetAsyncItems")]
+        public async Task GetAsyncItems_NoItems_WithAuth()
+        {
+            // Arrange
+            MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
+            var client = CreateClientForMocking(authProvider);
+            var table = client.GetTable<IdEntity>("movies");
+
+            // Act
+            var enumerator = table.GetAsyncItems<IdEntity>().GetAsyncEnumerator();
+            var hasMore = await enumerator.MoveNextAsync().ConfigureAwait(false);
+
+            // Assert
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            Assert.False(hasMore);
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
         public async Task GetItemsAsync_NoItems_WhenNullResponse()
         {
             Task<ServiceResponse<Page<IdEntity>>> pageFunc(string _)
@@ -876,6 +976,34 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_OnePageOfItems_WithAuth_WhenItemsReturned()
+        {
+            // Arrange
+            var page = CreatePageOfItems(5);
+            var client = CreateClientForMocking(authProvider);
+            var table = client.GetTable<IdEntity>("movies");
+            List<IdEntity> items = new();
+
+            // Act
+            await foreach (var item in table.GetAsyncItems<IdEntity>())
+            {
+                items.Add(item);
+            }
+
+            // Assert - request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+
+            // Assert - response
+            Assert.Equal(page.Items, items);
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
         public async Task GetItemsAsync_TwoPagesOfItems_WhenItemsReturned()
         {
             // Arrange
@@ -902,6 +1030,44 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal($"{sEndpoint}?page=2", request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+
+            // Assert - response
+            Assert.Equal(10, items.Count);
+            Assert.Equal(page1.Items, items.Take(5));
+            Assert.Equal(page2.Items, items.Skip(5).Take(5));
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_TwoPagesOfItems_WithAuth_WhenItemsReturned()
+        {
+            // Arrange
+            var page1 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=2"));
+            var page2 = CreatePageOfItems(5);
+            var client = CreateClientForMocking(authProvider);
+            var table = client.GetTable<IdEntity>("movies");
+            List<IdEntity> items = new();
+
+            // Act
+            await foreach (var item in table.GetAsyncItems<IdEntity>())
+            {
+                items.Add(item);
+            }
+
+            // Assert - request
+            Assert.Equal(2, MockHandler.Requests.Count);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+
+            request = MockHandler.Requests[1];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal($"{sEndpoint}?page=2", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+
 
             // Assert - response
             Assert.Equal(10, items.Count);
@@ -952,6 +1118,50 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_ThreePagesOfItems_WithAuth_WhenItemsReturned()
+        {
+            // Arrange
+            var page1 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=2"));
+            var page2 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=3"));
+            MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
+            var client = CreateClientForMocking(authProvider);
+            var table = client.GetTable<IdEntity>("movies");
+            List<IdEntity> items = new();
+
+            // Act
+            await foreach (var item in table.GetAsyncItems<IdEntity>())
+            {
+                items.Add(item);
+            }
+
+            // Assert - request
+            Assert.Equal(3, MockHandler.Requests.Count);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+
+            request = MockHandler.Requests[1];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal($"{sEndpoint}?page=2", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+
+            request = MockHandler.Requests[2];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal($"{sEndpoint}?page=3", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+
+            // Assert - response
+            Assert.Equal(10, items.Count);
+            Assert.Equal(page1.Items, items.Take(5));
+            Assert.Equal(page2.Items, items.Skip(5).Take(5));
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
         public async Task GetItemsAsync_SetsCountAndResponse()
         {
             // Arrange
@@ -970,6 +1180,36 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal(sEndpoint, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+
+            // Assert - response
+            Assert.Equal(5, pageable.Count);
+            Assert.NotNull(pageable.CurrentResponse);
+            Assert.Equal(200, pageable.CurrentResponse.StatusCode);
+            Assert.True(pageable.CurrentResponse.HasContent);
+            Assert.NotEmpty(pageable.CurrentResponse.Content);
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
+        public async Task GetItemsAsync_SetsCountAndResponse_WithAuth()
+        {
+            // Arrange
+            _ = CreatePageOfItems(5, 5);
+            var client = CreateClientForMocking(authProvider);
+            var table = client.GetTable<IdEntity>("movies");
+
+            // Act
+            var pageable = table.GetAsyncItems<IdEntity>();
+            var enumerator = pageable.GetAsyncEnumerator();
+            _ = await enumerator.MoveNextAsync().ConfigureAwait(false);
+
+            // Assert - request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
 
             // Assert - response
             Assert.Equal(5, pageable.Count);
@@ -1093,6 +1333,45 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal($"{sEndpoint}{sId}", request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            if (hasPrecondition)
+            {
+                AssertEx.HasHeader(request.Headers, "If-None-Match", "\"etag\"");
+            }
+            else
+            {
+                Assert.False(request.Headers.Contains("If-None-Match"));
+            }
+
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.False(response.IsConflictStatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal(sJsonPayload, Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.Equal("test", response.Value.StringValue);
+        }
+
+        [Theory, CombinatorialData]
+        [Trait("Method", "GetItemAsync")]
+        public async Task GetItemAsync_FormulatesCorrectRequest_WithAuth(bool hasPrecondition)
+        {
+            // Arrange
+            MockHandler.AddResponse(HttpStatusCode.OK, payload);
+            var client = CreateClientForMocking(authProvider);
+            var table = client.GetTable<IdEntity>("movies");
+
+            // Act
+            var response = hasPrecondition
+                ? await table.GetItemAsync(sId, IfNoneMatch.Version("etag")).ConfigureAwait(false)
+                : await table.GetItemAsync(sId).ConfigureAwait(false);
+
+            // Assert
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal($"{sEndpoint}{sId}", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
             if (hasPrecondition)
             {
                 AssertEx.HasHeader(request.Headers, "If-None-Match", "\"etag\"");
@@ -1318,6 +1597,29 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
 
         [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("$filter=Year eq 1900&$count=true")]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ConstructsRequest_WithQueryAndAuth(string query)
+        {
+            Page<IdEntity> result = new();
+            MockHandler.AddResponse(HttpStatusCode.OK, result);
+            var client = CreateClientForMocking(authProvider);
+            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var expectedUri = string.IsNullOrEmpty(query) ? sEndpoint : $"{sEndpoint}?{query}";
+
+            _ = await table.GetPageOfItemsAsync<IdEntity>(query).ConfigureAwait(false);
+
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(expectedUri, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+        }
+
+        [Theory]
         [InlineData("https://localhost/tables/foo/?$count=true")]
         [InlineData("https://localhost/tables/foo/?$count=true&$skip=5&$top=10")]
         [InlineData("https://localhost/tables/foo/?$count=true&$skip=5&$top=10&__includedeleted=true")]
@@ -1339,6 +1641,31 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal(requestUri, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+        }
+
+        [Theory]
+        [InlineData("https://localhost/tables/foo/?$count=true")]
+        [InlineData("https://localhost/tables/foo/?$count=true&$skip=5&$top=10")]
+        [InlineData("https://localhost/tables/foo/?$count=true&$skip=5&$top=10&__includedeleted=true")]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ConstructsRequest_WithRequestUriAndAuth(string requestUri)
+        {
+            // Arrange
+            Page<IdEntity> result = new();
+            MockHandler.AddResponse(HttpStatusCode.OK, result);
+            var client = CreateClientForMocking(authProvider);
+            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+
+            // Act
+            _ = await table.GetPageOfItemsAsync<IdEntity>("", requestUri).ConfigureAwait(false);
+
+            // Assert
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(requestUri, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
         }
 
         [Theory]
@@ -1364,6 +1691,32 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal(requestUri, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("$filter=Year eq 1900&$count=true")]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItems_ConstructsRequest_PrefersRequestUri_WithAuth(string query)
+        {
+            // Arrange
+            Page<IdEntity> result = new();
+            MockHandler.AddResponse(HttpStatusCode.OK, result);
+            var client = CreateClientForMocking(authProvider);
+            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            const string requestUri = "https://localhost/tables/foo?$count=true&$skip=5&$top=10&__includedeleted=true";
+
+            // Act
+            _ = await table.GetPageOfItemsAsync<IdEntity>(query, requestUri).ConfigureAwait(false);
+
+            // Assert
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Get, request.Method);
+            Assert.Equal(requestUri, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
         }
 
         [Fact]
@@ -2105,6 +2458,44 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal("test", response.Value.StringValue);
         }
 
+        [Theory, CombinatorialData]
+        [Trait("Method", "ReplaceItemAsync")]
+        public async Task ReplaceItemAsync_Success_FormulatesCorrectResponse_WithAuth(bool hasPrecondition)
+        {
+            MockHandler.AddResponse(HttpStatusCode.OK, payload);
+            var client = CreateClientForMocking(authProvider);
+            var table = client.GetTable<IdEntity>("movies");
+
+            var response = hasPrecondition
+                ? await table.ReplaceItemAsync(payload, IfMatch.Version("etag")).ConfigureAwait(false)
+                : await table.ReplaceItemAsync(payload).ConfigureAwait(false);
+
+            // Check Request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Put, request.Method);
+            Assert.Equal($"{sEndpoint}{payload.Id}", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            if (hasPrecondition)
+            {
+                AssertEx.HasHeader(request.Headers, "If-Match", "\"etag\"");
+            }
+            else
+            {
+                Assert.False(request.Headers.Contains("If-Match"));
+            }
+
+            // Check Response
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.False(response.IsConflictStatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal(sJsonPayload, Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.Equal("test", response.Value.StringValue);
+        }
+
         [Fact]
         [Trait("Method", "ReplaceItemAsync")]
         public async Task ReplaceItemAsync_SuccessNoContent()
@@ -2565,6 +2956,30 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.False(sut.HasMoreItems);
             Assert.Equal(Movies.Count, sut.Count);
         }
+
+        [Fact]
+        [Trait("Method", "ToLazyObservableCollection")]
+        public async Task ToLazyObservableCollection_WtithPageCount_LoadsData()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var table = client.GetTable<ClientMovie>("movies");
+            int loops = 0;
+            const int maxLoops = (Movies.Count / 50) + 1;
+
+            // Act
+            var sut = table.ToLazyObservableCollection(50) as InternalLazyObservableCollection<ClientMovie>;
+            var loadMore = sut.LoadMoreCommand as IAsyncCommand;
+            await WaitUntil(() => !sut.IsBusy).ConfigureAwait(false);
+            while (loops < maxLoops && sut.HasMoreItems)
+            {
+                loops++;
+                await loadMore.ExecuteAsync().ConfigureAwait(false);
+            }
+
+            Assert.False(sut.HasMoreItems);
+            Assert.Equal(Movies.Count, sut.Count);
+        }
         #endregion
 
         #region UpdateItemAsync
@@ -2632,6 +3047,44 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal("patch", request.Method.ToString().ToLower());
             Assert.Equal($"{sEndpoint}{sId}", request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION","3.0.0");
+            if (hasPrecondition)
+            {
+                AssertEx.HasHeader(request.Headers, "If-Match", "\"etag\"");
+            }
+            else
+            {
+                Assert.False(request.Headers.Contains("If-Match"));
+            }
+
+            // Check Response
+            Assert.Equal(200, response.StatusCode);
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.False(response.IsConflictStatusCode);
+            Assert.True(response.HasContent);
+            Assert.Equal(sJsonPayload, Encoding.UTF8.GetString(response.Content));
+            Assert.True(response.HasValue);
+            Assert.Equal("test", response.Value.StringValue);
+        }
+
+        [Theory, CombinatorialData]
+        [Trait("Method", "UpdateItemAsync")]
+        public async Task UpdateItemAsync_Success_FormulatesCorrectResponse_WithAuth(bool hasPrecondition)
+        {
+            MockHandler.AddResponse(HttpStatusCode.OK, payload);
+            var client = CreateClientForMocking(authProvider);
+            var table = client.GetTable<IdEntity>("movies");
+
+            var response = hasPrecondition
+                ? await table.UpdateItemAsync(sId, changes, IfMatch.Version("etag")).ConfigureAwait(false)
+                : await table.UpdateItemAsync(sId, changes).ConfigureAwait(false);
+
+            // Check Request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal("patch", request.Method.ToString().ToLower());
+            Assert.Equal($"{sEndpoint}{sId}", request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
             if (hasPrecondition)
             {
                 AssertEx.HasHeader(request.Headers, "If-Match", "\"etag\"");

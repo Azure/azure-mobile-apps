@@ -6,6 +6,7 @@ using Datasync.Common.Test.Models;
 using Datasync.Webservice;
 using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Datasync.Client.Authentication;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Test.Helpers;
 using System;
@@ -68,21 +69,21 @@ namespace Microsoft.Datasync.Client.Test
         /// Gets a client reference for the test server.
         /// </summary>
         /// <returns></returns>
-        protected DatasyncClient CreateClientForTestServer()
+        protected DatasyncClient CreateClientForTestServer(AuthenticationProvider authProvider = null)
         {
             var handler = _testServer.Value.CreateHandler();
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { handler } };
-            return new DatasyncClient(Endpoint, options);
+            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, authProvider, options);
         }
 
         /// <summary>
         /// Gets a client reference for mocking
         /// </summary>
         /// <returns></returns>
-        protected DatasyncClient CreateClientForMocking()
+        protected DatasyncClient CreateClientForMocking(AuthenticationProvider authProvider = null)
         {
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { MockHandler } };
-            return new DatasyncClient(Endpoint, options);
+            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, authProvider, options);
         }
 
         /// <summary>

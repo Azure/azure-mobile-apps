@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Authentication;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
@@ -54,7 +55,17 @@ namespace Microsoft.Datasync.Client.Http
         /// </summary>
         /// <param name="endpoint">The endpoint to communicate with</param>
         /// <param name="clientOptions">The client options for the connection</param>
-        public InternalHttpClient(Uri endpoint, DatasyncClientOptions clientOptions)
+        public InternalHttpClient(Uri endpoint, DatasyncClientOptions clientOptions) : this(endpoint, null, clientOptions)
+        {
+        }
+
+        /// <summary>
+        /// Instantiates a new <see cref="InternalHttpClient"/> which performs all the requests to a datasync service.
+        /// </summary>
+        /// <param name="endpoint">The endpoint to communicate with</param>
+        /// <param name="authenticationProvider">The authentication provider to use for authenticating each request</param>
+        /// <param name="clientOptions">The client options for the connection</param>
+        public InternalHttpClient(Uri endpoint, AuthenticationProvider authenticationProvider, DatasyncClientOptions clientOptions)
         {
             Validate.IsValidEndpoint(endpoint, nameof(endpoint));
             Validate.IsNotNull(clientOptions, nameof(clientOptions));
@@ -64,6 +75,12 @@ namespace Microsoft.Datasync.Client.Http
             userAgentHeaderValue = clientOptions.UserAgent;
 
             httpHandler = CreatePipeline(clientOptions.HttpPipeline ?? Array.Empty<HttpMessageHandler>());
+            if (authenticationProvider != null)
+            {
+                authenticationProvider.InnerHandler = httpHandler;
+                httpHandler = authenticationProvider;
+            }
+
             httpClient = new HttpClient(httpHandler) { BaseAddress = Endpoint };
             httpClient.DefaultRequestHeaders.TryAddWithoutValidation(InternalHttpHeaders.UserAgent, userAgentHeaderValue);
             httpClient.DefaultRequestHeaders.Add(InternalHttpHeaders.InternalUserAgent, userAgentHeaderValue);
