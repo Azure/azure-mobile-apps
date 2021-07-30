@@ -2,8 +2,10 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test.Models;
+using Microsoft.Datasync.Client.Authentication;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test
@@ -20,6 +22,17 @@ namespace Microsoft.Datasync.Client.Test
             public void IntDispose(bool disposing) => Dispose(disposing);
             public void IntDispose() => Dispose();
         }
+
+        private static readonly AuthenticationToken basicToken = new()
+        {
+            DisplayName = "John Smith",
+            ExpiresOn = DateTimeOffset.Now.AddMinutes(5),
+            Token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJkYXRhc3luYy1mcmFtZXdvcmstdGVzdHMiLCJpYXQiOjE2Mjc2NTk4MTMsImV4cCI6MTY1OTE5NTgxMywiYXVkIjoiZGF0YXN5bmMtZnJhbWV3b3JrLXRlc3RzLmNvbnRvc28uY29tIiwic3ViIjoidGhlX2RvY3RvckBjb250b3NvLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG4iLCJTdXJuYW1lIjoiU21pdGgiLCJFbWFpbCI6InRoZV9kb2N0b3JAY29udG9zby5jb20ifQ.6Sm-ghJBKLB1vC4NuCqYKwL1mbRnJ9ziSHQT5VlNVEY",
+            UserId = "the_doctor"
+        };
+
+        private static readonly Func<Task<AuthenticationToken>> requestor = () => Task.FromResult(basicToken);
+        private readonly AuthenticationProvider authProvider = new GenericAuthenticationProvider(requestor, "X-ZUMO-AUTH");
 
         #region Ctor
         [Fact]
@@ -49,6 +62,16 @@ namespace Microsoft.Datasync.Client.Test
             Assert.NotNull(client.HttpClient);
         }
 
+        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Trait("Method", "Ctor(string,AuthenticationProvider)")]
+        public void CtorStringAuth_Valid_SetsEndpoint(string endpoint, string expected)
+        {
+            var client = new DatasyncClient(endpoint, authProvider);
+            Assert.Equal(expected, client.Endpoint.ToString());
+            Assert.NotNull(client.ClientOptions);
+            Assert.NotNull(client.HttpClient);
+        }
+
         [Fact]
         [Trait("Method", "Ctor(Uri)")]
         public void CtorUri_Null_Throws()
@@ -69,6 +92,16 @@ namespace Microsoft.Datasync.Client.Test
         public void CtorUri_Valid_SetsEndpoint(string endpoint, string expected)
         {
             var client = new DatasyncClient(new Uri(endpoint));
+            Assert.Equal(expected, client.Endpoint.ToString());
+            Assert.NotNull(client.ClientOptions);
+            Assert.NotNull(client.HttpClient);
+        }
+
+        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Trait("Method", "Ctor(Uri,AuthenticationProvider)")]
+        public void CtorUriAuth_Valid_SetsEndpoint(string endpoint, string expected)
+        {
+            var client = new DatasyncClient(new Uri(endpoint), authProvider);
             Assert.Equal(expected, client.Endpoint.ToString());
             Assert.NotNull(client.ClientOptions);
             Assert.NotNull(client.HttpClient);
@@ -103,6 +136,17 @@ namespace Microsoft.Datasync.Client.Test
             Assert.NotNull(client.HttpClient);
         }
 
+        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Trait("Method", "Ctor(string,AuthenticationProvider,DatasyncClientOptions)")]
+        public void CtorStringAuthOptions_Valid_SetsEndpoint(string endpoint, string expected)
+        {
+            var options = new DatasyncClientOptions();
+            var client = new DatasyncClient(endpoint, authProvider, options);
+            Assert.Equal(expected, client.Endpoint.ToString());
+            Assert.Same(options, client.ClientOptions);
+            Assert.NotNull(client.HttpClient);
+        }
+
         [Fact]
         [Trait("Method", "Ctor(Uri,DatasyncClientOptions)")]
         public void CtorUriOptions_Null_Throws()
@@ -124,6 +168,17 @@ namespace Microsoft.Datasync.Client.Test
         {
             var options = new DatasyncClientOptions();
             var client = new DatasyncClient(new Uri(endpoint), options);
+            Assert.Equal(expected, client.Endpoint.ToString());
+            Assert.Same(options, client.ClientOptions);
+            Assert.NotNull(client.HttpClient);
+        }
+
+        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Trait("Method", "Ctor(Uri,AuthenticationProvider,DatasyncClientOptions)")]
+        public void CtorUriAuthOptions_Valid_SetsEndpoint(string endpoint, string expected)
+        {
+            var options = new DatasyncClientOptions();
+            var client = new DatasyncClient(new Uri(endpoint), authProvider, options);
             Assert.Equal(expected, client.Endpoint.ToString());
             Assert.Same(options, client.ClientOptions);
             Assert.NotNull(client.HttpClient);
