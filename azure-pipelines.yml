@@ -56,7 +56,7 @@ stages:
             inputs:
               testRunner: VSTest
               mergeTestResults: true
-              testResultsFiles: '$(netSdkPath)/**/*.trx'
+              testResultsFiles: '$(netSdkPath)/TestResult/**'
               failTaskOnFailedTests: true
 
           - template: .ci/postbuild.yml
