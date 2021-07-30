@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.Datasync.Client.Authentication
+namespace Microsoft.Datasync.Client
 {
     /// <summary>
     /// Definition of an authentication token response.

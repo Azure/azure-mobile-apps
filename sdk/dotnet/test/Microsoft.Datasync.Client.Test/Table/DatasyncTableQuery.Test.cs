@@ -611,6 +611,37 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(expectedCount, sut.Count);
             Assert.False(sut.HasMoreItems);
         }
+
+        [Theory]
+        [ClassData(typeof(LinqTestCases))]
+        [Trait("Method", "ToODataQueryString")]
+        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case doesn't use values")]
+        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case doesn't use values")]
+        internal async Task ToLazyObservableCollection_WithPageCount_WithLinq(string testCase, Func<ITableQuery<Movie>, ITableQuery<Movie>> func, string expected, int expectedCount, string[] expectedIds)
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var table = client.GetTable<Movie>("movies");
+            int loops = 0;
+            const int maxLoops = (Movies.Count / 50) + 2;
+            var query = new DatasyncTableQuery<Movie>(table);
+
+            // Act
+            var sut = (func.Invoke(query) as DatasyncTableQuery<Movie>)?.ToLazyObservableCollection(50) as InternalLazyObservableCollection<Movie>;
+            var loadMore = sut.LoadMoreCommand as IAsyncCommand;
+            await WaitUntil(() => !sut.IsBusy).ConfigureAwait(false);
+            while (loops < maxLoops && sut.HasMoreItems)
+            {
+                loops++;
+                await loadMore.ExecuteAsync().ConfigureAwait(false);
+            }
+
+            // Do one more load to make sure.
+            await loadMore.ExecuteAsync().ConfigureAwait(false);
+
+            Assert.Equal(expectedCount, sut.Count);
+            Assert.False(sut.HasMoreItems);
+        }
         #endregion
 
         #region Where

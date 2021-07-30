@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Authentication;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Datasync.Client.Authentication
+namespace Microsoft.Datasync.Client
 {
     /// <summary>
     /// A generic authentication provider that gets a JWT token from the specified
@@ -44,7 +45,7 @@ namespace Microsoft.Datasync.Client.Authentication
         /// <summary>
         /// The function used to request the token.
         /// </summary>
-        internal Func<Task<AuthenticationToken>> TokenRequestorAsync { get; }
+        internal Func<Task<AuthenticationToken>> TokenRequestorAsync { get; set; }
 
         /// <summary>
         /// The header name to use for authentication
@@ -94,21 +95,12 @@ namespace Microsoft.Datasync.Client.Authentication
             if (force || IsExpired(Current))
             {
                 Current = await TokenRequestorAsync.Invoke().ConfigureAwait(false);
-                if (IsExpired(Current))
-                {
-                    IsLoggedIn = false;
-                    UserId = null;
-                    DisplayName = null;
-                }
-                else
-                {
-                    IsLoggedIn = true;
-                    DisplayName = Current?.DisplayName;
-                    UserId = Current?.UserId;
-                }
+                IsLoggedIn = !IsExpired(Current);
+                UserId = !IsLoggedIn ? null : Current.Value.UserId;
+                DisplayName = !IsLoggedIn ? null : Current.Value.DisplayName;
             }
 
-            return IsExpired(Current) ? null : Current?.Token;
+            return IsExpired(Current) ? null : Current.Value.Token;
         }
 
         /// <summary>
@@ -118,12 +110,8 @@ namespace Microsoft.Datasync.Client.Authentication
         /// <returns>true if the token is valid.</returns>
         internal bool IsExpired(AuthenticationToken? token)
         {
-            if (token?.ExpiresOn == null)
-            {
-                // We don't have valid information to test
-                return false;
-            }
-            return token?.ExpiresOn < DateTimeOffset.Now.Subtract(RefreshBufferTimeSpan);
+            if (!token.HasValue) return true;
+            return DateTimeOffset.Now >= token.Value.ExpiresOn.Subtract(RefreshBufferTimeSpan);
         }
 
         /// <summary>
@@ -134,14 +122,16 @@ namespace Microsoft.Datasync.Client.Authentication
         /// <returns>The response (asynchronously)</returns>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
         {
+            if (request.Headers.Contains(HeaderName))
+            {
+                request.Headers.Remove(HeaderName);
+            }
+
             var token = await GetTokenAsync().ConfigureAwait(false);
             if (token != null)
             {
                 var headerValue = AuthenticationType != null ? $"{AuthenticationType} {token}" : token;
-                if (request.Headers.Contains(HeaderName))
-                {
-                    request.Headers.Remove(HeaderName);
-                }
+
                 request.Headers.Add(HeaderName, headerValue);
             }
 

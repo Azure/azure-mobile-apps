@@ -2565,6 +2565,30 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.False(sut.HasMoreItems);
             Assert.Equal(Movies.Count, sut.Count);
         }
+
+        [Fact]
+        [Trait("Method", "ToLazyObservableCollection")]
+        public async Task ToLazyObservableCollection_WtithPageCount_LoadsData()
+        {
+            // Arrange
+            var client = CreateClientForTestServer();
+            var table = client.GetTable<ClientMovie>("movies");
+            int loops = 0;
+            const int maxLoops = (Movies.Count / 50) + 1;
+
+            // Act
+            var sut = table.ToLazyObservableCollection(50) as InternalLazyObservableCollection<ClientMovie>;
+            var loadMore = sut.LoadMoreCommand as IAsyncCommand;
+            await WaitUntil(() => !sut.IsBusy).ConfigureAwait(false);
+            while (loops < maxLoops && sut.HasMoreItems)
+            {
+                loops++;
+                await loadMore.ExecuteAsync().ConfigureAwait(false);
+            }
+
+            Assert.False(sut.HasMoreItems);
+            Assert.Equal(Movies.Count, sut.Count);
+        }
         #endregion
 
         #region UpdateItemAsync
