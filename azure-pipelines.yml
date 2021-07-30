@@ -24,6 +24,77 @@ resources:
       endpoint: xamarin
 
 stages:
+  - stage: prebuild
+    displayName: Prebuild
+    condition: eq('refs/heads/main', variables['Build.SourceBranch'])
+    jobs:
+      - job: prebuild_checks
+        displayName: 'Run required code checks'
+        steps:
+          - pwsh: |
+              $repo = "$(Build.Repository.Id)"
+              $repo = $repo.Substring($repo.IndexOf("/") + 1)
+              $branch = "main"
+              $CODEBASE_NAME = $repo + "_" + $branch
+              echo "Using codebase: $CODEBASE_NAME"
+              Write-Host "##vso[task.setvariable variable=CODEBASE_NAME]$CODEBASENAME"
+
+          - task: CredScan@2
+            inputs:
+              toolMajorVersion: 'V2'
+
+          - task: PoliCheck@1
+            inputs:
+              inputType: 'Basic'
+              targetType: 'F'
+
+          - task: SdtReport@1
+            displayName: 'Create security analysis report'
+            inputs:
+              AllTools: false
+              APIScan: false
+              BinSkim: false
+              CodesignValidation: false
+              CredScan: true
+              FortifySCA: false
+              FxCop: false
+              ModernCop: false
+              MSRD: false
+              PoliCheck: true
+              RoslynAnalyzers: false
+              SDLNativeRules: false
+              Semmle: false
+              TSLint: false
+              ToolLogsNotFoundAction: 'Standard'
+
+          - task: PublishSecurityAnalysisLogs@3
+            displayName: 'Publish security analysis logs'
+
+          - task: TSAUpload@1
+            continueOnError: true
+            inputs:
+              tsaVersion: 'TsaV2'
+              codebase: 'NewOrUpdate'
+              tsaEnvironment: 'PROD'
+              codeBaseName: '$(CODEBASE_NAME)'
+              notificationAlias: 'xamacomd@microsoft.com'
+              notifyAlwaysV2: false
+              instanceUrlForTsaV2: 'DEVDIV'
+              projectNameDEVDIV: 'DevDiv'
+              areaPath: '${{ parameters.areaPath }}'
+              iterationPath: 'DevDiv\OneVS'
+              uploadAPIScan: false
+              uploadBinSkim: false
+              uploadCredScan: true
+              uploadFortifySCA: false
+              uploadFxCop: false
+              uploadModernCop: false
+              uploadPoliCheck: true
+              uploadPREfast: false
+              uploadRoslyn: false
+              uploadTSLint: false
+              uploadAsync: true
+
   - stage: build
     displayName: Build SDK
     jobs:
@@ -49,6 +120,14 @@ stages:
               searchFolder: $(netSdkPath)
               codeCoverageEnabled: true
               configuration: $(buildConfiguration)
+
+          - task: PublishTestResults@2
+            displayName: 'Publish Test Results'
+            inputs:
+              testRunner: VSTest
+              mergeTestResults: true
+              testResultsFiles: '$(netSdkPath)/**/*.trx'
+              failTaskOnFailedTests: true
 
           - template: .ci/postbuild.yml
             parameters:
