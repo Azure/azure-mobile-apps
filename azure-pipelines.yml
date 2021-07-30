@@ -11,6 +11,7 @@ pool:
 variables:
   buildConfiguration: 'Release'
   netSdkPath: 'sdk/dotnet'
+  AREA_PATH: 'DevDiv\Xamarin SDK'
   BASE_VERSION: 5.0.0
   PREVIEW_LABEL: 'preview'
   BUILD_NUMBER: $[counter(format('{0}_{1}_{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['Build.SourceBranch']), 1)]
@@ -76,12 +77,12 @@ stages:
               tsaVersion: 'TsaV2'
               codebase: 'NewOrUpdate'
               tsaEnvironment: 'PROD'
-              codeBaseName: '$(CODEBASE_NAME)'
+              codeBaseName: $(CODEBASE_NAME)
               notificationAlias: 'xamacomd@microsoft.com'
               notifyAlwaysV2: false
               instanceUrlForTsaV2: 'DEVDIV'
               projectNameDEVDIV: 'DevDiv'
-              areaPath: '${{ parameters.areaPath }}'
+              areaPath: $(AREA_PATH)
               iterationPath: 'DevDiv\OneVS'
               uploadAPIScan: false
               uploadBinSkim: false
