@@ -40,17 +40,6 @@ namespace Microsoft.Datasync.Client.Test.Http
                 => base.SendAsync(request, token);
         }
 
-        private static readonly AuthenticationToken basicToken = new()
-        {
-            DisplayName = "John Smith",
-            ExpiresOn = DateTimeOffset.Now.AddMinutes(5),
-            Token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJkYXRhc3luYy1mcmFtZXdvcmstdGVzdHMiLCJpYXQiOjE2Mjc2NTk4MTMsImV4cCI6MTY1OTE5NTgxMywiYXVkIjoiZGF0YXN5bmMtZnJhbWV3b3JrLXRlc3RzLmNvbnRvc28uY29tIiwic3ViIjoidGhlX2RvY3RvckBjb250b3NvLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG4iLCJTdXJuYW1lIjoiU21pdGgiLCJFbWFpbCI6InRoZV9kb2N0b3JAY29udG9zby5jb20ifQ.6Sm-ghJBKLB1vC4NuCqYKwL1mbRnJ9ziSHQT5VlNVEY",
-            UserId = "the_doctor"
-        };
-
-        private static readonly Func<Task<AuthenticationToken>> requestor = () => Task.FromResult(basicToken);
-        private readonly AuthenticationProvider authProvider = new GenericAuthenticationProvider(requestor, "X-ZUMO-AUTH");
-
         #region Ctor
         [Fact]
         [Trait("Method", "Ctor")]
@@ -262,6 +251,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var options = new DatasyncClientOptions { HttpPipeline = Array.Empty<HttpMessageHandler>() };
 
             // Act
+            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
             var client = new IntHttpClient(Endpoint, authProvider, options);
 
             // Assert
@@ -278,6 +268,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { c } };
 
             // Act
+            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
             var client = new IntHttpClient(Endpoint, authProvider, options);
 
             // Assert
@@ -294,6 +285,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { b } };
 
             // Act
+            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
             var client = new IntHttpClient(Endpoint, authProvider, options);
 
             // Assert
@@ -312,6 +304,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { b, c } };
 
             // Act
+            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
             var client = new IntHttpClient(Endpoint, authProvider, options);
 
             // Assert
@@ -330,6 +323,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { a, b } };
 
             // Act
+            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
             var client = new IntHttpClient(Endpoint, authProvider, options);
 
             // Assert
@@ -350,6 +344,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { a, b, c } };
 
             // Act
+            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
             var client = new IntHttpClient(Endpoint, authProvider, options);
 
             // Assert
@@ -369,6 +364,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { c, b } };
 
             // Act
+            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
             Assert.Throws<ArgumentException>(() => _ = new IntHttpClient(Endpoint, authProvider, options));
         }
 
@@ -383,6 +379,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { c, a, b } };
 
             // Act
+            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
             Assert.Throws<ArgumentException>(() => _ = new IntHttpClient(Endpoint, authProvider, options));
         }
 
@@ -397,6 +394,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { a, c, b } };
 
             // Act
+            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
             Assert.Throws<ArgumentException>(() => _ = new IntHttpClient(Endpoint, authProvider, options));
         }
         #endregion
@@ -519,7 +517,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         {
             var handler = new TestDelegatingHandler();
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { handler } };
-            var client = new IntHttpClient(Endpoint, authProvider, options);
+            var client = new IntHttpClient(Endpoint, new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"), options);
             var response = new HttpResponseMessage(HttpStatusCode.OK);
             handler.Responses.Add(response);
             var request = new HttpRequestMessage(HttpMethod.Get, "");

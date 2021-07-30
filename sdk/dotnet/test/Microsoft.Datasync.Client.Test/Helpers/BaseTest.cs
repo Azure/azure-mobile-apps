@@ -31,6 +31,25 @@ namespace Microsoft.Datasync.Client.Test
         protected const string sBadJson = "{this-is-bad-json";
         protected const string sId = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f";
 
+        protected static readonly AuthenticationToken basicToken = new()
+        {
+            DisplayName = "John Smith",
+            ExpiresOn = DateTimeOffset.Now.AddMinutes(5),
+            Token = "YmFzaWMgdG9rZW4gZm9yIHRlc3Rpbmc=",
+            UserId = "the_doctor"
+        };
+
+        protected static readonly AuthenticationToken expiredToken = new()
+        {
+            DisplayName = "John Smith",
+            ExpiresOn = DateTimeOffset.Now.AddMinutes(-5),
+            Token = "YmFzaWMgdG9rZW4gZm9yIHRlc3Rpbmc=",
+            UserId = "the_doctor"
+        };
+
+        protected readonly Func<Task<AuthenticationToken>> basicRequestor = () => Task.FromResult(basicToken);
+        protected readonly Func<Task<AuthenticationToken>> expiredRequestor = () => Task.FromResult(expiredToken);
+
         /// <summary>
         /// A basic movie without any adornment that does not exist in the movie data. Tests must clone this
         /// object and then adjust.
@@ -127,7 +146,7 @@ namespace Microsoft.Datasync.Client.Test
         /// <param name="start"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        protected async IAsyncEnumerable<int> RangeAsync(int start, int count, int ms = 1)
+        protected static async IAsyncEnumerable<int> RangeAsync(int start, int count, int ms = 1)
         {
             for (int i = 0; i < count; i++)
             {
@@ -140,7 +159,7 @@ namespace Microsoft.Datasync.Client.Test
         /// An alternate basic AsyncEnumerator that throws half way through.
         /// </summary>
         /// <returns></returns>
-        protected async IAsyncEnumerable<int> ThrowAsync()
+        protected static async IAsyncEnumerable<int> ThrowAsync()
         {
             for (int i = 0; i < 100; i++)
             {

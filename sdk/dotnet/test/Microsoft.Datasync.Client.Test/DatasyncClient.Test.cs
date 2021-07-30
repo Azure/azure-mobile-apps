@@ -23,17 +23,6 @@ namespace Microsoft.Datasync.Client.Test
             public void IntDispose() => Dispose();
         }
 
-        private static readonly AuthenticationToken basicToken = new()
-        {
-            DisplayName = "John Smith",
-            ExpiresOn = DateTimeOffset.Now.AddMinutes(5),
-            Token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJkYXRhc3luYy1mcmFtZXdvcmstdGVzdHMiLCJpYXQiOjE2Mjc2NTk4MTMsImV4cCI6MTY1OTE5NTgxMywiYXVkIjoiZGF0YXN5bmMtZnJhbWV3b3JrLXRlc3RzLmNvbnRvc28uY29tIiwic3ViIjoidGhlX2RvY3RvckBjb250b3NvLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG4iLCJTdXJuYW1lIjoiU21pdGgiLCJFbWFpbCI6InRoZV9kb2N0b3JAY29udG9zby5jb20ifQ.6Sm-ghJBKLB1vC4NuCqYKwL1mbRnJ9ziSHQT5VlNVEY",
-            UserId = "the_doctor"
-        };
-
-        private static readonly Func<Task<AuthenticationToken>> requestor = () => Task.FromResult(basicToken);
-        private readonly AuthenticationProvider authProvider = new GenericAuthenticationProvider(requestor, "X-ZUMO-AUTH");
-
         #region Ctor
         [Fact]
         [Trait("Method", "Ctor(string)")]
@@ -47,6 +36,7 @@ namespace Microsoft.Datasync.Client.Test
         [Trait("Method", "Ctor(string)")]
         [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case does not check for normalization")]
         [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case does not check for normalization")]
+        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Test case does not use isRelative")]
         public void CtorString_Invalid_Throws(string endpoint, bool isRelative)
         {
             Assert.Throws<UriFormatException>(() => new DatasyncClient(endpoint));
@@ -66,6 +56,7 @@ namespace Microsoft.Datasync.Client.Test
         [Trait("Method", "Ctor(string,AuthenticationProvider)")]
         public void CtorStringAuth_Valid_SetsEndpoint(string endpoint, string expected)
         {
+            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
             var client = new DatasyncClient(endpoint, authProvider);
             Assert.Equal(expected, client.Endpoint.ToString());
             Assert.NotNull(client.ClientOptions);
@@ -101,6 +92,7 @@ namespace Microsoft.Datasync.Client.Test
         [Trait("Method", "Ctor(Uri,AuthenticationProvider)")]
         public void CtorUriAuth_Valid_SetsEndpoint(string endpoint, string expected)
         {
+            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
             var client = new DatasyncClient(new Uri(endpoint), authProvider);
             Assert.Equal(expected, client.Endpoint.ToString());
             Assert.NotNull(client.ClientOptions);
@@ -141,6 +133,7 @@ namespace Microsoft.Datasync.Client.Test
         public void CtorStringAuthOptions_Valid_SetsEndpoint(string endpoint, string expected)
         {
             var options = new DatasyncClientOptions();
+            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
             var client = new DatasyncClient(endpoint, authProvider, options);
             Assert.Equal(expected, client.Endpoint.ToString());
             Assert.Same(options, client.ClientOptions);
@@ -178,6 +171,7 @@ namespace Microsoft.Datasync.Client.Test
         public void CtorUriAuthOptions_Valid_SetsEndpoint(string endpoint, string expected)
         {
             var options = new DatasyncClientOptions();
+            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
             var client = new DatasyncClient(new Uri(endpoint), authProvider, options);
             Assert.Equal(expected, client.Endpoint.ToString());
             Assert.Same(options, client.ClientOptions);

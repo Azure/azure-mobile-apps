@@ -46,7 +46,6 @@ namespace Microsoft.Datasync.Client.Utils
         private readonly int _count;
         private readonly object busyLock = new();
 
-
         /// <summary>
         /// The default number of items to load each time <see cref="LoadMoreCommand"/> is executed.
         /// </summary>

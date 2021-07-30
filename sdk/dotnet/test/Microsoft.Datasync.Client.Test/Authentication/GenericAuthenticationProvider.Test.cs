@@ -17,25 +17,6 @@ namespace Microsoft.Datasync.Client.Test.Authentication
     public class GenericAuthenticationProvider_Tests : BaseTest
     {
         #region Test Artifacts
-        private static readonly AuthenticationToken basicToken = new()
-        {
-            DisplayName = "John Smith",
-            ExpiresOn = DateTimeOffset.Now.AddMinutes(5),
-            Token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJkYXRhc3luYy1mcmFtZXdvcmstdGVzdHMiLCJpYXQiOjE2Mjc2NTk4MTMsImV4cCI6MTY1OTE5NTgxMywiYXVkIjoiZGF0YXN5bmMtZnJhbWV3b3JrLXRlc3RzLmNvbnRvc28uY29tIiwic3ViIjoidGhlX2RvY3RvckBjb250b3NvLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG4iLCJTdXJuYW1lIjoiU21pdGgiLCJFbWFpbCI6InRoZV9kb2N0b3JAY29udG9zby5jb20ifQ.6Sm-ghJBKLB1vC4NuCqYKwL1mbRnJ9ziSHQT5VlNVEY",
-            UserId = "the_doctor"
-        };
-
-        private static readonly AuthenticationToken expiredToken = new()
-        {
-            DisplayName = "John Smith",
-            ExpiresOn = DateTimeOffset.Now.AddMinutes(-5),
-            Token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJkYXRhc3luYy1mcmFtZXdvcmstdGVzdHMiLCJpYXQiOjE2Mjc2NTk4MTMsImV4cCI6MTY1OTE5NTgxMywiYXVkIjoiZGF0YXN5bmMtZnJhbWV3b3JrLXRlc3RzLmNvbnRvc28uY29tIiwic3ViIjoidGhlX2RvY3RvckBjb250b3NvLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG4iLCJTdXJuYW1lIjoiU21pdGgiLCJFbWFpbCI6InRoZV9kb2N0b3JAY29udG9zby5jb20ifQ.6Sm-ghJBKLB1vC4NuCqYKwL1mbRnJ9ziSHQT5VlNVEY",
-            UserId = "the_doctor"
-        };
-
-        private readonly Func<Task<AuthenticationToken>> requestor = () => Task.FromResult(basicToken);
-        private readonly Func<Task<AuthenticationToken>> expiredRequestor = () => Task.FromResult(expiredToken);
-
         private class IntGap : GenericAuthenticationProvider
         {
             public IntGap(Func<Task<AuthenticationToken>> requestor, string header = "Authorization", string authType = null)
@@ -43,6 +24,14 @@ namespace Microsoft.Datasync.Client.Test.Authentication
 
             public Task<HttpResponseMessage> IntSendAsync(HttpRequestMessage request, CancellationToken token = default)
                 => base.SendAsync(request, token);
+        }
+
+        private int requestCount = 0;
+
+        private Task<AuthenticationToken> CountingRequestor()
+        {
+            requestCount++;
+            return Task.FromResult(basicToken);
         }
         #endregion
 
@@ -58,8 +47,8 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "Ctor")]
         public void Ctor_CanSetTokenRequestor()
         {
-            var sut = new GenericAuthenticationProvider(requestor);
-            Assert.Same(requestor, sut.TokenRequestorAsync);
+            var sut = new GenericAuthenticationProvider(basicRequestor);
+            Assert.Same(basicRequestor, sut.TokenRequestorAsync);
             Assert.Equal("Authorization", sut.HeaderName);
             Assert.Equal("Bearer", sut.AuthenticationType);
             Assert.Null(sut.Current);
@@ -70,7 +59,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "Ctor")]
         public void Ctor_NullHeader_Throws()
         {
-            Assert.Throws<ArgumentNullException>(() => new GenericAuthenticationProvider(requestor, null));
+            Assert.Throws<ArgumentNullException>(() => new GenericAuthenticationProvider(basicRequestor, null));
         }
 
         [Theory]
@@ -81,7 +70,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "Ctor")]
         public void Ctor_WhitespaceHeader_Throws(string headerName)
         {
-            Assert.Throws<ArgumentException>(() => new GenericAuthenticationProvider(requestor, headerName));
+            Assert.Throws<ArgumentException>(() => new GenericAuthenticationProvider(basicRequestor, headerName));
         }
 
         [Theory]
@@ -92,15 +81,15 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "Ctor")]
         public void Ctor_Authorization_RequiresType(string authType)
         {
-            Assert.Throws<ArgumentException>(() => new GenericAuthenticationProvider(requestor, "Authorization", authType));
+            Assert.Throws<ArgumentException>(() => new GenericAuthenticationProvider(basicRequestor, "Authorization", authType));
         }
 
         [Fact]
         [Trait("Method", "Ctor")]
         public void Ctor_CanDoXZumoAuth()
         {
-            var sut = new GenericAuthenticationProvider(requestor, "X-ZUMO-AUTH", null);
-            Assert.Same(requestor, sut.TokenRequestorAsync);
+            var sut = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH", null);
+            Assert.Same(basicRequestor, sut.TokenRequestorAsync);
             Assert.Equal("X-ZUMO-AUTH", sut.HeaderName);
             Assert.Null(sut.AuthenticationType);
             Assert.Null(sut.Current);
@@ -111,8 +100,8 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "Ctor")]
         public void Ctor_CanDoAuthBasic()
         {
-            var sut = new GenericAuthenticationProvider(requestor, "Authorization", "Basic");
-            Assert.Same(requestor, sut.TokenRequestorAsync);
+            var sut = new GenericAuthenticationProvider(basicRequestor, "Authorization", "Basic");
+            Assert.Same(basicRequestor, sut.TokenRequestorAsync);
             Assert.Equal("Authorization", sut.HeaderName);
             Assert.Equal("Basic", sut.AuthenticationType);
             Assert.Null(sut.Current);
@@ -123,8 +112,8 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "Ctor")]
         public void Ctor_CanDoAuthBearer()
         {
-            var sut = new GenericAuthenticationProvider(requestor, "Authorization");
-            Assert.Same(requestor, sut.TokenRequestorAsync);
+            var sut = new GenericAuthenticationProvider(basicRequestor, "Authorization");
+            Assert.Same(basicRequestor, sut.TokenRequestorAsync);
             Assert.Equal("Authorization", sut.HeaderName);
             Assert.Equal("Bearer", sut.AuthenticationType);
             Assert.Null(sut.Current);
@@ -139,7 +128,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "RefreshBufferTimeSpan")]
         public void RefreshBufferTimeSpan_CannotBeSmall(long ms)
         {
-            var sut = new GenericAuthenticationProvider(requestor);
+            var sut = new GenericAuthenticationProvider(basicRequestor);
             Assert.Throws<ArgumentException>(() => sut.RefreshBufferTimeSpan = TimeSpan.FromMilliseconds(ms));
         }
 
@@ -148,7 +137,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         public void RefreshBufferTimeSpan_Roundtrips()
         {
             var ts = TimeSpan.FromMinutes(1);
-            var sut = new GenericAuthenticationProvider(requestor) { RefreshBufferTimeSpan = ts };
+            var sut = new GenericAuthenticationProvider(basicRequestor) { RefreshBufferTimeSpan = ts };
             Assert.Equal(ts, sut.RefreshBufferTimeSpan);
         }
         #endregion
@@ -158,7 +147,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "IsExpired")]
         public void IsExpired_NullToken_ReturnsTrue()
         {
-            var sut = new GenericAuthenticationProvider(requestor) { RefreshBufferTimeSpan = TimeSpan.FromMinutes(2) };
+            var sut = new GenericAuthenticationProvider(basicRequestor) { RefreshBufferTimeSpan = TimeSpan.FromMinutes(2) };
             Assert.True(sut.IsExpired(sut.Current));
         }
 
@@ -166,7 +155,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "IsExpired")]
         public void IsExpired_NotExpired_ReturnsFalse()
         {
-            var sut = new GenericAuthenticationProvider(requestor) { RefreshBufferTimeSpan = TimeSpan.FromMinutes(2) };
+            var sut = new GenericAuthenticationProvider(basicRequestor) { RefreshBufferTimeSpan = TimeSpan.FromMinutes(2) };
             sut.Current = new AuthenticationToken { ExpiresOn = DateTimeOffset.Now.AddMinutes(4) };
             Assert.False(sut.IsExpired(sut.Current));
         }
@@ -175,7 +164,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "IsExpired")]
         public void IsExpired_InBuffer_ReturnsTrue()
         {
-            var sut = new GenericAuthenticationProvider(requestor) { RefreshBufferTimeSpan = TimeSpan.FromMinutes(2) };
+            var sut = new GenericAuthenticationProvider(basicRequestor) { RefreshBufferTimeSpan = TimeSpan.FromMinutes(2) };
             sut.Current = new AuthenticationToken { ExpiresOn = DateTimeOffset.Now.AddMinutes(-1) };
             Assert.True(sut.IsExpired(sut.Current));
         }
@@ -184,7 +173,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "IsExpired")]
         public void IsExpired_Expired_ReturnsTrue()
         {
-            var sut = new GenericAuthenticationProvider(requestor) { RefreshBufferTimeSpan = TimeSpan.FromMinutes(2) };
+            var sut = new GenericAuthenticationProvider(basicRequestor) { RefreshBufferTimeSpan = TimeSpan.FromMinutes(2) };
             sut.Current = new AuthenticationToken { ExpiresOn = DateTimeOffset.Now.AddMinutes(-3) };
             Assert.True(sut.IsExpired(sut.Current));
         }
@@ -193,16 +182,15 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "IsExpired")]
         public void IsExpired_ExpiredToken_ReturnsTrue()
         {
-            var sut = new GenericAuthenticationProvider(requestor) { RefreshBufferTimeSpan = TimeSpan.FromMinutes(2) };
+            var sut = new GenericAuthenticationProvider(basicRequestor) { RefreshBufferTimeSpan = TimeSpan.FromMinutes(2) };
             Assert.True(sut.IsExpired(expiredToken));
         }
-
 
         [Fact]
         [Trait("Method", "IsExpired")]
         public void IsExpired_BasicToken_ReturnsFalse()
         {
-            var sut = new GenericAuthenticationProvider(requestor) { RefreshBufferTimeSpan = TimeSpan.FromMinutes(2) };
+            var sut = new GenericAuthenticationProvider(basicRequestor) { RefreshBufferTimeSpan = TimeSpan.FromMinutes(2) };
             Assert.False(sut.IsExpired(basicToken));
         }
         #endregion
@@ -212,14 +200,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "GetTokenAsync")]
         public async Task GetTokenAsync_CallsOnFirstRun()
         {
-            int requestCount = 0;
-            Func<Task<AuthenticationToken>> countingRequestor = () =>
-            {
-                requestCount++;
-                return Task.FromResult(basicToken);
-            };
-
-            var sut = new GenericAuthenticationProvider(countingRequestor);
+            var sut = new GenericAuthenticationProvider(CountingRequestor);
             var actual = await sut.GetTokenAsync().ConfigureAwait(false);
             Assert.Equal(basicToken.Token, actual);
             Assert.Equal(1, requestCount);
@@ -229,14 +210,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "GetTokenAsync")]
         public async Task GetTokenAsync_CachesResult()
         {
-            int requestCount = 0;
-            Func<Task<AuthenticationToken>> countingRequestor = () =>
-            {
-                requestCount++;
-                return Task.FromResult(basicToken);
-            };
-
-            var sut = new GenericAuthenticationProvider(countingRequestor);
+            var sut = new GenericAuthenticationProvider(CountingRequestor);
             var firstCall = await sut.GetTokenAsync().ConfigureAwait(false);
             var secondCall = await sut.GetTokenAsync().ConfigureAwait(false);
             Assert.Equal(basicToken.Token, firstCall);
@@ -248,14 +222,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "GetTokenAsync")]
         public async Task GetTokenAsync_CallsOnForce()
         {
-            int requestCount = 0;
-            Func<Task<AuthenticationToken>> countingRequestor = () =>
-            {
-                requestCount++;
-                return Task.FromResult(basicToken);
-            };
-
-            var sut = new GenericAuthenticationProvider(countingRequestor);
+            var sut = new GenericAuthenticationProvider(CountingRequestor);
             var firstCall = await sut.GetTokenAsync().ConfigureAwait(false);
             Assert.Equal(basicToken.Token, firstCall);
             var secondCall = await sut.GetTokenAsync(true).ConfigureAwait(false);
@@ -267,7 +234,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "GetTokenAsync")]
         public async Task GetTokenAsync_LogsOutWhenExpired()
         {
-            var sut = new GenericAuthenticationProvider(requestor);
+            var sut = new GenericAuthenticationProvider(basicRequestor);
             var firstCall = await sut.GetTokenAsync().ConfigureAwait(false);
             Assert.Equal(basicToken.Token, firstCall);
             Assert.Equal(basicToken.DisplayName, sut.DisplayName);
@@ -288,14 +255,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "LoginAsync")]
         public async Task LoginAsync_CallsTokenRequestor()
         {
-            int requestCount = 0;
-            Func<Task<AuthenticationToken>> countingRequestor = () =>
-            {
-                requestCount++;
-                return Task.FromResult(basicToken);
-            };
-
-            var sut = new GenericAuthenticationProvider(countingRequestor);
+            var sut = new GenericAuthenticationProvider(CountingRequestor);
             await sut.LoginAsync().ConfigureAwait(false);
             Assert.Equal(1, requestCount);
         }
@@ -304,14 +264,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "LoginAsync")]
         public async Task LoginAsync_ForcesTokenRequestor()
         {
-            int requestCount = 0;
-            Func<Task<AuthenticationToken>> countingRequestor = () =>
-            {
-                requestCount++;
-                return Task.FromResult(basicToken);
-            };
-
-            var sut = new GenericAuthenticationProvider(countingRequestor);
+            var sut = new GenericAuthenticationProvider(CountingRequestor);
             var firstCall = await sut.GetTokenAsync().ConfigureAwait(false);
             Assert.Equal(basicToken.Token, firstCall);
             await sut.LoginAsync().ConfigureAwait(false);
@@ -327,10 +280,9 @@ namespace Microsoft.Datasync.Client.Test.Authentication
             var handler = new TestDelegatingHandler();
             handler.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK));
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/test");
-            var sut = new IntGap(requestor);
-            sut.InnerHandler = handler;
+            var sut = new IntGap(basicRequestor) { InnerHandler = handler };
 
-            var response = await sut.IntSendAsync(request);
+            var response = await sut.IntSendAsync(request).ConfigureAwait(false);
 
             Assert.NotNull(response);
             Assert.Single(handler.Requests);
@@ -346,10 +298,9 @@ namespace Microsoft.Datasync.Client.Test.Authentication
             var handler = new TestDelegatingHandler();
             handler.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK));
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/test");
-            var sut = new IntGap(requestor, "X-ZUMO-AUTH");
-            sut.InnerHandler = handler;
+            var sut = new IntGap(basicRequestor, "X-ZUMO-AUTH") { InnerHandler = handler };
 
-            var response = await sut.IntSendAsync(request);
+            var response = await sut.IntSendAsync(request).ConfigureAwait(false);
 
             Assert.NotNull(response);
             Assert.Single(handler.Requests);
@@ -364,10 +315,9 @@ namespace Microsoft.Datasync.Client.Test.Authentication
             var handler = new TestDelegatingHandler();
             handler.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK));
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/test");
-            var sut = new IntGap(expiredRequestor, "X-ZUMO-AUTH");
-            sut.InnerHandler = handler;
+            var sut = new IntGap(expiredRequestor, "X-ZUMO-AUTH") { InnerHandler = handler };
 
-            var response = await sut.IntSendAsync(request);
+            var response = await sut.IntSendAsync(request).ConfigureAwait(false);
 
             Assert.NotNull(response);
             Assert.Single(handler.Requests);
@@ -383,10 +333,9 @@ namespace Microsoft.Datasync.Client.Test.Authentication
             handler.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK));
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/test");
             request.Headers.Add("X-ZUMO-AUTH", "a-test-header");
-            var sut = new IntGap(expiredRequestor, "X-ZUMO-AUTH");
-            sut.InnerHandler = handler;
+            var sut = new IntGap(expiredRequestor, "X-ZUMO-AUTH") { InnerHandler = handler };
 
-            var response = await sut.IntSendAsync(request);
+            var response = await sut.IntSendAsync(request).ConfigureAwait(false);
 
             Assert.NotNull(response);
             Assert.Single(handler.Requests);
@@ -402,10 +351,9 @@ namespace Microsoft.Datasync.Client.Test.Authentication
             handler.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK));
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/test");
             request.Headers.Add("X-ZUMO-AUTH", "a-test-header");
-            var sut = new IntGap(requestor, "X-ZUMO-AUTH");
-            sut.InnerHandler = handler;
+            var sut = new IntGap(basicRequestor, "X-ZUMO-AUTH") { InnerHandler = handler };
 
-            var response = await sut.IntSendAsync(request);
+            var response = await sut.IntSendAsync(request).ConfigureAwait(false);
 
             Assert.NotNull(response);
             Assert.Single(handler.Requests);

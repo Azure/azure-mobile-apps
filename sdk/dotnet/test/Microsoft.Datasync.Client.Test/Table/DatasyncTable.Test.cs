@@ -44,17 +44,6 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             public string Id { get; set; }
         }
-
-        private static readonly AuthenticationToken basicToken = new()
-        {
-            DisplayName = "John Smith",
-            ExpiresOn = DateTimeOffset.Now.AddMinutes(5),
-            Token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJkYXRhc3luYy1mcmFtZXdvcmstdGVzdHMiLCJpYXQiOjE2Mjc2NTk4MTMsImV4cCI6MTY1OTE5NTgxMywiYXVkIjoiZGF0YXN5bmMtZnJhbWV3b3JrLXRlc3RzLmNvbnRvc28uY29tIiwic3ViIjoidGhlX2RvY3RvckBjb250b3NvLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG4iLCJTdXJuYW1lIjoiU21pdGgiLCJFbWFpbCI6InRoZV9kb2N0b3JAY29udG9zby5jb20ifQ.6Sm-ghJBKLB1vC4NuCqYKwL1mbRnJ9ziSHQT5VlNVEY",
-            UserId = "the_doctor"
-        };
-
-        private static readonly Func<Task<AuthenticationToken>> requestor = () => Task.FromResult(basicToken);
-        private readonly AuthenticationProvider authProvider = new GenericAuthenticationProvider(requestor, "X-ZUMO-AUTH");
         #endregion
 
         #region Ctor
@@ -143,7 +132,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task CreateItemAsync_Success_FormulatesCorrectRequest_WithAuth(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode, payload);
-            var client = CreateClientForMocking(authProvider);
+            var client = CreateClientForMocking(new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"));
             var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             var response = await sut.CreateItemAsync(payload).ConfigureAwait(false);
@@ -516,7 +505,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task DeleteItemAsync_FormulatesCorrectResponse_WithAuth(bool hasPrecondition)
         {
             MockHandler.AddResponse(HttpStatusCode.NoContent);
-            var client = CreateClientForMocking(authProvider);
+            var client = CreateClientForMocking(new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"));
             var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             var response = await table.DeleteItemAsync(sId, hasPrecondition ? IfMatch.Version("etag") : null).ConfigureAwait(false);
@@ -914,7 +903,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
-            var client = CreateClientForMocking(authProvider);
+            var client = CreateClientForMocking(new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"));
             var table = client.GetTable<IdEntity>("movies");
 
             // Act
@@ -980,7 +969,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var page = CreatePageOfItems(5);
-            var client = CreateClientForMocking(authProvider);
+            var client = CreateClientForMocking(new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"));
             var table = client.GetTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
@@ -1044,7 +1033,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             var page1 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5);
-            var client = CreateClientForMocking(authProvider);
+            var client = CreateClientForMocking(new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"));
             var table = client.GetTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
@@ -1124,7 +1113,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var page1 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=3"));
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
-            var client = CreateClientForMocking(authProvider);
+            var client = CreateClientForMocking(new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"));
             var table = client.GetTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
@@ -1195,7 +1184,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             _ = CreatePageOfItems(5, 5);
-            var client = CreateClientForMocking(authProvider);
+            var client = CreateClientForMocking(new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"));
             var table = client.GetTable<IdEntity>("movies");
 
             // Act
@@ -1357,7 +1346,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
-            var client = CreateClientForMocking(authProvider);
+            var client = CreateClientForMocking(new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"));
             var table = client.GetTable<IdEntity>("movies");
 
             // Act
@@ -1605,7 +1594,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking(authProvider);
+            var client = CreateClientForMocking(new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"));
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
             var expectedUri = string.IsNullOrEmpty(query) ? sEndpoint : $"{sEndpoint}?{query}";
 
@@ -1653,7 +1642,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking(authProvider);
+            var client = CreateClientForMocking(new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"));
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
 
             // Act
@@ -1703,7 +1692,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking(authProvider);
+            var client = CreateClientForMocking(new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"));
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
             const string requestUri = "https://localhost/tables/foo?$count=true&$skip=5&$top=10&__includedeleted=true";
 
@@ -2463,7 +2452,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task ReplaceItemAsync_Success_FormulatesCorrectResponse_WithAuth(bool hasPrecondition)
         {
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
-            var client = CreateClientForMocking(authProvider);
+            var client = CreateClientForMocking(new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"));
             var table = client.GetTable<IdEntity>("movies");
 
             var response = hasPrecondition
@@ -3071,7 +3060,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task UpdateItemAsync_Success_FormulatesCorrectResponse_WithAuth(bool hasPrecondition)
         {
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
-            var client = CreateClientForMocking(authProvider);
+            var client = CreateClientForMocking(new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"));
             var table = client.GetTable<IdEntity>("movies");
 
             var response = hasPrecondition
