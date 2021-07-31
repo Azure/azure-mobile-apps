@@ -33,20 +33,6 @@ stages:
         steps:
           - template: .ci/prebuild.yml
 
-          - task: DotNetCoreCLI@2
-            displayName: Install Report Generator
-            inputs:
-              command: custom
-              custom: tool
-              arguments: install --tool-path . dotnet-reportgenerator-globaltool
-
-          - task: DotNetCoreCLI@2
-            displayName: Install Coverlet.Console
-            inputs:
-              command: custom
-              custom: tool
-              arguments: install --tool-path . coverlet.console
-
           - task: MSBuild@1
             displayName: 'Build SDK'
             inputs:
@@ -65,26 +51,16 @@ stages:
               codeCoverageEnabled: true
               configuration: $(buildConfiguration)
 
-          - pwsh: |
-              Get-ChildItem -Path '$(netSdkPath)' -Include 'Microsoft.*.Test.dll' -Recurse |
-                Foreach-Object {
-                  .\coverlet.exe $_.FullName --target dotnet --targetargs "vstest $($_.FullName) --logger:trx" --format "cobertura"
-                  Rename-Item coverage.cobertura.xml $_.Name + ".coverage.cobertura.xml"
-                }
-            displayName: Generate coverlet coverage 
-
-          - pwsh: |
-              New-Item -Path reports -ItemType Directory
-              .\reportgenerator.exe -reports:*.coverage.cobertura.xml -targetdir:reports -reporttypes:"HTMLInline;HTMLChart"
-              Get-ChildItem reports -Recurse
-            displayName: Create coverage reports
-
-          - task: PublishCodeCoverageResults@1
-            displayName: Publish code coverage
+          - task: PublishTestResults@2
+            displayName: 'Publish Test Results'
             inputs:
-              codeCoverageTool: Cobertura
-              summaryFileLocation: '$(system.defaultworkingdirectory)\reports\Cobertura.xml'
-              reportDirectory: '$(system.defaultworkingdirectory)\reports'
+              testResultsFormat: xUnit
+              testResultsFiles: |
+                'TestResults/**'
+                '**/*.xml'
+                '**/*.trx'
+              searchFolder: $(netSdkPath)
+              configuration: $(buildConfiguration)
 
           - template: .ci/postbuild.yml
             parameters:
@@ -109,6 +85,7 @@ stages:
   - stage: postbuild
     displayName: Postbuild Checks
     condition: eq('refs/heads/main', variables['Build.SourceBranch'])
+    dependsOn: [ 'build' ]
     jobs:
       - job: postbuild_checks
         displayName: 'Run required code checks'

@@ -27,6 +27,8 @@ steps:
           Copy-Item -Verbose -Path $_.FullName -Destination $dest
         }
       }
+      Get-ChildItem -File '*.log' -File -Recurse | Copy-Item -Verbose -Destination '${{ parameters.buildArtifactDirectory }}'
+      Get-ChildItem -File '*.binlog' -File -Recurse | Copy-Item -Verbose -Destination '${{ parameters.buildArtifactDirectory }}'
     displayName: Consolidate build artifacts
 
   - pwsh: |
