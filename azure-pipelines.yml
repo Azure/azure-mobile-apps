@@ -68,7 +68,7 @@ stages:
           - pwsh: |
               Get-ChildItem -Path '$(netSdkPath)' -Include 'Microsoft.*.Test.dll' -Recurse |
                 Foreach-Object {
-                  .\coverlet.exe $_.FullName --target "dotnet --targetargs "vstest $($_.FullName) --logger:trx" --format "cobertura"
+                  .\coverlet.exe $_.FullName --target dotnet --targetargs "vstest $($_.FullName) --logger:trx" --format "cobertura"
                   Rename-Item coverage.cobertura.xml $_.Name + ".coverage.cobertura.xml"
                 }
             displayName: Generate coverlet coverage 
