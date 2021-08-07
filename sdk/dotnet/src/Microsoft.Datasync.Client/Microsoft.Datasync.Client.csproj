@@ -1,7 +1,7 @@
 <Project Sdk="MSBuild.Sdk.Extras/3.0.23">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;monoandroid11.0;xamarin.ios10</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;monoandroid11.0;xamarin.ios10</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);uap10.0</TargetFrameworks>
   </PropertyGroup>
 
@@ -40,13 +40,13 @@
   <!-- Android Platform Support -->
   <ItemGroup Condition="$(TargetFramework.StartsWith('monoandroid'))">
     <Compile Include="Platforms\android\*.cs" />
-    <PackageReference Include="Xamarin.Essentials" Version="1.6.1" />
+    <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
   </ItemGroup>
 
   <!-- iOS Platform Support -->
   <ItemGroup Condition="$(TargetFramework.StartsWith('xamarin.ios'))">
     <Compile Include="Platforms\ios\*.cs" />
-    <PackageReference Include="Xamarin.Essentials" Version="1.6.1" />
+    <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
   </ItemGroup>
 
   <!-- UWP/UAP/Windows Store Platform Support -->
