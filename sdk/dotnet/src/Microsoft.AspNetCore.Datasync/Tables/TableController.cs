@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.AspNet.OData;
-using Microsoft.AspNet.OData.Builder;
-using Microsoft.AspNet.OData.Query;
-using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.AspNetCore.Datasync.Filters;
 using Microsoft.AspNetCore.Datasync.Models;
@@ -12,9 +8,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Query.Validator;
 using Microsoft.Extensions.Logging;
 using Microsoft.OData;
 using Microsoft.OData.Edm;
+using Microsoft.OData.ModelBuilder;
+using Microsoft.OData.UriParser;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -52,6 +52,7 @@ namespace Microsoft.AspNetCore.Datasync
             Options = options ?? new TableControllerOptions();
 
             var modelBuilder = new ODataConventionModelBuilder();
+            modelBuilder.EnableLowerCamelCase();
             modelBuilder.AddEntityType(typeof(TEntity));
             EdmModel = modelBuilder.GetEdmModel();
         }

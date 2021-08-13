@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.AspNet.OData.Extensions;
-using Microsoft.AspNet.OData.Query.Validators;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Datasync.Converters;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OData.UriParser;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
-using System.Linq;
 
 namespace Microsoft.AspNetCore.Datasync
 {
@@ -27,14 +25,6 @@ namespace Microsoft.AspNetCore.Datasync
         /// <returns>The resulting service collection</returns>
         public static IServiceCollection AddDatasyncControllers(this IServiceCollection services)
         {
-            services.AddControllers().AddNewtonsoftJson(options =>
-            {
-                options.SerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
-                options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-                options.SerializerSettings.DefaultValueHandling = DefaultValueHandling.Include;
-                options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            });
-
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
                 DateFormatHandling = DateFormatHandling.IsoDateFormat,
@@ -43,29 +33,23 @@ namespace Microsoft.AspNetCore.Datasync
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             };
 
-            services.AddOData();
-
             services
-                .AddTransient<ODataUriResolver>()
-                .AddTransient<ODataQueryValidator>()
-                .AddTransient<TopQueryValidator>()
-                .AddTransient<CountQueryValidator>()
-                .AddTransient<FilterQueryValidator>()
-                .AddTransient<OrderByQueryValidator>()
-                .AddTransient<SelectExpandQueryValidator>()
-                .AddTransient<SkipQueryValidator>();
+                .AddControllers()
+                .AddOData(options => options.EnableQueryFeatures())
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
+                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                    options.SerializerSettings.DefaultValueHandling = DefaultValueHandling.Include;
+                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+
+                    // These will eventually be a part of Microsoft.AspNetCore.OData.NewtonsoftJson types
+                    // but they aren't released as of 8.0.1, so need to have them explicitly included.
+                    options.SerializerSettings.Converters.Add(new JSelectExpandWrapperConverter());
+                    options.SerializerSettings.Converters.Add(new JDynamicTypeWrapperConverter());
+                });
 
             return services;
-        }
-
-        /// <summary>
-        /// Enables the OData functionality within individual routes for ASP.NET Core MVC.
-        /// </summary>
-        /// <param name="routeBuilder"></param>
-        public static void EnableTableControllers(this IEndpointRouteBuilder routeBuilder)
-        {
-            routeBuilder.Count().Expand().Filter().MaxTop(null).OrderBy().Select().SkipToken();
-            routeBuilder.EnableDependencyInjection();
         }
 
         /// <summary>
