@@ -55,10 +55,7 @@ stages:
             displayName: 'Publish Test Results'
             inputs:
               testResultsFormat: xUnit
-              testResultsFiles: |
-                'TestResults/**'
-                '**/*.xml'
-                '**/*.trx'
+              testResultsFiles: 'TestResults\**'
               searchFolder: $(netSdkPath)
               configuration: $(buildConfiguration)
 
