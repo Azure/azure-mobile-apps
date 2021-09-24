@@ -26,7 +26,7 @@ namespace Microsoft.Datasync.Client.Platforms
         /// <summary>
         /// True if this is running on an emulated device
         /// </summary>
-        public bool IsEmulator => DeviceInfo.DeviceType = Device.Virtual;
+        public bool IsEmulator => DeviceInfo.DeviceType == DeviceType.Virtual;
 
         /// <summary>
         /// Converts the IsEmulator into a string.
@@ -41,7 +41,7 @@ namespace Microsoft.Datasync.Client.Platforms
         /// </summary>
         public string UserAgentDetails
         {
-            get => $"lang=Managed;os={OS.Name}/{OS.Version};arch={OS.Architecture};version={Platform.AssemblyVersion}{Emulator}";
+            get => $"lang=Managed;os={OS.Name}/{OS.Version};arch={OS.Architecture};version={Utils.Platform.AssemblyVersion}{Emulator}";
         }
     }
 }
