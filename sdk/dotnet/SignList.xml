@@ -2,8 +2,6 @@
     <!-- ASP.NET Core Service SDK -->
     <FirstParty Include="Microsoft.AspNetCore.Datasync.dll"/>
     <FirstParty Include="Microsoft.AspNetCore.Datasync.*.dll"/>
-    <!-- .NET Standard 2.1 and .NET Core 5.0 Client SDK -->
-    <FirstParty Include="Microsoft.Datasync.Client.dll"/>
     <!-- dotnet new template for the ASP.NET Core Service -->
     <FirstParty Include="Microsoft.AspNetCore.Datasync.Template.CSharp.dll"/>
 </Project>
