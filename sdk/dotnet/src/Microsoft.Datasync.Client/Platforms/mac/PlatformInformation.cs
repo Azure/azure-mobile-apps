@@ -4,7 +4,6 @@
 using Microsoft.Datasync.Client.Utils;
 using System;
 using Xamarin.Essentials;
-using UIKit;
 
 namespace Microsoft.Datasync.Client.Platforms
 {
@@ -19,12 +18,12 @@ namespace Microsoft.Datasync.Client.Platforms
         public IOSInformation OS => new OSInformation
         {
             Architecture = nameof(PlatformID.MacOSX),
-            Name = "iOS",
-            Version = UIDevice.CurrentDevice.SystemVersion
+            Name = "MacOSX",
+            Version = DeviceInfo.VersionString
         };
 
         /// <summary>
-        /// True if this is running on an emulated device
+        /// True if this is running on an emulated device.  On a Mac, we don't have simulated devices.
         /// </summary>
         public bool IsEmulator => DeviceInfo.DeviceType == DeviceType.Virtual;
 
@@ -45,4 +44,5 @@ namespace Microsoft.Datasync.Client.Platforms
         }
     }
 }
+
 

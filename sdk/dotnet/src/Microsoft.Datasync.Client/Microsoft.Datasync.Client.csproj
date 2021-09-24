@@ -1,7 +1,7 @@
 <Project Sdk="MSBuild.Sdk.Extras/3.0.23">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;monoandroid11.0;xamarin.ios10</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;monoandroid10.0;xamarin.ios10;xamarin.mac20</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);uap10.0</TargetFrameworks>
   </PropertyGroup>
 
@@ -41,12 +41,27 @@
   <ItemGroup Condition="$(TargetFramework.StartsWith('monoandroid'))">
     <Compile Include="Platforms\android\*.cs" />
     <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
+    <PackageReference Include="System.Text.Json" Version="5.0.2" />
   </ItemGroup>
 
   <!-- iOS Platform Support -->
   <ItemGroup Condition="$(TargetFramework.StartsWith('xamarin.ios'))">
     <Compile Include="Platforms\ios\*.cs" />
     <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
+    <PackageReference Include="System.Text.Json" Version="5.0.2" />
+  </ItemGroup>
+
+  <!-- Mac Platform Support -->
+  <ItemGroup Condition="$(TargetFramework.StartsWith('xamarin.mac'))">
+    <Compile Include="Platforms\mac\*.cs" />
+    <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
+    <PackageReference Include="System.Text.Json" Version="5.0.2" />
+  </ItemGroup>
+
+  <!-- .NET Standard 2.0 Platform Support -->
+  <ItemGroup Condition="$(TargetFramework.StartsWith('netstandard'))">
+    <Compile Include="Platforms\netstandard\*.cs" />
+    <PackageReference Include="System.Text.Json" Version="5.0.2" />
   </ItemGroup>
 
   <!-- UWP/UAP/Windows Store Platform Support -->
@@ -56,15 +71,6 @@
   </PropertyGroup>
   <ItemGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
     <Compile Include="Platforms\uap\*.cs" />
-  </ItemGroup>
-
-  <!-- .NET Standard 2.1 Platform Support -->
-  <ItemGroup Condition="$(TargetFramework.StartsWith('netstandard'))">
-    <Compile Include="Platforms\netstandard\*.cs" />
-  </ItemGroup>
-
-  <!-- Common package requirements -->
-  <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="5.0.2" />
   </ItemGroup>
 </Project>

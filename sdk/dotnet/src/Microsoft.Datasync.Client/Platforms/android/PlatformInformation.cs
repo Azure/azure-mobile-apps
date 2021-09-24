@@ -3,8 +3,8 @@
 
 using Android.OS;
 using Microsoft.Datasync.Client.Utils;
+using Xamarin.Essentials;
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Datasync.Client.Platforms
 {
@@ -26,7 +26,7 @@ namespace Microsoft.Datasync.Client.Platforms
         /// <summary>
         /// True if this is running on an emulated device
         /// </summary>
-        public bool IsEmulator => Build.Brand.Equals("generic", StringComparison.InvariantCultureIgnoreCase);
+        public bool IsEmulator => DeviceInfo.DeviceType = Device.Virtual;
 
         /// <summary>
         /// Converts the IsEmulator into a string.
@@ -34,7 +34,6 @@ namespace Microsoft.Datasync.Client.Platforms
         /// <remarks>
         /// Excluded from code coverage because the string.Empty version will never be returned in a test situation.
         /// </remarks>
-        [ExcludeFromCodeCoverage]
         private string Emulator => IsEmulator ? ";test" : "";
 
         /// <summary>
