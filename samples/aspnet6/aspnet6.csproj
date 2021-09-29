@@ -8,11 +8,19 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\sdk\dotnet\src\Microsoft.AspNetCore.Datasync.EFCore\Microsoft.AspNetCore.Datasync.EFCore.csproj" />
     <ProjectReference Include="..\..\sdk\dotnet\src\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
 
 </Project>

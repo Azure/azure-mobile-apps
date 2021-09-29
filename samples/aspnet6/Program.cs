@@ -29,6 +29,6 @@ else
 }
 
 app.UseHttpsRedirection();
-app.UseRouting();
+app.MapControllers();
 
 app.Run();

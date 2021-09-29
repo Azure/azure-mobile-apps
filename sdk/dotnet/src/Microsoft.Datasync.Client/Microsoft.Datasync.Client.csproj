@@ -1,34 +1,52 @@
 <Project Sdk="MSBuild.Sdk.Extras/3.0.23">
-
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;monoandroid11.0;xamarin.ios10</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);uap10.0</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;Xamarin.iOS10;MonoAndroid10.0;</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);uap10.0.16299;</TargetFrameworks>
+    <AssemblyName>Microsoft.Datasync.Client</AssemblyName>
+    <RootNamespace>Microsoft.Datasync.Client</RootNamespace>
+    <PackageId>Microsoft.Datasync.Client</PackageId>
+    <PackageIcon>icon.png</PackageIcon>
+    <Summary>Microsoft.Datasync.Client: A client package for communicating with a Microsoft Datasync service.  Formally known as Azure Mobile Apps</Summary>
+    <PackageTags>xamarin, windows, uwp, ios, android, toolkit, mobile, xamarin.forms, datasync, azure, cloud</PackageTags>
+    <Title>Microsoft.Datasync.Client</Title>
+    <Description>Microsoft.Datasync.Client: A client package for communicating with a Microsoft Datasync service.  Formally known as Azure Mobile Apps</Description>
+    <Product>$(AssemblyName) ($(TargetFramework))</Product>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <AssemblyFileVersion>1.0.0.0</AssemblyFileVersion>
+    <Version>5.0.0</Version>
+    <PackageVersion>5.0.0</PackageVersion>
+    <Authors>Microsoft</Authors>
+    <Company>Microsoft</Company>
+    <Owners>microsoft,Xamarin,XamarinNuGet</Owners>
+    <NeutralLanguage>en</NeutralLanguage>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <RepositoryUrl>https://github.com/azure/azure-mobile-apps</RepositoryUrl>
+    <DefineConstants>$(DefineConstants);</DefineConstants>
+    <UseFullSemVerForNuGet>false</UseFullSemVerForNuGet>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Company>Microsoft</Company>
-    <Authors>Microsoft</Authors>
-    <Description>A client package for communicating with a Microsoft Datasync service.  Formally known as Azure Mobile Apps</Description>
-    <Product>$(AssemblyName) ($(TargetFramework))</Product>
-    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/azure/azure-mobile-apps</PackageProjectUrl>
-    <PackageIcon>icon.png</PackageIcon>
-    <RepositoryUrl>https://github.com/azure/azure-mobile-apps</RepositoryUrl>
-    <PackageTags>azure;mobile;datasync;microsoft</PackageTags>
+    <DebugType>portable</DebugType>
+    <Configurations>Debug;Release</Configurations>
+ </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)'=='Release' And '$(OS)' == 'Windows_NT' ">
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(Configuration)'=='Release' And '$(OS)' == 'Windows_NT' ">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
 
   <PropertyGroup>
     <DebugType>portable</DebugType>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <LangVersion>9.0</LangVersion>
     <NeutralLanguage>en-US</NeutralLanguage>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,15 +56,17 @@
   </ItemGroup>
 
   <!-- Android Platform Support -->
-  <ItemGroup Condition="$(TargetFramework.StartsWith('monoandroid'))">
+  <ItemGroup Condition="$(TargetFramework.StartsWith('MonoAndroid'))">
     <Compile Include="Platforms\android\*.cs" />
     <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
+    <PackageReference Include="System.Text.Json" Version="5.0.2" />
   </ItemGroup>
 
   <!-- iOS Platform Support -->
-  <ItemGroup Condition="$(TargetFramework.StartsWith('xamarin.ios'))">
+  <ItemGroup Condition="$(TargetFramework.StartsWith('Xamarin.iOS'))">
     <Compile Include="Platforms\ios\*.cs" />
     <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
+    <PackageReference Include="System.Text.Json" Version="5.0.2" />
   </ItemGroup>
 
   <!-- UWP/UAP/Windows Store Platform Support -->
@@ -55,16 +75,13 @@
     <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
   </PropertyGroup>
   <ItemGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
+    <PackageReference Include="System.Text.Json" Version="5.0.2" />
     <Compile Include="Platforms\uap\*.cs" />
   </ItemGroup>
 
-  <!-- .NET Standard 2.1 Platform Support -->
+  <!-- .NET Standard 2.0 Platform Support -->
   <ItemGroup Condition="$(TargetFramework.StartsWith('netstandard'))">
-    <Compile Include="Platforms\netstandard\*.cs" />
-  </ItemGroup>
-
-  <!-- Common package requirements -->
-  <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="5.0.2" />
+    <Compile Include="Platforms\netstandard\*.cs" />
   </ItemGroup>
 </Project>
