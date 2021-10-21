@@ -126,21 +126,18 @@ stages:
           - task: PublishSecurityAnalysisLogs@3
             displayName: 'Publish security analysis logs'
 
-# Disabled because it requires the sign-artifacts to be updated to use new pools
-#  - stage: sign
-#    displayName: Sign SDK
-#    dependsOn: [ 'build' ]
-#    jobs:
-#      - job: presign
-#        displayName: Pre-signing Tasks
-#        steps: 
-#        - task: PublishBuildArtifacts@1
-#          displayName: Publish SignList.xml
-#          inputs:
-#            pathtoPublish: '$(netSdkPath)/SignList.xml'
-#            artifactName: nuget
-#
-#      - template: sign-artifacts/jobs/v2.yml@internal-templates
-#        parameters:
-#          codeSignOverride: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
-#  
+  - stage: sign
+    displayName: Sign SDK
+    dependsOn: [ 'build' ]
+    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    jobs:
+      - job: presign
+        displayName: Pre-signing Tasks
+        steps: 
+        - task: PublishBuildArtifacts@1
+          displayName: Publish SignList.xml
+          inputs:
+            pathtoPublish: '$(netSdkPath)/SignList.xml'
+            artifactName: nuget
+      - template: sign-artifacts/jobs/v2.yml@internal-templates
+
