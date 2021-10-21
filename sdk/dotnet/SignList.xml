@@ -1,7 +1,10 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <!-- ASP.NET Core Service SDK -->
-    <FirstParty Include="Microsoft.AspNetCore.Datasync.dll"/>
-    <FirstParty Include="Microsoft.AspNetCore.Datasync.*.dll"/>
-    <!-- dotnet new template for the ASP.NET Core Service -->
-    <FirstParty Include="Microsoft.AspNetCore.Datasync.Template.CSharp.dll"/>
+    <ItemGroup>
+        <!-- ASP.NET Core Service SDK -->
+        <FirstParty Include="Microsoft.AspNetCore.Datasync.dll"/>
+        <FirstParty Include="Microsoft.AspNetCore.Datasync.*.dll"/>
+        
+        <!-- dotnet new template for the ASP.NET Core Service -->
+        <FirstParty Include="Microsoft.AspNetCore.Datasync.Template.CSharp.dll"/>
+    </ItemGroup>
 </Project>
