@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Datasync.Extensions;
@@ -101,9 +102,13 @@ namespace Datasync.Common.Test
         /// <param name="expected"></param>
         public static void HasHeader(HttpHeaders headers, string headerName, string expected)
         {
-            Assert.True(headers.TryGetValues(headerName, out IEnumerable<string> values), $"The header does not contain header {headerName}");
-            Assert.True(values.Count() == 1, $"There are {values.Count()} values for header {headerName}");
-            Assert.Equal(expected, values.Single());
+            string allHeaders = Enumerable.Empty<(String name, String value)>().Concat(
+                headers.SelectMany(kvp => kvp.Value.Select(v => (name: kvp.Key, value: v)))
+            ).Aggregate(seed: new StringBuilder(), func: (sb, pair) => sb.Append(pair.name).Append(": ").Append(pair.value).AppendLine(), resultSelector: sb => sb.ToString());
+
+            Assert.True(headers.TryGetValues(headerName, out IEnumerable<string> values), $"The request/response does not contain header {headerName} (Headers = {allHeaders})");
+            Assert.True(values.Count() == 1, $"There are {values.Count()} values for header {headerName} (values = {string.Join(';', values)})");
+            Assert.True(values.First().Equals(expected), $"Value of header {headerName} does not match (expected: {expected}, got: {values.First()})");
         }
 
         /// <summary>
