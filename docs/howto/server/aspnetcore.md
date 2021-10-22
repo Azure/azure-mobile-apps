@@ -30,7 +30,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-Then, in the `Configure()` method, update the `UseEndpoints()` callback to include `endpoints.EnableTableControllers()`.  For example:
+Then, in the `Configure()` method, update the `UseEndpoints()` callback to include `endpoints.MapControllers()`.  For example:
 
 ``` csharp
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -46,8 +46,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
     app.UseEndpoints(endpoints =>
     {
-        endpoints.MapControllers();
-        endpoints.EnableTableControllers();
+        endpoints.MapControl 
     });
 }
 ```
@@ -299,7 +298,6 @@ public void Configure(IApplicationBuilder app)
     app.UseEndpoints(endpoints =>
     {
         endpoints.MapControllers();
-        endpoints.EnableTableControllers();
     });
 }
 ```
