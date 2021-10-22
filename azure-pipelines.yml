@@ -81,7 +81,6 @@ stages:
 
   - stage: postbuild
     displayName: Postbuild Checks
-    condition: eq('refs/heads/main', variables['Build.SourceBranch'])
     dependsOn: [ 'build' ]
     jobs:
       - job: postbuild_checks
@@ -128,7 +127,7 @@ stages:
 
   - stage: sign
     displayName: Sign SDK
-    dependsOn: [ 'build' ]
+    dependsOn: [ 'postbuild' ]
     condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
     jobs:
       - job: presign
