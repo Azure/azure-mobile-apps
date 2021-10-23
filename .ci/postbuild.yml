@@ -40,10 +40,14 @@ steps:
       }
     displayName: Consolidate NuGet artifacts
 
-  - publish: '${{ parameters.buildArtifactDirectory }}'
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '${{ parameters.buildArtifactDirectory }}'
+      artifactName: 'build'
     displayName: Publish Build Artifacts
-    artifact: build
 
-  - publish: ${{ parameters.nugetArtifactDirectory }}
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: ${{ parameters.nugetArtifactDirectory }}
+      artifactName: 'nuget'
     displayName: Publish NuGet Artifacts
-    artifact: nuget

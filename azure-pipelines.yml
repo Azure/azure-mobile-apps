@@ -128,9 +128,11 @@ stages:
       - job: presign
         displayName: Pre-signing Tasks
         steps: 
-        - publish: '$(netSdkPath)/SignList.xml'
+        - task: PublishPipelineArtifact@1
+          inputs:
+            targetPath: '$(netSdkPath)/SignList.xml'
+            artifactName: 'nuget'
           displayName: Publish SignList
-          artifact: nuget
 
   - stage: sign
     displayName: Sign SDK
@@ -147,9 +149,11 @@ stages:
       - job: release_nuget
         displayName: Release NuGet Packages
         steps:
-          - download: $(Pipeline.Workspace)
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              path: $(Pipeline.Workspace)
+              artifactName: 'nuget-signed'
             displayName: Download Signed NuGet Packages
-            artifact: nuget-signed
 
           - pwsh: |
               Get-ChildItem -Path $(Pipeline.Workspace) -Recurse
