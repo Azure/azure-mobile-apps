@@ -1,8 +1,6 @@
 parameters:
   sourceDirectory: '.'
   buildConfiguration: 'Release'
-  buildArtifactDirectory: 'output-build'
-  nugetArtifactDirectory: 'output-nuget'
   
 steps:
   - pwsh: |
@@ -10,8 +8,8 @@ steps:
     displayName: Show Build Directories
 
   - pwsh: |
-      New-Item -Force -Path '${{ parameters.buildArtifactDirectory }}' -ItemType Directory
-      New-Item -Force -Path '${{ parameters.nugetArtifactDirectory }}' -ItemType Directory
+      New-Item -Force -Path "$(Build.ArtifactStagingDirectory)\build" -ItemType Directory
+      New-Item -Force -Path "$(Build.ArtifactStagingDirectory)\nuget" -ItemType Directory
     displayName: Create Artifacts Storage
 
   - pwsh: |
@@ -39,15 +37,3 @@ steps:
         }
       }
     displayName: Consolidate NuGet artifacts
-
-  - task: PublishPipelineArtifact@1
-    inputs:
-      targetPath: '${{ parameters.buildArtifactDirectory }}'
-      artifactName: 'build'
-    displayName: Publish Build Artifacts
-
-  - task: PublishPipelineArtifact@1
-    inputs:
-      targetPath: ${{ parameters.nugetArtifactDirectory }}
-      artifactName: 'nuget'
-    displayName: Publish NuGet Artifacts

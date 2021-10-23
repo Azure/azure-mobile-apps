@@ -16,6 +16,10 @@ variables:
   PREVIEW_LABEL: 'preview'
   BUILD_NUMBER: $[counter(format('{0}_{1}_{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['Build.SourceBranch']), 1)]
   NUGET_VERSION: $[format('{0}-{1}.{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['BUILD_NUMBER'])]
+  netSdkSolution: '$(netSdkPath)/Datasync.Framework.sln'
+  netTemplateDirectory: '$(netSdkPath)/templates'
+  msBuildArguments: '/nologo /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
+  msBuildVersionArgs: '/p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION)'
 
 resources:
   repositories:
@@ -26,22 +30,56 @@ resources:
 
 stages:
   - stage: build
-    displayName: Build SDK
+    displayName: Build SDK Artifacts
     jobs:
-      - job: buildnetsdk
-        displayName: Build .NET SDK
+      - job: dotnet-build
+        displayName: Build .NET SDK Artifacts
         steps:
-          - template: .ci/prebuild.yml
+          - task: UseDotNet@2
+            inputs:
+              version: '5.0.x'
+              performMultiLevelLookup: true
+
+          - task: NuGetToolInstaller@1
+            inputs:
+              checkLatest: true
+
+          - pwsh: |
+              $pr = "pr." + $env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER
+              $nuget = $env:BASE_VERSION + "-" + $pr + "." + $env:BUILD_NUMBER
+              Write-Host "Preview label: $pr"
+              Write-Host "NuGet version: $nuget"
+              Write-Host "##vso[task.setvariable variable=PREVIEW_LABEL]$pr"
+              Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$nuget"
+            displayName: Override version for PRs
+            condition: eq(variables['Build.Reason'], 'PullRequest')
+
+          - pwsh: |
+              $tagVersion = $env:BUILD_SOURCEBRANCHNAME
+              Write-Host "Tag version: $tagVersion"
+              Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$tagVersion"
+            displayName: Override version for releases
+            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+
+          - pwsh: |
+              Write-Host "##vso[build.updatebuildnumber]$env:NUGET_VERSION"
+            displayName: Update the build number to match version
 
           - task: MSBuild@1
-            displayName: 'Build SDK'
             inputs:
               configuration: $(buildConfiguration)
-              solution: '$(netSdkPath)/Datasync.Framework.sln'
-              msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
+              solution: $(netSdkSolution)
+              msBuildArguments: '/t:Restore $(msBuildArguments)'
+            displayName: Restore NuGet Packages
+
+          - task: MSBuild@1
+            inputs:
+              configuration: $(buildConfiguration)
+              solution: $(netSdkSolution)
+              msBuildArguments: '/t:Build $(msBuildVersionArgs) $(msBuildArguments)'
+            displayName: Build .NET SDK
 
           - task: VSTest@2
-            displayName: 'Run Unit Tests'
             inputs:
               testAssemblyVer2: |
                 **\Microsoft.*.Test.dll
@@ -50,34 +88,53 @@ stages:
               searchFolder: $(netSdkPath)
               codeCoverageEnabled: true
               configuration: $(buildConfiguration)
+            displayName: 'Run Unit Tests'
 
           - task: PublishTestResults@2
-            displayName: 'Publish Test Results'
             inputs:
               testResultsFormat: xUnit
               testResultsFiles: 'TestResults\**'
               searchFolder: $(netSdkPath)
               configuration: $(buildConfiguration)
+            displayName: 'Publish Test Results'
 
-          - template: .ci/postbuild.yml
-            parameters:
-              sourceDirectory: '$(netSdkPath)/src'
-              buildConfiguration: '$(buildConfiguration)'
-
-      - job: buildnettemplate
-        displayName: Build .NET Core Template
-        steps:
-          - template: .ci/prebuild.yml
+          - task: MSBuild@1
+            inputs:
+              configuration: $(buildConfiguration)
+              solution: $(netSdkSolution)
+              msBuildArguments: '/t:Pack $(msBuildVersionArgs) $(msBuildArguments)'
+            displayName: 'Create NuGet Packages'
 
           - pwsh: |
               dotnet pack DatasyncTemplates.csproj --configuration $(buildConfiguration) /p:PackageVersion=$(NUGET_VERSION)
-            displayName: Build Template
-            workingDirectory: '$(netSdkPath)/templates'
+            workingDirectory: $(netTemplateDirectory)
+            displayName: Pack .NET Template Project
 
-          - template: .ci/postbuild.yml
+          - pwsh: |
+              Copy-Item -Path '$(netSdkPath)/SignList.xml' -Destination '$(Build.ArtifactStagingDirectory)/nuget'
+            displayName: Copy NuGet Signing List
+
+          - template: .ci/consolidate.yml
+            parameters:
+              sourceDirectory: '$(netSdkPath)/src'
+              buildConfiguration: $(buildConfiguration)
+
+          - template: .ci/consolidate.yml
             parameters:
               sourceDirectory: '$(netSdkPath)/templates'
-              buildConfiguration: '$(buildConfiguration)'
+              buildConfiguration: $(buildConfiguration)
+
+          - pwsh: |
+              Get-ChildItem -Path $(Build.ArtifactStagingDirectory) -Recurse
+            displayName: Show Artifact Staging Area
+
+          - publish: '$(Build.ArtifactStagingDirectory)/build'
+            artifact: 'build'
+            displayName: Upload build Artifacts
+
+          - publish: '$(Build.ArtifactStagingDirectory)/nuget'
+            artifact: 'nuget'
+            displayName: Upload NuGet artifacts
 
   - stage: postbuild
     displayName: Postbuild Checks
@@ -124,15 +181,6 @@ stages:
 
           - task: PublishSecurityAnalysisLogs@3
             displayName: 'Publish security analysis logs'
-
-      - job: presign
-        displayName: Pre-signing Tasks
-        steps: 
-        - task: PublishPipelineArtifact@1
-          inputs:
-            targetPath: '$(netSdkPath)/SignList.xml'
-            artifactName: 'nuget'
-          displayName: Publish SignList
 
   - stage: sign
     displayName: Sign SDK
