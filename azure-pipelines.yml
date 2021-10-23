@@ -125,11 +125,6 @@ stages:
           - task: PublishSecurityAnalysisLogs@3
             displayName: 'Publish security analysis logs'
 
-  - stage: sign
-    displayName: Sign SDK
-    dependsOn: [ 'postbuild' ]
-    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
-    jobs:
       - job: presign
         displayName: Pre-signing Tasks
         steps: 
@@ -138,5 +133,11 @@ stages:
           inputs:
             pathtoPublish: '$(netSdkPath)/SignList.xml'
             artifactName: nuget
+
+  - stage: sign
+    displayName: Sign SDK
+    dependsOn: [ 'postbuild' ]
+    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    jobs:
       - template: sign-artifacts/jobs/v2.yml@internal-templates
 
