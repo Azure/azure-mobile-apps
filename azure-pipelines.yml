@@ -184,9 +184,10 @@ stages:
 
   - stage: sign
     displayName: Sign SDK
-    dependsOn: [ 'build_dotnet' ]
+    dependsOn: [ 'build' ]
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     jobs:
+      # .NET SDK Signing
       - template: sign-artifacts/jobs/v2.yml@internal-templates
 
   - stage: release
