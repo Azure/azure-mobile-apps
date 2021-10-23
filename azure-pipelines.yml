@@ -79,6 +79,10 @@ stages:
               msBuildArguments: '/t:Build $(msBuildVersionArgs) $(msBuildArguments)'
             displayName: Build .NET SDK
 
+          - publish: '$(netSdkPath)'
+            artifact: 'build-netsdk'
+            displayName: Upload build artifacts
+
           - task: VSTest@2
             inputs:
               testAssemblyVer2: |
@@ -111,19 +115,19 @@ stages:
             displayName: Pack .NET Template Project
 
           - pwsh: |
+              New-Item -Path '$(Build.ArtifactStagingDirectory)/nuget' -ItemType Directory -Force
+              Get-ChildItem -Path '$(netSdkPath)/src' -Directory -Recurse | Where-Object { $_.FullName -match "\\bin\\Release$" } | Foreach-Object {
+                $directory = $_.FullName
+                Get-ChildItem -Path $directory -Include @( "*.nupkg", "*.nuspec" ) -File -Recurse | %{
+                  Write-Host "Copy-Item -Path $_ -Destination $(Build.ArtifactStagingDirectory)\nuget"
+                  Copy-Item -Verbose -Path $_ -Destination '$(Build.ArtifactStagingDirectory)\nuget'
+                }
+              }
               Copy-Item -Path '$(netSdkPath)/SignList.xml' -Destination '$(Build.ArtifactStagingDirectory)/nuget'
-            displayName: Copy NuGet Signing List
+            displayName: Create NuGet Package Artifacts
 
-          - template: .ci/consolidate.yml
-            parameters:
-              sourceDirectory: '$(netSdkPath)/src'
-              buildConfiguration: $(buildConfiguration)
-
-          - template: .ci/consolidate.yml
-            parameters:
-              sourceDirectory: '$(netSdkPath)/templates'
-              buildConfiguration: $(buildConfiguration)
-
+          - publish: '$(Build.ArtifactStagingDirectory)/nuget'
+            artifact: nuget
           - pwsh: |
               Get-ChildItem -Path $(Build.ArtifactStagingDirectory) -Recurse
             displayName: Show Artifact Staging Area

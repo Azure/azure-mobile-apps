@@ -1,0 +1,6 @@
+## Don't upload anything by default
+**/*
+
+## Precede anything you want to upload with a !
+!bin
+!obj
