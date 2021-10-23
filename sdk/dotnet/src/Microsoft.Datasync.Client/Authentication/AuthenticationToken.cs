@@ -29,6 +29,13 @@ namespace Microsoft.Datasync.Client
         /// </summary>
         public string UserId { get; set; }
 
-
+        /// <summary>
+        /// Return a visual representation of the authentication token for logging purposes.
+        /// </summary>
+        /// <returns>The string representation of the authentication token</returns>
+        public override string ToString()
+        {
+            return $"AuthenticationToken(DisplayName=\"{DisplayName}\",ExpiresOn=\"{ExpiresOn}\",Token=\"{Token}\",UserId=\"{UserId}\")";
+        }
     }
 }
