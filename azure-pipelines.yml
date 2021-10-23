@@ -143,6 +143,7 @@ stages:
               $CODEBASE_NAME = $repo + "_" + $branch
               echo "Using codebase: $CODEBASE_NAME"
               Write-Host "##vso[task.setvariable variable=CODEBASE_NAME]$CODEBASENAME"
+            displayName: Set Codebase Name
 
           - task: CredScan@2
             inputs:
@@ -173,7 +174,7 @@ stages:
               ToolLogsNotFoundAction: 'Standard'
 
           - task: PublishSecurityAnalysisLogs@3
-            displayName: 'Publish security analysis logs'
+            displayName: Publish security analysis logs
 
   - stage: sign
     displayName: Sign SDK
