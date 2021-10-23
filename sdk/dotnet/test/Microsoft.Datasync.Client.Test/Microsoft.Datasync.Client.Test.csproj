@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
