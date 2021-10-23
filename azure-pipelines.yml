@@ -32,7 +32,7 @@ stages:
   - stage: build
     displayName: Build SDK Artifacts
     jobs:
-      - job: dotnet-build
+      - job: build_dotnet
         displayName: Build .NET SDK Artifacts
         steps:
           - task: UseDotNet@2
@@ -184,7 +184,7 @@ stages:
 
   - stage: sign
     displayName: Sign SDK
-    dependsOn: [ 'postbuild' ]
+    dependsOn: [ 'build_dotnet' ]
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     jobs:
       - template: sign-artifacts/jobs/v2.yml@internal-templates
