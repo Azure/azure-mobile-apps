@@ -128,16 +128,29 @@ stages:
       - job: presign
         displayName: Pre-signing Tasks
         steps: 
-        - task: PublishBuildArtifacts@1
-          displayName: Publish SignList.xml
-          inputs:
-            pathtoPublish: '$(netSdkPath)/SignList.xml'
-            artifactName: nuget
+        - publish: '$(netSdkPath)/SignList.xml'
+          displayName: Publish SignList
+          artifact: nuget
 
   - stage: sign
     displayName: Sign SDK
     dependsOn: [ 'postbuild' ]
-    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     jobs:
       - template: sign-artifacts/jobs/v2.yml@internal-templates
 
+  - stage: release
+    displayName: Release
+    dependsOn: [ 'sign' ]
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    jobs:
+      - job: release_nuget
+        displayName: Release NuGet Packages
+        steps:
+          - download: $(Pipeline.Workspace)
+            displayName: Download Signed NuGet Packages
+            artifact: nuget-signed
+
+          - pwsh: |
+              Get-ChildItem -Path $(Pipeline.Workspace) -Recurse
+            displayName: Show Signed NuGet Packages
