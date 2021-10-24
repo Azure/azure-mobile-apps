@@ -111,7 +111,7 @@ stages:
 
           - pwsh: |
               New-Item -Path '$(Build.ArtifactStagingDirectory)/nuget' -ItemType Directory -Force
-              Get-ChildItem -Path '$(netSdkPath)\src' -Directory -Recurse | Where-Object { $_.FullName -match "\\bin\\$(buildConfiguration)$" } | Foreach-Object {
+              Get-ChildItem -Path '$(netSdkPath)\src' -Directory -Recurse | Where-Object { $_.FullName -match "\\(bin|obj)\\$(buildConfiguration)$" } | Foreach-Object {
                 $directory = $_.FullName
                 Get-ChildItem -Path $directory -Include @( "*.nupkg", "*.nuspec" ) -File -Recurse | %{
                   Write-Host "Copy-Item -Path $_ -Destination $(Build.ArtifactStagingDirectory)\nuget"
