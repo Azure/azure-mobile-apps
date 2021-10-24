@@ -118,6 +118,13 @@ stages:
                   Copy-Item -Verbose -Path $_ -Destination '$(Build.ArtifactStagingDirectory)\nuget'
                 }
               }
+              Get-ChildItem -Path '$(netTemplateDirectory)' -Directory -Recurse | Where-Object { $_.FullName -match "\\(bin|obj)\\$(buildConfiguration)$" } | Foreach-Object {
+                $directory = $_.FullName
+                Get-ChildItem -Path $directory -Include @( "*.nupkg", "*.nuspec" ) -File -Recurse | %{
+                  Write-Host "Copy-Item -Path $_ -Destination $(Build.ArtifactStagingDirectory)\nuget"
+                  Copy-Item -Verbose -Path $_ -Destination '$(Build.ArtifactStagingDirectory)\nuget'
+                }
+              }
               Copy-Item -Path '$(netSdkPath)\SignList.xml' -Destination '$(Build.ArtifactStagingDirectory)\nuget'
             displayName: Create NuGet Package Artifacts
 
