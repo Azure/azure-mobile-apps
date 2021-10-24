@@ -20,6 +20,8 @@ variables:
   netTemplateDirectory: '$(netSdkPath)/templates'
   msBuildArguments: '/nologo /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
   msBuildVersionArgs: '/p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION)'
+  netSdkArtifact: 'build-netsdk'
+  nugetArtifact: 'nuget'
 
 resources:
   repositories:
@@ -76,11 +78,11 @@ stages:
             inputs:
               configuration: $(buildConfiguration)
               solution: $(netSdkSolution)
-              msBuildArguments: '/t:Build $(msBuildVersionArgs) $(msBuildArguments)'
+              msBuildArguments: '/t:Build;Pack $(msBuildVersionArgs) $(msBuildArguments)'
             displayName: Build .NET SDK
 
-          - publish: '$(netSdkPath)'
-            artifact: 'build-netsdk'
+          - publish: $(netSdkPath)
+            artifact: $(netSdkArtifact)
             displayName: Upload build artifacts
 
           - task: VSTest@2
@@ -102,13 +104,6 @@ stages:
               configuration: $(buildConfiguration)
             displayName: 'Publish Test Results'
 
-          - task: MSBuild@1
-            inputs:
-              configuration: $(buildConfiguration)
-              solution: $(netSdkSolution)
-              msBuildArguments: '/t:Pack $(msBuildVersionArgs) $(msBuildArguments)'
-            displayName: 'Create NuGet Packages'
-
           - pwsh: |
               dotnet pack DatasyncTemplates.csproj --configuration $(buildConfiguration) /p:PackageVersion=$(NUGET_VERSION)
             workingDirectory: $(netTemplateDirectory)
@@ -127,7 +122,7 @@ stages:
             displayName: Create NuGet Package Artifacts
 
           - publish: '$(Build.ArtifactStagingDirectory)/nuget'
-            artifact: unsigned
+            artifact: $(nugetArtifact)
 
   - stage: postbuild
     displayName: Postbuild Checks
