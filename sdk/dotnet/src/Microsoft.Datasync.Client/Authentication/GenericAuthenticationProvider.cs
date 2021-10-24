@@ -99,6 +99,10 @@ namespace Microsoft.Datasync.Client
                 UserId = !IsLoggedIn ? null : Current.Value.UserId;
                 DisplayName = !IsLoggedIn ? null : Current.Value.DisplayName;
             }
+            if (IsExpired(Current))
+            {
+                System.Diagnostics.Debug.WriteLine($"GenericAuthenticationProvider:: Current is expired - token = {Current}");
+            }
 
             return IsExpired(Current) ? null : Current.Value.Token;
         }
@@ -128,6 +132,10 @@ namespace Microsoft.Datasync.Client
             }
 
             var token = await GetTokenAsync().ConfigureAwait(false);
+            if (token == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"GenericAuthenticationProvider::: token is null");
+            }
             if (token != null)
             {
                 var headerValue = AuthenticationType != null ? $"{AuthenticationType} {token}" : token;
