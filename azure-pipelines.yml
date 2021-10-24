@@ -127,7 +127,7 @@ stages:
             displayName: Create NuGet Package Artifacts
 
           - publish: '$(Build.ArtifactStagingDirectory)/nuget'
-            artifact: nuget
+            artifact: unsigned
 
   - stage: postbuild
     displayName: Postbuild Checks
