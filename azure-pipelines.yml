@@ -138,7 +138,7 @@ stages:
   - stage: sign
     displayName: Sign SDK
     dependsOn: [ 'build' ]
-    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
     jobs:
       - template: sign-artifacts/jobs/v2.yml@internal-templates
 
