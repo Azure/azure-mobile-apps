@@ -142,5 +142,28 @@ stages:
     jobs:
       - template: sign-artifacts/jobs/v2.yml@internal-templates
 
+  - stage: release
+    displayName: Release SDK
+    dependsOn: [ 'sign' ]
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    jobs:
+      - job: update_github_release
+        displayName: Update GitHub Releases
+        steps:
+          - pwsh: |
+              New-Item -Path '$(Build.ArtifactStagingDirectory)/nuget' -Type Directory -Force
+            displayName: Set up environment
 
- 
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: 'nuget-signed'
+              path: '$(Build.ArtifactStagingDirectory)/nuget'
+            displayName: Download Signed NuGet Packages
+
+          - task: GitHubRelease@1
+            inputs:
+              gitHubConnection: github-adhal-azure-mobile-apps
+              repositoryName: 'azure/azure-mobile-apps'
+              tag: $env:BUILD_SOURCEBRANCHNAME
+              action: 'edit'
+              assets: $(Build.ArtifactStagingDirectory)/nuget/*.nupkg
