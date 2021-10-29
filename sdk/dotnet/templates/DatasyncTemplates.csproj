@@ -13,7 +13,7 @@
         <ContentTargetFolders>content</ContentTargetFolders>
     </PropertyGroup>
     <ItemGroup>
-        <Content Include="Template.DatasyncServer\**" />
+        <Content Include="Template.DatasyncServer\**" Exclude="Template.DatasyncServer\**\*.template" />
         <Compile Remove="**\*" />
     </ItemGroup>
 </Project>

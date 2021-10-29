@@ -70,6 +70,11 @@ stages:
           - template: .ci/prebuild.yml
 
           - pwsh: |
+              (Get-Content -path "Template.DatasyncServer.csproj.template") -replace "{NUGET_VERSION}", "$(NUGET_VERSION)" | Set-Content -Path "./Template.DatasyncServer.csproj"
+            displayName: Generate csproj from template
+            workingDirectory: '$(netSdkPath)/templates/Template.DatasyncServer'
+
+          - pwsh: |
               dotnet pack DatasyncTemplates.csproj --configuration $(buildConfiguration) /p:PackageVersion=$(NUGET_VERSION)
             displayName: Build Template
             workingDirectory: '$(netSdkPath)/templates'
