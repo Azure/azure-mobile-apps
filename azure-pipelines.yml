@@ -151,6 +151,12 @@ stages:
         displayName: Update GitHub Releases
         steps:
           - pwsh: |
+              $tagVersion = $env:BUILD_SOURCEBRANCHNAME
+              Write-Host "Tag version: $tagVersion"
+              Write-Host "##vso[task.setvariable variable=githubReleaseVersion]$tagVersion"
+            displayName: Get Release Name on GitHub
+            
+          - pwsh: |
               New-Item -Path '$(Build.ArtifactStagingDirectory)/nuget' -Type Directory -Force
             displayName: Set up environment
 
@@ -164,6 +170,6 @@ stages:
             inputs:
               gitHubConnection: github-adhal-azure-mobile-apps
               repositoryName: 'azure/azure-mobile-apps'
-              tag: $env:BUILD_SOURCEBRANCHNAME
+              tag: $(githubReleaseVersion)
               action: 'edit'
               assets: $(Build.ArtifactStagingDirectory)/nuget/*.nupkg
