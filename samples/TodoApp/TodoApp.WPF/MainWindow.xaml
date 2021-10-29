@@ -65,7 +65,7 @@
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
-                <TextBox x:Name="textboxControl" Background="Transparent" BorderBrush="Indigo" FontSize="20" KeyDown="TextboxKeyDownHandler" />
+                <TextBox x:Name="textboxControl" Background="Transparent" BorderBrush="Indigo" FontSize="20" KeyDown="TextboxKeyDownHandler"  />
             </Grid>
 
             <Button Grid.Column="1" Margin="4" Click="AddItemClickHandler" Style="{StaticResource ImageButtonStyle}">
