@@ -70,7 +70,6 @@ namespace aspnetcore
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.EnableAzureMobile();
             });
         }
     }
