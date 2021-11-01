@@ -70,7 +70,18 @@ namespace TodoApp.WPF
             IsRefreshing = true;
             try
             {
+                // Do any database service refreshing needed
                 await _service.RefreshItemsAsync().ConfigureAwait(false);
+
+                // Get the current list of items.
+                var items = await _service.GetItemsAsync().ConfigureAwait(false);
+
+                // Clear the list and then add each item from the service in turn.
+                Items.Clear();
+                foreach (var item in items)
+                {
+                    Items.Add(item);
+                }
             }
             catch (Exception ex)
             {
