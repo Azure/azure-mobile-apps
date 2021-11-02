@@ -29,10 +29,19 @@ namespace TodoApp.Data.MVVM
             if (!storage.Equals(value))
             {
                 storage = value;
-                if (propertyName != null)
-                {
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                }
+                NotifyPropertyChanged(propertyName);
+            }
+        }
+
+        /// <summary>
+        /// Notifies the data context that the property named has changed value.
+        /// </summary>
+        /// <param name="propertyName">The name of the property</param>
+        protected void NotifyPropertyChanged(string propertyName = null)
+        {
+            if (propertyName != null)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
         }
     }

@@ -5,23 +5,23 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
-using TodoApp.Data;
 using TodoApp.Data.Extensions;
 using TodoApp.Data.Models;
-using TodoApp.Data.MVVM;
 
-namespace TodoApp.WPF
+namespace TodoApp.Data.MVVM
 {
-    /// <summary>
-    /// The viewmodel for the <see cref="MainWindow"/> view.
-    /// </summary>
-    public class MainWindowViewModel : ViewModel
+    public class TodoListViewModel : ViewModel
     {
         /// <summary>
         /// The <see cref="ITodoService"/> singleton that is injected.
         /// </summary>
         private readonly ITodoService _service;
+
+        /// <summary>
+        /// The <see cref="IMVVMHelper"/> we are using.  This allows us to update
+        /// the UI correctly and display alerts.
+        /// </summary>
+        private readonly IMVVMHelper _helper;
 
         /// <summary>
         /// The backing store for the <see cref="IsRefreshing"/> property.
@@ -32,9 +32,10 @@ namespace TodoApp.WPF
         /// Create a new <see cref="MainWindowViewModel"/>.
         /// </summary>
         /// <param name="service">The injected <see cref="ITodoService"/> singleton.</param>
-        public MainWindowViewModel(ITodoService service)
+        public TodoListViewModel(IMVVMHelper mvvmHelper, ITodoService service)
         {
             _service = service;
+            _helper = mvvmHelper;
         }
 
         /// <summary>
@@ -47,8 +48,7 @@ namespace TodoApp.WPF
         }
 
         /// <summary>
-        /// The list of items.  The service exposes this as an <see cref="ObservableCollection{TodoItem}"/>
-        /// already, and we never change it.
+        /// The list of items.
         /// </summary>
         public ObservableCollection<TodoItem> Items { get; } = new ObservableCollection<TodoItem>();
 
@@ -67,7 +67,7 @@ namespace TodoApp.WPF
         /// <returns>A task that completes when the sync is done.</returns>
         public async Task RefreshItemsAsync()
         {
-            IsRefreshing = true;
+            await SetRefreshing(true).ConfigureAwait(false);
             try
             {
                 // Do any database service refreshing needed
@@ -78,22 +78,22 @@ namespace TodoApp.WPF
 
                 // Clear the list and then add each item from the service in turn.
                 // This has to be done via the UI thread.
-                App.RunOnUiThread(() =>
+                await _helper.RunOnUiThreadAsync(() =>
                 {
                     Items.Clear();
                     foreach (var item in items)
                     {
                         Items.Add(item);
                     }
-                });
+                }).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                DisplayErrorAlert("RefreshItems", ex.Message);
+                await _helper.DisplayErrorAlertAsync("RefreshItems", ex.Message).ConfigureAwait(false);
             }
             finally
             {
-                IsRefreshing = false;
+                await SetRefreshing(false).ConfigureAwait(false);
             }
         }
 
@@ -113,7 +113,7 @@ namespace TodoApp.WPF
             }
             catch (Exception ex)
             {
-                DisplayErrorAlert("UpdateItem", ex.Message);
+                await _helper.DisplayErrorAlertAsync("UpdateItem", ex.Message).ConfigureAwait(false);
             }
         }
 
@@ -131,17 +131,10 @@ namespace TodoApp.WPF
             }
             catch (Exception ex)
             {
-                DisplayErrorAlert("UpdateItem", ex.Message);
+                await _helper.DisplayErrorAlertAsync("UpdateItem", ex.Message).ConfigureAwait(false);
             }
         }
 
-        /// <summary>
-        /// Displays a pop-up alert for the user.
-        /// </summary>
-        /// <param name="title">The title of the message box</param>
-        /// <param name="message">The message</param>
-        private static void DisplayErrorAlert(string title, string message)
-            => App.RunOnUiThread(() => MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Exclamation));
 
         /// <summary>
         /// Event handler that maintains the <see cref="ObservableCollection{TodoItem}"/> so that
@@ -149,9 +142,9 @@ namespace TodoApp.WPF
         /// </summary>
         /// <param name="sender">The service that sent the event</param>
         /// <param name="e">The event arguments</param>
-        private void OnTodoItemsUpdated(object? sender, TodoServiceEventArgs e)
+        private async void OnTodoItemsUpdated(object sender, TodoServiceEventArgs e)
         {
-            App.RunOnUiThread(() =>
+            await _helper.RunOnUiThreadAsync(() =>
             {
                 switch (e.Action)
                 {
@@ -165,7 +158,14 @@ namespace TodoApp.WPF
                         Items.ReplaceIf(m => m.Id == e.Item.Id, e.Item);
                         break;
                 }
-            });
+            }).ConfigureAwait(false);
         }
+
+        /// <summary>
+        /// The IsRefreshing needs to be set on the UI thread in some cases (e.g. UWP).
+        /// </summary>
+        /// <param name="value">The new value</param>
+        private Task SetRefreshing(bool value)
+            => _helper.RunOnUiThreadAsync(() => { IsRefreshing = value; });
     }
 }

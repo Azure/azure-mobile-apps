@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using TodoApp.Data;
+using TodoApp.Data.MVVM;
 
 namespace TodoApp.WPF
 {
@@ -14,12 +15,12 @@ namespace TodoApp.WPF
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly MainWindowViewModel _viewModel;
+        private readonly TodoListViewModel _viewModel;
 
         public MainWindow()
         {
             InitializeComponent();
-            _viewModel = new MainWindowViewModel(TodoService.Value);
+            _viewModel = new TodoListViewModel(App.Current as IMVVMHelper, TodoService.Value);
             DataContext = _viewModel;
         }
 
@@ -42,7 +43,7 @@ namespace TodoApp.WPF
             if (e.Key == Key.Return || e.Key == Key.Enter)
             {
                 await _viewModel.AddItemAsync(textboxControl.Text.Trim()).ConfigureAwait(false);
-                App.RunOnUiThread(() => textboxControl.Text = String.Empty);
+                ClearTextBox();
             }
         }
 
@@ -52,7 +53,7 @@ namespace TodoApp.WPF
         protected async void AddItemClickHandler(object sender, RoutedEventArgs e)
         {
             await _viewModel.AddItemAsync(textboxControl.Text.Trim()).ConfigureAwait(false);
-            App.RunOnUiThread(() => textboxControl.Text = String.Empty);
+            ClearTextBox();
         }
 
         /// <summary>
@@ -74,5 +75,10 @@ namespace TodoApp.WPF
         {
             await _viewModel.RefreshItemsAsync().ConfigureAwait(false);
         }
+
+        /// <summary>
+        /// Clears the content from the text box.
+        /// </summary>
+        private void ClearTextBox() => App.Current.Dispatcher.Invoke(() => textboxControl.Text = String.Empty);
     }
 }
