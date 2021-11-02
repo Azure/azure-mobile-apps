@@ -8,6 +8,6 @@ namespace TodoApp.Data
         /// <summary>
         /// The base URI for the Datasync service.
         /// </summary>
-        internal static string ServiceUri = "https://todoservice-2021-11-01.azurewebsites.net";
+        internal static string ServiceUri = "https://APPSERVICENAME.azurewebsites.net";
     }
 }
