@@ -1,0 +1,39 @@
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using System.ComponentModel;
+
+namespace TodoApp.Data.MVVM
+{
+    /// <summary>
+    /// The base view model implementation - cross-platform.
+    /// </summary>
+    public class ViewModel : INotifyPropertyChanged
+    {
+        /// <summary>
+        /// The event handler required by <see cref="INotifyPropertyChanged"/>
+        /// </summary>
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Sets a backing store value and notify watchers of the change.  The type must
+        /// implement <see cref="IEquatable{T}"/> for proper comparisons.
+        /// </summary>
+        /// <typeparam name="T">The type of the value</typeparam>
+        /// <param name="storage">The backing store</param>
+        /// <param name="value">The new value</param>
+        /// <param name="propertyName"></param>
+        protected void SetProperty<T>(ref T storage, T value, string propertyName = null)
+        {
+            if (!storage.Equals(value))
+            {
+                storage = value;
+                if (propertyName != null)
+                {
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                }
+            }
+        }
+    }
+}
