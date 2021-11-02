@@ -11,7 +11,7 @@ namespace TodoApp.Data
     /// </summary>
     public static class TodoService
     {
-        private static readonly Lazy<ITodoService> _serviceRef = new Lazy<ITodoService>(() => new InMemoryTodoService());
+        private static readonly Lazy<ITodoService> _serviceRef = new Lazy<ITodoService>(() => new RemoteTodoService());
 
         /// <summary>
         /// The <see cref="ITodoService"/> instance.

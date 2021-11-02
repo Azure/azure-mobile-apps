@@ -77,11 +77,15 @@ namespace TodoApp.WPF
                 var items = await _service.GetItemsAsync().ConfigureAwait(false);
 
                 // Clear the list and then add each item from the service in turn.
-                Items.Clear();
-                foreach (var item in items)
+                // This has to be done via the UI thread.
+                App.RunOnUiThread(() =>
                 {
-                    Items.Add(item);
-                }
+                    Items.Clear();
+                    foreach (var item in items)
+                    {
+                        Items.Add(item);
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -137,7 +141,7 @@ namespace TodoApp.WPF
         /// <param name="title">The title of the message box</param>
         /// <param name="message">The message</param>
         private static void DisplayErrorAlert(string title, string message)
-            => MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            => App.RunOnUiThread(() => MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Exclamation));
 
         /// <summary>
         /// Event handler that maintains the <see cref="ObservableCollection{TodoItem}"/> so that
