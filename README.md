@@ -10,7 +10,7 @@ Azure Mobile Apps is a set of client and server libraries for adding authenticat
 
 Currently, we support:
 
-* ASP.NET Framework on the server side (for security issues only)
+* ASP.NET Core for .NET 6
 * .NET Standard 2.0 Client (Xamarin, WPF, etc.)
 
 To get started, take a look at [our documentation](https://azure.github.io/azure-mobile-apps).
@@ -22,17 +22,18 @@ The following libraries have been archived and can be considered deprecated (lin
 * JavaScript Client
 * Apache Cordova Client
 * Node Server
+* .NET Framework Server
 
 > **What does deprecation mean?**<br/>
 > The libraries that have been deprecated are still available in [the archive](https://github.com/azure/azure-mobile-apps/tree/archive), and documentation is available in [the documentation](https://azure.github.io/azure-mobile-apps/), but no further work will be done on these libraries, and any issues opened on these libraries will be closed as "won't fix".  The libraries are open-source, and you are welcome to fork them to adjust as you see fit.
->
-> In particular, the upcoming ASP.NET Core service will implement ZUMO-API-VERSION 3.0.0 (whereas the Node and ASP.NET Framework implemented ZUMO-API-VERSION 2.0.0).  It is unlikely that the deprecated clients will work against the newer server versions.
+> 
+> Note that the ASP.NET Core service uses OData v4 (with a backwards compatibility module for OData v3).  This means that older clients (such as those in the deprecation list) will not work in every situation, and additional configuration is required to support authentication.
 
 ## Libraries
 
 ### .NET (sdk/dotnet)
 
-The .NET Library uses ASP.NET Core 5.0 and provides an in-memory store and an Entity Framework 5.0 based store.  The pre-release versions of the library are available on [GitHub Packages](https://github.com/orgs/Azure/packages?repo_name=azure-mobile-apps).  Refer to the [GitHub Packages documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry) for information on using the pre-release packages.
+The .NET Library uses ASP.NET Core 6.0 and provides an in-memory store and an Entity Framework 6.0 based store.  You can download pre-release versions from [GitHub Releases](https://github.com/Azure/azure-mobile-apps/releases).
 
 Released and supported versions of the library will be distributed by the normal [NuGet](https://www.nuget.org/) mechanism.
 
@@ -44,7 +45,7 @@ We provide a template for use with `dotnet new`.  The template pre-configures AS
 dotnet new -i <path-to-nupkg>
 ```
 
-The latest version of the nupkg for the template can be downloaded from the [GitHub Packages repository](https://github.com/orgs/Azure/packages?repo_name=azure-mobile-apps).  
+The latest version of the nupkg for the template can be downloaded from GitHub releases and NuGet.
 
 To create a server, use `dotnet new`:
 
@@ -56,19 +57,9 @@ dotnet new datasync-server
 
 The Datasync Server template will be released to NuGet at the same time as the new libraries.
 
-## Generating the documentation
+## Documentation
 
-This project uses [mkdocs](https://mkdocs.org) for documentation.  Documentation is written in Markdown.  To install the pre-requisites, use the following:
-
-```bash
-pip install mkdocs mkdocs-material pymdown-extensions markdown-include
-```
-
-To host the documentation locally, use:
-
-```bash
-mkdocs serve
-```
+You can find the latest documentation on [docs.microsoft.com](https://docs.microsoft.com/azure/developer/mobile-apps/azure-mobile-apps/overview), and pre-release documentation in our docs directory.
 
 ## Contributing
 
