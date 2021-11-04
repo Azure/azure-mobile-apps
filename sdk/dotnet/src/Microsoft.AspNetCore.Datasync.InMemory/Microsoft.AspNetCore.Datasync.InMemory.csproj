@@ -1,12 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Authors>Microsoft Corporation</Authors>
-    <Company>Microsoft Corporation</Company>
+    <AssemblyName>Microsoft.AspNetCore.Datasync.InMemory</AssemblyName>
+    <Authors>Microsoft</Authors>
+    <Company>Microsoft</Company>
     <Copyright>Copyright (c) 2021 Microsoft Corporation.</Copyright>
     <Description>An in-memory repository for use with the ASP.NET Core Datasync framework.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
     <LangVersion>9.0</LangVersion>
+    <LicenseUrl>https://github.com/Azure/azure-mobile-apps/blob/main/LICENSE.txt</LicenseUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageId>Microsoft.AspNetCore.Datasync.InMemory</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -15,6 +17,7 @@
     <ProductName>Microsoft.AspNetCore.Datasync.InMemory</ProductName>
     <ProjectUrl>https://github.com/Azure/azure-mobile-apps</ProjectUrl>
     <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
+    <RootNamespace>Microsoft.AspNetCore.Datasync.InMemory</RootNamespace>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>

@@ -8,11 +8,12 @@
   <PropertyGroup>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <LicenseUrl>https://github.com/Azure/azure-mobile-apps/blob/main/LICENSE.txt</LicenseUrl>
     <Company>Microsoft</Company>
     <Authors>Microsoft</Authors>
     <Description>A client package for communicating with a Microsoft Datasync service.  Formally known as Azure Mobile Apps</Description>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
-    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <Copyright>&#169; Microsoft Corporation. All rights reserved.</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/azure/azure-mobile-apps</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
