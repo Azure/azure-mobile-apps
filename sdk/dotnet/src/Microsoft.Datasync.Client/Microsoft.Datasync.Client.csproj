@@ -19,6 +19,7 @@
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/azure/azure-mobile-apps</RepositoryUrl>
     <PackageTags>azure;mobile;datasync;microsoft</PackageTags>
+    <ProjectUrl>https://github.com/azure/azure-mobile-apps</ProjectUrl>
   </PropertyGroup>
 
   <PropertyGroup>
