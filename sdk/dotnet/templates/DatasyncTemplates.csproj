@@ -2,9 +2,13 @@
     <PropertyGroup>
         <PackageType>Template</PackageType>
         <PackageId>Microsoft.AspNetCore.Datasync.Template.CSharp</PackageId>
-        <Authors>Microsoft Corporation</Authors>
+        <Authors>Microsoft</Authors>
+        <Company>Microsoft</Company>
+        <LicenseUrl>https://github.com/Azure/azure-mobile-apps/blob/main/LICENSE.txt</LicenseUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <Title>ASP.NET Core Datasync Templates</Title>
         <Description>Templates to use when creating ASP.NET Core datasync applications.</Description>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <PackageTags>dotnet-new;templates;aspnetcore;datasync</PackageTags>
         <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
         <TargetFramework>net5</TargetFramework>

@@ -152,15 +152,9 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Datasync.Client">
-      <Version>5.0.0-beta.2</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>6.2.12</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Toolkit.Uwp.UI">
-      <Version>7.1.1</Version>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Datasync.Client" Version="5.0.0-beta.1" />
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.13" />
+    <PackageReference Include="Microsoft.Toolkit.Uwp.UI" Version="7.1.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TodoApp.Data\TodoApp.Data.csproj">
