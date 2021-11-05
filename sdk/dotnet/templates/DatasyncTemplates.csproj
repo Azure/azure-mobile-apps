@@ -5,6 +5,7 @@
         <Authors>Microsoft</Authors>
         <Company>Microsoft</Company>
         <LicenseUrl>https://github.com/Azure/azure-mobile-apps/blob/main/LICENSE.txt</LicenseUrl>
+        <ProjectUrl>https://github.com/azure/azure-mobile-apps</ProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <Title>ASP.NET Core Datasync Templates</Title>
         <Description>Templates to use when creating ASP.NET Core datasync applications.</Description>
