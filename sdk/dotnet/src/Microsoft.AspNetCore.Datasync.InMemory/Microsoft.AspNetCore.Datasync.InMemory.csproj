@@ -12,10 +12,10 @@
     <NeutralLanguage>en</NeutralLanguage>
     <PackageId>Microsoft.AspNetCore.Datasync.InMemory</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Azure/azure-mobile-apps</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageTags>microsoft aspnetcore cloud datasync webapi</PackageTags>
     <ProductName>Microsoft.AspNetCore.Datasync.InMemory</ProductName>
-    <ProjectUrl>https://github.com/Azure/azure-mobile-apps</ProjectUrl>
     <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
     <RootNamespace>Microsoft.AspNetCore.Datasync.InMemory</RootNamespace>
     <TargetFramework>net5.0</TargetFramework>
