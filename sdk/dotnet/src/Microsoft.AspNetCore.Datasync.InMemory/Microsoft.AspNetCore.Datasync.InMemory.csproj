@@ -3,7 +3,7 @@
     <AssemblyName>Microsoft.AspNetCore.Datasync.InMemory</AssemblyName>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
-    <Copyright>Copyright (c) 2021 Microsoft Corporation.</Copyright>
+    <Copyright>&#169; Microsoft Corporation. All rights reserved.</Copyright>
     <Description>An in-memory repository for use with the ASP.NET Core Datasync framework.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
