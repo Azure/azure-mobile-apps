@@ -6,21 +6,14 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LicenseUrl>https://github.com/Azure/azure-mobile-apps/blob/main/LICENSE.txt</LicenseUrl>
-    <Company>Microsoft</Company>
-    <Authors>Microsoft</Authors>
     <Description>A client package for communicating with a Microsoft Datasync service.  Formally known as Azure Mobile Apps</Description>
-    <Product>$(AssemblyName) ($(TargetFramework))</Product>
-    <Copyright>&#169; Microsoft Corporation. All rights reserved.</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/azure/azure-mobile-apps</PackageProjectUrl>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageTags>azure;mobile;datasync;microsoft</PackageTags>
-    <RepositoryUrl>https://github.com/azure/azure-mobile-apps</RepositoryUrl>
-    <ProjectUrl>https://github.com/azure/azure-mobile-apps</ProjectUrl>
+    <Product>$(AssemblyName) ($(TargetFramework))</Product>
   </PropertyGroup>
+
+  <Import Project="..\..\Shared.Build.props" />
 
   <PropertyGroup>
     <DebugType>portable</DebugType>

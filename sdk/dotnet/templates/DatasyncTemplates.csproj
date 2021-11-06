@@ -1,25 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <Authors>Microsoft</Authors>
-        <Company>Microsoft</Company>
-        <LicenseUrl>https://github.com/Azure/azure-mobile-apps/blob/main/LICENSE.txt</LicenseUrl>
-        <PackageId>Microsoft.AspNetCore.Datasync.Template.CSharp</PackageId>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageProjectUrl>https://github.com/Azure/azure-mobile-apps</PackageProjectUrl>
-        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-        <PackageTags>dotnet-new;templates;aspnetcore;datasync</PackageTags>
-        <PackageType>Template</PackageType>
-        <ProjectUrl>https://github.com/azure/azure-mobile-apps</ProjectUrl>
-        <Title>ASP.NET Core Datasync Templates</Title>
-        <Description>Templates to use when creating ASP.NET Core datasync applications.</Description>
-        <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
-        <TargetFramework>net5</TargetFramework>
-        <IncludeContentInPack>true</IncludeContentInPack>
-        <IncludeBuildOutput>false</IncludeBuildOutput>
-        <ContentTargetFolders>content</ContentTargetFolders>
-    </PropertyGroup>
-    <ItemGroup>
-        <Content Include="Template.DatasyncServer\**" Exclude="Template.DatasyncServer\**\*.template" />
-        <Compile Remove="**\*" />
-    </ItemGroup>
+  <PropertyGroup>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <Description>Templates to use when creating ASP.NET Core datasync applications.</Description>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <PackageId>Microsoft.AspNetCore.Datasync.Template.CSharp</PackageId>
+    <PackageTags>dotnet-new;templates;aspnetcore;datasync</PackageTags>
+    <PackageType>Template</PackageType>
+    <TargetFramework>net5</TargetFramework>
+    <Title>ASP.NET Core Datasync Templates</Title>
+  </PropertyGroup>
+
+  <Import Project="..\Shared.Build.props" />
+
+  <ItemGroup>
+    <Content Include="Template.DatasyncServer\**" Exclude="Template.DatasyncServer\**\*.template" />
+    <Compile Remove="**\*" />
+  </ItemGroup>
 </Project>
