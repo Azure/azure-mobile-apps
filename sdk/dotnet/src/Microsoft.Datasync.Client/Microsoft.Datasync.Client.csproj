@@ -16,7 +16,6 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/azure/azure-mobile-apps</PackageProjectUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageTags>azure;mobile;datasync;microsoft</PackageTags>
     <RepositoryUrl>https://github.com/azure/azure-mobile-apps</RepositoryUrl>
@@ -35,7 +34,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="..\..\..\images\icon.png" PackagePath="icon.png" Pack="True" />
     <None Include="Platforms\**\*.cs" />
     <Compile Remove="Platforms\**\*.cs" />

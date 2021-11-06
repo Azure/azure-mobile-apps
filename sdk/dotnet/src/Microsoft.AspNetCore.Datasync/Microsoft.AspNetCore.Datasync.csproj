@@ -13,17 +13,13 @@
     <PackageId>Microsoft.AspNetCore.Datasync</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Azure/azure-mobile-apps</PackageProjectUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageTags>microsoft aspnetcore cloud datasync webapi</PackageTags>
     <ProductName>Microsoft.AspNetCore.Datasync</ProductName>
     <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
     <RootNamespace>Microsoft.AspNetCore.Datasync</RootNamespace>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net5</TargetFramework>
   </PropertyGroup>
-  <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="\" />
-  </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>

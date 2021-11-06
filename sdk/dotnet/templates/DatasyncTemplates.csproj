@@ -6,7 +6,6 @@
         <PackageId>Microsoft.AspNetCore.Datasync.Template.CSharp</PackageId>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageProjectUrl>https://github.com/Azure/azure-mobile-apps</PackageProjectUrl>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <PackageTags>dotnet-new;templates;aspnetcore;datasync</PackageTags>
         <PackageType>Template</PackageType>
@@ -20,7 +19,6 @@
         <ContentTargetFolders>content</ContentTargetFolders>
     </PropertyGroup>
     <ItemGroup>
-        <None Include="README.md" Pack="true" PackagePath="\" />
         <Content Include="Template.DatasyncServer\**" Exclude="Template.DatasyncServer\**\*.template" />
         <Compile Remove="**\*" />
     </ItemGroup>
