@@ -6,8 +6,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <LicenseUrl>https://github.com/Azure/azure-mobile-apps/blob/main/LICENSE.txt</LicenseUrl>
     <Company>Microsoft</Company>
     <Authors>Microsoft</Authors>
@@ -15,10 +13,13 @@
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
     <Copyright>&#169; Microsoft Corporation. All rights reserved.</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageProjectUrl>https://github.com/azure/azure-mobile-apps</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
-    <RepositoryUrl>https://github.com/azure/azure-mobile-apps</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/azure/azure-mobile-apps</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageTags>azure;mobile;datasync;microsoft</PackageTags>
+    <RepositoryUrl>https://github.com/azure/azure-mobile-apps</RepositoryUrl>
     <ProjectUrl>https://github.com/azure/azure-mobile-apps</ProjectUrl>
   </PropertyGroup>
 
@@ -34,6 +35,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="..\..\..\images\icon.png" PackagePath="icon.png" Pack="True" />
     <None Include="Platforms\**\*.cs" />
     <Compile Remove="Platforms\**\*.cs" />
