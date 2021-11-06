@@ -16,6 +16,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <None Include="..\images\icon.png" PackagePath="icon.png" Pack="True" />
+    <None Include="$(MSBuildThisFileDirectory)\..\images\icon.png" PackagePath="icon.png" Pack="True" />
   </ItemGroup>
 </Project>
