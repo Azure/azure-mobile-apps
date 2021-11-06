@@ -1,28 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AssemblyName>Microsoft.AspNetCore.Datasync.EFCore</AssemblyName>
-    <Authors>Microsoft</Authors>
-    <Company>Microsoft</Company>
-    <Copyright>&#169; Microsoft Corporation. All rights reserved.</Copyright>
     <Description>An Entity Framework Core based repository for use with the ASP.NET Core Datasync framework.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
     <LangVersion>9.0</LangVersion>
-    <LicenseUrl>https://github.com/Azure/azure-mobile-apps/blob/main/LICENSE.txt</LicenseUrl>
-    <NeutralLanguage>en</NeutralLanguage>
     <PackageId>Microsoft.AspNetCore.Datasync.EFCore</PackageId>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/Azure/azure-mobile-apps</PackageProjectUrl>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageTags>microsoft aspnetcore cloud datasync webapi</PackageTags>
+    <PackageTags>microsoft;aspnetcore;cloud;datasync;webapi</PackageTags>
     <ProductName>Microsoft.AspNetCore.Datasync.EFCore</ProductName>
-    <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
     <RootNamespace>Microsoft.AspNetCore.Datasync.EFCore</RootNamespace>
     <TargetFramework>net5</TargetFramework>
   </PropertyGroup>
+  
+  <Import Project="..\..\Shared.Build.props" /> 
+
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.11" />
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj" />
   </ItemGroup>

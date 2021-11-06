@@ -1,28 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AssemblyName>Microsoft.AspNetCore.Datasync</AssemblyName>
-    <Authors>Microsoft</Authors>
-    <Company>Microsoft</Company>
-    <Copyright>&#169; Microsoft Corporation. All rights reserved.</Copyright>
     <Description>An ASP.NET Core based framework for synchronizing structured data between a database and a client application.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
     <LangVersion>9.0</LangVersion>
-    <LicenseUrl>https://github.com/Azure/azure-mobile-apps/blob/main/LICENSE.txt</LicenseUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageId>Microsoft.AspNetCore.Datasync</PackageId>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/Azure/azure-mobile-apps</PackageProjectUrl>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageTags>microsoft aspnetcore cloud datasync webapi</PackageTags>
+    <PackageTags>microsoft;aspnetcore;cloud;datasync;webapi</PackageTags>
     <ProductName>Microsoft.AspNetCore.Datasync</ProductName>
-    <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
     <RootNamespace>Microsoft.AspNetCore.Datasync</RootNamespace>
     <TargetFramework>net5</TargetFramework>
   </PropertyGroup>
+
+  <Import Project="..\..\Shared.Build.props" /> 
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="5.0.11" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.11" />
