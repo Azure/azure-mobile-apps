@@ -27,7 +27,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\images\icon.png" PackagePath="icon.png" Pack="True" />
     <None Include="Platforms\**\*.cs" />
     <Compile Remove="Platforms\**\*.cs" />
   </ItemGroup>
