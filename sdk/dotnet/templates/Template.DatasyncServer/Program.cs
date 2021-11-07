@@ -1,40 +1,22 @@
-using System;
-using Template.DatasyncServer.Models;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Datasync;
+using Microsoft.EntityFrameworkCore;
+using Template.DatasyncServer.Db;
 
-namespace Template.DatasyncServer
+var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDatasyncControllers();
+
+var app = builder.Build();
+
+// Initialize the database
+using (var scope = app.Services.CreateScope())
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var host = CreateHostBuilder(args).Build();
-
-            // Create the database if it doesn't exist;
-            using (var scope = host.Services.CreateScope())
-            {
-                var services = scope.ServiceProvider;
-                try
-                {
-                    var context = services.GetRequiredService<AppDbContext>();
-                    context.Database.EnsureCreated();
-                    // If required, initialize database in static function here
-                    // e.g. DbInitializer.Initialize(context);
-                }
-                catch (Exception ex)
-                {
-                    var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogCritical(ex, "An error occurred creating the database.");
-                }
-            }
-
-            host.Run();
-        }
-
-        public static IHostBuilder CreateHostBuilder(string[] args)
-            => Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(builder => builder.UseStartup<Startup>());
-    }
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await context.InitializeDatabaseAsync().ConfigureAwait(false);
 }
+
+// Configure and run the web service.
+app.MapControllers();
+app.Run();

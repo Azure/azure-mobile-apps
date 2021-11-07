@@ -1,16 +1,16 @@
-using Template.DatasyncServer.Db;
+using Microsoft.AspNetCore.Datasync;
+using Microsoft.AspNetCore.Datasync.EFCore;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AzureMobile.Server;
-using Microsoft.AzureMobile.Server.EFCore;
+using Template.DatasyncServer.Db;
 
 namespace Template.DatasyncServer.Controllers
 {
-    [Route("tables/[controller]")]
+    [Route("tables/todoitem")]
     public class TodoItemController : TableController<TodoItem>
     {
-        public TodoItemController(AppDbContext context) : base()
+        public TodoItemController(AppDbContext context)
+            : base(new EntityTableRepository<TodoItem>(context))
         {
-            Repository = new EntityTableRepository<TodoItem>(context);
         }
     }
 }
