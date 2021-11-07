@@ -7,7 +7,19 @@ namespace Template.DatasyncServer.Db
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
-        
-        public DbSet<TodoItem> TodoItems { get; set; }
+
+        /// <summary>
+        /// The dataset for the TodoItems.
+        /// </summary>
+        public DbSet<TodoItem> TodoItems => Set<TodoItem>();
+
+        /// <summary>
+        /// Do any database initialization required.
+        /// </summary>
+        /// <returns>A task that completes when the database is initialized</returns>
+        public async Task InitializeDatabaseAsync()
+        {
+            await this.Database.EnsureCreatedAsync().ConfigureAwait(false);
+        }
     }
 }

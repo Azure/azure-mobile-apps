@@ -1,20 +1,17 @@
 using Microsoft.AspNetCore.Datasync.EFCore;
+using System.ComponentModel.DataAnnotations;
 
-namespace Template.DatasyncServer.Models
+namespace Template.DatasyncServer.Db
 {
     /// <summary>
-    /// A DTO (data transfer object) for the TodoItems table.
+    /// The fields in this class must match the fields in Models/TodoItem.cs
+    /// for the TodoApp.Data project.
     /// </summary>
     public class TodoItem : EntityTableData
     {
-        /// <summary>
-        /// Text of the Todo Item
-        /// </summary>
-        public string Text { get; set; }
+        [Required, MinLength(1)]
+        public string Title { get; set; } = "";
 
-        /// <summary>
-        /// Is the item complete?
-        /// </summary>
-        public bool Complete { get; set; }
+        public bool IsComplete { get; set; }
     }
 }
