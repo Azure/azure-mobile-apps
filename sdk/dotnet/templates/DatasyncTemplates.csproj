@@ -7,7 +7,7 @@
     <PackageId>Microsoft.AspNetCore.Datasync.Template.CSharp</PackageId>
     <PackageTags>dotnet-new;templates;aspnetcore;datasync</PackageTags>
     <PackageType>Template</PackageType>
-    <TargetFramework>net5</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Title>ASP.NET Core Datasync Templates</Title>
   </PropertyGroup>
 
