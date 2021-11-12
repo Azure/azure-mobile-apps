@@ -27,6 +27,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.AspNetCore.Datasync.Abstractions\Microsoft.AspNetCore.Datasync.Abstractions.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Datasync.Abstractions\Microsoft.AspNetCore.Datasync.Abstractions.csproj" />
   </ItemGroup>
 </Project>
