@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
 	  <Authors>Microsoft Corporation</Authors>
@@ -16,7 +16,7 @@
 	  <ProductName>Microsoft.AspNetCore.Datasync.Abstractions</ProductName>
 	  <ProjectUrl>https://github.com/Azure/azure-mobile-apps</ProjectUrl>
 	  <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
 </Project>
