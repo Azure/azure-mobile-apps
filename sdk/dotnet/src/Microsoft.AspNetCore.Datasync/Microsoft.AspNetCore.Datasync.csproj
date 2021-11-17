@@ -6,7 +6,7 @@
     <Description>An ASP.NET Core based framework for synchronizing structured data between a database and a client application.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageId>Microsoft.AspNetCore.Datasync</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -15,7 +15,7 @@
     <ProductName>Microsoft.AspNetCore.Datasync</ProductName>
     <ProjectUrl>https://github.com/Azure/azure-mobile-apps</ProjectUrl>
     <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

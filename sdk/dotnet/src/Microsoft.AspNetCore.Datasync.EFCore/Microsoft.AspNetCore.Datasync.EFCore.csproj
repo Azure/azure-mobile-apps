@@ -6,7 +6,7 @@
     <Description>An Entity Framework Core based repository for use with the ASP.NET Core Datasync framework.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageId>Microsoft.AspNetCore.Datasync.EFCore</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -15,7 +15,7 @@
     <ProductName>Microsoft.AspNetCore.Datasync.EFCore</ProductName>
     <ProjectUrl>https://github.com/Azure/azure-mobile-apps</ProjectUrl>
     <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.9" />
