@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,7 +30,7 @@ namespace Datasync.Webservice.Controllers
         /// the data that the client can see.  Return null to provide all data.
         /// </summary>
         /// <returns>A LINQ <see cref="Where{TEntity}"/> function, or null for all data.</returns>
-        public virtual Func<InMemoryMovie, bool> GetDataView() => movie => movie.Rating == "R";
+        public virtual Expression<Func<InMemoryMovie, bool>> GetDataView() => movie => movie.Rating == "R";
 
         /// <summary>
         /// Determines if the user is authorized to see the data provided for the purposes of the operation.
