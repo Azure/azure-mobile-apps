@@ -4,10 +4,6 @@ steps:
       version: '6.0.x'
       performMultiLevelLookup: true
 
-  - task: NuGetToolInstaller@1
-    inputs:
-      checkLatest: true
-      
   - pwsh: |
       $pr = "pr." + $env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER
       $nuget = $env:BASE_VERSION + "-" + $pr + "." + $env:BUILD_NUMBER
