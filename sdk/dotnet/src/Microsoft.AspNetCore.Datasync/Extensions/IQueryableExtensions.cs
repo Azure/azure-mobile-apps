@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.AspNetCore.Datasync.Extensions
@@ -20,8 +21,8 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
         /// <param name="query">The current query</param>
         /// <param name="predicate"></param>
         /// <returns>The modified query</returns>
-        internal static IQueryable<T> ApplyDataView<T>(this IQueryable<T> query, Func<T, bool> predicate) where T : ITableData
-            => predicate != null ? query.Where(e => predicate.Invoke(e)) : query;
+        internal static IQueryable<T> ApplyDataView<T>(this IQueryable<T> query, Expression<Func<T, bool>> predicate) where T : ITableData
+            => predicate != null ? query.Where(predicate) : query;
 
         /// <summary>
         /// Applies the Deleted filter if soft delete is enabled and the request does not include a request to include

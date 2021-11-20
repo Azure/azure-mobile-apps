@@ -6,7 +6,7 @@ pr:
   - main
 
 pool:
-  vmImage: 'windows-2019'
+  vmImage: 'windows-2022'
 
 variables:
   buildConfiguration: 'Release'

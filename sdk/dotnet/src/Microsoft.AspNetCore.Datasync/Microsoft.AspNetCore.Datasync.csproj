@@ -2,21 +2,21 @@
   <PropertyGroup>
     <Description>An ASP.NET Core based framework for synchronizing structured data between a database and a client application.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageId>Microsoft.AspNetCore.Datasync</PackageId>
     <PackageTags>microsoft;aspnetcore;cloud;datasync;webapi</PackageTags>
     <ProductName>Microsoft.AspNetCore.Datasync</ProductName>
     <RootNamespace>Microsoft.AspNetCore.Datasync</RootNamespace>
-    <TargetFramework>net5</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
-  <Import Project="..\..\Shared.Build.props" /> 
+  <Import Project="..\..\Shared.Build.props" />
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="5.0.11" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.11" />

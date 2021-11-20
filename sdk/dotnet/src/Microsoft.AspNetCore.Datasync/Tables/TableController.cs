@@ -121,7 +121,7 @@ namespace Microsoft.AspNetCore.Datasync
         /// <returns>true if in view</returns>
         [NonAction]
         internal bool EntityIsInView(TEntity entity)
-            => AccessControlProvider.GetDataView()?.Invoke(entity) != false;
+            => AccessControlProvider.GetDataView()?.Compile().Invoke(entity) != false;
 
         /// <summary>
         /// Converts the provided JSON string to a JSON Patch Document based on the Request type.

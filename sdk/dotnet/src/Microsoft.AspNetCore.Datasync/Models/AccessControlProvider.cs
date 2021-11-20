@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,7 +20,7 @@ namespace Microsoft.AspNetCore.Datasync
         /// see.  Return null if you wish the client to see all data.
         /// </summary>
         /// <returns>A LINQ predicate.</returns>
-        public virtual Func<TEntity, bool> GetDataView()
+        public virtual Expression<Func<TEntity, bool>> GetDataView()
             => null;
 
         /// <summary>
