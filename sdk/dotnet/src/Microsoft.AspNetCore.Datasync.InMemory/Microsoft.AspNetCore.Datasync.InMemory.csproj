@@ -2,10 +2,14 @@
   <PropertyGroup>
     <Description>An in-memory repository for use with the ASP.NET Core Datasync framework.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
     <LangVersion>10.0</LangVersion>
+    <NeutralLanguage>en</NeutralLanguage>
     <PackageId>Microsoft.AspNetCore.Datasync.InMemory</PackageId>
     <PackageTags>microsoft;aspnetcore;cloud;datasync;webapi</PackageTags>
     <ProductName>Microsoft.AspNetCore.Datasync.InMemory</ProductName>
+    <ProjectUrl>https://github.com/Azure/azure-mobile-apps</ProjectUrl>
+    <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
     <RootNamespace>Microsoft.AspNetCore.Datasync.InMemory</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
