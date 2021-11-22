@@ -1,22 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-	  <Authors>Microsoft Corporation</Authors>
-	  <Company>Microsoft Corporation</Company>
-	  <Copyright>Copyright (c) 2021 Microsoft Corporation.</Copyright>
-	  <Description>An ASP.NET Core based framework for synchronizing structured data between a database and a client application interfaces and enum definitions.</Description>
-	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	  <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
-	  <LangVersion>10.0</LangVersion>
-	  <NeutralLanguage>en</NeutralLanguage>
+	  <PropertyGroup>
+    <Description>An ASP.NET Core based framework for synchronizing structured data between a database and a client application (interfaces and models only).</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
+    <LangVersion>10.0</LangVersion>
+    <NeutralLanguage>en</NeutralLanguage>
 	  <PackageId>Microsoft.AspNetCore.Datasync.Abstractions</PackageId>
-	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-	  <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-	  <PackageTags>microsoft aspnetcore cloud datasync webapi</PackageTags>
+    <PackageTags>microsoft;aspnetcore;cloud;datasync;webapi</PackageTags>
 	  <ProductName>Microsoft.AspNetCore.Datasync.Abstractions</ProductName>
-	  <ProjectUrl>https://github.com/Azure/azure-mobile-apps</ProjectUrl>
-	  <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
-      <TargetFramework>net6.0</TargetFramework>
+    <ProjectUrl>https://github.com/Azure/azure-mobile-apps</ProjectUrl>
+    <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
+    <RootNamespace>Microsoft.AspNetCore.Datasync</RootNamespace>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
+  <Import Project="..\..\Shared.Build.props" />
 </Project>
