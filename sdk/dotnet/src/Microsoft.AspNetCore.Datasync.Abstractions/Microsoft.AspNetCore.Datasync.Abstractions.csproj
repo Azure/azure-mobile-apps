@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-	  <PropertyGroup>
     <Description>An ASP.NET Core based framework for synchronizing structured data between a database and a client application (interfaces and models only).</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
