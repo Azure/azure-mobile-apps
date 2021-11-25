@@ -3,7 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-namespace Datasync.Common.Test.Models
+namespace Microsoft.Datasync.Integration.Test.Helpers
 {
     /// <summary>
     /// It's pretty hard to construct a <see cref="JsonPatchDocument"/>, so this
@@ -13,7 +13,7 @@ namespace Datasync.Common.Test.Models
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class PatchOperation
     {
-        public PatchOperation(string op, string path, object value = null)
+        public PatchOperation(string op, string path, object? value = null)
         {
             Op = op;
             Path = path.StartsWith("/") ? path : $"/{path}";
@@ -22,6 +22,6 @@ namespace Datasync.Common.Test.Models
 
         public string Op { get; set; }
         public string Path { get; set; }
-        public object Value { get; set; }
+        public object? Value { get; set; }
     }
 }

@@ -1,6 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
+using Datasync.Common.Test.Models;
+using Microsoft.AspNetCore.Datasync;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Datasync.Integration.Test.Helpers;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -8,14 +14,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Datasync.Common.Test;
-using Datasync.Common.Test.Extensions;
-using Datasync.Common.Test.Models;
-using Datasync.Common.Test.TestData;
-using Microsoft.AspNetCore.Datasync;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Datasync.Integration.Test.Helpers;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 using TestData = Datasync.Common.Test.TestData;
