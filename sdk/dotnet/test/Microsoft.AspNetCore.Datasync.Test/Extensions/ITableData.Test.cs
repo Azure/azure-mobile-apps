@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AspNetCore.Datasync.Extensions;
+using Microsoft.Net.Http.Headers;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Datasync.Extensions;
-using Microsoft.AspNetCore.Datasync.InMemory;
-using Microsoft.Net.Http.Headers;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Extensions
@@ -13,13 +12,6 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class ITableData_Tests
     {
-        #region Test artifacts
-        private class Entity : InMemoryTableData
-        {
-        }
-        #endregion
-
-        #region GetETag
         [Fact]
         public void GetETag_Null_WhenNullEntity()
         {
@@ -37,7 +29,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         public void GetETag_Null_WhenNullVersion()
         {
             // Arrange
-            ITableData entity = new Entity { Version = null };
+            ITableData entity = new InMemoryEntity { Version = null };
 
             // Act
             string actual = entity.GetETag();
@@ -50,7 +42,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         public void GetETag_Null_WhenEmptyVersion()
         {
             // Arrange
-            ITableData entity = new Entity { Version = Array.Empty<byte>() };
+            ITableData entity = new InMemoryEntity { Version = Array.Empty<byte>() };
 
             // Act
             string actual = entity.GetETag();
@@ -63,7 +55,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         public void GetETag_Valid_WhenFilledVersion()
         {
             // Arrange
-            ITableData entity = new Entity { Version = Guid.NewGuid().ToByteArray() };
+            ITableData entity = new InMemoryEntity { Version = Guid.NewGuid().ToByteArray() };
 
             // Act
             string actual = entity.GetETag();
@@ -72,9 +64,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             Assert.NotEmpty(actual);
             Assert.Matches("^\"[a-zA-Z0-9+/=]{24}\"$", actual);
         }
-        #endregion
 
-        #region HasValidVersion
         [Fact]
         public void HasValidVersion_False_OnNullEntity()
         {
@@ -92,7 +82,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         public void HasValidVersion_False_OnNullVersion()
         {
             // Arrange
-            ITableData entity = new Entity { Version = null };
+            ITableData entity = new InMemoryEntity { Version = null };
 
             // Act
             bool actual = entity.HasValidVersion();
@@ -105,7 +95,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         public void HasValidVersion_False_OnEmptyVersion()
         {
             // Arrange
-            ITableData entity = new Entity { Version = Array.Empty<byte>() };
+            ITableData entity = new InMemoryEntity { Version = Array.Empty<byte>() };
 
             // Act
             bool actual = entity.HasValidVersion();
@@ -118,7 +108,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         public void HasValidVersion_True_OnFilledVersion()
         {
             // Arrange
-            ITableData entity = new Entity { Version = Guid.NewGuid().ToByteArray() };
+            ITableData entity = new InMemoryEntity { Version = Guid.NewGuid().ToByteArray() };
 
             // Act
             bool actual = entity.HasValidVersion();
@@ -126,9 +116,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             // Assert
             Assert.True(actual);
         }
-        #endregion
 
-        #region ToEntityTagHeaderValue
         [Fact]
         public void ToEntityTagHeaderValue_Null_WhenNullEntity()
         {
@@ -146,7 +134,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         public void ToEntityTagHeaderValue_Null_WhenNullVersion()
         {
             // Arrange
-            ITableData entity = new Entity { Version = null };
+            ITableData entity = new InMemoryEntity { Version = null };
 
             // Act
             EntityTagHeaderValue actual = entity.ToEntityTagHeaderValue();
@@ -159,7 +147,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         public void ToEntityTagHeaderValue_Null_WhenEmptyVersion()
         {
             // Arrange
-            ITableData entity = new Entity { Version = Array.Empty<byte>() };
+            ITableData entity = new InMemoryEntity { Version = Array.Empty<byte>() };
 
             // Act
             EntityTagHeaderValue actual = entity.ToEntityTagHeaderValue();
@@ -172,7 +160,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         public void ToEntityTagHeaderValue_Valid_WhenFilledVersion()
         {
             // Arrange
-            ITableData entity = new Entity { Version = Guid.NewGuid().ToByteArray() };
+            ITableData entity = new InMemoryEntity { Version = Guid.NewGuid().ToByteArray() };
 
             // Act
             EntityTagHeaderValue actual = entity.ToEntityTagHeaderValue();
@@ -182,6 +170,5 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             Assert.False(actual.IsWeak);
             Assert.Matches("^\"[a-zA-Z0-9+/=]{24}\"$", actual.Tag.ToString());
         }
-        #endregion
     }
 }

@@ -1,73 +1,55 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Data.Sqlite;
+using Datasync.Common.Test.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
 using TestData = Datasync.Common.Test.TestData;
 
-namespace Microsoft.AspNetCore.Datasync.EFCore.Test
+namespace Microsoft.Datasync.Integration.Test.Helpers
 {
     /// <summary>
     /// A <see cref="DbContext"/> for serving the movies set up for tests.
     /// </summary>
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    internal class MovieDbContext : DbContext
+    public class MovieDbContext : DbContext
     {
-        /// <summary>
-        /// Creates a new <see cref="MovieDbContext"/> seeded with data
-        /// </summary>
-        /// <returns>The <see cref="MovieDbContext"/> that was created.</returns>
-        public static MovieDbContext CreateContext()
-        {
-            var connection = new SqliteConnection("Data Source=:memory:");
-            connection.Open();
-            var options = new DbContextOptionsBuilder<MovieDbContext>().UseSqlite(connection).Options;
-            var context = new MovieDbContext(options) { Connection = connection };
-
-            // Create the database
-            context.Database.EnsureCreated();
-            context.InstallTriggers();
-
-            // Populate with test data
-            var seedData = TestData.Movies.OfType<EFMovie>();
-            seedData.ForEach(movie =>
-            {
-                var offset = -(180 + new Random().Next(180));
-                movie.Version = Guid.NewGuid().ToByteArray();
-                movie.UpdatedAt = DateTimeOffset.UtcNow.AddDays(offset);
-            });
-            context.Movies.AddRange(seedData);
-            context.SaveChanges();
-            return context;
-        }
-
         public MovieDbContext(DbContextOptions<MovieDbContext> options) : base(options)
         {
         }
 
-        // This is for storing the explicit connection used for SQLite.
-        // It's used for testing error handling, by prematurely closing the connection
-        public SqliteConnection Connection { get; set; }
-
         /// <summary>
         /// The set of movies.
         /// </summary>
-        public DbSet<EFMovie> Movies { get; set; }
+        public DbSet<EFMovie> Movies => Set<EFMovie>();
 
         /// <summary>
         /// Get a cloned copy of the movie by ID, or null if it doesn't exist.
         /// </summary>
         /// <param name="id">The ID of the movie</param>
         /// <returns>The movie</returns>
-        public EFMovie GetMovieById(string id)
+        public EFMovie? GetMovieById(string id)
             => Movies.SingleOrDefault(x => x.Id == id)?.Clone();
+
+        /// <summary>
+        /// Initializes the current database
+        /// </summary>
+        public void InitializeDatabase()
+        {
+            // Set up the database
+            Database.EnsureCreated();
+            InstallTriggers();
+
+            // Seed data
+            var seedData = TestData.Movies.OfType<EFMovie>().ToArray();
+            Movies.AddRange(seedData);
+            SaveChanges();
+        }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -121,7 +103,7 @@ namespace Microsoft.AspNetCore.Datasync.EFCore.Test
 
                 foreach (var field in props)
                 {
-                    _ = Database.ExecuteSqlRaw(GetTriggerSqlCommand(tableName, field.Name));
+                    _ = Database.ExecuteSqlRaw(GetTriggerSqlCommand(tableName!, field.Name));
                 }
             }
         }
@@ -131,7 +113,7 @@ namespace Microsoft.AspNetCore.Datasync.EFCore.Test
     /// ValueConverter for Sqlite to support the [Timestamp] type.
     /// </summary>
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    internal class SqliteTimestampConverter : ValueConverter<byte[], string>
+    internal class SqliteTimestampConverter : ValueConverter<byte[]?, string?>
     {
         public SqliteTimestampConverter() : base(
             v => v == null ? null : Encoding.ASCII.GetString(v),

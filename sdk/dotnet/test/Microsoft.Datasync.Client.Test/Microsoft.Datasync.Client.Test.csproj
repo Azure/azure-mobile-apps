@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="6.1.0" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageReference Include="FluentAssertions" Version="6.2.0" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
     <PackageReference Include="Moq" Version="4.16.1" />
     <PackageReference Include="System.Linq.Async" Version="5.0.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -27,7 +27,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj" />
     <ProjectReference Include="..\Datasync.Common.Test\Datasync.Common.Test.csproj" />
-    <ProjectReference Include="..\Datasync.Webservice\Datasync.Webservice.csproj" />
   </ItemGroup>
 
 </Project>

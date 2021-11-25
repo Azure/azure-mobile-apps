@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -11,15 +12,31 @@ using Datasync.Common.Test;
 using Datasync.Common.Test.Extensions;
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
-using Datasync.Webservice;
+using Microsoft.AspNetCore.Datasync;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Datasync.Integration.Test.Helpers;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
+using TestData = Datasync.Common.Test.TestData;
+
+namespace Microsoft.Datasync.Integration.Test.Server
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class Create_Tests
     {
-        #region Test Artifacts
+        /// <summary>
+        /// A connection to the test service.
+        /// </summary>
+        private readonly TestServer server;
+
+        /// <summary>
+        /// The database context
+        /// </summary>
+        private readonly IServiceScope serviceScope;
+        private readonly MovieDbContext context;
+
+
         /// <summary>
         /// A basic movie without any adornment that does not exist in the movie data. Tests must clone this
         /// object and then adjust.
@@ -38,39 +55,42 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         /// The time the test started
         /// </summary>
         private readonly DateTimeOffset startTime = DateTimeOffset.Now;
-        #endregion
+
+        public Create_Tests()
+        {
+            server = MovieApiServer.CreateTestServer();
+            serviceScope = server.Services.CreateScope();
+            context = serviceScope.ServiceProvider.GetRequiredService<MovieDbContext>();
+        }
 
         [Theory, CombinatorialData]
         public async Task BasicCreateTests([CombinatorialValues("movies", "movies_pagesize")] string table, bool hasId)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<InMemoryMovie>();
-            var expectedCount = repository.Entities.Count;
             var movieToAdd = blackPantherMovie.Clone();
-            if (hasId) { movieToAdd.Id = Guid.NewGuid().ToString("N"); }
+            if (hasId)
+            {
+                movieToAdd.Id = Guid.NewGuid().ToString("N");
+            }
 
-            // Act
             var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, $"tables/{table}", movieToAdd).ConfigureAwait(false);
-
-            // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             var result = response.DeserializeContent<ClientMovie>();
-            Assert.True(Guid.TryParse(result.Id, out _));
+            Assert.NotNull(result);
+            Assert.True(Guid.TryParse(result!.Id, out _));
             if (hasId)
             {
-                Assert.Equal(movieToAdd.Id, result.Id);
+                Assert.Equal(movieToAdd.Id, result!.Id);
             }
-            Assert.Equal(expectedCount + 1, repository.Entities.Count);
+            Assert.Equal(TestData.Movies.Count + 1, context.Movies.Count());
 
-            var entity = repository.GetEntity(result.Id);
+            var entity = context.GetMovieById(result!.Id);
             Assert.NotNull(entity);
 
             AssertEx.SystemPropertiesSet(entity, startTime);
             AssertEx.SystemPropertiesMatch(entity, result);
-            Assert.Equal<IMovie>(movieToAdd, result);
-            Assert.Equal<IMovie>(movieToAdd, entity);
+            Assert.Equal<IMovie>(movieToAdd, result!);
+            Assert.Equal<IMovie>(movieToAdd, entity!);
             AssertEx.ResponseHasConditionalHeaders(entity, response);
             AssertEx.ResponseHasHeader(response, "Location", $"https://localhost/tables/{table}/{result.Id}");
         }
@@ -78,26 +98,20 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [Theory, CombinatorialData]
         public async Task CreateOverwriteSystemProperties(bool useUpdatedAt, bool useVersion)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<InMemoryMovie>();
-            var expectedCount = repository.Entities.Count;
             var movieToAdd = blackPantherMovie.Clone();
             movieToAdd.Id = Guid.NewGuid().ToString("N");
             if (useUpdatedAt) { movieToAdd.UpdatedAt = DateTimeOffset.Parse("2018-12-31T01:01:01.000Z"); }
             if (useVersion) { movieToAdd.Version = Convert.ToBase64String(Guid.NewGuid().ToByteArray()); }
 
-            // Act
             var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, "tables/movies", movieToAdd).ConfigureAwait(false);
-
-            // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             var result = response.DeserializeContent<ClientMovie>();
-            Assert.Equal(movieToAdd.Id, result.Id);
-            Assert.Equal(expectedCount + 1, repository.Entities.Count);
+            Assert.NotNull(result);
+            Assert.Equal(movieToAdd.Id, result!.Id);
+            Assert.Equal(TestData.Movies.Count + 1, context.Movies.Count());
 
-            var entity = repository.GetEntity(result.Id);
+            var entity = context.GetMovieById(result.Id);
             Assert.NotNull(entity);
 
             AssertEx.SystemPropertiesSet(entity, startTime);
@@ -107,7 +121,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             if (useVersion)
                 Assert.NotEqual(movieToAdd.Version, result.Version);
             Assert.Equal<IMovie>(movieToAdd, result);
-            Assert.Equal<IMovie>(movieToAdd, entity);
+            Assert.Equal<IMovie>(movieToAdd, entity!);
             AssertEx.ResponseHasConditionalHeaders(entity, response);
             AssertEx.ResponseHasHeader(response, "Location", $"https://localhost/tables/movies/{movieToAdd.Id}");
         }
@@ -126,10 +140,6 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [InlineData("year", null)]
         public async Task CreateValidationProducesError(string propName, object propValue)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<InMemoryMovie>();
-            var expectedCount = repository.Entities.Count;
             Dictionary<string, object> movieToAdd = new()
             {
                 { "id", "test-id" },
@@ -147,41 +157,36 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             else
                 movieToAdd[propName] = propValue;
 
-            // Act
             var response = await server.SendRequest(HttpMethod.Post, "tables/movies", movieToAdd, null).ConfigureAwait(false);
 
-            // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal(expectedCount, repository.Entities.Count);
-            Assert.Null(repository.GetEntity("test-id"));
+            Assert.Equal(TestData.Movies.Count, context.Movies.Count());
+            Assert.Null(context.GetMovieById("test-id"));
         }
 
-        [Theory, CombinatorialData]
-        public async Task CreateExisting_ReturnsConflict([CombinatorialRange(0, Movies.Count)] int index)
+        [Fact]
+        public async Task CreateExisting_ReturnsConflict()
         {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<InMemoryMovie>();
-            var expectedCount = repository.Entities.Count;
             var movieToAdd = blackPantherMovie.Clone();
-            movieToAdd.Id = Utils.GetMovieId(index);
-            var expectedMovie = repository.GetEntity(movieToAdd.Id).Clone();
+            movieToAdd.Id = TestData.Movies.GetRandomId();
+            var expectedMovie = context.GetMovieById(movieToAdd.Id)!;
 
             // Act
             var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, "tables/movies", movieToAdd).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-            Assert.Equal(expectedCount, repository.Entities.Count);
+            Assert.Equal(TestData.Movies.Count, context.Movies.Count());
 
             var result = response.DeserializeContent<ClientMovie>();
-            var entity = repository.GetEntity(movieToAdd.Id);
+            Assert.NotNull(result);
+            var entity = context.GetMovieById(movieToAdd.Id);
             Assert.NotNull(entity);
             AssertEx.SystemPropertiesSet(entity, startTime);
             AssertEx.SystemPropertiesMatch(entity, result);
-            Assert.Equal<IMovie>(expectedMovie, result);
-            Assert.Equal<IMovie>(expectedMovie, entity);
-            Assert.Equal<ITableData>(expectedMovie, entity);
+            Assert.Equal<IMovie>(expectedMovie, result!);
+            Assert.Equal<IMovie>(expectedMovie, entity!);
+            Assert.Equal<ITableData>(expectedMovie, entity!);
             AssertEx.ResponseHasConditionalHeaders(entity, response);
         }
 
@@ -190,13 +195,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             [CombinatorialValues(null, "failed", "success")] string userId,
             [CombinatorialValues("movies_rated", "movies_legal")] string table)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<InMemoryMovie>();
-            var expectedCount = repository.Entities.Count;
             var movieToAdd = blackPantherMovie.Clone();
-
-            // When stored, the PreCommitHook upper-cases the title.
             var expectedMovie = movieToAdd.Clone();
             expectedMovie.Title = movieToAdd.Title.ToUpper();
 
@@ -211,70 +210,68 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             {
                 var statusCode = table.Contains("legal") ? HttpStatusCode.UnavailableForLegalReasons : HttpStatusCode.Unauthorized;
                 Assert.Equal(statusCode, response.StatusCode);
-                Assert.Equal(expectedCount, repository.Entities.Count);
+                Assert.Equal(TestData.Movies.Count, context.Movies.Count());
             }
             else
             {
                 Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
                 var result = response.DeserializeContent<ClientMovie>();
-                Assert.True(Guid.TryParse(result.Id, out _));
-                Assert.Equal(expectedCount + 1, repository.Entities.Count);
+                Assert.NotNull(result);
+                Assert.True(Guid.TryParse(result!.Id, out _));
+                Assert.Equal(TestData.Movies.Count + 1, context.Movies.Count());
                 AssertEx.ResponseHasHeader(response, "Location", $"https://localhost/tables/{table}/{result.Id}");
 
-                var entity = repository.GetEntity(result.Id);
+                var entity = context.GetMovieById(result.Id);
                 Assert.NotNull(entity);
 
                 AssertEx.SystemPropertiesSet(entity, startTime);
                 AssertEx.SystemPropertiesMatch(entity, result);
                 Assert.Equal<IMovie>(expectedMovie, result);
-                Assert.Equal<IMovie>(expectedMovie, entity);
+                Assert.Equal<IMovie>(expectedMovie, entity!);
                 AssertEx.ResponseHasConditionalHeaders(entity, response);
             }
         }
 
         // Even though half the movies are deleted, they should all still produce conflicts
         [Theory, CombinatorialData]
-        public async Task SoftDeleteCreateTests(
-            [CombinatorialRange(0, Movies.Count)] int index,
-            [CombinatorialValues("soft", "soft_logged")] string table)
+        public async Task SoftDeleteCreateTests([CombinatorialValues("soft", "soft_logged")] string table)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<SoftMovie>();
-            var expectedCount = repository.Entities.Count;
             var movieToAdd = blackPantherMovie.Clone();
-            movieToAdd.Id = Utils.GetMovieId(index);
-            var expectedMovie = repository.GetEntity(movieToAdd.Id).Clone();
+            movieToAdd.Id = TestData.Movies.GetRandomId();
+            var expectedMovie = context.GetMovieById(movieToAdd.Id)!;
 
             // Act
             var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, $"tables/{table}", movieToAdd).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-            Assert.Equal(expectedCount, repository.Entities.Count);
+            Assert.Equal(TestData.Movies.Count, context.Movies.Count());
 
             var result = response.DeserializeContent<ClientMovie>();
-            var entity = repository.GetEntity(movieToAdd.Id);
+            Assert.NotNull(result);
+            var entity = context.GetMovieById(movieToAdd.Id);
             Assert.NotNull(entity);
             AssertEx.SystemPropertiesSet(entity, startTime);
             AssertEx.SystemPropertiesMatch(entity, result);
-            Assert.Equal<IMovie>(expectedMovie, result);
-            Assert.Equal<IMovie>(expectedMovie, entity);
-            Assert.Equal<ITableData>(expectedMovie, entity);
+            Assert.Equal<IMovie>(expectedMovie, result!);
+            Assert.Equal<IMovie>(expectedMovie, entity!);
+            Assert.Equal<ITableData>(expectedMovie, entity!);
             AssertEx.ResponseHasConditionalHeaders(entity, response);
         }
 
         [Theory, CombinatorialData]
         public async Task BasicV2CreateTests(bool hasId)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<InMemoryMovie>();
-            var expectedCount = repository.Entities.Count;
             var movieToAdd = blackPantherMovie.Clone();
-            if (hasId) { movieToAdd.Id = Guid.NewGuid().ToString("N"); }
-            var headers = new Dictionary<string, string> { { "ZUMO-API-VERSION", "2.0.0" } };
+            if (hasId)
+            {
+                movieToAdd.Id = Guid.NewGuid().ToString("N");
+            }
+            var headers = new Dictionary<string, string>
+            {
+                { "ZUMO-API-VERSION", "2.0.0" }
+            };
 
             // Act
             var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, "tables/movies", movieToAdd, headers).ConfigureAwait(false);
@@ -283,20 +280,21 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             var result = response.DeserializeContent<ClientMovie>();
-            Assert.True(Guid.TryParse(result.Id, out _));
+            Assert.NotNull(result);
+            Assert.True(Guid.TryParse(result!.Id, out _));
             if (hasId)
             {
                 Assert.Equal(movieToAdd.Id, result.Id);
             }
-            Assert.Equal(expectedCount + 1, repository.Entities.Count);
+            Assert.Equal(TestData.Movies.Count + 1, context.Movies.Count());
 
-            var entity = repository.GetEntity(result.Id);
+            var entity = context.GetMovieById(result.Id);
             Assert.NotNull(entity);
 
             AssertEx.SystemPropertiesSet(entity, startTime);
             AssertEx.SystemPropertiesMatch(entity, result);
-            Assert.Equal<IMovie>(movieToAdd, result);
-            Assert.Equal<IMovie>(movieToAdd, entity);
+            Assert.Equal<IMovie>(movieToAdd, result!);
+            Assert.Equal<IMovie>(movieToAdd, entity!);
             AssertEx.ResponseHasConditionalHeaders(entity, response);
             AssertEx.ResponseHasHeader(response, "Location", $"https://localhost/tables/movies/{result.Id}");
         }

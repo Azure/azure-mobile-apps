@@ -1,12 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <LangVersion>10.0</LangVersion>
     <TargetFramework>net6.0</TargetFramework>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="Xunit.Combinatorial" Version="1.4.1" />
@@ -21,7 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Datasync.EFCore\Microsoft.AspNetCore.Datasync.EFCore.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Datasync.InMemory\Microsoft.AspNetCore.Datasync.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj" />
     <ProjectReference Include="..\Datasync.Common.Test\Datasync.Common.Test.csproj" />
   </ItemGroup>
 

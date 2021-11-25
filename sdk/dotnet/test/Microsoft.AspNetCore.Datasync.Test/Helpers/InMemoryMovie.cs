@@ -1,15 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync.InMemory;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text.Json;
 
-namespace Datasync.Common.Test.Models.Old
+namespace Microsoft.AspNetCore.Datasync.Test
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class InMemoryMovie : InMemoryTableData, IMovie, IEquatable<IMovie>
@@ -83,15 +82,5 @@ namespace Datasync.Common.Test.Models.Old
             Title = this.Title,
             Year = this.Year
         };
-
-        /// <summary>
-        /// Converts this object to a dictionary.
-        /// </summary>
-        /// <returns></returns>
-        public Dictionary<string, object> ToDictionary()
-        {
-            string json = JsonSerializer.Serialize(this);
-            return JsonSerializer.Deserialize<Dictionary<string, object>>(json);
-        }
     }
 }

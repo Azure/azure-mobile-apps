@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AspNetCore.Datasync.Extensions;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Datasync.Extensions;
-using Microsoft.AspNetCore.Datasync.InMemory;
-using Microsoft.AspNetCore.Http;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Extensions
@@ -13,12 +12,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class HttpRequest_Tests
     {
-        #region Test Artifacts
-        private class Entity : InMemoryTableData
-        {
-        }
-
-        private readonly Entity testEntity = new()
+        private readonly InMemoryEntity testEntity = new()
         {
             Id = Guid.NewGuid().ToString("N"),
             Deleted = false,
@@ -30,7 +24,6 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         private const string laterTestDate = "Thu, 31 Jan 2019 13:30:15 GMT";
         private const string matchingETag = "\"AQBCIkeP\"";
         private const string nonMatchingETag = "\"Foo\"";
-        #endregion
 
         [Theory]
         [InlineData("GET", false, null, null, null)]
@@ -58,7 +51,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             {
                 request.Headers.Add(headerName, headerValue);
             }
-            Entity entity = usesObject ? testEntity : null;
+            InMemoryEntity entity = usesObject ? testEntity : null;
 
             // Act
             request.ParseConditionalRequest(entity, out byte[] version);
@@ -80,7 +73,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             {
                 request.Headers.Add(headerName, headerValue);
             }
-            Entity entity = usesObject ? testEntity : null;
+            InMemoryEntity entity = usesObject ? testEntity : null;
             byte[] version = null;
 
             // Act
@@ -119,7 +112,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             {
                 request.Headers.Add(headerName, headerValue);
             }
-            Entity entity = usesObject ? testEntity : null;
+            InMemoryEntity entity = usesObject ? testEntity : null;
             byte[] version = null;
 
             // Act

@@ -8,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 
-namespace Datasync.Common.Test.Models
+namespace Datasync.Common.Test.Models.Old
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class EntityMovie : EntityTableData, IMovie, IEquatable<IMovie>

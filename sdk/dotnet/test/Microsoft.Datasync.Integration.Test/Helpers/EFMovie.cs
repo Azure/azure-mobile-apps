@@ -1,18 +1,17 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.AspNetCore.Datasync.InMemory;
+using Datasync.Common.Test.Models;
+using Microsoft.AspNetCore.Datasync.EFCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 
-namespace Datasync.Common.Test.Models.Old
+namespace Microsoft.Datasync.Integration.Test
 {
-    [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class InMemoryMovie : InMemoryTableData, IMovie, IEquatable<IMovie>
+    public class EFMovie : EntityTableData, IMovie, IEquatable<IMovie>
     {
         /// <summary>
         /// True if the movie won the oscar for Best Picture
@@ -30,7 +29,7 @@ namespace Datasync.Common.Test.Models.Old
         /// The MPAA rating for the movie, if available.
         /// </summary>
         [RegularExpression("^(G|PG|PG-13|R|NC-17)$")]
-        public string Rating { get; set; }
+        public string? Rating { get; set; }
 
         /// <summary>
         /// The release date of the movie.
@@ -57,7 +56,7 @@ namespace Datasync.Common.Test.Models.Old
         /// </summary>
         /// <param name="other">The other movie</param>
         /// <returns>true if the content is the same</returns>
-        public bool Equals(IMovie other)
+        public bool Equals(IMovie? other)
             => other != null
             && other.BestPictureWinner == BestPictureWinner
             && other.Duration == Duration
@@ -70,7 +69,7 @@ namespace Datasync.Common.Test.Models.Old
         /// Clones this movie into another new movie.
         /// </summary>
         /// <returns>The new movie</returns>
-        public InMemoryMovie Clone() => new()
+        public EFMovie Clone() => new()
         {
             Id = this.Id,
             Deleted = this.Deleted,
@@ -91,7 +90,7 @@ namespace Datasync.Common.Test.Models.Old
         public Dictionary<string, object> ToDictionary()
         {
             string json = JsonSerializer.Serialize(this);
-            return JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+            return JsonSerializer.Deserialize<Dictionary<string, object>>(json)!;
         }
     }
 }
