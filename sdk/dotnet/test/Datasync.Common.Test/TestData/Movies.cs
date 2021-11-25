@@ -38,6 +38,16 @@ namespace Datasync.Common.Test.TestData
         public const int Count = 248;
 
         /// <summary>
+        /// Gets a random ID from the set.
+        /// </summary>
+        /// <returns>A random ID</returns>
+        public static string GetRandomId()
+        {
+            var random = new Random();
+            return Utils.GetMovieId(random.Next(Count));
+        }
+
+        /// <summary>
         /// The list of movies.
         /// </summary>
         public static MovieBase[] MovieList { get; } = new MovieBase[]

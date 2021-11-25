@@ -32,19 +32,6 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         private const string nonMatchingETag = "\"Foo\"";
         #endregion
 
-        // "GET"
-        // "POST"
-        // true
-        // false
-
-        // If-Match: matchingETag
-        // If-Match: nonMatchingETag
-        // If-None-Match: matchingETag
-        // If-None-Match: nonMatchingETag
-        // If-Unmodified-Since: earlierTestDate
-        // If-Unmodified-Since: laterTestDate
-        // If-Modified-Since: earlierTestDate
-        // If-Modified-Since: laterTestDate
         [Theory]
         [InlineData("GET", false, null, null, null)]
         [InlineData("GET", false, "If-None-Match", nonMatchingETag, null)]
@@ -156,9 +143,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         public void IsDefaultPort_Works(string scheme, int port, bool expected)
         {
             // Arrange
-            var builder = new UriBuilder();
-            builder.Scheme = scheme;
-            builder.Port = port;
+            var builder = new UriBuilder { Scheme = scheme, Port = port };
 
             // Act
             bool actual = builder.IsDefaultPort();
