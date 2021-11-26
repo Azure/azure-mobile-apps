@@ -42,10 +42,10 @@ namespace Microsoft.Datasync.Integration.Test.Server
             context = serviceScope.ServiceProvider.GetRequiredService<MovieDbContext>();
         }
 
-        [Theory, CombinatorialData]
-        public async Task BasicDeleteTests([CombinatorialRange(0, Movies.Count)] int index)
+        [Fact]
+        public async Task BasicDeleteTests()
         {
-            var id = Utils.GetMovieId(index);
+            var id = TestData.Movies.GetRandomId();
 
             var response = await server.SendRequest(HttpMethod.Delete, $"tables/movies/{id}").ConfigureAwait(false);
 
