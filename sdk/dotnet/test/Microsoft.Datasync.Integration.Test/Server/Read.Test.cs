@@ -1,46 +1,55 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using System;
+using Datasync.Common.Test;
+using Datasync.Common.Test.Models;
+using Microsoft.AspNetCore.Datasync.Extensions;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Datasync.Integration.Test.Helpers;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Datasync.Common.Test;
-using Datasync.Common.Test.Extensions;
-using Datasync.Common.Test.Models;
-using Datasync.Common.Test.TestData;
-using Datasync.Webservice;
-using Microsoft.AspNetCore.Datasync.Extensions;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
+using TestData = Datasync.Common.Test.TestData;
+
+namespace Microsoft.Datasync.Integration.Test.Server
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class Read_Tests
     {
-        [Theory, CombinatorialData]
-        public async Task BasicReadTests(
-            [CombinatorialRange(0, Movies.Count)] int index,
-            [CombinatorialValues("movies", "movies_pagesize")] string table
-        )
-        {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<InMemoryMovie>();
-            string id = Utils.GetMovieId(index);
-            var expected = repository.GetEntity(id);
+        /// <summary>
+        /// A connection to the test service.
+        /// </summary>
+        private readonly TestServer server;
 
-            // Act
+        /// <summary>
+        /// The database context
+        /// </summary>
+        private readonly IServiceScope serviceScope;
+        private readonly MovieDbContext context;
+
+        public Read_Tests()
+        {
+            server = MovieApiServer.CreateTestServer();
+            serviceScope = server.Services.CreateScope();
+            context = serviceScope.ServiceProvider.GetRequiredService<MovieDbContext>();
+        }
+
+        [Theory, CombinatorialData]
+        public async Task BasicReadTests([CombinatorialValues("movies", "movies_pagesize")] string table)
+        {
+            string id = TestData.Movies.GetRandomId();
+            var expected = context.GetMovieById(id)!;
+
             var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
 
-            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var actual = response.DeserializeContent<ClientMovie>();
-
-            // Records match the repository
-            Assert.Equal<IMovie>(expected, actual);
+            Assert.Equal<IMovie>(expected, actual!);
             AssertEx.SystemPropertiesMatch(expected, actual);
             AssertEx.ResponseHasConditionalHeaders(expected, response);
         }
@@ -48,21 +57,9 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [Theory]
         [InlineData("tables/movies/not-found", HttpStatusCode.NotFound)]
         [InlineData("tables/movies_pagesize/not-found", HttpStatusCode.NotFound)]
-        public async Task FailedReadTests(
-            string relativeUri,
-            HttpStatusCode expectedStatusCode,
-            string headerName = null,
-            string headerValue = null)
+        public async Task FailedReadTests(string relativeUri, HttpStatusCode expectedStatusCode)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
-            Dictionary<string, string> headers = new();
-            if (headerName != null && headerValue != null) headers.Add(headerName, headerValue);
-
-            // Act
-            var response = await server.SendRequest(HttpMethod.Get, relativeUri, headers).ConfigureAwait(false);
-
-            // Assert
+            var response = await server.SendRequest(HttpMethod.Get, relativeUri).ConfigureAwait(false);
             Assert.Equal(expectedStatusCode, response.StatusCode);
         }
 
@@ -72,18 +69,13 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             [CombinatorialValues(null, "failed", "success")] string userId,
             [CombinatorialValues("movies_rated", "movies_legal")] string table)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<InMemoryMovie>();
             string id = Utils.GetMovieId(index);
-            var expected = repository.GetEntity(id);
+            var expected = context.GetMovieById(id)!;
             Dictionary<string, string> headers = new();
             Utils.AddAuthHeaders(headers, userId);
 
-            // Act
             var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}", headers).ConfigureAwait(false);
 
-            // Assert
             if (userId != "success")
             {
                 var statusCode = table.Contains("legal") ? HttpStatusCode.UnavailableForLegalReasons : HttpStatusCode.Unauthorized;
@@ -93,9 +85,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             {
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 var actual = response.DeserializeContent<ClientMovie>();
-
-                // Records match the repository
-                Assert.Equal<IMovie>(expected, actual);
+                Assert.Equal<IMovie>(expected, actual!);
                 AssertEx.SystemPropertiesMatch(expected, actual);
                 AssertEx.ResponseHasConditionalHeaders(expected, response);
             }
@@ -106,32 +96,48 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [InlineData("If-Match", "\"dGVzdA==\"", HttpStatusCode.PreconditionFailed)]
         [InlineData("If-None-Match", null, HttpStatusCode.NotModified)]
         [InlineData("If-None-Match", "\"dGVzdA==\"", HttpStatusCode.OK)]
-        [InlineData("If-Modified-Since", "Fri, 01 Mar 2019 15:00:00 GMT", HttpStatusCode.OK)]
-        [InlineData("If-Modified-Since", "Sun, 03 Mar 2019 15:00:00 GMT", HttpStatusCode.NotModified)]
-        [InlineData("If-Unmodified-Since", "Sun, 03 Mar 2019 15:00:00 GMT", HttpStatusCode.OK)]
-        [InlineData("If-Unmodified-Since", "Fri, 01 Mar 2019 15:00:00 GMT", HttpStatusCode.PreconditionFailed)]
-        public async Task ConditionalReadTests(string headerName, string headerValue, HttpStatusCode expectedStatusCode)
+        public async Task ConditionalVersionReadTests(string headerName, string headerValue, HttpStatusCode expectedStatusCode)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<InMemoryMovie>();
-            const string id = "id-107";
-            var expected = repository.GetEntity(id);
-            expected.UpdatedAt = DateTimeOffset.Parse("Sat, 02 Mar 2019 15:00:00 GMT");
-            Dictionary<string, string> headers = new() { { headerName, headerValue ?? expected.GetETag() } };
+            var id = TestData.Movies.GetRandomId();
+            var expected = context.GetMovieById(id)!;
+            Dictionary<string, string> headers = new()
+            {
+                { headerName, headerValue ?? expected.GetETag() }
+            };
 
-            // Act
             var response = await server.SendRequest(HttpMethod.Get, $"tables/movies/{id}", headers).ConfigureAwait(false);
 
-            // Assert
             Assert.Equal(expectedStatusCode, response.StatusCode);
-
             if (expectedStatusCode == HttpStatusCode.OK || expectedStatusCode == HttpStatusCode.PreconditionFailed)
             {
                 var actual = response.DeserializeContent<ClientMovie>();
+                Assert.Equal<IMovie>(expected, actual!);
+                AssertEx.SystemPropertiesMatch(expected, actual);
+                AssertEx.ResponseHasConditionalHeaders(expected, response);
+            }
+        }
 
-                // Records match the repository
-                Assert.Equal<IMovie>(expected, actual);
+        [Theory]
+        [InlineData("If-Modified-Since", -1, HttpStatusCode.OK)]
+        [InlineData("If-Modified-Since", 1, HttpStatusCode.NotModified)]
+        [InlineData("If-Unmodified-Since", 1, HttpStatusCode.OK)]
+        [InlineData("If-Unmodified-Since", -1, HttpStatusCode.PreconditionFailed)]
+        public async Task ConditionalReadTests(string headerName, int offset, HttpStatusCode expectedStatusCode)
+        {
+            var id = TestData.Movies.GetRandomId();
+            var expected = context.GetMovieById(id)!;
+            Dictionary<string, string> headers = new()
+            {
+                { headerName, expected.UpdatedAt.AddHours(offset).ToString("R") }
+            };
+
+            var response = await server.SendRequest(HttpMethod.Get, $"tables/movies/{id}", headers).ConfigureAwait(false);
+
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+            if (expectedStatusCode == HttpStatusCode.OK || expectedStatusCode == HttpStatusCode.PreconditionFailed)
+            {
+                var actual = response.DeserializeContent<ClientMovie>();
+                Assert.Equal<IMovie>(expected, actual!);
                 AssertEx.SystemPropertiesMatch(expected, actual);
                 AssertEx.ResponseHasConditionalHeaders(expected, response);
             }
@@ -140,22 +146,14 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [Theory, CombinatorialData]
         public async Task ReadSoftDeletedItem_WorksIfNotDeleted([CombinatorialValues("soft", "soft_logged")] string table)
         {
-            // Arrange
-            const int index = 24;
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<SoftMovie>();
-            string id = Utils.GetMovieId(index);
-            var expected = repository.GetEntity(id);
+            var id = TestData.Movies.GetRandomId();
+            var expected = context.GetMovieById(id)!;
 
-            // Act
             var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
 
-            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var actual = response.DeserializeContent<ClientMovie>();
-
-            // Records match the repository
-            Assert.Equal<IMovie>(expected, actual);
+            Assert.Equal<IMovie>(expected, actual!);
             AssertEx.SystemPropertiesMatch(expected, actual);
             AssertEx.ResponseHasConditionalHeaders(expected, response);
         }
@@ -163,15 +161,10 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [Theory, CombinatorialData]
         public async Task ReadSoftDeletedItem_ReturnsGoneIfDeleted([CombinatorialValues("soft", "soft_logged")] string table)
         {
-            // Arrange
-            const int index = 25;
-            var server = Program.CreateTestServer();
-            string id = Utils.GetMovieId(index);
+            var id = TestData.Movies.GetRandomId();
+            await context.SoftDeleteMovieAsync(x => x.Id == id).ConfigureAwait(false);
 
-            // Act
             var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
-
-            // Assert
             Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
         }
     }
