@@ -2,13 +2,14 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Datasync;
+using Microsoft.Datasync.Client;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Datasync.Common.Test.Models
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class ClientMovie : ClientTableData, IMovie, IEquatable<IMovie>
+    public class ClientMovie : DatasyncClientData, IMovie, IEquatable<IMovie>
     {
         /// <summary>
         /// True if the movie won the oscar for Best Picture

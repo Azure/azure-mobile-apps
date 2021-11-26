@@ -175,9 +175,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task SoftDeleteItem_GoneWhenDeleted([CombinatorialValues("soft", "soft_logged")] string table)
         {
             var id = TestData.Movies.GetRandomId();
-            EFMovie entity = context.Movies.Single(m => m.Id == id);
-            entity.Deleted = true;
-            context.SaveChanges();
+            await context.SoftDeleteMovieAsync(x => x.Id == id).ConfigureAwait(false);
 
             var response = await server.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}").ConfigureAwait(false);
 

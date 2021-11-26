@@ -12,6 +12,7 @@ using System.Text;
 using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Datasync.Extensions;
+using Microsoft.Datasync.Client;
 using Microsoft.Net.Http.Headers;
 using Xunit;
 
@@ -139,7 +140,7 @@ namespace Datasync.Common.Test
         /// </summary>
         /// <param name="expected"></param>
         /// <param name="actual"></param>
-        public static void SystemPropertiesMatch(ITableData expected, ClientTableData actual)
+        public static void SystemPropertiesMatch(ITableData expected, DatasyncClientData actual)
         {
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.UpdatedAt, actual.UpdatedAt);

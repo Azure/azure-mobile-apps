@@ -5,10 +5,12 @@ using Datasync.Common.Test.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
-
+using System.Threading.Tasks;
 using TestData = Datasync.Common.Test.TestData;
 
 namespace Microsoft.Datasync.Integration.Test.Helpers
@@ -35,6 +37,17 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         /// <returns>The movie</returns>
         public EFMovie? GetMovieById(string id)
             => Movies.SingleOrDefault(x => x.Id == id)?.Clone();
+
+        /// <summary>
+        /// Mark a set of movies as deleted.
+        /// </summary>
+        /// <param name="func">The function identifying the movies to be deleted.</param>
+        /// <returns></returns>
+        public async Task SoftDeleteMovieAsync(Expression<Func<EFMovie, bool>> func)
+        {
+            await Movies.Where(func).ForEachAsync(movie => movie.Deleted = true).ConfigureAwait(true);
+            await SaveChangesAsync().ConfigureAwait(true);
+        }
 
         /// <summary>
         /// Initializes the current database

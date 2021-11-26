@@ -231,12 +231,12 @@ namespace Microsoft.Datasync.Integration.Test.Server
             }
         }
 
-        // Even though half the movies are deleted, they should all still produce conflicts
         [Theory, CombinatorialData]
         public async Task SoftDeleteCreateTests([CombinatorialValues("soft", "soft_logged")] string table)
         {
             var movieToAdd = blackPantherMovie.Clone();
             movieToAdd.Id = TestData.Movies.GetRandomId();
+            await context.SoftDeleteMovieAsync(x => x.Id == movieToAdd.Id).ConfigureAwait(false);
             var expectedMovie = context.GetMovieById(movieToAdd.Id)!;
 
             // Act
