@@ -6,7 +6,6 @@ using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Datasync.Integration.Test.Helpers;
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -24,26 +23,13 @@ namespace Microsoft.Datasync.Integration.Test.Server
         /// <summary>
         /// A connection to the test service.
         /// </summary>
-        private readonly TestServer server;
-
-        /// <summary>
-        /// The database context
-        /// </summary>
-        private readonly IServiceScope serviceScope;
-        private readonly MovieDbContext context;
-
-        public Read_Tests()
-        {
-            server = MovieApiServer.CreateTestServer();
-            serviceScope = server.Services.CreateScope();
-            context = serviceScope.ServiceProvider.GetRequiredService<MovieDbContext>();
-        }
+        private readonly TestServer server = MovieApiServer.CreateTestServer();
 
         [Theory, CombinatorialData]
         public async Task BasicReadTests([CombinatorialValues("movies", "movies_pagesize")] string table)
         {
             string id = TestData.Movies.GetRandomId();
-            var expected = context.GetMovieById(id)!;
+            var expected = server.GetMovieById(id)!;
 
             var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
 
@@ -70,7 +56,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             [CombinatorialValues("movies_rated", "movies_legal")] string table)
         {
             string id = Utils.GetMovieId(index);
-            var expected = context.GetMovieById(id)!;
+            var expected = server.GetMovieById(id)!;
             Dictionary<string, string> headers = new();
             Utils.AddAuthHeaders(headers, userId);
 
@@ -99,7 +85,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task ConditionalVersionReadTests(string headerName, string headerValue, HttpStatusCode expectedStatusCode)
         {
             var id = TestData.Movies.GetRandomId();
-            var expected = context.GetMovieById(id)!;
+            var expected = server.GetMovieById(id)!;
             Dictionary<string, string> headers = new()
             {
                 { headerName, headerValue ?? expected.GetETag() }
@@ -125,7 +111,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task ConditionalReadTests(string headerName, int offset, HttpStatusCode expectedStatusCode)
         {
             var id = TestData.Movies.GetRandomId();
-            var expected = context.GetMovieById(id)!;
+            var expected = server.GetMovieById(id)!;
             Dictionary<string, string> headers = new()
             {
                 { headerName, expected.UpdatedAt.AddHours(offset).ToString("R") }
@@ -147,7 +133,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task ReadSoftDeletedItem_WorksIfNotDeleted([CombinatorialValues("soft", "soft_logged")] string table)
         {
             var id = TestData.Movies.GetRandomId();
-            var expected = context.GetMovieById(id)!;
+            var expected = server.GetMovieById(id)!;
 
             var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
 
@@ -162,7 +148,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task ReadSoftDeletedItem_ReturnsGoneIfDeleted([CombinatorialValues("soft", "soft_logged")] string table)
         {
             var id = TestData.Movies.GetRandomId();
-            await context.SoftDeleteMovieAsync(x => x.Id == id).ConfigureAwait(false);
+            await server.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
 
             var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
             Assert.Equal(HttpStatusCode.Gone, response.StatusCode);

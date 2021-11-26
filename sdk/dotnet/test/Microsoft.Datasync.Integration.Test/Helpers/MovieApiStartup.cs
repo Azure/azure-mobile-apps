@@ -4,7 +4,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Datasync;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,14 +24,7 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         public MovieApiStartup(IConfiguration configuration)
         {
             Configuration = configuration;
-            DbConnection = new SqliteConnection("Data Source=:memory:");
-            DbConnection.Open();
         }
-
-        /// <summary>
-        /// The connection to the SQLite database
-        /// </summary>
-        public SqliteConnection DbConnection { get; }
 
         /// <summary>
         /// The application configuration
@@ -48,7 +40,7 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         public void ConfigureServices(IServiceCollection services)
         {
             // Add the database context
-            services.AddDbContext<MovieDbContext>(options => options.UseSqlite(DbConnection));
+            services.AddDbContext<MovieDbContext>(options => options.UseInMemoryDatabase(databaseName: "movies"));
 
             // Add authentication - force enabling the authentication pipeline.
             services.AddAuthentication(AzureAppServiceAuthentication.AuthenticationScheme)
@@ -65,14 +57,8 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         /// </summary>
         /// <param name="app"></param>
         /// <param name="env"></param>
-        public void Configure(IApplicationBuilder app)
+        public static void Configure(IApplicationBuilder app)
         {
-            // Initialize the database first!
-            using (var context = app.ApplicationServices.GetRequiredService<MovieDbContext>())
-            {
-                context.InitializeDatabase();
-            }
-
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();

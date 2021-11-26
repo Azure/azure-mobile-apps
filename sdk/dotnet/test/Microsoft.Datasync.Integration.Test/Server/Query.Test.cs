@@ -1,50 +1,30 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
+using Datasync.Common.Test.Models;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Datasync.Integration.Test.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Datasync.Common.Test;
-using Datasync.Common.Test.Extensions;
-using Datasync.Common.Test.Models;
-using Datasync.Common.Test.TestData;
-using Datasync.Webservice;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
+using TestData = Datasync.Common.Test.TestData;
+
+namespace Microsoft.Datasync.Integration.Test.Server
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class Query_Tests
     {
-        #region Test Artifacts
-        public class PageOfItems<T> where T : class
-        {
-            public T[] Items { get; set; }
-            public long Count { get; set; }
-            public Uri NextLink { get; set; }
-        }
-
         /// <summary>
-        /// Issue #2 - nextLink has port number when it isn't required.
+        /// A connection to the test service.
         /// </summary>
-        public class StringNextLinkPage<T> where T : class
-        {
-            public T[] Items { get; set; }
-            public long Count { get; set; }
-            public string NextLink { get; set; }
-        }
-
-        public class ClientObject
-        {
-            [JsonExtensionData]
-            public Dictionary<string, object> Data { get; set; }
-        }
-        #endregion
+        private readonly TestServer server = MovieApiServer.CreateTestServer();
 
         /// <summary>
         /// Basic query tests - these will do tests against tables/movies in various modes to ensure that the OData
@@ -57,7 +37,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         /// <param name="firstExpectedItems">Response: The IDs of the first elements in the Items entity</param>
         [Theory]
         [InlineData("tables/movies", 100, "tables/movies?$skip=100", 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
-        [InlineData("tables/movies?$count=true", 100, "tables/movies?$count=true&$skip=100", Movies.Count, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
+        [InlineData("tables/movies?$count=true", 100, "tables/movies?$count=true&$skip=100", TestData.Movies.Count, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
         [InlineData("tables/movies?$count=true&$filter=((year div 1000.5) eq 2) and (rating eq 'R')", 2, null, 2, new[] { "id-061", "id-173" })]
         [InlineData("tables/movies?$count=true&$filter=((year sub 1900) ge 80) and ((year add 10) le 2000) and (duration le 120)", 13, null, 13, new[] { "id-026", "id-047", "id-081", "id-103", "id-121" })]
         [InlineData("tables/movies?$count=true&$filter=(year div 1000.5) eq 2", 6, null, 6, new[] { "id-012", "id-042", "id-061", "id-173", "id-194" })]
@@ -72,7 +52,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [InlineData("tables/movies?$count=true&$filter=bestPictureWinner ne true", 100, "tables/movies?$count=true&$filter=bestPictureWinner ne true&$skip=100", 210, new[] { "id-000", "id-003", "id-004", "id-005", "id-006" })]
         [InlineData("tables/movies?$count=true&$filter=ceiling(duration div 60.0) eq 2", 100, "tables/movies?$count=true&$filter=ceiling(duration div 60.0) eq 2&$skip=100", 124, new[] { "id-005", "id-023", "id-024", "id-025", "id-026" })]
         [InlineData("tables/movies?$count=true&$filter=day(releaseDate) eq 1", 7, null, 7, new[] { "id-019", "id-048", "id-129", "id-131", "id-132" })]
-        [InlineData("tables/movies?$count=true&$filter=duration ge 60", 100, "tables/movies?$count=true&$filter=duration ge 60&$skip=100", Movies.Count, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
+        [InlineData("tables/movies?$count=true&$filter=duration ge 60", 100, "tables/movies?$count=true&$filter=duration ge 60&$skip=100", TestData.Movies.Count, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
         [InlineData("tables/movies?$count=true&$filter=endswith(title, 'er')", 12, null, 12, new[] { "id-001", "id-052", "id-121", "id-130", "id-164" })]
         [InlineData("tables/movies?$count=true&$filter=endswith(tolower(title), 'er')", 12, null, 12, new[] { "id-001", "id-052", "id-121", "id-130", "id-164" })]
         [InlineData("tables/movies?$count=true&$filter=endswith(toupper(title), 'ER')", 12, null, 12, new[] { "id-001", "id-052", "id-121", "id-130", "id-164" })]
@@ -102,22 +82,22 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [InlineData("tables/movies?$count=true&$filter=year le 2000", 100, "tables/movies?$count=true&$filter=year le 2000&$skip=100", 185, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
         [InlineData("tables/movies?$count=true&$filter=year lt 2001", 100, "tables/movies?$count=true&$filter=year lt 2001&$skip=100", 185, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
         [InlineData("tables/movies?$count=true&$filter=year(releaseDate) eq 1994", 6, null, 6, new[] { "id-000", "id-003", "id-018", "id-030", "id-079" })]
-        [InlineData("tables/movies?$count=true&$orderby=bestPictureWinner asc", 100, "tables/movies?$count=true&$orderby=bestPictureWinner asc&$skip=100", Movies.Count, new[] { "id-000", "id-003", "id-004", "id-005", "id-006" })]
-        [InlineData("tables/movies?$count=true&$orderby=bestPictureWinner desc", 100, "tables/movies?$count=true&$orderby=bestPictureWinner desc&$skip=100", Movies.Count, new[] { "id-001", "id-002", "id-007", "id-008", "id-011" })]
-        [InlineData("tables/movies?$count=true&$orderby=duration asc", 100, "tables/movies?$count=true&$orderby=duration asc&$skip=100", Movies.Count, new[] { "id-227", "id-125", "id-133", "id-107", "id-118" })]
-        [InlineData("tables/movies?$count=true&$orderby=duration desc", 100, "tables/movies?$count=true&$orderby=duration desc&$skip=100", Movies.Count, new[] { "id-153", "id-065", "id-165", "id-008", "id-002" })]
-        [InlineData("tables/movies?$count=true&$orderby=rating asc", 100, "tables/movies?$count=true&$orderby=rating asc&$skip=100", Movies.Count, new[] { "id-004", "id-005", "id-011", "id-016", "id-031" })]
-        [InlineData("tables/movies?$count=true&$orderby=rating desc", 100, "tables/movies?$count=true&$orderby=rating desc&$skip=100", Movies.Count, new[] { "id-197", "id-107", "id-115", "id-028", "id-039" })]
-        [InlineData("tables/movies?$count=true&$orderby=releaseDate asc", 100, "tables/movies?$count=true&$orderby=releaseDate asc&$skip=100", Movies.Count, new[] { "id-125", "id-133", "id-227", "id-118", "id-088" })]
-        [InlineData("tables/movies?$count=true&$orderby=releaseDate desc", 100, "tables/movies?$count=true&$orderby=releaseDate desc&$skip=100", Movies.Count, new[] { "id-188", "id-033", "id-122", "id-186", "id-064" })]
-        [InlineData("tables/movies?$count=true&$orderby=title asc", 100, "tables/movies?$count=true&$orderby=title asc&$skip=100", Movies.Count, new[] { "id-005", "id-091", "id-243", "id-194", "id-060" })]
-        [InlineData("tables/movies?$count=true&$orderby=title desc", 100, "tables/movies?$count=true&$orderby=title desc&$skip=100", Movies.Count, new[] { "id-107", "id-100", "id-123", "id-190", "id-149" })]
-        [InlineData("tables/movies?$count=true&$orderby=year asc", 100, "tables/movies?$count=true&$orderby=year asc&$skip=100", Movies.Count, new[] { "id-125", "id-229", "id-133", "id-227", "id-118" })]
-        [InlineData("tables/movies?$count=true&$orderby=year asc,title asc", 100, "tables/movies?$count=true&$orderby=year asc,title asc&$skip=100", Movies.Count, new[] { "id-125", "id-229", "id-227", "id-133", "id-118" })]
-        [InlineData("tables/movies?$count=true&$orderby=year asc,title desc", 100, "tables/movies?$count=true&$orderby=year asc,title desc&$skip=100", Movies.Count, new[] { "id-125", "id-229", "id-133", "id-227", "id-118" })]
-        [InlineData("tables/movies?$count=true&$orderby=year desc", 100, "tables/movies?$count=true&$orderby=year desc&$skip=100", Movies.Count, new[] { "id-033", "id-122", "id-188", "id-064", "id-102" })]
-        [InlineData("tables/movies?$count=true&$orderby=year desc,title asc", 100, "tables/movies?$count=true&$orderby=year desc,title asc&$skip=100", Movies.Count, new[] { "id-188", "id-122", "id-033", "id-102", "id-213" })]
-        [InlineData("tables/movies?$count=true&$orderby=year desc,title desc", 100, "tables/movies?$count=true&$orderby=year desc,title desc&$skip=100", Movies.Count, new[] { "id-033", "id-122", "id-188", "id-149", "id-064" })]
+        [InlineData("tables/movies?$count=true&$orderby=bestPictureWinner asc", 100, "tables/movies?$count=true&$orderby=bestPictureWinner asc&$skip=100", TestData.Movies.Count, new[] { "id-000", "id-003", "id-004", "id-005", "id-006" })]
+        [InlineData("tables/movies?$count=true&$orderby=bestPictureWinner desc", 100, "tables/movies?$count=true&$orderby=bestPictureWinner desc&$skip=100", TestData.Movies.Count, new[] { "id-001", "id-002", "id-007", "id-008", "id-011" })]
+        [InlineData("tables/movies?$count=true&$orderby=duration asc", 100, "tables/movies?$count=true&$orderby=duration asc&$skip=100", TestData.Movies.Count, new[] { "id-227", "id-125", "id-133", "id-107", "id-118" })]
+        [InlineData("tables/movies?$count=true&$orderby=duration desc", 100, "tables/movies?$count=true&$orderby=duration desc&$skip=100", TestData.Movies.Count, new[] { "id-153", "id-065", "id-165", "id-008", "id-002" })]
+        [InlineData("tables/movies?$count=true&$orderby=rating asc", 100, "tables/movies?$count=true&$orderby=rating asc&$skip=100", TestData.Movies.Count, new[] { "id-004", "id-005", "id-011", "id-016", "id-031" })]
+        [InlineData("tables/movies?$count=true&$orderby=rating desc", 100, "tables/movies?$count=true&$orderby=rating desc&$skip=100", TestData.Movies.Count, new[] { "id-197", "id-107", "id-115", "id-028", "id-039" })]
+        [InlineData("tables/movies?$count=true&$orderby=releaseDate asc", 100, "tables/movies?$count=true&$orderby=releaseDate asc&$skip=100", TestData.Movies.Count, new[] { "id-125", "id-133", "id-227", "id-118", "id-088" })]
+        [InlineData("tables/movies?$count=true&$orderby=releaseDate desc", 100, "tables/movies?$count=true&$orderby=releaseDate desc&$skip=100", TestData.Movies.Count, new[] { "id-188", "id-033", "id-122", "id-186", "id-064" })]
+        [InlineData("tables/movies?$count=true&$orderby=title asc", 100, "tables/movies?$count=true&$orderby=title asc&$skip=100", TestData.Movies.Count, new[] { "id-005", "id-091", "id-243", "id-194", "id-060" })]
+        [InlineData("tables/movies?$count=true&$orderby=title desc", 100, "tables/movies?$count=true&$orderby=title desc&$skip=100", TestData.Movies.Count, new[] { "id-107", "id-100", "id-123", "id-190", "id-149" })]
+        [InlineData("tables/movies?$count=true&$orderby=year asc", 100, "tables/movies?$count=true&$orderby=year asc&$skip=100", TestData.Movies.Count, new[] { "id-125", "id-229", "id-133", "id-227", "id-118" })]
+        [InlineData("tables/movies?$count=true&$orderby=year asc,title asc", 100, "tables/movies?$count=true&$orderby=year asc,title asc&$skip=100", TestData.Movies.Count, new[] { "id-125", "id-229", "id-227", "id-133", "id-118" })]
+        [InlineData("tables/movies?$count=true&$orderby=year asc,title desc", 100, "tables/movies?$count=true&$orderby=year asc,title desc&$skip=100", TestData.Movies.Count, new[] { "id-125", "id-229", "id-133", "id-227", "id-118" })]
+        [InlineData("tables/movies?$count=true&$orderby=year desc", 100, "tables/movies?$count=true&$orderby=year desc&$skip=100", TestData.Movies.Count, new[] { "id-033", "id-122", "id-188", "id-064", "id-102" })]
+        [InlineData("tables/movies?$count=true&$orderby=year desc,title asc", 100, "tables/movies?$count=true&$orderby=year desc,title asc&$skip=100", TestData.Movies.Count, new[] { "id-188", "id-122", "id-033", "id-102", "id-213" })]
+        [InlineData("tables/movies?$count=true&$orderby=year desc,title desc", 100, "tables/movies?$count=true&$orderby=year desc,title desc&$skip=100", TestData.Movies.Count, new[] { "id-033", "id-122", "id-188", "id-149", "id-064" })]
         [InlineData("tables/movies?$count=true&$top=125&$filter=((year div 1000.5) eq 2) and (rating eq 'R')", 2, null, 2, new[] { "id-061", "id-173" })]
         [InlineData("tables/movies?$count=true&$top=125&$filter=((year sub 1900) ge 80) and ((year add 10) le 2000) and (duration le 120)", 13, null, 13, new[] { "id-026", "id-047", "id-081", "id-103", "id-121" })]
         [InlineData("tables/movies?$count=true&$top=125&$filter=(year div 1000.5) eq 2", 6, null, 6, new[] { "id-012", "id-042", "id-061", "id-173", "id-194" })]
@@ -132,7 +112,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [InlineData("tables/movies?$count=true&$top=125&$filter=bestPictureWinner ne true", 100, "tables/movies?$count=true&$filter=bestPictureWinner ne true&$skip=100&$top=25", 210, new[] { "id-000", "id-003", "id-004", "id-005", "id-006" })]
         [InlineData("tables/movies?$count=true&$top=125&$filter=ceiling(duration div 60.0) eq 2", 100, "tables/movies?$count=true&$filter=ceiling(duration div 60.0) eq 2&$skip=100&$top=25", 124, new[] { "id-005", "id-023", "id-024", "id-025", "id-026" })]
         [InlineData("tables/movies?$count=true&$top=125&$filter=day(releaseDate) eq 1", 7, null, 7, new[] { "id-019", "id-048", "id-129", "id-131", "id-132" })]
-        [InlineData("tables/movies?$count=true&$top=125&$filter=duration ge 60", 100, "tables/movies?$count=true&$filter=duration ge 60&$skip=100&$top=25", Movies.Count, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
+        [InlineData("tables/movies?$count=true&$top=125&$filter=duration ge 60", 100, "tables/movies?$count=true&$filter=duration ge 60&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
         [InlineData("tables/movies?$count=true&$top=125&$filter=endswith(title, 'er')", 12, null, 12, new[] { "id-001", "id-052", "id-121", "id-130", "id-164" })]
         [InlineData("tables/movies?$count=true&$top=125&$filter=endswith(tolower(title), 'er')", 12, null, 12, new[] { "id-001", "id-052", "id-121", "id-130", "id-164" })]
         [InlineData("tables/movies?$count=true&$top=125&$filter=endswith(toupper(title), 'ER')", 12, null, 12, new[] { "id-001", "id-052", "id-121", "id-130", "id-164" })]
@@ -162,22 +142,22 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [InlineData("tables/movies?$count=true&$top=125&$filter=year le 2000", 100, "tables/movies?$count=true&$filter=year le 2000&$skip=100&$top=25", 185, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
         [InlineData("tables/movies?$count=true&$top=125&$filter=year lt 2001", 100, "tables/movies?$count=true&$filter=year lt 2001&$skip=100&$top=25", 185, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
         [InlineData("tables/movies?$count=true&$top=125&$filter=year(releaseDate) eq 1994", 6, null, 6, new[] { "id-000", "id-003", "id-018", "id-030", "id-079" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=bestPictureWinner asc", 100, "tables/movies?$count=true&$orderby=bestPictureWinner asc&$skip=100&$top=25", Movies.Count, new[] { "id-000", "id-003", "id-004", "id-005", "id-006" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=bestPictureWinner desc", 100, "tables/movies?$count=true&$orderby=bestPictureWinner desc&$skip=100&$top=25", Movies.Count, new[] { "id-001", "id-002", "id-007", "id-008", "id-011" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=duration asc", 100, "tables/movies?$count=true&$orderby=duration asc&$skip=100&$top=25", Movies.Count, new[] { "id-227", "id-125", "id-133", "id-107", "id-118" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=duration desc", 100, "tables/movies?$count=true&$orderby=duration desc&$skip=100&$top=25", Movies.Count, new[] { "id-153", "id-065", "id-165", "id-008", "id-002" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=rating asc", 100, "tables/movies?$count=true&$orderby=rating asc&$skip=100&$top=25", Movies.Count, new[] { "id-004", "id-005", "id-011", "id-016", "id-031" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=rating desc", 100, "tables/movies?$count=true&$orderby=rating desc&$skip=100&$top=25", Movies.Count, new[] { "id-197", "id-107", "id-115", "id-028", "id-039" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=releaseDate asc", 100, "tables/movies?$count=true&$orderby=releaseDate asc&$skip=100&$top=25", Movies.Count, new[] { "id-125", "id-133", "id-227", "id-118", "id-088" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=releaseDate desc", 100, "tables/movies?$count=true&$orderby=releaseDate desc&$skip=100&$top=25", Movies.Count, new[] { "id-188", "id-033", "id-122", "id-186", "id-064" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=title asc", 100, "tables/movies?$count=true&$orderby=title asc&$skip=100&$top=25", Movies.Count, new[] { "id-005", "id-091", "id-243", "id-194", "id-060" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=title desc", 100, "tables/movies?$count=true&$orderby=title desc&$skip=100&$top=25", Movies.Count, new[] { "id-107", "id-100", "id-123", "id-190", "id-149" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=year asc", 100, "tables/movies?$count=true&$orderby=year asc&$skip=100&$top=25", Movies.Count, new[] { "id-125", "id-229", "id-133", "id-227", "id-118" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=year asc,title asc", 100, "tables/movies?$count=true&$orderby=year asc,title asc&$skip=100&$top=25", Movies.Count, new[] { "id-125", "id-229", "id-227", "id-133", "id-118" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=year asc,title desc", 100, "tables/movies?$count=true&$orderby=year asc,title desc&$skip=100&$top=25", Movies.Count, new[] { "id-125", "id-229", "id-133", "id-227", "id-118" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=year desc", 100, "tables/movies?$count=true&$orderby=year desc&$skip=100&$top=25", Movies.Count, new[] { "id-033", "id-122", "id-188", "id-064", "id-102" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=year desc,title asc", 100, "tables/movies?$count=true&$orderby=year desc,title asc&$skip=100&$top=25", Movies.Count, new[] { "id-188", "id-122", "id-033", "id-102", "id-213" })]
-        [InlineData("tables/movies?$count=true&$top=125&$orderby=year desc,title desc", 100, "tables/movies?$count=true&$orderby=year desc,title desc&$skip=100&$top=25", Movies.Count, new[] { "id-033", "id-122", "id-188", "id-149", "id-064" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=bestPictureWinner asc", 100, "tables/movies?$count=true&$orderby=bestPictureWinner asc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-000", "id-003", "id-004", "id-005", "id-006" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=bestPictureWinner desc", 100, "tables/movies?$count=true&$orderby=bestPictureWinner desc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-001", "id-002", "id-007", "id-008", "id-011" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=duration asc", 100, "tables/movies?$count=true&$orderby=duration asc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-227", "id-125", "id-133", "id-107", "id-118" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=duration desc", 100, "tables/movies?$count=true&$orderby=duration desc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-153", "id-065", "id-165", "id-008", "id-002" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=rating asc", 100, "tables/movies?$count=true&$orderby=rating asc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-004", "id-005", "id-011", "id-016", "id-031" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=rating desc", 100, "tables/movies?$count=true&$orderby=rating desc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-197", "id-107", "id-115", "id-028", "id-039" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=releaseDate asc", 100, "tables/movies?$count=true&$orderby=releaseDate asc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-125", "id-133", "id-227", "id-118", "id-088" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=releaseDate desc", 100, "tables/movies?$count=true&$orderby=releaseDate desc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-188", "id-033", "id-122", "id-186", "id-064" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=title asc", 100, "tables/movies?$count=true&$orderby=title asc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-005", "id-091", "id-243", "id-194", "id-060" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=title desc", 100, "tables/movies?$count=true&$orderby=title desc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-107", "id-100", "id-123", "id-190", "id-149" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=year asc", 100, "tables/movies?$count=true&$orderby=year asc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-125", "id-229", "id-133", "id-227", "id-118" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=year asc,title asc", 100, "tables/movies?$count=true&$orderby=year asc,title asc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-125", "id-229", "id-227", "id-133", "id-118" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=year asc,title desc", 100, "tables/movies?$count=true&$orderby=year asc,title desc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-125", "id-229", "id-133", "id-227", "id-118" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=year desc", 100, "tables/movies?$count=true&$orderby=year desc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-033", "id-122", "id-188", "id-064", "id-102" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=year desc,title asc", 100, "tables/movies?$count=true&$orderby=year desc,title asc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-188", "id-122", "id-033", "id-102", "id-213" })]
+        [InlineData("tables/movies?$count=true&$top=125&$orderby=year desc,title desc", 100, "tables/movies?$count=true&$orderby=year desc,title desc&$skip=100&$top=25", TestData.Movies.Count, new[] { "id-033", "id-122", "id-188", "id-149", "id-064" })]
         [InlineData("tables/movies?$filter=((year div 1000.5) eq 2) and (rating eq 'R')", 2, null, 0, new[] { "id-061", "id-173" })]
         [InlineData("tables/movies?$filter=((year sub 1900) ge 80) and ((year add 10) le 2000) and (duration le 120)", 13, null, 0, new[] { "id-026", "id-047", "id-081", "id-103", "id-121" })]
         [InlineData("tables/movies?$filter=(year div 1000.5) eq 2", 6, null, 0, new[] { "id-012", "id-042", "id-061", "id-173", "id-194" })]
@@ -365,18 +345,12 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [InlineData("tables/movies_pagesize", 25, "tables/movies_pagesize?$skip=25", 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
         [InlineData("tables/movies_pagesize?$skip=25", 25, "tables/movies_pagesize?$skip=50", 0, new[] { "id-025", "id-026", "id-027", "id-028", "id-029" })]
         [InlineData("tables/movies_rated", 94, null, 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-007" }, "success")]
-        public async Task BasicQueryTest(string query, int expectedItemCount, string expectedNextLinkQuery, long expectedTotalCount, string[] firstExpectedItems, string userId = null)
+        public async Task BasicQueryTest(string query, int expectedItemCount, string expectedNextLinkQuery, long expectedTotalCount, string[] firstExpectedItems, string? userId = null)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<InMemoryMovie>();
             Dictionary<string, string> headers = new();
             Utils.AddAuthHeaders(headers, userId);
 
-            // Act
             var response = await server.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
-
-            // Assert
 
             // Response has the right Status Code
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -386,7 +360,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             Assert.NotNull(result);
 
             // Payload has the right content
-            Assert.Equal(expectedItemCount, result.Items.Length);
+            Assert.Equal(expectedItemCount, result!.Items!.Length);
             Assert.Equal(expectedNextLinkQuery, result.NextLink == null ? null : Uri.UnescapeDataString(result.NextLink.PathAndQuery).TrimStart('/'));
             Assert.Equal(expectedTotalCount, result.Count);
 
@@ -395,7 +369,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             Assert.Equal(firstExpectedItems, result.Items.Take(firstExpectedItems.Length).Select(m => m.Id).ToArray());
             for (int idx = 0; idx < firstExpectedItems.Length; idx++)
             {
-                var expected = repository.GetEntity(firstExpectedItems[idx]);
+                var expected = server.GetMovieById(firstExpectedItems[idx])!;
                 var actual = result.Items[idx];
 
                 Assert.Equal<IMovie>(expected, actual);
@@ -408,13 +382,9 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         /// System.Text.Json - we are not interested in the search (we're doing the same thing over and
         /// over).  Instead, we are ensuring the right selections are made.
         /// </summary>
-        /// <param name="selection">The selection to use</param>
-        /// <returns></returns>
         [Theory, PairwiseData]
         public async Task SelectQueryTest(bool sId, bool sUpdatedAt, bool sVersion, bool sDeleted, bool sBPW, bool sduration, bool srating, bool sreleaseDate, bool stitle, bool syear)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
             List<string> selection = new();
             if (sId) selection.Add("id");
             if (sUpdatedAt) selection.Add("updatedAt");
@@ -429,10 +399,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             if (selection.Count == 0) return;
             var query = $"tables/movies?$top=5&$skip=5&$select={string.Join(',', selection)}";
 
-            // Act
             var response = await server.SendRequest(HttpMethod.Get, query).ConfigureAwait(false);
-
-            // Assert
 
             // Response has the right Status Code
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -442,13 +409,13 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             Assert.NotNull(result);
 
             // There are items in the response payload
-            Assert.NotNull(result.Items);
-            foreach (var item in result.Items)
+            Assert.NotNull(result?.Items);
+            foreach (var item in result!.Items!)
             {
                 // Each item in the payload has the requested properties.
                 foreach (var property in selection)
                 {
-                    Assert.True(item.Data.ContainsKey(property));
+                    Assert.True(item.Data!.ContainsKey(property));
                 }
             }
         }
@@ -462,8 +429,6 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [InlineData("tables/movies?$filter=releaseDate ge cast(1960-01-01T05:30:00Z,Edm.DateTimeOffset)&orderby=releaseDate asc&$top=20", 20, 1)]
         public async Task PagingTest(string startQuery, int expectedCount, int expectedLoops)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
             var query = startQuery;
             int loops = 0;
             var items = new Dictionary<string, ClientMovie>();
@@ -477,7 +442,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
                 Assert.True(response.IsSuccessStatusCode);
                 var result = response.DeserializeContent<StringNextLinkPage<ClientMovie>>();
                 Assert.NotNull(result?.Items);
-                foreach (var item in result.Items)
+                foreach (var item in result!.Items!)
                 {
                     items.Add(item.Id!, item);
                 }
@@ -493,7 +458,6 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
                 }
             } while (loops < expectedLoops + 2);
 
-            // Assert
             Assert.Equal(expectedCount, items.Count);
             Assert.Equal(expectedLoops, loops);
         }
@@ -526,10 +490,8 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [InlineData("tables/movies_rated", HttpStatusCode.Unauthorized, "X-Auth", "failed")]
         [InlineData("tables/movies_legal", HttpStatusCode.UnavailableForLegalReasons)]
         [InlineData("tables/movies_legal", HttpStatusCode.UnavailableForLegalReasons, "X-Auth", "failed")]
-        public async Task FailedQueryTest(string relativeUri, HttpStatusCode expectedStatusCode, string headerName = null, string headerValue = null)
+        public async Task FailedQueryTest(string relativeUri, HttpStatusCode expectedStatusCode, string? headerName = null, string? headerValue = null)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
             Dictionary<string, string> headers = new();
             if (headerName != null && headerValue != null) headers.Add(headerName, headerValue);
 
@@ -556,18 +518,13 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [InlineData("tables/soft?$filter=deleted eq false&__includedeleted=true", 100, "tables/soft?$filter=deleted eq false&__includedeleted=true&$skip=100", 0, new[] { "id-004", "id-005", "id-006", "id-008", "id-010" })]
         [InlineData("tables/soft?$filter=deleted eq true&__includedeleted=true", 94, null, 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-007" })]
         [InlineData("tables/soft?__includedeleted=true", 100, "tables/soft?__includedeleted=true&$skip=100", 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-004", "id-005" })]
-        public async Task SoftDeleteQueryTest(string query, int expectedItemCount, string expectedNextLinkQuery, long expectedTotalCount, string[] firstExpectedItems, string headerName = null, string headerValue = null)
+        public async Task SoftDeleteQueryTest(string query, int expectedItemCount, string expectedNextLinkQuery, long expectedTotalCount, string[] firstExpectedItems, string? headerName = null, string? headerValue = null)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<SoftMovie>();
+            await server.SoftDeleteMoviesAsync(m => m.Rating == "R").ConfigureAwait(false);
             Dictionary<string, string> headers = new();
             if (headerName != null && headerValue != null) headers.Add(headerName, headerValue);
 
-            // Act
             var response = await server.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
-
-            // Assert
 
             // Response has the right Status Code
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -577,7 +534,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             Assert.NotNull(result);
 
             // Payload has the right content
-            Assert.Equal(expectedItemCount, result.Items.Length);
+            Assert.Equal(expectedItemCount, result!.Items!.Length);
             Assert.Equal(expectedNextLinkQuery, result.NextLink == null ? null : Uri.UnescapeDataString(result.NextLink.PathAndQuery).TrimStart('/'));
             Assert.Equal(expectedTotalCount, result.Count);
 
@@ -586,7 +543,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             Assert.Equal(firstExpectedItems, result.Items.Take(firstExpectedItems.Length).Select(m => m.Id).ToArray());
             for (int idx = 0; idx < firstExpectedItems.Length; idx++)
             {
-                var expected = repository.GetEntity(firstExpectedItems[idx]);
+                var expected = server.GetMovieById(firstExpectedItems[idx])!;
                 var actual = result.Items[idx];
 
                 Assert.Equal<IMovie>(expected, actual);

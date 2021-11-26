@@ -2,9 +2,9 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
-using Datasync.Common.Test.Extensions;
 using Datasync.Common.Test.Models;
-using Datasync.Webservice;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Datasync.Integration.Test.Helpers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -13,7 +13,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
+namespace Microsoft.Datasync.Integration.Test.Server
 {
     /// <summary>
     /// A set of integration tests that send requests with X-ZUMO-Version: 2.0
@@ -22,13 +22,10 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class V2Query_Tests
     {
-        #region Test Artifacts
-        public class PageOfItems<T> where T : class
-        {
-            public T[] Results { get; set; }
-            public long Count { get; set; }
-        }
-        #endregion
+        /// <summary>
+        /// A connection to the test service.
+        /// </summary>
+        private readonly TestServer server = MovieApiServer.CreateTestServer();
 
         [Theory]
         [InlineData("tables/movies", 100, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
@@ -84,15 +81,9 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [InlineData("tables/movies?$top=5&$filter=releaseDate lt datetime'2000-01-01T00:00:00.000Z'", 5, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
         public async Task BasicV2QueryTest(string query, int expectedItemCount, string[] firstExpectedItems)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<InMemoryMovie>();
             Dictionary<string, string> headers = new() { { "ZUMO-API-VERSION", "2.0.0" } };
 
-            // Act
             var response = await server.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
-
-            // Assert
 
             // Response has the right Status Code
             if (!response.IsSuccessStatusCode)
@@ -107,17 +98,17 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             Assert.NotNull(result);
 
             // Payload has the right content
-            Assert.Equal(expectedItemCount, result.Count);
+            Assert.Equal(expectedItemCount, result!.Count);
 
             // The first n items must match what is expected
             Assert.True(result.Count >= firstExpectedItems.Length);
             Assert.Equal(firstExpectedItems, result.Take(firstExpectedItems.Length).Select(m => m.Id).ToArray());
             for (int idx = 0; idx < firstExpectedItems.Length; idx++)
             {
-                var expected = repository.GetEntity(firstExpectedItems[idx]);
+                var expected = server.GetMovieById(firstExpectedItems[idx]);
                 var actual = result[idx];
 
-                Assert.Equal<IMovie>(expected, actual);
+                Assert.Equal<IMovie>(expected!, actual);
                 AssertEx.SystemPropertiesMatch(expected, actual);
             }
         }
@@ -145,25 +136,19 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
         [InlineData("tables/movies?$inlinecount=allpages&$top=5&$filter=releaseDate lt datetime'2000-01-01T00:00:00.000Z'", 5, 179, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
         public async Task CountedV2QueryTest(string query, int expectedItemCount, long expectedTotalCount, string[] firstExpectedItems)
         {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var repository = server.GetRepository<InMemoryMovie>();
             Dictionary<string, string> headers = new() { { "ZUMO-API-VERSION", "2.0.0" } };
 
-            // Act
             var response = await server.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
-
-            // Assert
 
             // Response has the right Status Code
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             // Response payload can be decoded
-            var result = response.DeserializeContent<PageOfItems<ClientMovie>>();
+            var result = response.DeserializeContent<V2PageOfItems<ClientMovie>>();
             Assert.NotNull(result);
 
             // Payload has the right content
-            Assert.Equal(expectedItemCount, result.Results.Length);
+            Assert.Equal(expectedItemCount, result!.Results!.Length);
             Assert.Equal(expectedTotalCount, result.Count);
 
             // The first n items must match what is expected
@@ -171,7 +156,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables.HTTP
             Assert.Equal(firstExpectedItems, result.Results.Take(firstExpectedItems.Length).Select(m => m.Id).ToArray());
             for (int idx = 0; idx < firstExpectedItems.Length; idx++)
             {
-                var expected = repository.GetEntity(firstExpectedItems[idx]);
+                var expected = server.GetMovieById(firstExpectedItems[idx])!;
                 var actual = result.Results[idx];
 
                 Assert.Equal<IMovie>(expected, actual);

@@ -6,11 +6,9 @@ using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Datasync.Integration.Test.Helpers;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -26,14 +24,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
         /// <summary>
         /// A connection to the test service.
         /// </summary>
-        private readonly TestServer server;
-
-        /// <summary>
-        /// The database context
-        /// </summary>
-        private readonly IServiceScope serviceScope;
-        private readonly MovieDbContext context;
-
+        private readonly TestServer server = MovieApiServer.CreateTestServer();
 
         /// <summary>
         /// A basic movie without any adornment that does not exist in the movie data. Tests must clone this
@@ -54,13 +45,6 @@ namespace Microsoft.Datasync.Integration.Test.Server
         /// </summary>
         private readonly DateTimeOffset startTime = DateTimeOffset.Now;
 
-        public Create_Tests()
-        {
-            server = MovieApiServer.CreateTestServer();
-            serviceScope = server.Services.CreateScope();
-            context = serviceScope.ServiceProvider.GetRequiredService<MovieDbContext>();
-        }
-
         [Theory, CombinatorialData]
         public async Task BasicCreateTests([CombinatorialValues("movies", "movies_pagesize")] string table, bool hasId)
         {
@@ -80,9 +64,9 @@ namespace Microsoft.Datasync.Integration.Test.Server
             {
                 Assert.Equal(movieToAdd.Id, result!.Id);
             }
-            Assert.Equal(TestData.Movies.Count + 1, context.Movies.Count());
+            Assert.Equal(TestData.Movies.Count + 1, server.GetMovieCount());
 
-            var entity = context.GetMovieById(result!.Id);
+            var entity = server.GetMovieById(result!.Id);
             Assert.NotNull(entity);
 
             AssertEx.SystemPropertiesSet(entity, startTime);
@@ -107,9 +91,9 @@ namespace Microsoft.Datasync.Integration.Test.Server
             var result = response.DeserializeContent<ClientMovie>();
             Assert.NotNull(result);
             Assert.Equal(movieToAdd.Id, result!.Id);
-            Assert.Equal(TestData.Movies.Count + 1, context.Movies.Count());
+            Assert.Equal(TestData.Movies.Count + 1, server.GetMovieCount());
 
-            var entity = context.GetMovieById(result.Id);
+            var entity = server.GetMovieById(result.Id);
             Assert.NotNull(entity);
 
             AssertEx.SystemPropertiesSet(entity, startTime);
@@ -158,8 +142,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
             var response = await server.SendRequest(HttpMethod.Post, "tables/movies", movieToAdd, null).ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal(TestData.Movies.Count, context.Movies.Count());
-            Assert.Null(context.GetMovieById("test-id"));
+            Assert.Equal(TestData.Movies.Count, server.GetMovieCount());
+            Assert.Null(server.GetMovieById("test-id"));
         }
 
         [Fact]
@@ -167,18 +151,18 @@ namespace Microsoft.Datasync.Integration.Test.Server
         {
             var movieToAdd = blackPantherMovie.Clone();
             movieToAdd.Id = TestData.Movies.GetRandomId();
-            var expectedMovie = context.GetMovieById(movieToAdd.Id)!;
+            var expectedMovie = server.GetMovieById(movieToAdd.Id)!;
 
             // Act
             var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, "tables/movies", movieToAdd).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-            Assert.Equal(TestData.Movies.Count, context.Movies.Count());
+            Assert.Equal(TestData.Movies.Count, server.GetMovieCount());
 
             var result = response.DeserializeContent<ClientMovie>();
             Assert.NotNull(result);
-            var entity = context.GetMovieById(movieToAdd.Id);
+            var entity = server.GetMovieById(movieToAdd.Id);
             Assert.NotNull(entity);
             AssertEx.SystemPropertiesSet(entity, startTime);
             AssertEx.SystemPropertiesMatch(entity, result);
@@ -208,7 +192,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             {
                 var statusCode = table.Contains("legal") ? HttpStatusCode.UnavailableForLegalReasons : HttpStatusCode.Unauthorized;
                 Assert.Equal(statusCode, response.StatusCode);
-                Assert.Equal(TestData.Movies.Count, context.Movies.Count());
+                Assert.Equal(TestData.Movies.Count, server.GetMovieCount());
             }
             else
             {
@@ -217,10 +201,10 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 var result = response.DeserializeContent<ClientMovie>();
                 Assert.NotNull(result);
                 Assert.True(Guid.TryParse(result!.Id, out _));
-                Assert.Equal(TestData.Movies.Count + 1, context.Movies.Count());
+                Assert.Equal(TestData.Movies.Count + 1, server.GetMovieCount());
                 AssertEx.ResponseHasHeader(response, "Location", $"https://localhost/tables/{table}/{result.Id}");
 
-                var entity = context.GetMovieById(result.Id);
+                var entity = server.GetMovieById(result.Id);
                 Assert.NotNull(entity);
 
                 AssertEx.SystemPropertiesSet(entity, startTime);
@@ -236,19 +220,19 @@ namespace Microsoft.Datasync.Integration.Test.Server
         {
             var movieToAdd = blackPantherMovie.Clone();
             movieToAdd.Id = TestData.Movies.GetRandomId();
-            await context.SoftDeleteMovieAsync(x => x.Id == movieToAdd.Id).ConfigureAwait(false);
-            var expectedMovie = context.GetMovieById(movieToAdd.Id)!;
+            await server.SoftDeleteMoviesAsync(x => x.Id == movieToAdd.Id).ConfigureAwait(false);
+            var expectedMovie = server.GetMovieById(movieToAdd.Id)!;
 
             // Act
             var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, $"tables/{table}", movieToAdd).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-            Assert.Equal(TestData.Movies.Count, context.Movies.Count());
+            Assert.Equal(TestData.Movies.Count, server.GetMovieCount());
 
             var result = response.DeserializeContent<ClientMovie>();
             Assert.NotNull(result);
-            var entity = context.GetMovieById(movieToAdd.Id);
+            var entity = server.GetMovieById(movieToAdd.Id);
             Assert.NotNull(entity);
             AssertEx.SystemPropertiesSet(entity, startTime);
             AssertEx.SystemPropertiesMatch(entity, result);
@@ -284,9 +268,9 @@ namespace Microsoft.Datasync.Integration.Test.Server
             {
                 Assert.Equal(movieToAdd.Id, result.Id);
             }
-            Assert.Equal(TestData.Movies.Count + 1, context.Movies.Count());
+            Assert.Equal(TestData.Movies.Count + 1, server.GetMovieCount());
 
-            var entity = context.GetMovieById(result.Id);
+            var entity = server.GetMovieById(result.Id);
             Assert.NotNull(entity);
 
             AssertEx.SystemPropertiesSet(entity, startTime);

@@ -2,9 +2,12 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -30,6 +33,44 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         /// is the required <see cref="JsonSerializerOptions"/> for deserialization.
         /// </summary>
         private static JsonSerializerOptions SerializerOptions { get; } = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+        /// <summary>
+        /// Returns the movie in the database.
+        /// </summary>
+        /// <param name="server">The server to retrieve the context from</param>
+        /// <param name="id">The ID of the movie</param>
+        /// <returns>The movie, or null if it doesn't exist.</returns>
+        public static EFMovie? GetMovieById(this TestServer server, string id)
+        {
+            using var scope = server.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MovieDbContext>();
+            return context.GetMovieById(id);
+        }
+
+        /// <summary>
+        /// Soft-deletes a set of movies.
+        /// </summary>
+        /// <param name="server">The server to use for the action</param>
+        /// <param name="predicate">A predicate to find the movies to soft-delete</param>
+        /// <returns></returns>
+        public static Task SoftDeleteMoviesAsync(this TestServer server, Expression<Func<EFMovie, bool>> predicate)
+        {
+            using var scope = server.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MovieDbContext>();
+            return context.SoftDeleteMoviesAsync(predicate);
+        }
+
+        /// <summary>
+        /// Returns a current count of the movies.
+        /// </summary>
+        /// <param name="server">The server to query</param>
+        /// <returns></returns>
+        public static int GetMovieCount(this TestServer server)
+        {
+            using var scope = server.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MovieDbContext>();
+            return context.Movies.Count();
+        }
 
         /// <summary>
         /// Sends a request to the remote server with no body content.

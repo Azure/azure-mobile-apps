@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Datasync.Integration.Test.Helpers;
+using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Datasync.Integration.Test
@@ -23,8 +24,14 @@ namespace Microsoft.Datasync.Integration.Test
                 .UseEnvironment("Test")
                 .UseContentRoot(System.AppContext.BaseDirectory)
                 .UseStartup<MovieApiStartup>();
+            var server = new TestServer(builder);
 
-            return new TestServer(builder);
+            // Initialize the database
+            using var scope = server.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MovieDbContext>();
+            context.InitializeDatabase();
+
+            return server;
         }
     }
 }

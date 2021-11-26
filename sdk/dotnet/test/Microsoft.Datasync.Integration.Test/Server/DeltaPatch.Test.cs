@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Datasync.Integration.Test.Helpers;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -31,26 +30,13 @@ namespace Microsoft.Datasync.Integration.Test.Server
         /// <summary>
         /// A connection to the test service.
         /// </summary>
-        private readonly TestServer server;
-
-        /// <summary>
-        /// The database context
-        /// </summary>
-        private readonly IServiceScope serviceScope;
-        private readonly MovieDbContext context;
-
-        public DeltaPatch_Tests()
-        {
-            server = MovieApiServer.CreateTestServer();
-            serviceScope = server.Services.CreateScope();
-            context = serviceScope.ServiceProvider.GetRequiredService<MovieDbContext>();
-        }
+        private readonly TestServer server = MovieApiServer.CreateTestServer();
 
         [Theory, CombinatorialData]
         public async Task BasicPatchTests([CombinatorialValues("movies", "movies_pagesize")] string table)
         {
             var id = TestData.Movies.GetRandomId();
-            var expected = context.GetMovieById(id)!;
+            var expected = server.GetMovieById(id)!;
             expected.Title = "Test Movie Title";
             expected.Rating = "PG-13";
 
@@ -60,13 +46,13 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 { "rating", "PG-13" }
             };
 
-            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(true);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = response.DeserializeContent<ClientMovie>();
             Assert.NotNull(result);
 
-            var stored = context.GetMovieById(id);
+            var stored = server.GetMovieById(id);
             Assert.NotNull(stored);
 
             AssertEx.SystemPropertiesSet(stored, startTime);
@@ -90,16 +76,16 @@ namespace Microsoft.Datasync.Integration.Test.Server
             };
 
             var id = TestData.Movies.GetRandomId();
-            var expected = context.GetMovieById(id)!;
+            var expected = server.GetMovieById(id)!;
             var patchDoc = new Dictionary<string, object>()
             {
                 { propName, propValues[propName] }
             };
 
-            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(true);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            var stored = context.GetMovieById(id);
+            var stored = server.GetMovieById(id);
             Assert.NotNull(stored);
             Assert.Equal<IMovie>(expected, stored!);
             Assert.Equal<ITableData>(expected, stored!);
@@ -116,7 +102,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 { "Rating", "PG-13" }
             };
 
-            var response = await server.SendRequest(HttpMethod.Patch, relativeUri, patchDoc, "application/json", null).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, relativeUri, patchDoc, "application/json", null).ConfigureAwait(true);
             Assert.Equal(expectedStatusCode, response.StatusCode);
         }
 
@@ -124,17 +110,17 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task PatchFailedWithWrongContentType()
         {
             var id = TestData.Movies.GetRandomId();
-            var expected = context.GetMovieById(id)!;
+            var expected = server.GetMovieById(id)!;
             var patchDoc = new Dictionary<string, object>()
             {
                 { "Title", "Test Movie Title" },
                 { "Rating", "PG-13" }
             };
 
-            var response = await server.SendRequest(HttpMethod.Patch, $"tables/movies/{id}", patchDoc, "application/json+problem", null).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/movies/{id}", patchDoc, "application/json+problem", null).ConfigureAwait(true);
 
             Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
-            var stored = context.GetMovieById(id);
+            var stored = server.GetMovieById(id);
             Assert.NotNull(stored);
             Assert.Equal<IMovie>(expected, stored!);
             Assert.Equal<ITableData>(expected, stored!);
@@ -144,13 +130,13 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task PatchFailedWithMalformedJson()
         {
             var id = TestData.Movies.GetRandomId();
-            var expected = context.GetMovieById(id)!;
+            var expected = server.GetMovieById(id)!;
             const string patchDoc = "{ \"some-malformed-json\": null";
 
-            var response = await server.SendRequest(HttpMethod.Patch, $"tables/movies/{id}", patchDoc, "application/json", null).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/movies/{id}", patchDoc, "application/json", null).ConfigureAwait(true);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            var stored = context.GetMovieById(id);
+            var stored = server.GetMovieById(id);
             Assert.NotNull(stored);
             Assert.Equal<IMovie>(expected, stored!);
             Assert.Equal<ITableData>(expected, stored!);
@@ -181,7 +167,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 { propName, propValue }
             };
 
-            var response = await server.SendRequest(HttpMethod.Patch, $"tables/movies/{id}", patchDoc, "application/json", null).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/movies/{id}", patchDoc, "application/json", null).ConfigureAwait(true);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
@@ -192,7 +178,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             [CombinatorialValues("movies_rated", "movies_legal")] string table)
         {
             var id = Utils.GetMovieId(index);
-            var original = context.GetMovieById(id)!;
+            var original = server.GetMovieById(id)!;
             var expected = original.Clone();
             expected.Title = "TEST MOVIE TITLE"; // Upper Cased because of the PreCommitHook
             expected.Rating = "PG-13";
@@ -206,13 +192,13 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Dictionary<string, string> headers = new();
             Utils.AddAuthHeaders(headers, userId);
 
-            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", headers).ConfigureAwait(true);
 
             if (userId != "success")
             {
                 var statusCode = table.Contains("legal") ? HttpStatusCode.UnavailableForLegalReasons : HttpStatusCode.Unauthorized;
                 Assert.Equal(statusCode, response.StatusCode);
-                var stored = context.GetMovieById(id);
+                var stored = server.GetMovieById(id);
                 Assert.NotNull(stored);
                 Assert.Equal<IMovie>(original, stored!);
                 Assert.Equal<ITableData>(original, stored!);
@@ -221,7 +207,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             {
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 var result = response.DeserializeContent<ClientMovie>();
-                var stored = context.GetMovieById(id);
+                var stored = server.GetMovieById(id);
                 Assert.NotNull(stored);
                 AssertEx.SystemPropertiesSet(stored, startTime);
                 AssertEx.SystemPropertiesChanged(expected, stored);
@@ -239,7 +225,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task ConditionalVersionPatchTests(string headerName, string? headerValue, HttpStatusCode expectedStatusCode)
         {
             string id = TestData.Movies.GetRandomId();
-            var entity = context.GetMovieById(id)!;
+            var entity = server.GetMovieById(id)!;
             var expected = entity.Clone();
             Dictionary<string, string> headers = new()
             {
@@ -251,11 +237,11 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 { "Rating", "PG-13" }
             };
 
-            var response = await server.SendRequest(HttpMethod.Patch, $"tables/movies/{id}", patchDoc, "application/json", headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/movies/{id}", patchDoc, "application/json", headers).ConfigureAwait(true);
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
             var actual = response.DeserializeContent<ClientMovie>();
-            var stored = context.GetMovieById(id);
+            var stored = server.GetMovieById(id);
             Assert.NotNull(stored);
 
             switch (expectedStatusCode)
@@ -287,7 +273,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task ConditionalModifiedPatchTests(string headerName, int offset, HttpStatusCode expectedStatusCode)
         {
             string id = TestData.Movies.GetRandomId();
-            var entity = context.GetMovieById(id)!;
+            var entity = server.GetMovieById(id)!;
             var expected = entity.Clone();
             Dictionary<string, string> headers = new()
             {
@@ -299,11 +285,11 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 { "Rating", "PG-13" }
             };
 
-            var response = await server.SendRequest(HttpMethod.Patch, $"tables/movies/{id}", patchDoc, "application/json", headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/movies/{id}", patchDoc, "application/json", headers).ConfigureAwait(true);
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
             var actual = response.DeserializeContent<ClientMovie>();
-            var stored = context.GetMovieById(id);
+            var stored = server.GetMovieById(id);
             Assert.NotNull(stored);
 
             switch (expectedStatusCode)
@@ -331,7 +317,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task SoftDeletePatch_PatchDeletedItem_ReturnsGone([CombinatorialValues("soft", "soft_logged")] string table)
         {
             var id = TestData.Movies.GetRandomId();
-            await context.SoftDeleteMovieAsync(x => x.Id == id).ConfigureAwait(false);
+            await server.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(true);
 
             var patchDoc = new Dictionary<string, object>()
             {
@@ -339,7 +325,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 { "Rating", "PG-13" }
             };
 
-            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(true);
             Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
         }
 
@@ -347,9 +333,9 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task SoftDeletePatch_CanUndeleteDeletedItem([CombinatorialValues("soft", "soft_logged")] string table)
         {
             var id = TestData.Movies.GetRandomId();
-            await context.SoftDeleteMovieAsync(x => x.Id == id).ConfigureAwait(false);
+            await server.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(true);
 
-            var expected = context.GetMovieById(id)!;
+            var expected = server.GetMovieById(id)!;
             expected.Deleted = false;
 
             var patchDoc = new Dictionary<string, object>()
@@ -357,11 +343,11 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 { "Deleted", false }
             };
 
-            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(true);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = response.DeserializeContent<ClientMovie>();
-            var stored = context.GetMovieById(id);
+            var stored = server.GetMovieById(id);
             Assert.NotNull(stored);
             AssertEx.SystemPropertiesSet(stored, startTime);
             AssertEx.SystemPropertiesChanged(expected, stored);
@@ -374,7 +360,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task SoftDeletePatch_PatchNotDeletedItem([CombinatorialValues("soft", "soft_logged")] string table)
         {
             var id = TestData.Movies.GetRandomId();
-            var expected = context.GetMovieById(id)!;
+            var expected = server.GetMovieById(id)!;
             expected.Title = "Test Movie Title";
             expected.Rating = "PG-13";
 
@@ -384,11 +370,11 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 { "Rating", "PG-13" }
             };
 
-            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Patch, $"tables/{table}/{id}", patchDoc, "application/json", null).ConfigureAwait(true);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = response.DeserializeContent<ClientMovie>();
-            var stored = context.GetMovieById(id);
+            var stored = server.GetMovieById(id);
             Assert.NotNull(stored);
             AssertEx.SystemPropertiesSet(stored, startTime);
             AssertEx.SystemPropertiesChanged(expected, stored);
