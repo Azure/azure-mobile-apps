@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Datasync;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,12 +25,16 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         public MovieApiStartup(IConfiguration configuration)
         {
             Configuration = configuration;
+            DbConnection = new SqliteConnection("Data Source=:memory:");
+            DbConnection.Open();
         }
 
         /// <summary>
         /// The application configuration
         /// </summary>
         public IConfiguration Configuration { get; }
+
+        public SqliteConnection DbConnection { get; }
 
         /// <summary>
         /// The <see cref="ConfigureServices(IServiceCollection)"/> method is called by the host before the
@@ -40,7 +45,8 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         public void ConfigureServices(IServiceCollection services)
         {
             // Add the database context
-            services.AddDbContext<MovieDbContext>(options => options.UseInMemoryDatabase(databaseName: "movies"));
+            services.AddDbContext<MovieDbContext>(options => 
+                options.UseSqlite(DbConnection).EnableSensitiveDataLogging());
 
             // Add authentication - force enabling the authentication pipeline.
             services.AddAuthentication(AzureAppServiceAuthentication.AuthenticationScheme)

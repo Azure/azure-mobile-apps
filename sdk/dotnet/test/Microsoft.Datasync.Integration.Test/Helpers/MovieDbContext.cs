@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Integration.Test.Helpers.Extensions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -51,11 +52,27 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         /// </summary>
         public void InitializeDatabase()
         {
-            Database.EnsureCreated();
+            bool created = Database.EnsureCreated();
+            if (created && Database.IsSqlite())
+            {
+                this.EnableSqliteExtensions();
+            }
 
             var seedData = TestData.Movies.OfType<EFMovie>().ToArray();
             Movies.AddRange(seedData);
             SaveChanges();
+        }
+
+        /// <summary>
+        /// Configures the current database to handle models.
+        /// </summary>
+        /// <param name="builder">The model builder.</param>
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            if (Database.IsSqlite())
+            {
+                builder.EnableSqliteExtensions();
+            }
         }
     }
 }
