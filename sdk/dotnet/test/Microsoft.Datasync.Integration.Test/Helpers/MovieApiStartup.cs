@@ -8,6 +8,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Datasync.Integration.Test.Helpers
@@ -44,9 +45,16 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         /// <param name="services">The service collection</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            // Options for the database setup
+            var sqlConfiguration = new Action<DbContextOptionsBuilder>(options =>
+            {
+                options.UseSqlite(DbConnection);
+                options.EnableDetailedErrors();
+                options.EnableSensitiveDataLogging();
+            });
+
             // Add the database context
-            services.AddDbContext<MovieDbContext>(options => 
-                options.UseSqlite(DbConnection).EnableSensitiveDataLogging());
+            services.AddDbContext<MovieDbContext>(sqlConfiguration, contextLifetime: ServiceLifetime.Transient, optionsLifetime: ServiceLifetime.Singleton);
 
             // Add authentication - force enabling the authentication pipeline.
             services.AddAuthentication(AzureAppServiceAuthentication.AuthenticationScheme)

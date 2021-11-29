@@ -153,18 +153,13 @@ namespace Microsoft.Datasync.Integration.Test.Server
             movieToAdd.Id = TestData.Movies.GetRandomId();
             var expectedMovie = server.GetMovieById(movieToAdd.Id)!;
 
-            // Act
             var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, "tables/movies", movieToAdd).ConfigureAwait(false);
 
-            // Assert
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
             Assert.Equal(TestData.Movies.Count, server.GetMovieCount());
 
-            var result = response.DeserializeContent<ClientMovie>();
-            Assert.NotNull(result);
-            var entity = server.GetMovieById(movieToAdd.Id);
-            Assert.NotNull(entity);
-            AssertEx.SystemPropertiesSet(entity, startTime);
+            var result = response.DeserializeContent<ClientMovie>()!;
+            var entity = server.GetMovieById(movieToAdd.Id)!;
             AssertEx.SystemPropertiesMatch(entity, result);
             Assert.Equal<IMovie>(expectedMovie, result!);
             Assert.Equal<IMovie>(expectedMovie, entity!);
@@ -223,18 +218,13 @@ namespace Microsoft.Datasync.Integration.Test.Server
             await server.SoftDeleteMoviesAsync(x => x.Id == movieToAdd.Id).ConfigureAwait(false);
             var expectedMovie = server.GetMovieById(movieToAdd.Id)!;
 
-            // Act
             var response = await server.SendRequest<ClientMovie>(HttpMethod.Post, $"tables/{table}", movieToAdd).ConfigureAwait(false);
 
-            // Assert
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
             Assert.Equal(TestData.Movies.Count, server.GetMovieCount());
 
-            var result = response.DeserializeContent<ClientMovie>();
-            Assert.NotNull(result);
-            var entity = server.GetMovieById(movieToAdd.Id);
-            Assert.NotNull(entity);
-            AssertEx.SystemPropertiesSet(entity, startTime);
+            var result = response.DeserializeContent<ClientMovie>()!;
+            var entity = server.GetMovieById(movieToAdd.Id)!;
             AssertEx.SystemPropertiesMatch(entity, result);
             Assert.Equal<IMovie>(expectedMovie, result!);
             Assert.Equal<IMovie>(expectedMovie, entity!);

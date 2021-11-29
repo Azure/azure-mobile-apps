@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Utils
 {
-    [ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class EnumValueAttribute_Test : BaseTest
     {
         [Theory]

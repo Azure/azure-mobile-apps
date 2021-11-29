@@ -27,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj" />
     <ProjectReference Include="..\Datasync.Common.Test\Datasync.Common.Test.csproj" />
+    <ProjectReference Include="..\Microsoft.Datasync.Integration.Test\Microsoft.Datasync.Integration.Test.csproj" />
   </ItemGroup>
 
 </Project>

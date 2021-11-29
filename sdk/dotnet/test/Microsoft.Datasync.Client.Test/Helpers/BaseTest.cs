@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test.Extensions;
 using Datasync.Common.Test.Models;
-using Datasync.Webservice;
-using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Datasync.Client.Authentication;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Test.Helpers;
+using Microsoft.Datasync.Integration.Test;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -65,9 +63,9 @@ namespace Microsoft.Datasync.Client.Test
         };
 
         /// <summary>
-        /// The test server - lazily assigned.
+        /// Default endpoint.
         /// </summary>
-        private readonly Lazy<TestServer> _testServer = new(() => Program.CreateTestServer());
+        protected Uri Endpoint { get; } = new Uri("https://localhost");
 
         /// <summary>
         /// Default client options.
@@ -75,25 +73,9 @@ namespace Microsoft.Datasync.Client.Test
         protected DatasyncClientOptions ClientOptions { get; } = new DatasyncClientOptions();
 
         /// <summary>
-        /// The endpoint for any HttpClient that needs to communicate with the test service.
-        /// </summary>
-        protected Uri Endpoint { get => _testServer.Value.BaseAddress; }
-
-        /// <summary>
         /// The mock handler that allows us to set responses and see requests.
         /// </summary>
         protected TestDelegatingHandler MockHandler { get; } = new TestDelegatingHandler();
-
-        /// <summary>
-        /// Gets a client reference for the test server.
-        /// </summary>
-        /// <returns></returns>
-        protected DatasyncClient CreateClientForTestServer(AuthenticationProvider authProvider = null)
-        {
-            var handler = _testServer.Value.CreateHandler();
-            var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { handler } };
-            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, authProvider, options);
-        }
 
         /// <summary>
         /// Gets a client reference for mocking
@@ -105,20 +87,26 @@ namespace Microsoft.Datasync.Client.Test
             return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, authProvider, options);
         }
 
-        /// <summary>
-        /// Gets a reference to the repository named.
-        /// </summary>
-        /// <typeparam name="T">The type of data stored in the repository</typeparam>
-        /// <returns></returns>
-        protected InMemoryRepository<T> GetRepository<T>() where T : InMemoryTableData
-            => _testServer.Value.GetRepository<T>();
+        // Backing store for the integration server.
+        private readonly Lazy<TestServer> _server = new(() => MovieApiServer.CreateTestServer());
 
         /// <summary>
-        /// Converts an index into an ID for the Movies controller.
+        /// Link to the test server
         /// </summary>
-        /// <param name="index"></param>
+        protected TestServer Server { get => _server.Value; }
+
+        /// <summary>
+        /// Gets a client reference that uses the Integration test server.
+        /// </summary>
+        /// <param name="server"></param>
+        /// <param name="authProvider"></param>
         /// <returns></returns>
-        public static string GetMovieId(int index) => string.Format("id-{0:000}", index);
+        protected DatasyncClient CreateClientForTestServer(AuthenticationProvider authProvider = null)
+        {
+            var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { Server.CreateHandler() } };
+            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, authProvider, options);
+
+        }
 
         /// <summary>
         /// Creates a paging response.

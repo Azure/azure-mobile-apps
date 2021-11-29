@@ -10,6 +10,8 @@ using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Test.Helpers;
 using Microsoft.Datasync.Client.Utils;
+using Microsoft.Datasync.Integration.Test;
+using Microsoft.Datasync.Integration.Test.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -21,6 +23,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
+
+using TestData = Datasync.Common.Test.TestData;
 
 namespace Microsoft.Datasync.Client.Test.Table
 {
@@ -270,12 +274,12 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_Basic(bool hasId)
         {
-            // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var expectedCount = repository.Entities.Count;
             var movieToAdd = blackPantherMovie.Clone();
-            if (hasId) { movieToAdd.Id = Guid.NewGuid().ToString("N"); }
+            if (hasId)
+            {
+                movieToAdd.Id = Guid.NewGuid().ToString("N");
+            }
 
             // Act
             var table = client.GetTable<ClientMovie>("movies");
@@ -291,10 +295,8 @@ namespace Microsoft.Datasync.Client.Test.Table
                 Assert.Equal(movieToAdd.Id, result.Id);
             }
             Assert.Equal<IMovie>(movieToAdd, result);
-            Assert.Equal(expectedCount + 1, repository.Entities.Count);
-
-            var entity = repository.GetEntity(result.Id);
-            Assert.NotNull(entity);
+            Assert.Equal(TestData.Movies.Count + 1, Server.GetMovieCount());
+            var entity = Server.GetMovieById(result.Id)!;
             Assert.Equal<IMovie>(movieToAdd, entity);
             AssertEx.Contains("Location", new Uri(Endpoint, $"tables/movies/{result.Id}").ToString(), response.Headers);
             AssertEx.Contains("ETag", $"\"{result.Version}\"", response.Headers);
@@ -304,14 +306,17 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_OverwriteSystemProperties(bool useUpdatedAt, bool useVersion)
         {
-            // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var expectedCount = repository.Entities.Count;
             var movieToAdd = blackPantherMovie.Clone();
             movieToAdd.Id = Guid.NewGuid().ToString("N");
-            if (useUpdatedAt) { movieToAdd.UpdatedAt = DateTimeOffset.Parse("2018-12-31T01:01:01.000Z"); }
-            if (useVersion) { movieToAdd.Version = Convert.ToBase64String(Guid.NewGuid().ToByteArray()); }
+            if (useUpdatedAt)
+            {
+                movieToAdd.UpdatedAt = DateTimeOffset.Parse("2018-12-31T01:01:01.000Z");
+            }
+            if (useVersion)
+            {
+                movieToAdd.Version = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            }
 
             // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
@@ -327,10 +332,9 @@ namespace Microsoft.Datasync.Client.Test.Table
             var result = response.Value;
             Assert.Equal(movieToAdd.Id, result.Id);
             Assert.Equal<IMovie>(movieToAdd, result);
-            Assert.Equal(expectedCount + 1, repository.Entities.Count);
+            Assert.Equal(TestData.Movies.Count + 1, Server.GetMovieCount());
 
-            var entity = repository.GetEntity(result.Id);
-            Assert.NotNull(entity);
+            var entity = Server.GetMovieById(result.Id)!;
             if (useUpdatedAt)
                 Assert.NotEqual(movieToAdd.UpdatedAt, result.UpdatedAt);
             if (useVersion)
@@ -362,10 +366,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_ValidationTest(string propName, object propValue)
         {
-            // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var expectedCount = repository.Entities.Count;
 
             Dictionary<string, object> movieToAdd = new()
             {
@@ -396,23 +397,20 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.NotNull(exception.Request);
             Assert.NotNull(exception.Response);
             Assert.Equal(400, exception.StatusCode);
-            Assert.Equal(expectedCount, repository.Entities.Count);
-            Assert.Null(repository.GetEntity("test-id"));
+            Assert.Equal(TestData.Movies.Count, Server.GetMovieCount());
+            Assert.Null(Server.GetMovieById("test-id"));
 
             Assert.Empty(modifications);
         }
 
-        [Theory, CombinatorialData]
+        [Fact]
         [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_Conflict([CombinatorialRange(0, Movies.Count)] int index)
+        public async Task CreateItemAsync_Conflict()
         {
-            // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var expectedCount = repository.Entities.Count;
             var movieToAdd = blackPantherMovie.Clone();
-            movieToAdd.Id = GetMovieId(index);
-            var expectedMovie = repository.GetEntity(movieToAdd.Id).Clone();
+            movieToAdd.Id = TestData.Movies.GetRandomId();
+            var expectedMovie = Server.GetMovieById(movieToAdd.Id)!;
 
             // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
@@ -426,9 +424,8 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.NotNull(exception.Request);
             Assert.NotNull(exception.Response);
             Assert.Equal(409, exception.StatusCode);
-            Assert.Equal(expectedCount, repository.Entities.Count);
-            var entity = repository.GetEntity(movieToAdd.Id);
-            Assert.NotNull(entity);
+            Assert.Equal(TestData.Movies.Count, Server.GetMovieCount());
+            var entity = Server.GetMovieById(movieToAdd.Id)!;
             AssertEx.SystemPropertiesSet(entity);
             AssertEx.SystemPropertiesMatch(entity, exception.ServerItem);
             Assert.Equal<IMovie>(expectedMovie, exception.ServerItem);
@@ -533,7 +530,6 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.False(response.HasContent);
         }
 
-
         [Theory]
         [InlineData(HttpStatusCode.Conflict)]
         [InlineData(HttpStatusCode.PreconditionFailed)]
@@ -605,15 +601,13 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal((int)statusCode, ex.StatusCode);
         }
 
-        [Theory, CombinatorialData]
+        [Fact]
         [Trait("Method", "DeleteItemAsync")]
-        public async Task DeleteItemAsync_Basic([CombinatorialRange(0, Movies.Count)] int index)
+        public async Task DeleteItemAsync_Basic()
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var entityCount = repository.Entities.Count;
-            var id = GetMovieId(index);
+            var id = TestData.Movies.GetRandomId();
 
             // Set up event handler
             var table = client.GetTable<ClientMovie>("movies");
@@ -625,8 +619,8 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Assert
             Assert.Equal(204, response.StatusCode);
-            Assert.Equal(entityCount - 1, repository.Entities.Count);
-            Assert.Null(repository.GetEntity(id));
+            Assert.Equal(TestData.Movies.Count - 1, Server.GetMovieCount());
+            Assert.Null(Server.GetMovieById(id));
 
             Assert.Single(modifications);
             var modArg = modifications[0];
@@ -642,8 +636,6 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var entityCount = repository.Entities.Count;
             const string id = "not-found";
 
             // Set up event handler
@@ -658,7 +650,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.NotNull(exception.Request);
             Assert.NotNull(exception.Response);
             Assert.Equal(404, exception.StatusCode);
-            Assert.Equal(entityCount, repository.Entities.Count);
+            Assert.Equal(TestData.Movies.Count, Server.GetMovieCount());
             Assert.Empty(modifications);
         }
 
@@ -668,10 +660,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var entityCount = repository.Entities.Count;
-            const string id = "id-107";
-            var expected = repository.GetEntity(id);
+            var id = TestData.Movies.GetRandomId();
+            var expected = Server.GetMovieById(id);
             var etag = Convert.ToBase64String(expected.Version);
 
             // Set up event handler
@@ -684,8 +674,8 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Assert
             Assert.Equal(204, response.StatusCode);
-            Assert.Equal(entityCount - 1, repository.Entities.Count);
-            Assert.Null(repository.GetEntity(id));
+            Assert.Equal(TestData.Movies.Count - 1, Server.GetMovieCount());
+            Assert.Null(Server.GetMovieById(id));
 
             Assert.Single(modifications);
             var modArg = modifications[0];
@@ -701,10 +691,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var entityCount = repository.Entities.Count;
-            const string id = "id-107";
-            var expected = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            var expected = Server.GetMovieById(id).Clone();
             const string etag = "dGVzdA==";
 
             // Set up event handler
@@ -719,8 +707,8 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.NotNull(exception.Request);
             Assert.NotNull(exception.Response);
             Assert.Equal(412, exception.StatusCode);
-            Assert.Equal(entityCount, repository.Entities.Count);
-            var entity = repository.GetEntity(id);
+            Assert.Equal(TestData.Movies.Count, Server.GetMovieCount());
+            var entity = Server.GetMovieById(id);
             Assert.NotNull(entity);
             AssertEx.SystemPropertiesSet(entity);
             AssertEx.SystemPropertiesMatch(entity, exception.ServerItem);
@@ -737,9 +725,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<SoftMovie>();
-            var entityCount = repository.Entities.Count;
-            const string id = "id-024";
+            var id = TestData.Movies.GetRandomId();
 
             // Set up event handler
             var table = client.GetTable<ClientMovie>("soft");
@@ -751,8 +737,8 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Assert
             Assert.Equal(204, response.StatusCode);
-            Assert.Equal(entityCount, repository.Entities.Count);
-            var entity = repository.GetEntity(id);
+            Assert.Equal(TestData.Movies.Count, Server.GetMovieCount());
+            var entity = Server.GetMovieById(id)!;
             Assert.True(entity.Deleted);
 
             Assert.Single(modifications);
@@ -769,9 +755,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<SoftMovie>();
-            var entityCount = repository.Entities.Count;
-            const string id = "id-025";
+            var id = TestData.Movies.GetRandomId();
+            await Server.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
 
             // Set up event handler
             var table = client.GetTable<ClientMovie>("soft");
@@ -785,8 +770,8 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.NotNull(exception.Request);
             Assert.NotNull(exception.Response);
             Assert.Equal(410, exception.StatusCode);
-            Assert.Equal(entityCount, repository.Entities.Count);
-            var entity = repository.GetEntity(id);
+            Assert.Equal(TestData.Movies.Count, Server.GetMovieCount());
+            var entity = Server.GetMovieById(id);
             Assert.True(entity.Deleted);
             Assert.Empty(modifications);
         }
@@ -1057,7 +1042,6 @@ namespace Microsoft.Datasync.Client.Test.Table
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
             AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
 
-
             // Assert - response
             Assert.Equal(10, items.Count);
             Assert.Equal(page1.Items, items.Take(5));
@@ -1214,7 +1198,6 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
             var table = client.GetTable<ClientMovie>("movies");
             int count = 0;
 
@@ -1230,14 +1213,14 @@ namespace Microsoft.Datasync.Client.Test.Table
                 Assert.NotNull(item);
                 Assert.NotNull(item.Id);
 
-                var expected = repository.GetEntity(item.Id);
+                var expected = Server.GetMovieById(item.Id);
                 Assert.Equal<IMovie>(expected, item);
 
-                Assert.Equal(Movies.Count, pageable.Count);
+                Assert.Equal(TestData.Movies.Count, pageable.Count);
                 Assert.NotNull(pageable.CurrentResponse);
             }
 
-            Assert.Equal(Movies.Count, count);
+            Assert.Equal(TestData.Movies.Count, count);
         }
 
         [Fact]
@@ -1246,7 +1229,6 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
             var table = client.GetTable<ClientMovie>("movies");
             int itemCount = 0, pageCount = 0;
 
@@ -1264,7 +1246,7 @@ namespace Microsoft.Datasync.Client.Test.Table
                 {
                     itemCount++;
                     Assert.NotNull(item.Id);
-                    var expected = repository.GetEntity(item.Id);
+                    var expected = Server.GetMovieById(item.Id);
                     Assert.Equal<IMovie>(expected, item);
                 }
             }
@@ -1438,15 +1420,14 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(304, ex.StatusCode);
         }
 
-        [Theory, CombinatorialData]
+        [Fact]
         [Trait("Method", "GetItemAsync")]
-        public async Task GetItemAsync_Basic([CombinatorialRange(0, Movies.Count)] int index)
+        public async Task GetItemAsync_Basic()
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var id = GetMovieId(index);
-            var expected = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            var expected = Server.GetMovieById(id)!;
 
             // Act
             var table = client.GetTable<ClientMovie>("movies");
@@ -1483,9 +1464,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var id = GetMovieId(107);
-            var expected = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            var expected = Server.GetMovieById(id)!;
 
             // Act
             var table = client.GetTable<ClientMovie>("movies");
@@ -1504,9 +1484,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var id = GetMovieId(107);
-            var expected = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            var expected = Server.GetMovieById(id)!;
             var etag = Convert.ToBase64String(expected.Version);
 
             // Act
@@ -1525,9 +1504,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<SoftMovie>();
-            var id = GetMovieId(24);
-            var expected = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            var expected = Server.GetMovieById(id)!;
 
             // Act
             var table = client.GetTable<ClientMovie>("soft");
@@ -1546,9 +1524,9 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<SoftMovie>();
-            var id = GetMovieId(25);
-            var expected = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            await Server.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
+            var expected = Server.GetMovieById(id)!;
             var etag = Convert.ToBase64String(expected.Version);
 
             // Act
@@ -2209,7 +2187,6 @@ namespace Microsoft.Datasync.Client.Test.Table
             var segments = pathAndQuery.Split('?');
             var query = segments.Length > 1 ? segments[1] : string.Empty;
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
             var table = client.GetTable<ClientMovie>("movies") as DatasyncTable<ClientMovie>;
 
             // Act
@@ -2238,7 +2215,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(firstExpectedItems, result.Items.Take(firstExpectedItems.Length).Select(m => m.Id).ToArray());
             for (int idx = 0; idx < firstExpectedItems.Length; idx++)
             {
-                var expected = repository.GetEntity(firstExpectedItems[idx]);
+                var expected = Server.GetMovieById(firstExpectedItems[idx]);
                 var actual = items[idx];
                 Assert.Equal<IMovie>(expected, actual);
                 AssertEx.SystemPropertiesMatch(expected, actual);
@@ -2334,7 +2311,6 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             string query = pathAndQuery.Split('?')[1];
             var client = CreateClientForTestServer();
-            var repository = GetRepository<SoftMovie>();
             var table = client.GetTable<ClientMovie>("soft") as DatasyncTable<ClientMovie>;
 
             // Act
@@ -2363,7 +2339,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(firstExpectedItems, result.Items.Take(firstExpectedItems.Length).Select(m => m.Id).ToArray());
             for (int idx = 0; idx < firstExpectedItems.Length; idx++)
             {
-                var expected = repository.GetEntity(firstExpectedItems[idx]);
+                var expected = Server.GetMovieById(firstExpectedItems[idx]);
                 var actual = items[idx];
                 Assert.Equal<IMovie>(expected, actual);
                 AssertEx.SystemPropertiesMatch(expected, actual);
@@ -2579,15 +2555,14 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal((int)statusCode, ex.StatusCode);
         }
 
-        [Theory, CombinatorialData]
+        [Fact]
         [Trait("Method", "ReplaceItemAsync")]
-        public async Task ReplaceItemAsync_Basic([CombinatorialRange(0, Movies.Count)] int index)
+        public async Task ReplaceItemAsync_Basic()
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var id = GetMovieId(index);
-            var original = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            var original = Server.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
@@ -2599,7 +2574,7 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Act
             var response = await table.ReplaceItemAsync(expected).ConfigureAwait(false);
-            var stored = repository.GetEntity(id);
+            var stored = Server.GetMovieById(id);
 
             // Assert
             Assert.Equal(200, response.StatusCode);
@@ -2630,9 +2605,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var id = GetMovieId(20);
-            var original = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            var original = Server.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
             var entity = expected.Clone();
 
@@ -2651,7 +2625,7 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.ReplaceItemAsync(entity)).ConfigureAwait(false);
-            var stored = repository.GetEntity(id).Clone();
+            var stored = Server.GetMovieById(id).Clone();
 
             // Assert
             Assert.Equal(400, exception.StatusCode);
@@ -2687,9 +2661,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var id = GetMovieId(42);
-            var original = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            var original = Server.GetMovieById(id).Clone();
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
@@ -2701,7 +2674,7 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Act
             var response = await table.ReplaceItemAsync(expected, IfMatch.Version(expected.Version)).ConfigureAwait(false);
-            var stored = repository.GetEntity(id);
+            var stored = Server.GetMovieById(id);
 
             // Assert
             Assert.Equal(200, response.StatusCode);
@@ -2724,10 +2697,9 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var entityCount = repository.Entities.Count;
-            const string id = "id-107";
-            var original = repository.GetEntity(id).Clone();
+            var entityCount = Server.GetMovieCount();
+            var id = TestData.Movies.GetRandomId();
+            var original = Server.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
@@ -2745,8 +2717,8 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.NotNull(exception.Request);
             Assert.NotNull(exception.Response);
             Assert.Equal(412, exception.StatusCode);
-            Assert.Equal(entityCount, repository.Entities.Count);
-            var entity = repository.GetEntity(id);
+            Assert.Equal(entityCount, Server.GetMovieCount());
+            var entity = Server.GetMovieById(id);
             Assert.NotNull(entity);
             AssertEx.SystemPropertiesSet(entity);
             AssertEx.SystemPropertiesMatch(entity, exception.ServerItem);
@@ -2763,9 +2735,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<SoftMovie>();
-            const string id = "id-024";
-            var original = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            var original = Server.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
@@ -2777,7 +2748,7 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Act
             var response = await table.ReplaceItemAsync(expected).ConfigureAwait(false);
-            var stored = repository.GetEntity(id).Clone();
+            var stored = Server.GetMovieById(id).Clone();
 
             // Assert
             Assert.Equal(200, response.StatusCode);
@@ -2800,9 +2771,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<SoftMovie>();
-            const string id = "id-025";
-            var original = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            var original = Server.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
@@ -2814,7 +2784,7 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.ReplaceItemAsync(expected)).ConfigureAwait(false);
-            var stored = repository.GetEntity(id).Clone();
+            var stored = Server.GetMovieById(id).Clone();
 
             // Assert
             Assert.Equal(410, exception.StatusCode);
@@ -2831,7 +2801,6 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
             var table = client.GetTable<ClientMovie>("movies");
             int count = 0;
 
@@ -2846,7 +2815,7 @@ namespace Microsoft.Datasync.Client.Test.Table
                 Assert.NotNull(item);
                 Assert.NotNull(item.Id);
 
-                var expected = repository.GetEntity(item.Id);
+                var expected = Server.GetMovieById(item.Id);
                 Assert.Equal<IMovie>(expected, item);
             }
 
@@ -2861,7 +2830,6 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
             var table = client.GetTable<ClientMovie>("movies");
             int count = 0;
 
@@ -2877,7 +2845,7 @@ namespace Microsoft.Datasync.Client.Test.Table
                 Assert.NotNull(item);
                 Assert.NotNull(item.Id);
 
-                var expected = repository.GetEntity(item.Id);
+                var expected = Server.GetMovieById(item.Id);
                 Assert.Equal<IMovie>(expected, item);
 
                 Assert.Equal(Movies.Count, pageable.Count);
@@ -2893,7 +2861,6 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
             var table = client.GetTable<ClientMovie>("movies");
             int itemCount = 0, pageCount = 0;
 
@@ -2911,7 +2878,7 @@ namespace Microsoft.Datasync.Client.Test.Table
                 {
                     itemCount++;
                     Assert.NotNull(item.Id);
-                    var expected = repository.GetEntity(item.Id);
+                    var expected = Server.GetMovieById(item.Id);
                     Assert.Equal<IMovie>(expected, item);
                 }
             }
@@ -3188,15 +3155,14 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Null(response.Value);
         }
 
-        [Theory, CombinatorialData]
+        [Fact]
         [Trait("Method", "UpdateItemAsync")]
-        public async Task UpdateItemAsync_Basic([CombinatorialRange(0, Movies.Count)] int index)
+        public async Task UpdateItemAsync_Basic()
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var id = GetMovieId(index);
-            var original = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            var original = Server.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
@@ -3208,7 +3174,7 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Act
             var response = await table.UpdateItemAsync(id, EntityUpdates).ConfigureAwait(false);
-            var stored = repository.GetEntity(id);
+            var stored = Server.GetMovieById(id);
 
             // Assert
             Assert.Equal(200, response.StatusCode);
@@ -3239,9 +3205,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var id = GetMovieId(20);
-            var original = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            var original = Server.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
             var entity = expected.Clone();
 
@@ -3265,7 +3230,7 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.UpdateItemAsync(id, updates)).ConfigureAwait(false);
-            var stored = repository.GetEntity(id).Clone();
+            var stored = Server.GetMovieById(id).Clone();
 
             // Assert
             Assert.Equal(400, exception.StatusCode);
@@ -3299,9 +3264,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var id = GetMovieId(42);
-            var original = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            var original = Server.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
@@ -3313,7 +3277,7 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Act
             var response = await table.UpdateItemAsync(id, EntityUpdates, IfMatch.Version(expected.Version)).ConfigureAwait(false);
-            var stored = repository.GetEntity(id);
+            var stored = Server.GetMovieById(id);
 
             // Assert
             Assert.Equal(200, response.StatusCode);
@@ -3336,10 +3300,9 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<InMemoryMovie>();
-            var entityCount = repository.Entities.Count;
-            const string id = "id-107";
-            var original = repository.GetEntity(id).Clone();
+            var entityCount = Server.GetMovieCount();
+            var id = TestData.Movies.GetRandomId();
+            var original = Server.GetMovieById(id).Clone();
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
@@ -3357,8 +3320,8 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.NotNull(exception.Request);
             Assert.NotNull(exception.Response);
             Assert.Equal(412, exception.StatusCode);
-            Assert.Equal(entityCount, repository.Entities.Count);
-            var entity = repository.GetEntity(id);
+            Assert.Equal(entityCount, Server.GetMovieCount());
+            var entity = Server.GetMovieById(id);
             Assert.NotNull(entity);
             AssertEx.SystemPropertiesSet(entity);
             AssertEx.SystemPropertiesMatch(entity, exception.ServerItem);
@@ -3375,9 +3338,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<SoftMovie>();
-            const string id = "id-024";
-            var original = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            var original = Server.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
@@ -3389,7 +3351,7 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Act
             var response = await table.UpdateItemAsync(id, EntityUpdates).ConfigureAwait(false);
-            var stored = repository.GetEntity(id).Clone();
+            var stored = Server.GetMovieById(id).Clone();
 
             // Assert
             Assert.Equal(200, response.StatusCode);
@@ -3412,9 +3374,9 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = CreateClientForTestServer();
-            var repository = GetRepository<SoftMovie>();
-            const string id = "id-025";
-            var original = repository.GetEntity(id).Clone();
+            var id = TestData.Movies.GetRandomId();
+            await Server.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
+            var original = Server.GetMovieById(id).Clone();
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
@@ -3426,7 +3388,7 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.UpdateItemAsync(id, EntityUpdates)).ConfigureAwait(false);
-            var stored = repository.GetEntity(id).Clone();
+            var stored = Server.GetMovieById(id).Clone();
 
             // Assert
             Assert.Equal(410, exception.StatusCode);

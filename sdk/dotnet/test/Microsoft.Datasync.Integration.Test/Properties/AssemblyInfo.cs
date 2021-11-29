@@ -3,5 +3,4 @@
 
 using System.Runtime.CompilerServices;
 
-[assembly:InternalsVisibleTo("Microsoft.Datasync.Client.Test")]
-[assembly:InternalsVisibleTo("Microsoft.Datasync.Integration.Test")]
+[assembly: InternalsVisibleTo("Microsoft.Datasync.Client.Test")]

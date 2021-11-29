@@ -347,8 +347,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = response.DeserializeContent<ClientMovie>();
-            var stored = server.GetMovieById(id);
-            Assert.NotNull(stored);
+            var stored = server.GetMovieById(id)!;
             AssertEx.SystemPropertiesSet(stored, startTime);
             AssertEx.SystemPropertiesChanged(expected, stored);
             AssertEx.SystemPropertiesMatch(stored, result);

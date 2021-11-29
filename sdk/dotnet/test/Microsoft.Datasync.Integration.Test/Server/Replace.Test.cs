@@ -42,11 +42,11 @@ namespace Microsoft.Datasync.Integration.Test.Server
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
 
-            var response = await server.SendRequest(HttpMethod.Put, $"tables/{table}/{id}", expected).ConfigureAwait(false);
-            var stored = server.GetMovieById(id);
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/{table}/{id}", expected).ConfigureAwait(true);
+            var stored = server.GetMovieById(id)!;
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal<IMovie>(expected, stored!);
+            Assert.Equal<IMovie>(expected, stored);
             AssertEx.SystemPropertiesSet(stored, startTime);
             AssertEx.SystemPropertiesChanged(original, stored);
             AssertEx.ResponseHasConditionalHeaders(stored, response);
@@ -69,12 +69,12 @@ namespace Microsoft.Datasync.Integration.Test.Server
             var entity = expected.ToDictionary();
             entity[propName] = propValue;
 
-            var response = await server.SendRequest(HttpMethod.Put, $"tables/movies/{id}", entity).ConfigureAwait(false);
-            var stored = server.GetMovieById(id);
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/movies/{id}", entity).ConfigureAwait(true);
+            var stored = server.GetMovieById(id)!;
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal<IMovie>(expected, stored!);
-            Assert.Equal<ITableData>(expected, stored!);
+            Assert.Equal<IMovie>(expected, stored);
+            Assert.Equal<ITableData>(expected, stored);
         }
 
         [Theory]
@@ -95,7 +95,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             entity[propName] = propValue;
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Put, $"tables/movies_pagesize/{id}", entity).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/movies_pagesize/{id}", entity).ConfigureAwait(true);
             var stored = server.GetMovieById(id);
 
             // Assert
@@ -122,7 +122,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Dictionary<string, string> headers = new();
             Utils.AddAuthHeaders(headers, userId);
 
-            var response = await server.SendRequest(HttpMethod.Put, $"tables/{table}/{id}", replacement, headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/{table}/{id}", replacement, headers).ConfigureAwait(true);
             var stored = server.GetMovieById(id);
 
             if (userId != "success")
@@ -163,7 +163,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             replacement.Title = "Test Movie Title";
             replacement.Rating = "PG-13";
 
-            var response = await server.SendRequest(HttpMethod.Put, $"tables/movies/{id}", replacement, headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/movies/{id}", replacement, headers).ConfigureAwait(true);
             var stored = server.GetMovieById(id);
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
@@ -204,7 +204,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             replacement.Title = "Test Movie Title";
             replacement.Rating = "PG-13";
 
-            var response = await server.SendRequest(HttpMethod.Put, $"tables/movies/{id}", replacement, headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/movies/{id}", replacement, headers).ConfigureAwait(true);
             var stored = server.GetMovieById(id);
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
@@ -253,7 +253,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             }
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Put, relativeUri, blackPantherMovie, headers).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Put, relativeUri, blackPantherMovie, headers).ConfigureAwait(true);
 
             // Assert
             Assert.Equal(expectedStatusCode, response.StatusCode);
@@ -276,7 +276,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
 
-            var response = await server.SendRequest(HttpMethod.Put, $"tables/{table}/{id}", expected).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/{table}/{id}", expected).ConfigureAwait(true);
             var stored = server.GetMovieById(id);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -290,14 +290,14 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task ReplaceSoftDeleted_ReturnsGone([CombinatorialValues("soft", "soft_logged")] string table)
         {
             var id = TestData.Movies.GetRandomId();
-            await server.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
+            await server.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(true);
 
             var original = server.GetMovieById(id)!;
             var expected = server.GetMovieById(id)!;
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
 
-            var response = await server.SendRequest(HttpMethod.Put, $"tables/{table}/{id}", expected).ConfigureAwait(false);
+            var response = await server.SendRequest(HttpMethod.Put, $"tables/{table}/{id}", expected).ConfigureAwait(true);
             var stored = server.GetMovieById(id);
             Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
             Assert.Equal<IMovie>(original, stored!);

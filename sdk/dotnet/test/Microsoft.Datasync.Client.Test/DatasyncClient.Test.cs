@@ -2,28 +2,15 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test.Models;
-using Microsoft.Datasync.Client.Authentication;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test
 {
-    [ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class DatasyncClient_Tests : BaseTest
     {
-        private class IntDatasyncClient : DatasyncClient
-        {
-            public IntDatasyncClient(Uri endpoint, DatasyncClientOptions options = null) : base(endpoint, options)
-            {
-            }
-
-            public void IntDispose(bool disposing) => Dispose(disposing);
-            public void IntDispose() => Dispose();
-        }
-
-        #region Ctor
         [Fact]
         [Trait("Method", "Ctor(string)")]
         public void CtorString_Null_Throws()
@@ -32,12 +19,21 @@ namespace Microsoft.Datasync.Client.Test
             Assert.Throws<ArgumentNullException>(() => new DatasyncClient(endpoint));
         }
 
-        [Theory, ClassData(typeof(TestCases.Invalid_Endpoints))]
+        [Theory]
+        [InlineData("")]
+        [InlineData("http://")]
+        [InlineData("file://localhost/foo")]
+        [InlineData("http://foo.azurewebsites.net")]
+        [InlineData("http://foo.azure-api.net")]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]")]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000")]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000/myapi")]
+        [InlineData("http://10.0.0.8")]
+        [InlineData("http://10.0.0.8:3000")]
+        [InlineData("http://10.0.0.8:3000/myapi")]
+        [InlineData("foo/bar")]
         [Trait("Method", "Ctor(string)")]
-        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case does not check for normalization")]
-        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case does not check for normalization")]
-        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Test case does not use isRelative")]
-        public void CtorString_Invalid_Throws(string endpoint, bool isRelative)
+        public void CtorString_Invalid_Throws(string endpoint)
         {
             Assert.Throws<UriFormatException>(() => new DatasyncClient(endpoint));
         }
@@ -104,17 +100,28 @@ namespace Microsoft.Datasync.Client.Test
         public void CtorStringOptions_Null_Throws()
         {
             const string endpoint = null;
-            Assert.Throws<ArgumentNullException>(() => new DatasyncClient(endpoint));
+            DatasyncClientOptions options = null;
+            Assert.Throws<ArgumentNullException>(() => new DatasyncClient(endpoint, options));
         }
 
-        [Theory, ClassData(typeof(TestCases.Invalid_Endpoints))]
+        [Theory]
+        [InlineData("")]
+        [InlineData("http://")]
+        [InlineData("file://localhost/foo")]
+        [InlineData("http://foo.azurewebsites.net")]
+        [InlineData("http://foo.azure-api.net")]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]")]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000")]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000/myapi")]
+        [InlineData("http://10.0.0.8")]
+        [InlineData("http://10.0.0.8:3000")]
+        [InlineData("http://10.0.0.8:3000/myapi")]
+        [InlineData("foo/bar")]
         [Trait("Method", "Ctor(string,DatasyncClientOptions)")]
-        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case does not check for normalization")]
-        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case does not check for normalization")]
-        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Test case does not check for normalization")]
-        public void CtorStringOptions_Invalid_Throws(string endpoint, bool isRelative)
+        public void CtorStringOptions_Invalid_Throws(string endpoint)
         {
-            Assert.Throws<UriFormatException>(() => new DatasyncClient(endpoint));
+            DatasyncClientOptions options = new();
+            Assert.Throws<UriFormatException>(() => new DatasyncClient(endpoint, options));
         }
 
         [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
@@ -177,9 +184,7 @@ namespace Microsoft.Datasync.Client.Test
             Assert.Same(options, client.ClientOptions);
             Assert.NotNull(client.HttpClient);
         }
-        #endregion
 
-        #region GetTable<T>()
         [Fact]
         [Trait("Method", "GetTable")]
         public void GetTable_ProducesTable_WithNormalOptions()
@@ -204,9 +209,7 @@ namespace Microsoft.Datasync.Client.Test
             Assert.Equal(expectedUri, table.Endpoint);
             Assert.Same(options, table.ClientOptions);
         }
-        #endregion
 
-        #region GetTable<T>(string)
         [Fact]
         [Trait("Method", "GetTable")]
         public void GetTable_stringTable_ProducesTable()
@@ -256,38 +259,5 @@ namespace Microsoft.Datasync.Client.Test
             Assert.Equal(expectedUri, table.Endpoint);
             Assert.Same(options, table.ClientOptions);
         }
-        #endregion
-
-        #region IDisposable
-        [Fact]
-        [Trait("Method", "Dispose(bool)")]
-        public void Dispose_True_Disposes()
-        {
-            var client = new IntDatasyncClient(Endpoint, ClientOptions);
-            Assert.NotNull(client.HttpClient);
-            client.IntDispose(true);
-            Assert.Null(client.HttpClient);
-        }
-
-        [Fact]
-        [Trait("Method", "Dispose(bool)")]
-        public void Dispose_False_Disposes()
-        {
-            var client = new IntDatasyncClient(Endpoint, ClientOptions);
-            Assert.NotNull(client.HttpClient);
-            client.IntDispose(false);
-            Assert.NotNull(client.HttpClient);
-        }
-
-        [Fact]
-        [Trait("Method", "Dispose")]
-        public void Dispose_Disposes()
-        {
-            var client = new IntDatasyncClient(Endpoint, ClientOptions);
-            Assert.NotNull(client.HttpClient);
-            client.IntDispose();
-            Assert.Null(client.HttpClient);
-        }
-        #endregion
     }
 }

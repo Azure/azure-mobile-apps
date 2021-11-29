@@ -185,6 +185,10 @@ namespace Microsoft.AspNetCore.Datasync.EFCore
                 entity.UpdatedAt = DateTimeOffset.UtcNow;
                 Context.Entry(storeEntity).CurrentValues.SetValues(entity);
                 await Context.SaveChangesAsync(token).ConfigureAwait(false);
+
+                // Copy the stored values for the metadata back into the entity.
+                entity.Version = storeEntity.Version;
+                entity.UpdatedAt = storeEntity.UpdatedAt;
             }
             catch (DbUpdateException ex)
             {
