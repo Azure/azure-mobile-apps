@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Datasync.Common.Test.Models
 {
@@ -26,6 +27,7 @@ namespace Datasync.Common.Test.Models
         /// <summary>
         /// The MPAA rating for the movie, if available.
         /// </summary>
+        [JsonPropertyName("rating")]
         public string Rating { get; set; }
 
         /// <summary>

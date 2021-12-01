@@ -11,9 +11,8 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Utils
 {
     [ExcludeFromCodeCoverage]
-    public class StdLibExtensions_Test : OldBaseTest
+    public class StdLibExtensions_Test
     {
-        #region NormalizeEndpoint(Uri)
         [Fact]
         [Trait("Method", "NormalizeEndpoint(Uri)")]
         public void NormalizeEndpoint_Null_Throws()
@@ -36,9 +35,7 @@ namespace Microsoft.Datasync.Client.Test.Utils
             Uri sut = new(endpoint);
             Assert.Equal(normalizedEndpoint, sut.NormalizeEndpoint().ToString());
         }
-        #endregion
 
-        #region WithQuery(string)
         [Theory]
         [InlineData("http://localhost", null, "http://localhost/")]
         [InlineData("http://localhost", "", "http://localhost/")]
@@ -67,6 +64,5 @@ namespace Microsoft.Datasync.Client.Test.Utils
             Assert.Same(builder, actual);
             Assert.Equal(expected, actual.Uri.ToString());
         }
-        #endregion
     }
 }

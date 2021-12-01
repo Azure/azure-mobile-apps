@@ -5,15 +5,12 @@ using Microsoft.Datasync.Client.Table.Query.Nodes;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Table.Query
 {
     [ExcludeFromCodeCoverage]
-    public class Nodes_Test : OldBaseTest
+    public class Nodes_Test
     {
         [Fact]
         public void UnaryOperatorNode_SetChildren_NullThrows()

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test.TestData;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
@@ -10,9 +11,8 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Utils
 {
     [ExcludeFromCodeCoverage]
-    public class Validate_Tests : OldBaseTest
+    public class Validate_Tests
     {
-        #region IsNotNull
         [Fact]
         [Trait("Method", "IsNotNull(object,string)")]
         public void IsNotNull_Null_Throws()
@@ -28,9 +28,7 @@ namespace Microsoft.Datasync.Client.Test.Utils
             object sut = new();
             Validate.IsNotNull(sut, nameof(sut));
         }
-        #endregion
 
-        #region IsNotNullOrEmpty<T>(IEnumerable<T>,string)
         [Fact]
         [Trait("Method", "IsNotNullOrEmpty")]
         public void IsNotNullOrEmpty_Byte_Null_Throws()
@@ -105,9 +103,7 @@ namespace Microsoft.Datasync.Client.Test.Utils
             Validate.IsNotNullOrEmpty(sut, nameof(sut));
             Assert.NotEmpty(sut);
         }
-        #endregion
 
-        #region IsNotNullOrWhitespace(string,string)
         [Fact]
         [Trait("Method", "IsNotNullOrWhitespace")]
         public void IsNotNullOrWhitespace_String_Null_Throws()
@@ -134,9 +130,7 @@ namespace Microsoft.Datasync.Client.Test.Utils
             Validate.IsNotNullOrWhitespace(sut, nameof(sut));
             Assert.NotEmpty(sut);
         }
-        #endregion
 
-        #region IsRelativeUri(string,string)
         [Fact]
         public void IsRelativeUri_Null_Throws()
         {
@@ -167,9 +161,6 @@ namespace Microsoft.Datasync.Client.Test.Utils
         {
             Validate.IsRelativeUri(sut, nameof(sut));
         }
-        #endregion
-
-        #region IsValidEndpoint(Uri,string)
 
         [Fact]
         [Trait("Method", "IsValidEndpoint(Uri,string)")]
@@ -179,25 +170,35 @@ namespace Microsoft.Datasync.Client.Test.Utils
             Assert.Throws<ArgumentNullException>(() => Validate.IsValidEndpoint(sut, nameof(sut)));
         }
 
-        [Theory, ClassData(typeof(TestCases.Invalid_Endpoints))]
+        [Theory]
+        [InlineData("", false)]
+        [InlineData("", true)]
+        [InlineData("http://", false)]
+        [InlineData("http://", true)]
+        [InlineData("file://localhost/foo", false)]
+        [InlineData("http://foo.azurewebsites.net", false)]
+        [InlineData("http://foo.azure-api.net", false)]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]", false)]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000", false)]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000/myapi", false)]
+        [InlineData("http://10.0.0.8", false)]
+        [InlineData("http://10.0.0.8:3000", false)]
+        [InlineData("http://10.0.0.8:3000/myapi", false)]
+        [InlineData("foo/bar", true)]
         [Trait("Method", "IsValidEndpoint(Uri,string)")]
         public void IsValidEndpoint_Invalid_Throws(string endpoint, bool isRelative = false)
         {
             Assert.Throws<UriFormatException>(() => Validate.IsValidEndpoint(isRelative ? new Uri(endpoint, UriKind.Relative) : new Uri(endpoint), "sut"));
         }
 
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Theory, ClassData(typeof(EndpointTestCases))]
         [Trait("Method", "IsValidEndpoint(Uri,string)")]
-        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case does not check for normalization")]
-        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case does not check for normalization")]
-        public void IsValidEndpoint_Valid_Passes(string endpoint, string normalizedEndpoint)
+        public void IsValidEndpoint_Valid_Passes(EndpointTestCase testcase)
         {
-            Uri sut = new(endpoint);
+            Uri sut = new(testcase.BaseEndpoint);
             Validate.IsValidEndpoint(sut, nameof(sut));
         }
-        #endregion
 
-        #region IsValidId(string,string)
         [Fact]
         [Trait("Method", "IsValidId")]
         public void IsValidId_Null_Throws()
@@ -233,6 +234,5 @@ namespace Microsoft.Datasync.Client.Test.Utils
         {
             Validate.IsValidId(sut, nameof(sut));
         }
-        #endregion
     }
 }

@@ -4,6 +4,7 @@
 using Microsoft.Datasync.Client;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace Datasync.Common.Test.Models
 {
@@ -81,5 +82,11 @@ namespace Datasync.Common.Test.Models
     {
         public string Id { get; set; }
         public string Title { get; set; }
+    }
+
+    public class RenamedEntity
+    {
+        [JsonPropertyName("rating")]
+        public string MpaaRating { get; set; }
     }
 }
