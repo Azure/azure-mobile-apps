@@ -9,7 +9,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json;
 
-namespace Microsoft.Datasync.Integration.Test
+namespace Datasync.Common.Test.Models
 {
     public class EFMovie : EntityTableData, IMovie, IEquatable<IMovie>
     {
@@ -29,7 +29,7 @@ namespace Microsoft.Datasync.Integration.Test
         /// The MPAA rating for the movie, if available.
         /// </summary>
         [RegularExpression("^(G|PG|PG-13|R|NC-17)$")]
-        public string? Rating { get; set; }
+        public string Rating { get; set; }
 
         /// <summary>
         /// The release date of the movie.
@@ -56,7 +56,7 @@ namespace Microsoft.Datasync.Integration.Test
         /// </summary>
         /// <param name="other">The other movie</param>
         /// <returns>true if the content is the same</returns>
-        public bool Equals(IMovie? other)
+        public bool Equals(IMovie other)
             => other != null
             && other.BestPictureWinner == BestPictureWinner
             && other.Duration == Duration

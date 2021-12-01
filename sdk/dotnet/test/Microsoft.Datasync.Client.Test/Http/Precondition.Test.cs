@@ -8,7 +8,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Http
 {
     [ExcludeFromCodeCoverage]
-    public class Precondition_Test : BaseTest
+    public class Precondition_Test : OldBaseTest
     {
         [Fact]
         [Trait("Method", "IfMatch.Any")]

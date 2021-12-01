@@ -4,8 +4,6 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync.Extensions;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Datasync.Integration.Test.Helpers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -15,23 +13,18 @@ using Xunit;
 
 using TestData = Datasync.Common.Test.TestData;
 
-namespace Microsoft.Datasync.Integration.Test.Server
+namespace Microsoft.Datasync.Integration.Test.MovieServer
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class Read_Tests
+    public class Read_Tests : BaseTest
     {
-        /// <summary>
-        /// A connection to the test service.
-        /// </summary>
-        private readonly TestServer server = MovieApiServer.CreateTestServer();
-
         [Theory, CombinatorialData]
         public async Task BasicReadTests([CombinatorialValues("movies", "movies_pagesize")] string table)
         {
-            string id = TestData.Movies.GetRandomId();
-            var expected = server.GetMovieById(id)!;
+            string id = GetRandomId();
+            var expected = MovieServer.GetMovieById(id)!;
 
-            var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var actual = response.DeserializeContent<ClientMovie>();
@@ -45,7 +38,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [InlineData("tables/movies_pagesize/not-found", HttpStatusCode.NotFound)]
         public async Task FailedReadTests(string relativeUri, HttpStatusCode expectedStatusCode)
         {
-            var response = await server.SendRequest(HttpMethod.Get, relativeUri).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, relativeUri).ConfigureAwait(false);
             Assert.Equal(expectedStatusCode, response.StatusCode);
         }
 
@@ -56,11 +49,11 @@ namespace Microsoft.Datasync.Integration.Test.Server
             [CombinatorialValues("movies_rated", "movies_legal")] string table)
         {
             string id = Utils.GetMovieId(index);
-            var expected = server.GetMovieById(id)!;
+            var expected = MovieServer.GetMovieById(id)!;
             Dictionary<string, string> headers = new();
             Utils.AddAuthHeaders(headers, userId);
 
-            var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}", headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/{table}/{id}", headers).ConfigureAwait(false);
 
             if (userId != "success")
             {
@@ -84,14 +77,14 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [InlineData("If-None-Match", "\"dGVzdA==\"", HttpStatusCode.OK)]
         public async Task ConditionalVersionReadTests(string headerName, string headerValue, HttpStatusCode expectedStatusCode)
         {
-            var id = TestData.Movies.GetRandomId();
-            var expected = server.GetMovieById(id)!;
+            var id = GetRandomId();
+            var expected = MovieServer.GetMovieById(id)!;
             Dictionary<string, string> headers = new()
             {
                 { headerName, headerValue ?? expected.GetETag() }
             };
 
-            var response = await server.SendRequest(HttpMethod.Get, $"tables/movies/{id}", headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/movies/{id}", headers).ConfigureAwait(false);
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
             if (expectedStatusCode == HttpStatusCode.OK || expectedStatusCode == HttpStatusCode.PreconditionFailed)
@@ -110,14 +103,14 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [InlineData("If-Unmodified-Since", -1, HttpStatusCode.PreconditionFailed)]
         public async Task ConditionalReadTests(string headerName, int offset, HttpStatusCode expectedStatusCode)
         {
-            var id = TestData.Movies.GetRandomId();
-            var expected = server.GetMovieById(id)!;
+            var id = GetRandomId();
+            var expected = MovieServer.GetMovieById(id)!;
             Dictionary<string, string> headers = new()
             {
                 { headerName, expected.UpdatedAt.AddHours(offset).ToString("R") }
             };
 
-            var response = await server.SendRequest(HttpMethod.Get, $"tables/movies/{id}", headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/movies/{id}", headers).ConfigureAwait(false);
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
             if (expectedStatusCode == HttpStatusCode.OK || expectedStatusCode == HttpStatusCode.PreconditionFailed)
@@ -132,10 +125,10 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [Theory, CombinatorialData]
         public async Task ReadSoftDeletedItem_WorksIfNotDeleted([CombinatorialValues("soft", "soft_logged")] string table)
         {
-            var id = TestData.Movies.GetRandomId();
-            var expected = server.GetMovieById(id)!;
+            var id = GetRandomId();
+            var expected = MovieServer.GetMovieById(id)!;
 
-            var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var actual = response.DeserializeContent<ClientMovie>();
@@ -147,10 +140,10 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [Theory, CombinatorialData]
         public async Task ReadSoftDeletedItem_ReturnsGoneIfDeleted([CombinatorialValues("soft", "soft_logged")] string table)
         {
-            var id = TestData.Movies.GetRandomId();
-            await server.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
+            var id = GetRandomId();
+            await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
 
-            var response = await server.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
             Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
         }
     }

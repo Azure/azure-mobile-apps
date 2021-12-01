@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Commands
 {
     [ExcludeFromCodeCoverage]
-    public class TaskExtensions_Test : BaseTest
+    public class TaskExtensions_Test : OldBaseTest
     {
         private class ErrorHandler : IAsyncExceptionHandler
         {

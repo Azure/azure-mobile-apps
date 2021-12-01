@@ -12,7 +12,7 @@ namespace Microsoft.Datasync.Client.Test.Table
     /// Testing JSON Serialization using the default serializer.
     /// </summary>
     [ExcludeFromCodeCoverage]
-    public class Serialization_Test : BaseTest
+    public class Serialization_Test : OldBaseTest
     {
         private class TestClass
         {

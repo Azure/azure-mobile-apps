@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.AspNetCore.TestHost;
+using Datasync.Common.Test;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -11,17 +11,8 @@ using Xunit;
 
 namespace Microsoft.Datasync.Integration.Test.Server
 {
-    public class TableController_Tests
+    public class TableController_Tests : BaseTest
     {
-        private readonly TestServer server;
-        private readonly HttpClient client;
-
-        public TableController_Tests()
-        {
-            server = MovieApiServer.CreateTestServer();
-            client = server.CreateClient();
-        }
-
         [Theory]
         [InlineData("tables/movies/id-001", null)]
         [InlineData("tables/movies/id-001?ZUMO-API-VERSION=true", null)]
@@ -46,7 +37,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 request.Headers.Add("ZUMO-API-VERSION", headerValue);
             }
 
-            var response = await client.SendAsync(request).ConfigureAwait(false);
+            var response = await MovieHttpClient.SendAsync(request).ConfigureAwait(false);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             var result = await response.DeserializeContentAsync<Dictionary<string, object>>().ConfigureAwait(false);
             Assert.True(result?.ContainsKey("title") ?? false);
@@ -72,7 +63,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 request.Headers.Add("ZUMO-API-VERSION", headerValue);
             }
 
-            var response = await client.SendAsync(request).ConfigureAwait(false);
+            var response = await MovieHttpClient.SendAsync(request).ConfigureAwait(false);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
     }

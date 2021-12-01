@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Platforms
 {
     [ExcludeFromCodeCoverage]
-    public class ApplicationStorage_Test : BaseTest
+    public class ApplicationStorage_Test : OldBaseTest
     {
         private IsolatedStorageFile defaultStore;
 

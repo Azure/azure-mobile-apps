@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Commands
 {
     [ExcludeFromCodeCoverage]
-    public class AsyncCommand_Tests : BaseTest
+    public class AsyncCommand_Tests : OldBaseTest
     {
         private class IntAsyncCommand : AsyncCommand
         {

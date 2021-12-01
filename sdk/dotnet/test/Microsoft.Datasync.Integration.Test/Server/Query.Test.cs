@@ -3,8 +3,6 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Datasync.Integration.Test.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -19,13 +17,8 @@ using TestData = Datasync.Common.Test.TestData;
 namespace Microsoft.Datasync.Integration.Test.Server
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class Query_Tests
+    public class Query_Tests : BaseTest
     {
-        /// <summary>
-        /// A connection to the test service.
-        /// </summary>
-        private readonly TestServer server = MovieApiServer.CreateTestServer();
-
         /// <summary>
         /// Basic query tests - these will do tests against tables/movies in various modes to ensure that the OData
         /// query items pass.
@@ -350,7 +343,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Dictionary<string, string> headers = new();
             Utils.AddAuthHeaders(headers, userId);
 
-            var response = await server.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
 
             // Response has the right Status Code
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -369,7 +362,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Assert.Equal(firstExpectedItems, result.Items.Take(firstExpectedItems.Length).Select(m => m.Id).ToArray());
             for (int idx = 0; idx < firstExpectedItems.Length; idx++)
             {
-                var expected = server.GetMovieById(firstExpectedItems[idx])!;
+                var expected = MovieServer.GetMovieById(firstExpectedItems[idx])!;
                 var actual = result.Items[idx];
 
                 Assert.Equal<IMovie>(expected, actual);
@@ -399,7 +392,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             if (selection.Count == 0) return;
             var query = $"tables/movies?$top=5&$skip=5&$select={string.Join(',', selection)}";
 
-            var response = await server.SendRequest(HttpMethod.Get, query).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, query).ConfigureAwait(false);
 
             // Response has the right Status Code
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -438,7 +431,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             {
                 loops++;
 
-                var response = await server.SendRequest(HttpMethod.Get, query).ConfigureAwait(false);
+                var response = await MovieServer.SendRequest(HttpMethod.Get, query).ConfigureAwait(false);
                 Assert.True(response.IsSuccessStatusCode);
                 var result = response.DeserializeContent<StringNextLinkPage<ClientMovie>>();
                 Assert.NotNull(result?.Items);
@@ -496,7 +489,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             if (headerName != null && headerValue != null) headers.Add(headerName, headerValue);
 
             // Act
-            var response = await server.SendRequest(HttpMethod.Get, relativeUri, headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, relativeUri, headers).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(expectedStatusCode, response.StatusCode);
@@ -520,11 +513,11 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [InlineData("tables/soft?__includedeleted=true", 100, "tables/soft?__includedeleted=true&$skip=100", 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-004", "id-005" })]
         public async Task SoftDeleteQueryTest(string query, int expectedItemCount, string expectedNextLinkQuery, long expectedTotalCount, string[] firstExpectedItems, string? headerName = null, string? headerValue = null)
         {
-            await server.SoftDeleteMoviesAsync(m => m.Rating == "R").ConfigureAwait(false);
+            await MovieServer.SoftDeleteMoviesAsync(m => m.Rating == "R").ConfigureAwait(false);
             Dictionary<string, string> headers = new();
             if (headerName != null && headerValue != null) headers.Add(headerName, headerValue);
 
-            var response = await server.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
 
             // Response has the right Status Code
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -543,7 +536,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Assert.Equal(firstExpectedItems, result.Items.Take(firstExpectedItems.Length).Select(m => m.Id).ToArray());
             for (int idx = 0; idx < firstExpectedItems.Length; idx++)
             {
-                var expected = server.GetMovieById(firstExpectedItems[idx])!;
+                var expected = MovieServer.GetMovieById(firstExpectedItems[idx])!;
                 var actual = result.Items[idx];
 
                 Assert.Equal<IMovie>(expected, actual);

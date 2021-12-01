@@ -18,7 +18,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Query
     /// Tests for some corner cases that *SHOULD* never happen
     /// </summary>
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class QueryTranslator_Tests : BaseTest
+    public class QueryTranslator_Tests : OldBaseTest
     {
         #region Test Setup
         private DatasyncClient MockClient { get; }

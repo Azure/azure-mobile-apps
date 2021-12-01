@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Linq;
 using System.Text;
 
-namespace Microsoft.Datasync.Integration.Test.Helpers.Extensions
+namespace Datasync.Common.Test.Extensions
 {
     /// <summary>
     /// A set of extension methods for enabling model support for SQLite.

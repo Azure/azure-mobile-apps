@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Http
 {
     [ExcludeFromCodeCoverage]
-    public class ServiceResponse_Tests : BaseTest
+    public class ServiceResponse_Tests : OldBaseTest
     {
         private readonly string jsonPayload = "{\"stringValue\":\"test\"}";
 

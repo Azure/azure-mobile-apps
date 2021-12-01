@@ -5,8 +5,6 @@ using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Datasync.Extensions;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Datasync.Integration.Test.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -17,26 +15,16 @@ using Xunit;
 
 using TestData = Datasync.Common.Test.TestData;
 
-namespace Microsoft.Datasync.Integration.Test.Server
+namespace Microsoft.Datasync.Integration.Test.MovieServer
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class Patch_Tests
+    public class Patch_Tests : BaseTest
     {
-        /// <summary>
-        /// The time that the test started
-        /// </summary>
-        private readonly DateTimeOffset startTime = DateTimeOffset.Now;
-
-        /// <summary>
-        /// A connection to the test service.
-        /// </summary>
-        private readonly TestServer server = MovieApiServer.CreateTestServer();
-
         [Theory, CombinatorialData]
         public async Task BasicPatchTests([CombinatorialValues("movies", "movies_pagesize")] string table)
         {
-            var id = TestData.Movies.GetRandomId();
-            var expected = server.GetMovieById(id)!;
+            var id = GetRandomId();
+            var expected = MovieServer.GetMovieById(id)!;
             expected.Title = "Test Movie Title";
             expected.Rating = "PG-13";
             var patchDoc = new PatchOperation[]
@@ -45,12 +33,12 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 new PatchOperation("replace", "rating", "PG-13")
             };
 
-            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
+            var response = await MovieServer.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = response.DeserializeContent<ClientMovie>();
-            var stored = server.GetMovieById(id);
-            AssertEx.SystemPropertiesSet(stored, startTime);
+            var stored = MovieServer.GetMovieById(id);
+            AssertEx.SystemPropertiesSet(stored, StartTime);
             AssertEx.SystemPropertiesChanged(expected, stored);
             AssertEx.SystemPropertiesMatch(stored, result);
             Assert.Equal<IMovie>(expected, result!);
@@ -68,14 +56,14 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 { "/updatedAt", "2018-12-31T05:00:00.000Z" },
                 { "/version", "dGVzdA==" }
             };
-            var id = TestData.Movies.GetRandomId();
-            var expected = server.GetMovieById(id)!;
+            var id = GetRandomId();
+            var expected = MovieServer.GetMovieById(id)!;
             var patchDoc = new PatchOperation[] { new PatchOperation("replace", propName, propValues[propName]) };
 
-            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
+            var response = await MovieServer.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            var stored = server.GetMovieById(id);
+            var stored = MovieServer.GetMovieById(id);
             Assert.Equal<IMovie>(expected, stored!);
             Assert.Equal<ITableData>(expected, stored!);
         }
@@ -85,8 +73,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
             [CombinatorialValues("movies", "movies_pagesize")] string table,
             [CombinatorialValues("/id", "/updatedAt", "/version")] string propName)
         {
-            var id = TestData.Movies.GetRandomId();
-            var expected = server.GetMovieById(id)!;
+            var id = GetRandomId();
+            var expected = MovieServer.GetMovieById(id)!;
             Dictionary<string, string> propValues = new()
             {
                 { "/id", id },
@@ -95,12 +83,12 @@ namespace Microsoft.Datasync.Integration.Test.Server
             };
             var patchDoc = new PatchOperation[] { new PatchOperation("replace", propName, propValues[propName]) };
 
-            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
+            var response = await MovieServer.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = response.DeserializeContent<ClientMovie>();
-            var stored = server.GetMovieById(id);
-            AssertEx.SystemPropertiesSet(stored, startTime);
+            var stored = MovieServer.GetMovieById(id);
+            AssertEx.SystemPropertiesSet(stored, StartTime);
             AssertEx.SystemPropertiesChanged(expected, stored);
             AssertEx.SystemPropertiesMatch(stored, result);
             Assert.Equal<IMovie>(expected, result!);
@@ -118,25 +106,25 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 new PatchOperation("replace", "rating", "PG-13")
             };
 
-            var response = await server.SendPatch(relativeUri, patchDoc).ConfigureAwait(false);
+            var response = await MovieServer.SendPatch(relativeUri, patchDoc).ConfigureAwait(false);
             Assert.Equal(expectedStatusCode, response.StatusCode);
         }
 
         [Fact]
         public async Task PatchFailedWithWrongContentType()
         {
-            var id = TestData.Movies.GetRandomId();
-            var expected = server.GetMovieById(id)!;
+            var id = GetRandomId();
+            var expected = MovieServer.GetMovieById(id)!;
             PatchOperation[] patchDoc = new PatchOperation[]
             {
                 new PatchOperation("replace", "title", "Home Video"),
                 new PatchOperation("replace", "rating", "PG-13")
             };
 
-            var response = await server.SendPatch($"tables/movies/{id}", patchDoc, "application/json+problem").ConfigureAwait(false);
+            var response = await MovieServer.SendPatch($"tables/movies/{id}", patchDoc, "application/json+problem").ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
-            var stored = server.GetMovieById(id);
+            var stored = MovieServer.GetMovieById(id);
             Assert.Equal<IMovie>(expected, stored!);
             Assert.Equal<ITableData>(expected, stored!);
         }
@@ -156,13 +144,13 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task PatchValidationFailureTests(string propName, object propValue)
         {
             // Arrange
-            string id = TestData.Movies.GetRandomId();
+            string id = GetRandomId();
             var patchDoc = new PatchOperation[]
             {
                 propValue == null ? new PatchOperation("remove", $"/{propName}") : new PatchOperation("replace", $"/{propName}", propValue)
             };
 
-            var response = await server.SendPatch($"tables/movies/{id}", patchDoc).ConfigureAwait(false);
+            var response = await MovieServer.SendPatch($"tables/movies/{id}", patchDoc).ConfigureAwait(false);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
@@ -173,7 +161,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             [CombinatorialValues("movies_rated", "movies_legal")] string table)
         {
             var id = Utils.GetMovieId(index);
-            var original = server.GetMovieById(id)!;
+            var original = MovieServer.GetMovieById(id)!;
             var expected = original.Clone();
             expected.Title = "TEST MOVIE TITLE"; // Upper Cased because of the PreCommitHook
             expected.Rating = "PG-13";
@@ -187,8 +175,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Dictionary<string, string> headers = new();
             Utils.AddAuthHeaders(headers, userId);
 
-            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc, headers).ConfigureAwait(false);
-            var stored = server.GetMovieById(id);
+            var response = await MovieServer.SendPatch($"tables/{table}/{id}", patchDoc, headers).ConfigureAwait(false);
+            var stored = MovieServer.GetMovieById(id);
             if (userId != "success")
             {
                 var statusCode = table.Contains("legal") ? HttpStatusCode.UnavailableForLegalReasons : HttpStatusCode.Unauthorized;
@@ -200,7 +188,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             {
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 var result = response.DeserializeContent<ClientMovie>();
-                AssertEx.SystemPropertiesSet(stored, startTime);
+                AssertEx.SystemPropertiesSet(stored, StartTime);
                 AssertEx.SystemPropertiesChanged(expected, stored);
                 AssertEx.SystemPropertiesMatch(stored, result);
                 Assert.Equal<IMovie>(expected, result!);
@@ -215,8 +203,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [InlineData("If-None-Match", "\"dGVzdA==\"", HttpStatusCode.OK)]
         public async Task ConditionalVersionPatchTests(string headerName, string headerValue, HttpStatusCode expectedStatusCode)
         {
-            string id = TestData.Movies.GetRandomId();
-            var entity = server.GetMovieById(id)!;
+            string id = GetRandomId();
+            var entity = MovieServer.GetMovieById(id)!;
             var expected = entity.Clone();
             Dictionary<string, string> headers = new()
             {
@@ -228,11 +216,11 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 new PatchOperation("replace", "rating", "PG-13")
             };
 
-            var response = await server.SendPatch($"tables/movies/{id}", patchDoc, headers).ConfigureAwait(false);
+            var response = await MovieServer.SendPatch($"tables/movies/{id}", patchDoc, headers).ConfigureAwait(false);
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
             var actual = response.DeserializeContent<ClientMovie>();
-            var stored = server.GetMovieById(id)!;
+            var stored = MovieServer.GetMovieById(id)!;
             switch (expectedStatusCode)
             {
                 case HttpStatusCode.OK:
@@ -240,7 +228,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
                     expected.Title = "Test Movie Title";
                     expected.Rating = "PG-13";
 
-                    AssertEx.SystemPropertiesSet(stored, startTime);
+                    AssertEx.SystemPropertiesSet(stored, StartTime);
                     AssertEx.SystemPropertiesChanged(expected, stored);
                     AssertEx.SystemPropertiesMatch(stored, actual);
                     Assert.Equal<IMovie>(expected, actual!);
@@ -261,8 +249,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [InlineData("If-Unmodified-Since", -1, HttpStatusCode.PreconditionFailed)]
         public async Task ConditionalPatchTests(string headerName, int offset, HttpStatusCode expectedStatusCode)
         {
-            string id = TestData.Movies.GetRandomId();
-            var entity = server.GetMovieById(id)!;
+            string id = GetRandomId();
+            var entity = MovieServer.GetMovieById(id)!;
             Dictionary<string, string> headers = new()
             {
                 { headerName, entity.UpdatedAt.AddHours(offset).ToString("R") }
@@ -272,13 +260,13 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 new PatchOperation("replace", "title", "Test Movie Title"),
                 new PatchOperation("replace", "rating", "PG-13")
             };
-            var expected = server.GetMovieById(id)!;
+            var expected = MovieServer.GetMovieById(id)!;
 
-            var response = await server.SendPatch($"tables/movies/{id}", patchDoc, headers).ConfigureAwait(false);
+            var response = await MovieServer.SendPatch($"tables/movies/{id}", patchDoc, headers).ConfigureAwait(false);
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
             var actual = response.DeserializeContent<ClientMovie>();
-            var stored = server.GetMovieById(id)!;
+            var stored = MovieServer.GetMovieById(id)!;
             switch (expectedStatusCode)
             {
                 case HttpStatusCode.OK:
@@ -286,7 +274,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
                     expected.Title = "Test Movie Title";
                     expected.Rating = "PG-13";
 
-                    AssertEx.SystemPropertiesSet(stored, startTime);
+                    AssertEx.SystemPropertiesSet(stored, StartTime);
                     AssertEx.SystemPropertiesChanged(expected, stored);
                     AssertEx.SystemPropertiesMatch(stored, actual);
                     Assert.Equal<IMovie>(expected, actual!);
@@ -303,8 +291,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [Theory, CombinatorialData]
         public async Task SoftDeletePatch_PatchDeletedItem_ReturnsGone([CombinatorialValues("soft", "soft_logged")] string table)
         {
-            var id = TestData.Movies.GetRandomId();
-            await server.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
+            var id = GetRandomId();
+            await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
 
             var patchDoc = new PatchOperation[]
             {
@@ -312,29 +300,29 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 new PatchOperation("replace", "rating", "PG-13")
             };
 
-            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
+            var response = await MovieServer.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
             Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
         }
 
         [Theory, CombinatorialData]
         public async Task SoftDeletePatch_CanUndeleteDeletedItem([CombinatorialValues("soft", "soft_logged")] string table)
         {
-            var id = TestData.Movies.GetRandomId();
-            await server.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
+            var id = GetRandomId();
+            await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
 
-            var expected = server.GetMovieById(id)!;
+            var expected = MovieServer.GetMovieById(id)!;
             expected.Deleted = false;
             var patchDoc = new PatchOperation[]
             {
                 new PatchOperation("replace", "deleted", false)
             };
 
-            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
+            var response = await MovieServer.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = response.DeserializeContent<ClientMovie>();
-            var stored = server.GetMovieById(id);
-            AssertEx.SystemPropertiesSet(stored, startTime);
+            var stored = MovieServer.GetMovieById(id);
+            AssertEx.SystemPropertiesSet(stored, StartTime);
             AssertEx.SystemPropertiesChanged(expected, stored);
             AssertEx.SystemPropertiesMatch(stored, result);
             Assert.Equal<IMovie>(expected, result!);
@@ -344,8 +332,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [Theory, CombinatorialData]
         public async Task SoftDeletePatch_PatchNotDeletedItem([CombinatorialValues("soft", "soft_logged")] string table)
         {
-            var id = TestData.Movies.GetRandomId();
-            var expected = server.GetMovieById(id)!;
+            var id = GetRandomId();
+            var expected = MovieServer.GetMovieById(id)!;
             expected.Title = "Test Movie Title";
             expected.Rating = "PG-13";
 
@@ -355,12 +343,12 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 new PatchOperation("replace", "rating", "PG-13")
             };
 
-            var response = await server.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
+            var response = await MovieServer.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = response.DeserializeContent<ClientMovie>();
-            var stored = server.GetMovieById(id);
-            AssertEx.SystemPropertiesSet(stored, startTime);
+            var stored = MovieServer.GetMovieById(id);
+            AssertEx.SystemPropertiesSet(stored, StartTime);
             AssertEx.SystemPropertiesChanged(expected, stored);
             AssertEx.SystemPropertiesMatch(stored, result);
             Assert.Equal<IMovie>(expected, result!);

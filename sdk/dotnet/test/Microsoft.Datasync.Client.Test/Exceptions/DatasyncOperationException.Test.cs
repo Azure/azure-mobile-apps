@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Exceptions
 {
     [ExcludeFromCodeCoverage]
-    public class DatasyncOperationException_Test : BaseTest
+    public class DatasyncOperationException_Test : OldBaseTest
     {
         [Fact]
         [Trait("Method", "Ctor")]

@@ -21,7 +21,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Table
 {
     [ExcludeFromCodeCoverage]
-    public class DatasyncTableQuery_Tests : BaseTest
+    public class DatasyncTableQuery_Tests : OldBaseTest
     {
         #region Test Setup
         private DatasyncClient MockClient { get; }

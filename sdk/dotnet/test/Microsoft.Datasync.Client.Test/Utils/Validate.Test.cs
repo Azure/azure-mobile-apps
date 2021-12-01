@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Utils
 {
     [ExcludeFromCodeCoverage]
-    public class Validate_Tests : BaseTest
+    public class Validate_Tests : OldBaseTest
     {
         #region IsNotNull
         [Fact]

@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Table.Query
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class FilterBuildingExpressionVisitor_Tests : BaseTest
+    public class FilterBuildingExpressionVisitor_Tests : OldBaseTest
     {
         #region Compile
         [Fact]

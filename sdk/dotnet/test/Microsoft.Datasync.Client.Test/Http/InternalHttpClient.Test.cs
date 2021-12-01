@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Http
 {
     [ExcludeFromCodeCoverage]
-    public class InternalHttpClient_Test : BaseTest
+    public class InternalHttpClient_Test : OldBaseTest
     {
         /// <summary>
         /// Test version of <see cref="InternalHttpClient"/> that exposes the protected elements.

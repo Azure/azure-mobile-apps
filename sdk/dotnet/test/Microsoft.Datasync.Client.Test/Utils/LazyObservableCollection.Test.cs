@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Utils
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class LazyObservableCollection_Tests : BaseTest
+    public class LazyObservableCollection_Tests : OldBaseTest
     {
         private class ErrorHandler : IAsyncExceptionHandler
         {

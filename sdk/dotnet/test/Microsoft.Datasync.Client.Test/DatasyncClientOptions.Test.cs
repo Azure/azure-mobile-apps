@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test
 {
     [ExcludeFromCodeCoverage]
-    public class DatasyncClientOptions_Test : BaseTest
+    public class DatasyncClientOptions_Test : OldBaseTest
     {
         [Fact]
         [Trait("Method", "DeserializerOptions")]

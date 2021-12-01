@@ -10,8 +10,6 @@ using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Test.Helpers;
 using Microsoft.Datasync.Client.Utils;
-using Microsoft.Datasync.Integration.Test;
-using Microsoft.Datasync.Integration.Test.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -29,7 +27,7 @@ using TestData = Datasync.Common.Test.TestData;
 namespace Microsoft.Datasync.Client.Test.Table
 {
     [ExcludeFromCodeCoverage]
-    public class DatasyncTable_Tests : BaseTest
+    public class DatasyncTable_Tests : OldBaseTest
     {
         #region Test Artifacts
         /// <summary>

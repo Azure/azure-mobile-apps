@@ -8,7 +8,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Utils
 {
     [ExcludeFromCodeCoverage]
-    public class Platform_Test : BaseTest
+    public class Platform_Test : OldBaseTest
     {
         [Fact]
         [Trait("Method", "ApplicationStorage")]

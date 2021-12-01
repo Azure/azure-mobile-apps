@@ -9,7 +9,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class DatasyncClientData_Tests : BaseTest
+    public class DatasyncClientData_Tests : OldBaseTest
     {
         private class TestClass : DatasyncClientData, IEquatable<TestClass>
         {

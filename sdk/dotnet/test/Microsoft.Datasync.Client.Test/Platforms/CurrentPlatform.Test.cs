@@ -9,7 +9,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Platforms
 {
     [ExcludeFromCodeCoverage]
-    public class CurrentPlatform_Test : BaseTest
+    public class CurrentPlatform_Test : OldBaseTest
     {
         [Fact]
         [Trait("Method", "PlatformInformation")]

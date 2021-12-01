@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="Xunit.Combinatorial" Version="1.4.1" />
@@ -30,6 +29,10 @@
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj" />
     <ProjectReference Include="..\Datasync.Common.Test\Datasync.Common.Test.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Client\" />
   </ItemGroup>
 
 </Project>

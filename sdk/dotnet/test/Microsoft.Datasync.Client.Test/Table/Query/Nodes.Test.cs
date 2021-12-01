@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Table.Query
 {
     [ExcludeFromCodeCoverage]
-    public class Nodes_Test : BaseTest
+    public class Nodes_Test : OldBaseTest
     {
         [Fact]
         public void UnaryOperatorNode_SetChildren_NullThrows()

@@ -4,8 +4,6 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync.Extensions;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Datasync.Integration.Test.Helpers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -15,26 +13,21 @@ using Xunit;
 
 using TestData = Datasync.Common.Test.TestData;
 
-namespace Microsoft.Datasync.Integration.Test.Server
+namespace Microsoft.Datasync.Integration.Test.MovieServer
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class Delete_Tests
+    public class Delete_Tests : BaseTest
     {
-        /// <summary>
-        /// A connection to the test service.
-        /// </summary>
-        private readonly TestServer server = MovieApiServer.CreateTestServer();
-
         [Fact]
         public async Task BasicDeleteTests()
         {
-            var id = TestData.Movies.GetRandomId();
+            var id = GetRandomId();
 
-            var response = await server.SendRequest(HttpMethod.Delete, $"tables/movies/{id}").ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/movies/{id}").ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-            Assert.Equal(TestData.Movies.Count - 1, server.GetMovieCount());
-            Assert.Null(server.GetMovieById(id));
+            Assert.Equal(TestData.Movies.Count - 1, MovieServer.GetMovieCount());
+            Assert.Null(MovieServer.GetMovieById(id));
         }
 
         [Theory]
@@ -42,10 +35,10 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [InlineData("tables/movies_pagesize/not-found", HttpStatusCode.NotFound)]
         public async Task FailedDeleteTests(string relativeUri, HttpStatusCode expectedStatusCode)
         {
-            var response = await server.SendRequest(HttpMethod.Delete, relativeUri).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Delete, relativeUri).ConfigureAwait(false);
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
-            Assert.Equal(TestData.Movies.Count, server.GetMovieCount());
+            Assert.Equal(TestData.Movies.Count, MovieServer.GetMovieCount());
         }
 
         [Theory, CombinatorialData]
@@ -58,20 +51,20 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Dictionary<string, string> headers = new();
             Utils.AddAuthHeaders(headers, userId);
 
-            var response = await server.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}", headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}", headers).ConfigureAwait(false);
 
             if (userId != "success")
             {
                 var statusCode = table.Contains("legal") ? HttpStatusCode.UnavailableForLegalReasons : HttpStatusCode.Unauthorized;
                 Assert.Equal(statusCode, response.StatusCode);
-                Assert.Equal(TestData.Movies.Count, server.GetMovieCount());
-                Assert.NotNull(server.GetMovieById(id));
+                Assert.Equal(TestData.Movies.Count, MovieServer.GetMovieCount());
+                Assert.NotNull(MovieServer.GetMovieById(id));
             }
             else
             {
                 Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-                Assert.Equal(TestData.Movies.Count - 1, server.GetMovieCount());
-                Assert.Null(server.GetMovieById(id));
+                Assert.Equal(TestData.Movies.Count - 1, MovieServer.GetMovieCount());
+                Assert.Null(MovieServer.GetMovieById(id));
             }
         }
 
@@ -83,20 +76,20 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task Delete_OnVersion(string headerName, string? headerValue, HttpStatusCode expectedStatusCode)
         {
             const string id = "id-107";
-            var expected = server.GetMovieById(id)!;
+            var expected = MovieServer.GetMovieById(id)!;
             Dictionary<string, string> headers = new()
             {
                 { headerName, headerValue ?? expected.GetETag() }
             };
 
-            var response = await server.SendRequest(HttpMethod.Delete, $"tables/movies/{id}", headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/movies/{id}", headers).ConfigureAwait(false);
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
             switch (expectedStatusCode)
             {
                 case HttpStatusCode.NoContent:
-                    Assert.Equal(TestData.Movies.Count - 1, server.GetMovieCount());
-                    Assert.Null(server.GetMovieById(id));
+                    Assert.Equal(TestData.Movies.Count - 1, MovieServer.GetMovieCount());
+                    Assert.Null(MovieServer.GetMovieById(id));
                     break;
                 case HttpStatusCode.PreconditionFailed:
                     var actual = response.DeserializeContent<ClientMovie>();
@@ -116,20 +109,20 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task Delete_OnModified(string headerName, int offset, HttpStatusCode expectedStatusCode)
         {
             const string id = "id-107";
-            var expected = server.GetMovieById(id)!;
+            var expected = MovieServer.GetMovieById(id)!;
             Dictionary<string, string> headers = new()
             {
                 { headerName, expected.UpdatedAt.AddHours(offset).ToString("R") }
             };
 
-            var response = await server.SendRequest(HttpMethod.Delete, $"tables/movies/{id}", headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/movies/{id}", headers).ConfigureAwait(false);
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
             switch (expectedStatusCode)
             {
                 case HttpStatusCode.NoContent:
-                    Assert.Equal(TestData.Movies.Count - 1, server.GetMovieCount());
-                    Assert.Null(server.GetMovieById(id));
+                    Assert.Equal(TestData.Movies.Count - 1, MovieServer.GetMovieCount());
+                    Assert.Null(MovieServer.GetMovieById(id));
                     break;
                 case HttpStatusCode.PreconditionFailed:
                     var actual = response.DeserializeContent<ClientMovie>();
@@ -144,27 +137,27 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [Theory, CombinatorialData]
         public async Task SoftDeleteItem_SetsDeletedFlag([CombinatorialValues("soft", "soft_logged")] string table)
         {
-            var id = TestData.Movies.GetRandomId();
+            var id = GetRandomId();
 
-            var response = await server.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}").ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}").ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-            Assert.Equal(TestData.Movies.Count, server.GetMovieCount());
-            var entity = server.GetMovieById(id)!;
+            Assert.Equal(TestData.Movies.Count, MovieServer.GetMovieCount());
+            var entity = MovieServer.GetMovieById(id)!;
             Assert.True(entity.Deleted);
         }
 
         [Theory, CombinatorialData]
         public async Task SoftDeleteItem_GoneWhenDeleted([CombinatorialValues("soft", "soft_logged")] string table)
         {
-            var id = TestData.Movies.GetRandomId();
-            await server.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
+            var id = GetRandomId();
+            await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
 
-            var response = await server.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}").ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}").ConfigureAwait(false);
 
             Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
-            Assert.Equal(TestData.Movies.Count, server.GetMovieCount());
-            var currentEntity = server.GetMovieById(id)!;
+            Assert.Equal(TestData.Movies.Count, MovieServer.GetMovieCount());
+            var currentEntity = MovieServer.GetMovieById(id)!;
             Assert.True(currentEntity.Deleted);
         }
     }

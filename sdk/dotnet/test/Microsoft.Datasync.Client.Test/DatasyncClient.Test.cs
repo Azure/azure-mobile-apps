@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test
@@ -52,7 +54,7 @@ namespace Microsoft.Datasync.Client.Test
         [Trait("Method", "Ctor(string,AuthenticationProvider)")]
         public void CtorStringAuth_Valid_SetsEndpoint(string endpoint, string expected)
         {
-            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
+            var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
             var client = new DatasyncClient(endpoint, authProvider);
             Assert.Equal(expected, client.Endpoint.ToString());
             Assert.NotNull(client.ClientOptions);
@@ -88,7 +90,7 @@ namespace Microsoft.Datasync.Client.Test
         [Trait("Method", "Ctor(Uri,AuthenticationProvider)")]
         public void CtorUriAuth_Valid_SetsEndpoint(string endpoint, string expected)
         {
-            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
+            var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
             var client = new DatasyncClient(new Uri(endpoint), authProvider);
             Assert.Equal(expected, client.Endpoint.ToString());
             Assert.NotNull(client.ClientOptions);
@@ -140,7 +142,7 @@ namespace Microsoft.Datasync.Client.Test
         public void CtorStringAuthOptions_Valid_SetsEndpoint(string endpoint, string expected)
         {
             var options = new DatasyncClientOptions();
-            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
+            var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
             var client = new DatasyncClient(endpoint, authProvider, options);
             Assert.Equal(expected, client.Endpoint.ToString());
             Assert.Same(options, client.ClientOptions);
@@ -178,7 +180,7 @@ namespace Microsoft.Datasync.Client.Test
         public void CtorUriAuthOptions_Valid_SetsEndpoint(string endpoint, string expected)
         {
             var options = new DatasyncClientOptions();
-            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
+            var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
             var client = new DatasyncClient(new Uri(endpoint), authProvider, options);
             Assert.Equal(expected, client.Endpoint.ToString());
             Assert.Same(options, client.ClientOptions);

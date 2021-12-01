@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Utils
 {
     [ExcludeFromCodeCoverage]
-    public class StdLibExtensions_Test : BaseTest
+    public class StdLibExtensions_Test : OldBaseTest
     {
         #region NormalizeEndpoint(Uri)
         [Fact]

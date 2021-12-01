@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.Datasync.Integration.Test.Helpers
+namespace Datasync.Common.Test.Models
 {
     /// <summary>
     /// The deserialized content from a paging operation.
@@ -11,9 +11,9 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
     /// <typeparam name="T"></typeparam>
     public class PageOfItems<T> where T : class
     {
-        public T[]? Items { get; set; }
+        public T[] Items { get; set; }
         public long Count { get; set; }
-        public Uri? NextLink { get; set; }
+        public Uri NextLink { get; set; }
     }
 
     /// <summary>
@@ -22,9 +22,9 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
     /// <typeparam name="T"></typeparam>
     public class StringNextLinkPage<T> where T : class
     {
-        public T[]? Items { get; set; }
+        public T[] Items { get; set; }
         public long Count { get; set; }
-        public string? NextLink { get; set; }
+        public string NextLink { get; set; }
     }
 
     /// <summary>
@@ -33,7 +33,7 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
     /// <typeparam name="T"></typeparam>
     public class V2PageOfItems<T> where T : class
     {
-        public T[]? Results { get; set; }
+        public T[] Results { get; set; }
         public long Count { get; set; }
     }
 }

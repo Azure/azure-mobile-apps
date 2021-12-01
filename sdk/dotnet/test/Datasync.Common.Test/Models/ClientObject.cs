@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace Microsoft.Datasync.Integration.Test.Helpers
+namespace Datasync.Common.Test.Models
 {
     /// <summary>
     /// Deserialize everything into the Data object.
@@ -12,6 +12,6 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
     public class ClientObject
     {
         [JsonExtensionData]
-        public Dictionary<string, object>? Data { get; set; }
+        public Dictionary<string, object> Data { get; set; }
     }
 }

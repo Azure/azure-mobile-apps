@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Datasync.EFCore;
@@ -13,7 +14,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Datasync.Integration.Test.Helpers.Controllers
+namespace Datasync.Common.Test.Service
 {
     [Route("tables/movies")]
     [ExcludeFromCodeCoverage(Justification = "Test suite")]

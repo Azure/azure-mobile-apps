@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Integration.Test.Helpers.Extensions;
+using Datasync.Common.Test.Extensions;
+using Datasync.Common.Test.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 using TestData = Datasync.Common.Test.TestData;
 
-namespace Microsoft.Datasync.Integration.Test.Helpers
+namespace Datasync.Common.Test.Service
 {
     /// <summary>
     /// A <see cref="DbContext"/> for serving the movies set up for tests.
@@ -33,7 +34,7 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         /// </summary>
         /// <param name="id">The ID of the movie</param>
         /// <returns>The movie</returns>
-        public EFMovie? GetMovieById(string id)
+        public EFMovie GetMovieById(string id)
             => Movies.SingleOrDefault(x => x.Id == id)?.Clone();
 
         /// <summary>

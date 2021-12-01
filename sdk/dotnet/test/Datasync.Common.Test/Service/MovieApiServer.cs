@@ -3,11 +3,10 @@
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Datasync.Integration.Test.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.Datasync.Integration.Test
+namespace Datasync.Common.Test.Service
 {
     /// <summary>
     /// A test host creator for live tests against an in-memory service.

@@ -8,7 +8,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Utils
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class EnumValueAttribute_Test : BaseTest
+    public class EnumValueAttribute_Test : OldBaseTest
     {
         [Theory]
         [InlineData(DatasyncFeatures.Offline, "OL")]

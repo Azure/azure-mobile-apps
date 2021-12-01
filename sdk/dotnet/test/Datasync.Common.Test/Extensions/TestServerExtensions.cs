@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test.Models;
+using Datasync.Common.Test.Service;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -13,7 +15,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Microsoft.Datasync.Integration.Test.Helpers
+namespace Datasync.Common.Test
 {
     /// <summary>
     /// A set of extension methods that make it easier to send unit tests to the test server.
@@ -40,7 +42,7 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         /// <param name="server">The server to retrieve the context from</param>
         /// <param name="id">The ID of the movie</param>
         /// <returns>The movie, or null if it doesn't exist.</returns>
-        public static EFMovie? GetMovieById(this TestServer server, string id)
+        public static EFMovie GetMovieById(this TestServer server, string id)
         {
             using var scope = server.Services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<MovieDbContext>();
@@ -80,7 +82,7 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         /// <param name="relativeUri">The relative Uri of the request</param>
         /// <param name="headers">Any additional headers to send</param>
         /// <returns>The response from the server</returns>
-        public static Task<HttpResponseMessage> SendRequest(this TestServer server, HttpMethod method, string relativeUri, Dictionary<string, string>? headers = null)
+        public static Task<HttpResponseMessage> SendRequest(this TestServer server, HttpMethod method, string relativeUri, Dictionary<string, string> headers = null)
         {
             var client = server.CreateClient();
             var request = new HttpRequestMessage { Method = method, RequestUri = new Uri(ServerUri, relativeUri) };
@@ -111,7 +113,7 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         /// <param name="content">The payload of the request</param>
         /// <param name="headers">Any additional headers to send</param>
         /// <returns>The response from the server</returns>
-        public static Task<HttpResponseMessage> SendRequest<T>(this TestServer server, HttpMethod method, string relativeUri, T content, Dictionary<string, string>? headers = null) where T : class
+        public static Task<HttpResponseMessage> SendRequest<T>(this TestServer server, HttpMethod method, string relativeUri, T content, Dictionary<string, string> headers = null) where T : class
             => SendRequest<T>(server, method, relativeUri, content, "application/json", headers);
 
         /// <summary>
@@ -125,7 +127,7 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         /// <param name="contentType">The MIME content type of the request</param>
         /// <param name="headers">Any additional headers to send</param>
         /// <returns>The response from the server</returns>
-        public static Task<HttpResponseMessage> SendRequest<T>(this TestServer server, HttpMethod method, string relativeUri, T content, string contentType, Dictionary<string, string>? headers = null) where T : class
+        public static Task<HttpResponseMessage> SendRequest<T>(this TestServer server, HttpMethod method, string relativeUri, T content, string contentType, Dictionary<string, string> headers = null) where T : class
         {
             var client = server.CreateClient();
             var request = new HttpRequestMessage { Method = method, RequestUri = new Uri(ServerUri, relativeUri) };
@@ -157,7 +159,7 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         /// <param name="contentType"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public static Task<HttpResponseMessage> SendPatch(this TestServer server, string relativeUri, IEnumerable<PatchOperation> content, string contentType = "application/json-patch+json", Dictionary<string, string>? headers = null)
+        public static Task<HttpResponseMessage> SendPatch(this TestServer server, string relativeUri, IEnumerable<PatchOperation> content, string contentType = "application/json-patch+json", Dictionary<string, string> headers = null)
         {
             var client = server.CreateClient();
             var request = new HttpRequestMessage { Method = HttpMethod.Patch, RequestUri = new Uri(ServerUri, relativeUri) };
@@ -188,7 +190,7 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         /// <param name="content"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public static Task<HttpResponseMessage> SendPatch(this TestServer server, string relativeUri, IEnumerable<PatchOperation> content, Dictionary<string, string>? headers = null)
+        public static Task<HttpResponseMessage> SendPatch(this TestServer server, string relativeUri, IEnumerable<PatchOperation> content, Dictionary<string, string> headers = null)
             => SendPatch(server, relativeUri, content, "application/json-patch+json", headers);
 
         /// <summary>

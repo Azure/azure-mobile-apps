@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Http
 {
     [ExcludeFromCodeCoverage]
-    public class HttpRequestMessage_Test : BaseTest
+    public class HttpRequestMessage_Test : OldBaseTest
     {
         private class TestClass
         {

@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
+using Datasync.Common.Test.Service;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Datasync.Integration.Test.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -20,7 +20,7 @@ namespace Microsoft.Datasync.Integration.Test
     /// suite playing up.
     /// </summary>
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class MovieDbContext_Tests
+    public class MovieDbContext_Tests : BaseTest
     {
         private TestServer server = MovieApiServer.CreateTestServer();
 

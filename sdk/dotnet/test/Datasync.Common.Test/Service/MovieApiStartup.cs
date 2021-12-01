@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.Datasync.Integration.Test.Helpers
+namespace Datasync.Common.Test.Service
 {
     /// <summary>
     /// Startup for the MovieAPI Service used for testing

@@ -3,8 +3,6 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Datasync.Integration.Test.Helpers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -13,20 +11,15 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Integration.Test.Server
+namespace Microsoft.Datasync.Integration.Test.MovieServer
 {
     /// <summary>
     /// A set of integration tests that send requests with X-ZUMO-Version: 2.0
     /// The only tests here concentrate on the differences between OData v3 and OData v4
     /// </summary>
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class V2Query_Tests
+    public class V2Query_Tests : BaseTest
     {
-        /// <summary>
-        /// A connection to the test service.
-        /// </summary>
-        private readonly TestServer server = MovieApiServer.CreateTestServer();
-
         [Theory]
         [InlineData("tables/movies", 100, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
         [InlineData("tables/movies?$filter=releaseDate eq datetimeoffset'1994-10-14T00:00:00.000Z'", 2, new[] { "id-000", "id-003" })]
@@ -83,7 +76,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
         {
             Dictionary<string, string> headers = new() { { "ZUMO-API-VERSION", "2.0.0" } };
 
-            var response = await server.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
 
             // Response has the right Status Code
             if (!response.IsSuccessStatusCode)
@@ -105,7 +98,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Assert.Equal(firstExpectedItems, result.Take(firstExpectedItems.Length).Select(m => m.Id).ToArray());
             for (int idx = 0; idx < firstExpectedItems.Length; idx++)
             {
-                var expected = server.GetMovieById(firstExpectedItems[idx]);
+                var expected = MovieServer.GetMovieById(firstExpectedItems[idx]);
                 var actual = result[idx];
 
                 Assert.Equal<IMovie>(expected!, actual);
@@ -138,7 +131,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
         {
             Dictionary<string, string> headers = new() { { "ZUMO-API-VERSION", "2.0.0" } };
 
-            var response = await server.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
 
             // Response has the right Status Code
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -156,7 +149,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Assert.Equal(firstExpectedItems, result.Results.Take(firstExpectedItems.Length).Select(m => m.Id).ToArray());
             for (int idx = 0; idx < firstExpectedItems.Length; idx++)
             {
-                var expected = server.GetMovieById(firstExpectedItems[idx])!;
+                var expected = MovieServer.GetMovieById(firstExpectedItems[idx])!;
                 var actual = result.Results[idx];
 
                 Assert.Equal<IMovie>(expected, actual);

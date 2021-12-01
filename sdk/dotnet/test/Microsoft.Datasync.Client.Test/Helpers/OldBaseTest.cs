@@ -1,23 +1,17 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test.Models;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Datasync.Client.Authentication;
 using Microsoft.Datasync.Client.Table;
-using Microsoft.Datasync.Client.Test.Helpers;
-using Microsoft.Datasync.Integration.Test;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Microsoft.Datasync.Client.Test
 {
     [ExcludeFromCodeCoverage]
-    public abstract class BaseTest
+    public abstract class OldBaseTest
     {
         /// <summary>
         /// Required entities for a number of different tests
@@ -48,65 +42,11 @@ namespace Microsoft.Datasync.Client.Test
         protected readonly Func<Task<AuthenticationToken>> basicRequestor = () => Task.FromResult(basicToken);
         protected readonly Func<Task<AuthenticationToken>> expiredRequestor = () => Task.FromResult(expiredToken);
 
-        /// <summary>
-        /// A basic movie without any adornment that does not exist in the movie data. Tests must clone this
-        /// object and then adjust.
-        /// </summary>
-        protected readonly ClientMovie blackPantherMovie = new()
-        {
-            BestPictureWinner = true,
-            Duration = 134,
-            Rating = "PG-13",
-            ReleaseDate = DateTimeOffset.Parse("16-Feb-2018"),
-            Title = "Black Panther",
-            Year = 2018
-        };
-
-        /// <summary>
-        /// Default endpoint.
-        /// </summary>
-        protected Uri Endpoint { get; } = new Uri("https://localhost");
 
         /// <summary>
         /// Default client options.
         /// </summary>
         protected DatasyncClientOptions ClientOptions { get; } = new DatasyncClientOptions();
-
-        /// <summary>
-        /// The mock handler that allows us to set responses and see requests.
-        /// </summary>
-        protected TestDelegatingHandler MockHandler { get; } = new TestDelegatingHandler();
-
-        /// <summary>
-        /// Gets a client reference for mocking
-        /// </summary>
-        /// <returns></returns>
-        protected DatasyncClient CreateClientForMocking(AuthenticationProvider authProvider = null)
-        {
-            var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { MockHandler } };
-            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, authProvider, options);
-        }
-
-        // Backing store for the integration server.
-        private readonly Lazy<TestServer> _server = new(() => MovieApiServer.CreateTestServer());
-
-        /// <summary>
-        /// Link to the test server
-        /// </summary>
-        protected TestServer Server { get => _server.Value; }
-
-        /// <summary>
-        /// Gets a client reference that uses the Integration test server.
-        /// </summary>
-        /// <param name="server"></param>
-        /// <param name="authProvider"></param>
-        /// <returns></returns>
-        protected DatasyncClient CreateClientForTestServer(AuthenticationProvider authProvider = null)
-        {
-            var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { Server.CreateHandler() } };
-            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, authProvider, options);
-
-        }
 
         /// <summary>
         /// Creates a paging response.

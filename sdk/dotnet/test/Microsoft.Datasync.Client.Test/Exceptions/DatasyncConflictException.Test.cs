@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Exceptions
 {
     [ExcludeFromCodeCoverage]
-    public class DatasyncConflictException_Tests : BaseTest
+    public class DatasyncConflictException_Tests : OldBaseTest
     {
         private class MockObject
         {
