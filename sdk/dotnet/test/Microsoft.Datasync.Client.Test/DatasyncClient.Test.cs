@@ -3,6 +3,7 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
+using Datasync.Common.Test.TestData;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
@@ -40,23 +41,23 @@ namespace Microsoft.Datasync.Client.Test
             Assert.Throws<UriFormatException>(() => new DatasyncClient(endpoint));
         }
 
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Theory, ClassData(typeof(EndpointTestCases))]
         [Trait("Method", "Ctor(string)")]
-        public void CtorString_Valid_SetsEndpoint(string endpoint, string expected)
+        public void CtorString_Valid_SetsEndpoint(EndpointTestCase testcase)
         {
-            var client = new DatasyncClient(endpoint);
-            Assert.Equal(expected, client.Endpoint.ToString());
+            var client = new DatasyncClient(testcase.BaseEndpoint);
+            Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
             Assert.NotNull(client.ClientOptions);
             Assert.NotNull(client.HttpClient);
         }
 
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Theory, ClassData(typeof(EndpointTestCases))]
         [Trait("Method", "Ctor(string,AuthenticationProvider)")]
-        public void CtorStringAuth_Valid_SetsEndpoint(string endpoint, string expected)
+        public void CtorStringAuth_Valid_SetsEndpoint(EndpointTestCase testcase)
         {
             var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
-            var client = new DatasyncClient(endpoint, authProvider);
-            Assert.Equal(expected, client.Endpoint.ToString());
+            var client = new DatasyncClient(testcase.BaseEndpoint, authProvider);
+            Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
             Assert.NotNull(client.ClientOptions);
             Assert.NotNull(client.HttpClient);
         }
@@ -76,23 +77,23 @@ namespace Microsoft.Datasync.Client.Test
             Assert.Throws<UriFormatException>(() => new DatasyncClient(isRelative ? new Uri(endpoint, UriKind.Relative) : new Uri(endpoint)));
         }
 
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Theory, ClassData(typeof(EndpointTestCases))]
         [Trait("Method", "Ctor(Uri)")]
-        public void CtorUri_Valid_SetsEndpoint(string endpoint, string expected)
+        public void CtorUri_Valid_SetsEndpoint(EndpointTestCase testcase)
         {
-            var client = new DatasyncClient(new Uri(endpoint));
-            Assert.Equal(expected, client.Endpoint.ToString());
+            var client = new DatasyncClient(new Uri(testcase.BaseEndpoint));
+            Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
             Assert.NotNull(client.ClientOptions);
             Assert.NotNull(client.HttpClient);
         }
 
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Theory, ClassData(typeof(EndpointTestCases))]
         [Trait("Method", "Ctor(Uri,AuthenticationProvider)")]
-        public void CtorUriAuth_Valid_SetsEndpoint(string endpoint, string expected)
+        public void CtorUriAuth_Valid_SetsEndpoint(EndpointTestCase testcase)
         {
             var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
-            var client = new DatasyncClient(new Uri(endpoint), authProvider);
-            Assert.Equal(expected, client.Endpoint.ToString());
+            var client = new DatasyncClient(new Uri(testcase.BaseEndpoint), authProvider);
+            Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
             Assert.NotNull(client.ClientOptions);
             Assert.NotNull(client.HttpClient);
         }
@@ -126,25 +127,25 @@ namespace Microsoft.Datasync.Client.Test
             Assert.Throws<UriFormatException>(() => new DatasyncClient(endpoint, options));
         }
 
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Theory, ClassData(typeof(EndpointTestCases))]
         [Trait("Method", "Ctor(string,DatasyncClientOptions)")]
-        public void CtorStringOptions_Valid_SetsEndpoint(string endpoint, string expected)
+        public void CtorStringOptions_Valid_SetsEndpoint(EndpointTestCase testcase)
         {
             var options = new DatasyncClientOptions();
-            var client = new DatasyncClient(endpoint, options);
-            Assert.Equal(expected, client.Endpoint.ToString());
+            var client = new DatasyncClient(testcase.BaseEndpoint, options);
+            Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
             Assert.Same(options, client.ClientOptions);
             Assert.NotNull(client.HttpClient);
         }
 
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Theory, ClassData(typeof(EndpointTestCases))]
         [Trait("Method", "Ctor(string,AuthenticationProvider,DatasyncClientOptions)")]
-        public void CtorStringAuthOptions_Valid_SetsEndpoint(string endpoint, string expected)
+        public void CtorStringAuthOptions_Valid_SetsEndpoint(EndpointTestCase testcase)
         {
             var options = new DatasyncClientOptions();
             var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
-            var client = new DatasyncClient(endpoint, authProvider, options);
-            Assert.Equal(expected, client.Endpoint.ToString());
+            var client = new DatasyncClient(testcase.BaseEndpoint, authProvider, options);
+            Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
             Assert.Same(options, client.ClientOptions);
             Assert.NotNull(client.HttpClient);
         }
@@ -164,25 +165,25 @@ namespace Microsoft.Datasync.Client.Test
             Assert.Throws<UriFormatException>(() => new DatasyncClient(isRelative ? new Uri(endpoint, UriKind.Relative) : new Uri(endpoint)));
         }
 
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Theory, ClassData(typeof(EndpointTestCases))]
         [Trait("Method", "Ctor(Uri,DatasyncClientOptions)")]
-        public void CtorUriOptions_Valid_SetsEndpoint(string endpoint, string expected)
+        public void CtorUriOptions_Valid_SetsEndpoint(EndpointTestCase testcase)
         {
             var options = new DatasyncClientOptions();
-            var client = new DatasyncClient(new Uri(endpoint), options);
-            Assert.Equal(expected, client.Endpoint.ToString());
+            var client = new DatasyncClient(new Uri(testcase.BaseEndpoint), options);
+            Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
             Assert.Same(options, client.ClientOptions);
             Assert.NotNull(client.HttpClient);
         }
 
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Theory, ClassData(typeof(EndpointTestCases))]
         [Trait("Method", "Ctor(Uri,AuthenticationProvider,DatasyncClientOptions)")]
-        public void CtorUriAuthOptions_Valid_SetsEndpoint(string endpoint, string expected)
+        public void CtorUriAuthOptions_Valid_SetsEndpoint(EndpointTestCase testcase)
         {
             var options = new DatasyncClientOptions();
             var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
-            var client = new DatasyncClient(new Uri(endpoint), authProvider, options);
-            Assert.Equal(expected, client.Endpoint.ToString());
+            var client = new DatasyncClient(new Uri(testcase.BaseEndpoint), authProvider, options);
+            Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
             Assert.Same(options, client.ClientOptions);
             Assert.NotNull(client.HttpClient);
         }

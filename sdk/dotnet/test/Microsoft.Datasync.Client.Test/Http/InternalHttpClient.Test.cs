@@ -3,6 +3,7 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Mocks;
+using Datasync.Common.Test.TestData;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -37,15 +38,13 @@ namespace Microsoft.Datasync.Client.Test.Http
             Assert.Throws<UriFormatException>(() => new WrappedHttpClient(isRelative ? new Uri(endpoint, UriKind.Relative) : new Uri(endpoint), options));
         }
 
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Theory, ClassData(typeof(EndpointTestCases))]
         [Trait("Method", "Ctor")]
-        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case does not check for endpoint")]
-        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case does not check for endpoint")]
-        public void Ctor_ValidEndpoint_CreatesClient(string endpoint, string normalized)
+        public void Ctor_ValidEndpoint_CreatesClient(EndpointTestCase testcase)
         {
             var options = new DatasyncClientOptions();
-            var client = new WrappedHttpClient(new Uri(normalized), options);
-            Assert.Equal(normalized, client.WrappedEndpoint);
+            var client = new WrappedHttpClient(new Uri(testcase.NormalizedEndpoint), options);
+            Assert.Equal(testcase.NormalizedEndpoint, client.WrappedEndpoint);
             Assert.NotNull(client.HttpHandler);
             Assert.NotNull(client.HttpClient);
 
@@ -54,18 +53,16 @@ namespace Microsoft.Datasync.Client.Test.Http
             AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-VERSION", options.UserAgent);
             AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "ZUMO-API-VERSION", "3.0.0");
             AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-INSTALLATION-ID", options.InstallationId);
-            Assert.Equal(normalized, client.HttpClient.BaseAddress.ToString());
+            Assert.Equal(testcase.NormalizedEndpoint, client.HttpClient.BaseAddress.ToString());
         }
 
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Theory, ClassData(typeof(EndpointTestCases))]
         [Trait("Method", "Ctor")]
-        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case does not check for endpoint")]
-        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case does not check for endpoint")]
-        public void Ctor_ValidEndpoint_CustomOptions_CreatesClient(string endpoint, string normalized)
+        public void Ctor_ValidEndpoint_CustomOptions_CreatesClient(EndpointTestCase testcase)
         {
             var options = new DatasyncClientOptions { HttpPipeline = null, InstallationId = "test-int-id", UserAgent = "test-user-agent" };
-            var client = new WrappedHttpClient(new Uri(normalized), options);
-            Assert.Equal(normalized, client.WrappedEndpoint);
+            var client = new WrappedHttpClient(new Uri(testcase.NormalizedEndpoint), options);
+            Assert.Equal(testcase.NormalizedEndpoint, client.WrappedEndpoint);
             Assert.NotNull(client.HttpHandler);
             Assert.NotNull(client.HttpClient);
 
@@ -74,7 +71,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-VERSION", "test-user-agent");
             AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "ZUMO-API-VERSION", "3.0.0");
             AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-INSTALLATION-ID", "test-int-id");
-            Assert.Equal(normalized, client.HttpClient.BaseAddress.ToString());
+            Assert.Equal(testcase.NormalizedEndpoint, client.HttpClient.BaseAddress.ToString());
         }
 
         [Fact]

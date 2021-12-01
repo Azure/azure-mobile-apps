@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
@@ -9,7 +10,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class DatasyncClientData_Tests : OldBaseTest
+    public class DatasyncClientData_Tests : BaseTest
     {
         private class TestClass : DatasyncClientData, IEquatable<TestClass>
         {
@@ -26,7 +27,8 @@ namespace Microsoft.Datasync.Client.Test
         {
             TestClass foo = new() { Id = "1234", UpdatedAt = new DateTimeOffset(2001, 12, 31, 08, 00, 00, TimeSpan.Zero), Version = "opaque", Deleted = true };
             const string expected = "{\"id\":\"1234\",\"deleted\":true,\"updatedAt\":\"2001-12-31T08:00:00.000Z\",\"version\":\"opaque\"}";
-            var actual = JsonSerializer.Serialize(foo, ClientOptions.SerializerOptions);
+            var options = new DatasyncClientOptions();
+            var actual = JsonSerializer.Serialize(foo, options.SerializerOptions);
             Assert.Equal(expected, actual);
         }
 
@@ -35,7 +37,8 @@ namespace Microsoft.Datasync.Client.Test
         {
             const string json = "{\"id\":\"1234\",\"deleted\":true,\"updatedAt\":\"2001-12-31T08:00:00.000Z\",\"version\":\"opaque\"}";
             TestClass expected = new() { Id = "1234", UpdatedAt = new DateTimeOffset(2001, 12, 31, 08, 00, 00, TimeSpan.Zero), Version = "opaque", Deleted = true };
-            var actual = JsonSerializer.Deserialize<TestClass>(json, ClientOptions.DeserializerOptions);
+            var options = new DatasyncClientOptions();
+            var actual = JsonSerializer.Deserialize<TestClass>(json, options.DeserializerOptions);
             Assert.Equal(expected, actual);
         }
     }

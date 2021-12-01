@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test.TestData;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -28,12 +29,12 @@ namespace Microsoft.Datasync.Client.Test.Utils
             Assert.Throws<UriFormatException>(() => StdLibExtensions.NormalizeEndpoint(isRelative ? new Uri(endpoint, UriKind.Relative) : new Uri(endpoint)));
         }
 
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Theory, ClassData(typeof(EndpointTestCases))]
         [Trait("Method", "NormalizeEndpoint(Uri)")]
-        public void NormalizeEndpoint_Valid_Passes(string endpoint, string normalizedEndpoint)
+        public void NormalizeEndpoint_Valid_Passes(EndpointTestCase testcase)
         {
-            Uri sut = new(endpoint);
-            Assert.Equal(normalizedEndpoint, sut.NormalizeEndpoint().ToString());
+            Uri sut = new(testcase.BaseEndpoint);
+            Assert.Equal(testcase.NormalizedEndpoint, sut.NormalizeEndpoint().ToString());
         }
 
         [Theory]
