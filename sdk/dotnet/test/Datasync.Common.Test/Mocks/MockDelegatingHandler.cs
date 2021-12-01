@@ -14,13 +14,13 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Datasync.Client.Test.Helpers
+namespace Datasync.Common.Test.Mocks
 {
     /// <summary>
     /// A delegating handler for mocking responses.
     /// </summary>
     [ExcludeFromCodeCoverage]
-    public class TestDelegatingHandler : DelegatingHandler
+    public class MockDelegatingHandler : DelegatingHandler
     {
         /// <summary>
         /// Used for serializing objects to be returned as responses.

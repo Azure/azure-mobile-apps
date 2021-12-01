@@ -2,13 +2,13 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
+using Datasync.Common.Test.Mocks;
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.Datasync.Client.Commands;
 using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Table;
-using Microsoft.Datasync.Client.Test.Helpers;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
@@ -27,9 +27,13 @@ using TestData = Datasync.Common.Test.TestData;
 namespace Microsoft.Datasync.Client.Test.Table
 {
     [ExcludeFromCodeCoverage]
-    public class DatasyncTable_Tests : OldBaseTest
+    public class DatasyncTable_Tests : BaseTest
     {
-        #region Test Artifacts
+        private const string sTablePath = "tables/movies";
+        private readonly IdEntity payload = new() { Id = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f", StringValue = "test" };
+        private const string sJsonPayload = "{\"id\":\"db0ec08d-46a9-465d-9f5e-0066a3ee5b5f\",\"stringValue\":\"test\"}";
+        private const string sBadJson = "{this-is-bad-json";
+
         /// <summary>
         /// The common changes to the entity when we go against the test service.
         /// </summary>
@@ -39,21 +43,11 @@ namespace Microsoft.Datasync.Client.Test.Table
             { "Rating", "PG-13" }
         };
 
-        /// <summary>
-        /// Testing for Select operations
-        /// </summary>
-        private class IdOnly
-        {
-            public string Id { get; set; }
-        }
-        #endregion
-
-        #region Ctor
         [Fact]
         [Trait("Method", "Ctor")]
         public void Ctor_SetsInternals()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             Assert.Equal("http://localhost/tables/movies/", sut.Endpoint.ToString());
@@ -65,7 +59,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Ctor")]
         public void Ctor_NullEndpoint_Throws()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             const string relativeUri = null;
             Assert.Throws<ArgumentNullException>(() => new DatasyncTable<IdEntity>(relativeUri, client.HttpClient, client.ClientOptions));
         }
@@ -74,7 +68,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Ctor")]
         public void Ctor_NullClient_Throws()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             Assert.Throws<ArgumentNullException>(() => new DatasyncTable<IdEntity>("tables/movies", null, client.ClientOptions));
         }
 
@@ -82,17 +76,16 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Ctor")]
         public void Ctor_NullOptions_Throws()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             Assert.Throws<ArgumentNullException>(() => new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, null));
         }
-        #endregion
 
         #region CreateItemAsync
         [Fact]
         [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_ThrowsOnNull()
         {
-            var client = CreateClientForTestServer();
+            var client = GetMockClient();
             var table = client.GetTable<ClientMovie>("movies");
             await Assert.ThrowsAsync<ArgumentNullException>(() => table.CreateItemAsync(null)).ConfigureAwait(false);
         }
@@ -103,8 +96,9 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_Success_FormulatesCorrectRequest(HttpStatusCode statusCode)
         {
+            var sEndpoint = new Uri(Endpoint, sTablePath).ToString();
             MockHandler.AddResponse(statusCode, payload);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             var response = await sut.CreateItemAsync(payload).ConfigureAwait(false);
@@ -133,8 +127,9 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_Success_FormulatesCorrectRequest_WithAuth(HttpStatusCode statusCode)
         {
+            var sEndpoint = new Uri(Endpoint, sTablePath).ToString();
             MockHandler.AddResponse(statusCode, payload);
-            var client = CreateClientForMocking(new TestAuthenticationProvider(basicToken));
+            var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
             var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             var response = await sut.CreateItemAsync(payload).ConfigureAwait(false);
@@ -145,7 +140,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Post, request.Method);
             Assert.Equal(sEndpoint, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
             Assert.Equal(sJsonPayload, await request.Content.ReadAsStringAsync().ConfigureAwait(false));
             Assert.Equal("application/json", request.Content.Headers.ContentType.MediaType);
 
@@ -165,7 +160,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task CreateItemAsync_SuccessNoContent(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             var response = await sut.CreateItemAsync(payload).ConfigureAwait(false);
@@ -182,12 +177,14 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_SuccessWithBadJson_Throws(HttpStatusCode statusCode)
         {
+            var payload = new IdEntity() { Id = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f", StringValue = "test" };
+
             var response = new HttpResponseMessage(statusCode)
             {
                 Content = new StringContent(sBadJson, Encoding.UTF8, "application/json")
             };
             MockHandler.Responses.Add(response);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             await Assert.ThrowsAsync<JsonException>(() => sut.CreateItemAsync(payload)).ConfigureAwait(false);
@@ -199,8 +196,9 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_Conflict_FormulatesCorrectResponse(HttpStatusCode statusCode)
         {
+            var sEndpoint = new Uri(Endpoint, sTablePath).ToString();
             MockHandler.AddResponse(statusCode, payload);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => sut.CreateItemAsync(payload)).ConfigureAwait(false);
@@ -227,7 +225,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task CreateItemAsync_ConflictNoContent_Throws(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
             var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => sut.CreateItemAsync(payload)).ConfigureAwait(false);
             Assert.Equal((int)statusCode, ex.StatusCode);
@@ -246,7 +244,7 @@ namespace Microsoft.Datasync.Client.Test.Table
                 Content = new StringContent(sBadJson, Encoding.UTF8, "application/json")
             };
             MockHandler.Responses.Add(response);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             await Assert.ThrowsAsync<JsonException>(() => sut.CreateItemAsync(payload)).ConfigureAwait(false);
@@ -261,179 +259,12 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task CreateItemAsync_RequestFailed_Throws(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => sut.CreateItemAsync(payload)).ConfigureAwait(false);
             Assert.Equal((int)statusCode, ex.StatusCode);
         }
-
-        [Theory, CombinatorialData]
-        [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_Basic(bool hasId)
-        {
-            var client = CreateClientForTestServer();
-            var movieToAdd = blackPantherMovie.Clone();
-            if (hasId)
-            {
-                movieToAdd.Id = Guid.NewGuid().ToString("N");
-            }
-
-            // Act
-            var table = client.GetTable<ClientMovie>("movies");
-            var response = await table.CreateItemAsync(movieToAdd).ConfigureAwait(false);
-
-            // Assert
-            Assert.Equal(201, response.StatusCode);
-            Assert.True(response.HasValue);
-            var result = response.Value;
-            Assert.True(Guid.TryParse(result.Id, out _));
-            if (hasId)
-            {
-                Assert.Equal(movieToAdd.Id, result.Id);
-            }
-            Assert.Equal<IMovie>(movieToAdd, result);
-            Assert.Equal(TestData.Movies.Count + 1, Server.GetMovieCount());
-            var entity = Server.GetMovieById(result.Id)!;
-            Assert.Equal<IMovie>(movieToAdd, entity);
-            AssertEx.Contains("Location", new Uri(Endpoint, $"tables/movies/{result.Id}").ToString(), response.Headers);
-            AssertEx.Contains("ETag", $"\"{result.Version}\"", response.Headers);
-        }
-
-        [Theory, CombinatorialData]
-        [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_OverwriteSystemProperties(bool useUpdatedAt, bool useVersion)
-        {
-            var client = CreateClientForTestServer();
-            var movieToAdd = blackPantherMovie.Clone();
-            movieToAdd.Id = Guid.NewGuid().ToString("N");
-            if (useUpdatedAt)
-            {
-                movieToAdd.UpdatedAt = DateTimeOffset.Parse("2018-12-31T01:01:01.000Z");
-            }
-            if (useVersion)
-            {
-                movieToAdd.Version = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-            }
-
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("movies");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
-
-            // Act
-            var response = await table.CreateItemAsync(movieToAdd).ConfigureAwait(false);
-
-            // Assert
-            Assert.Equal(201, response.StatusCode);
-            Assert.True(response.HasValue);
-            var result = response.Value;
-            Assert.Equal(movieToAdd.Id, result.Id);
-            Assert.Equal<IMovie>(movieToAdd, result);
-            Assert.Equal(TestData.Movies.Count + 1, Server.GetMovieCount());
-
-            var entity = Server.GetMovieById(result.Id)!;
-            if (useUpdatedAt)
-                Assert.NotEqual(movieToAdd.UpdatedAt, result.UpdatedAt);
-            if (useVersion)
-                Assert.NotEqual(movieToAdd.Version, result.Version);
-            Assert.Equal<IMovie>(movieToAdd, entity);
-            AssertEx.Contains("Location", new Uri(Endpoint, $"tables/movies/{result.Id}").ToString(), response.Headers);
-            AssertEx.Contains("ETag", $"\"{result.Version}\"", response.Headers);
-
-            Assert.Single(modifications);
-            var modArg = modifications[0];
-            Assert.Same(table.Endpoint, modArg.TableEndpoint);
-            Assert.Equal(TableOperation.Create, modArg.Operation);
-            Assert.Equal(result.Id, modArg.Id);
-            Assert.Equal<IMovie>(result, modArg.Entity as IMovie);
-        }
-
-        [Theory]
-        [InlineData("duration", 50)]
-        [InlineData("duration", 370)]
-        [InlineData("duration", null)]
-        [InlineData("rating", "M")]
-        [InlineData("rating", "PG-13 but not always")]
-        [InlineData("title", "a")]
-        [InlineData("title", "Lorem ipsum dolor sit amet, consectetur adipiscing elit accumsan.")]
-        [InlineData("title", null)]
-        [InlineData("year", 1900)]
-        [InlineData("year", 2035)]
-        [InlineData("year", null)]
-        [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_ValidationTest(string propName, object propValue)
-        {
-            var client = CreateClientForTestServer();
-
-            Dictionary<string, object> movieToAdd = new()
-            {
-                { "id", "test-id" },
-                { "updatedAt", DateTimeOffset.Parse("2018-12-31T01:01:01.000Z") },
-                { "version", Convert.ToBase64String(Guid.NewGuid().ToByteArray()) },
-                { "bestPictureWinner", false },
-                { "duration", 120 },
-                { "rating", "G" },
-                { "releaseDate", DateTimeOffset.Parse("2018-12-30T05:30:00.000Z") },
-                { "title", "Home Video" },
-                { "year", 2021 }
-            };
-            if (propValue == null)
-                movieToAdd.Remove(propName);
-            else
-                movieToAdd[propName] = propValue;
-
-            // Set up event handler
-            var table = client.GetTable<Dictionary<string, object>>("movies");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
-
-            // Act
-            var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.CreateItemAsync(movieToAdd)).ConfigureAwait(false);
-
-            // Assert
-            Assert.NotNull(exception.Request);
-            Assert.NotNull(exception.Response);
-            Assert.Equal(400, exception.StatusCode);
-            Assert.Equal(TestData.Movies.Count, Server.GetMovieCount());
-            Assert.Null(Server.GetMovieById("test-id"));
-
-            Assert.Empty(modifications);
-        }
-
-        [Fact]
-        [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_Conflict()
-        {
-            var client = CreateClientForTestServer();
-            var movieToAdd = blackPantherMovie.Clone();
-            movieToAdd.Id = TestData.Movies.GetRandomId();
-            var expectedMovie = Server.GetMovieById(movieToAdd.Id)!;
-
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("movies");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
-
-            // Act
-            var exception = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.CreateItemAsync(movieToAdd)).ConfigureAwait(false);
-
-            // Assert
-            Assert.NotNull(exception.Request);
-            Assert.NotNull(exception.Response);
-            Assert.Equal(409, exception.StatusCode);
-            Assert.Equal(TestData.Movies.Count, Server.GetMovieCount());
-            var entity = Server.GetMovieById(movieToAdd.Id)!;
-            AssertEx.SystemPropertiesSet(entity);
-            AssertEx.SystemPropertiesMatch(entity, exception.ServerItem);
-            Assert.Equal<IMovie>(expectedMovie, exception.ServerItem);
-            Assert.Equal<IMovie>(expectedMovie, entity);
-            Assert.Equal<ITableData>(expectedMovie, entity);
-            AssertEx.ResponseHasConditionalHeaders(entity, exception.Response);
-
-            Assert.Empty(modifications);
-        }
-        #endregion
 
         #region DeleteItemAsync
         [Fact]
@@ -468,7 +299,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task DeleteItemAsync_FormulatesCorrectResponse(bool hasPrecondition)
         {
             MockHandler.AddResponse(HttpStatusCode.NoContent);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             var response = await table.DeleteItemAsync(sId, hasPrecondition ? IfMatch.Version("etag") : null).ConfigureAwait(false);
@@ -500,7 +331,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task DeleteItemAsync_FormulatesCorrectResponse_WithAuth(bool hasPrecondition)
         {
             MockHandler.AddResponse(HttpStatusCode.NoContent);
-            var client = CreateClientForMocking(new TestAuthenticationProvider(basicToken));
+            var client = GetMockClient(new TestAuthenticationProvider(ValidAuthenticationToken));
             var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             var response = await table.DeleteItemAsync(sId, hasPrecondition ? IfMatch.Version("etag") : null).ConfigureAwait(false);
@@ -511,7 +342,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Delete, request.Method);
             Assert.Equal($"{sEndpoint}{sId}", request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
             if (hasPrecondition)
             {
                 AssertEx.HasHeader(request.Headers, "If-Match", "\"etag\"");
@@ -535,7 +366,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task DeleteItemAsync_Conflict_FormulatesCorrectResponse(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode, payload);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.DeleteItemAsync(sId)).ConfigureAwait(false);
@@ -554,7 +385,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task DeleteItemAsync_ConflictNoContent_FormulatesCorrectResponse(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.DeleteItemAsync(sId)).ConfigureAwait(false);
@@ -577,7 +408,7 @@ namespace Microsoft.Datasync.Client.Test.Table
                 Content = new StringContent(sBadJson, Encoding.UTF8, "application/json")
             };
             MockHandler.Responses.Add(response);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             await Assert.ThrowsAsync<JsonException>(() => table.DeleteItemAsync(sId)).ConfigureAwait(false);
@@ -592,7 +423,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task DeleteItemAsync_RequestFailed_Throws(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(sId)).ConfigureAwait(false);
@@ -846,7 +677,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             MockHandler.AddResponse(statusCode);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<ClientMovie>("movies");
 
             // Act
@@ -864,7 +695,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             // Act
@@ -886,7 +717,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
-            var client = CreateClientForMocking(new TestAuthenticationProvider(basicToken));
+            var client = GetMockClient(new TestAuthenticationProvider(ValidAuthenticationToken));
             var table = client.GetTable<IdEntity>("movies");
 
             // Act
@@ -899,7 +730,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal(sEndpoint, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
             Assert.False(hasMore);
         }
 
@@ -925,7 +756,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var page = CreatePageOfItems(5);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
@@ -952,7 +783,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var page = CreatePageOfItems(5);
-            var client = CreateClientForMocking(new TestAuthenticationProvider(basicToken));
+            var client = GetMockClient(new TestAuthenticationProvider(ValidAuthenticationToken));
             var table = client.GetTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
@@ -968,7 +799,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal(sEndpoint, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
 
             // Assert - response
             Assert.Equal(page.Items, items);
@@ -981,7 +812,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             var page1 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
@@ -1016,7 +847,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             var page1 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5);
-            var client = CreateClientForMocking(new TestAuthenticationProvider(basicToken));
+            var client = GetMockClient(new TestAuthenticationProvider(ValidAuthenticationToken));
             var table = client.GetTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
@@ -1032,13 +863,13 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal(sEndpoint, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
 
             request = MockHandler.Requests[1];
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal($"{sEndpoint}?page=2", request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
 
             // Assert - response
             Assert.Equal(10, items.Count);
@@ -1054,7 +885,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var page1 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=3"));
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
@@ -1095,7 +926,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var page1 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5, null, new Uri($"{sEndpoint}?page=3"));
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
-            var client = CreateClientForMocking(new TestAuthenticationProvider(basicToken));
+            var client = GetMockClient(new TestAuthenticationProvider(ValidAuthenticationToken));
             var table = client.GetTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
@@ -1111,19 +942,19 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal(sEndpoint, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
 
             request = MockHandler.Requests[1];
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal($"{sEndpoint}?page=2", request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
 
             request = MockHandler.Requests[2];
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal($"{sEndpoint}?page=3", request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
 
             // Assert - response
             Assert.Equal(10, items.Count);
@@ -1137,7 +968,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             _ = CreatePageOfItems(5, 5);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             // Act
@@ -1166,7 +997,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             _ = CreatePageOfItems(5, 5);
-            var client = CreateClientForMocking(new TestAuthenticationProvider(basicToken));
+            var client = GetMockClient(new TestAuthenticationProvider(ValidAuthenticationToken));
             var table = client.GetTable<IdEntity>("movies");
 
             // Act
@@ -1180,7 +1011,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal(sEndpoint, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
 
             // Assert - response
             Assert.Equal(5, pageable.Count);
@@ -1288,7 +1119,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             // Act
@@ -1326,7 +1157,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
-            var client = CreateClientForMocking(new TestAuthenticationProvider(basicToken));
+            var client = GetMockClient(new TestAuthenticationProvider(ValidAuthenticationToken));
             var table = client.GetTable<IdEntity>("movies");
 
             // Act
@@ -1340,7 +1171,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal($"{sEndpoint}{sId}", request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
             if (hasPrecondition)
             {
                 AssertEx.HasHeader(request.Headers, "If-None-Match", "\"etag\"");
@@ -1365,7 +1196,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             MockHandler.AddResponse(HttpStatusCode.OK);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             // Act
@@ -1399,7 +1230,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetItemAsync_RequestFailed_Throws(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.GetItemAsync(sId)).ConfigureAwait(false);
@@ -1411,7 +1242,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetItemAsync_NotModified_Throws()
         {
             MockHandler.AddResponse(HttpStatusCode.NotModified);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<EntityNotModifiedException>(() => table.GetItemAsync(sId)).ConfigureAwait(false);
@@ -1548,7 +1379,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
             var expectedUri = string.IsNullOrEmpty(query) ? sEndpoint : $"{sEndpoint}?{query}";
 
@@ -1570,7 +1401,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking(new TestAuthenticationProvider(basicToken));
+            var client = GetMockClient(new TestAuthenticationProvider(ValidAuthenticationToken));
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
             var expectedUri = string.IsNullOrEmpty(query) ? sEndpoint : $"{sEndpoint}?{query}";
 
@@ -1581,7 +1412,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal(expectedUri, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
         }
 
         [Theory]
@@ -1594,7 +1425,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
 
             // Act
@@ -1618,7 +1449,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking(new TestAuthenticationProvider(basicToken));
+            var client = GetMockClient(new TestAuthenticationProvider(ValidAuthenticationToken));
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
 
             // Act
@@ -1630,7 +1461,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal(requestUri, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
         }
 
         [Theory]
@@ -1643,7 +1474,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
             const string requestUri = "https://localhost/tables/foo?$count=true&$skip=5&$top=10&__includedeleted=true";
 
@@ -1668,7 +1499,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking(new TestAuthenticationProvider(basicToken));
+            var client = GetMockClient(new TestAuthenticationProvider(ValidAuthenticationToken));
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
             const string requestUri = "https://localhost/tables/foo?$count=true&$skip=5&$top=10&__includedeleted=true";
 
@@ -1681,7 +1512,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal(requestUri, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
         }
 
         [Fact]
@@ -1691,7 +1522,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } } };
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
 
             // Act
@@ -1717,7 +1548,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             Page<IdEntity> result = new() { Count = 42 };
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
 
             // Act
@@ -1743,7 +1574,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             const string nextLink = sEndpoint + "?$top=5&$skip=5";
             Page<IdEntity> result = new() { NextLink = new Uri(nextLink) };
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
 
             // Act
@@ -1768,7 +1599,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } }, Count = 42 };
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
 
             // Act
@@ -1795,7 +1626,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             const string nextLink = sEndpoint + "?$top=5&$skip=5";
             Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } }, NextLink = new Uri(nextLink) };
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
 
             // Act
@@ -1822,7 +1653,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             const string nextLink = sEndpoint + "?$top=5&$skip=5";
             Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } }, Count = 42, NextLink = new Uri(nextLink) };
             MockHandler.AddResponse(HttpStatusCode.OK, result);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
 
             // Act
@@ -1852,7 +1683,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             MockHandler.AddResponse(statusCode);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
 
             // Act
@@ -2389,7 +2220,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task ReplaceItemAsync_Success_FormulatesCorrectResponse(bool hasPrecondition)
         {
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             var response = hasPrecondition
@@ -2426,7 +2257,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task ReplaceItemAsync_Success_FormulatesCorrectResponse_WithAuth(bool hasPrecondition)
         {
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
-            var client = CreateClientForMocking(new TestAuthenticationProvider(basicToken));
+            var client = GetMockClient(new TestAuthenticationProvider(ValidAuthenticationToken));
             var table = client.GetTable<IdEntity>("movies");
 
             var response = hasPrecondition
@@ -2439,7 +2270,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Put, request.Method);
             Assert.Equal($"{sEndpoint}{payload.Id}", request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
             if (hasPrecondition)
             {
                 AssertEx.HasHeader(request.Headers, "If-Match", "\"etag\"");
@@ -2464,7 +2295,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task ReplaceItemAsync_SuccessNoContent()
         {
             MockHandler.AddResponse(HttpStatusCode.OK);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             var response = await table.ReplaceItemAsync(payload).ConfigureAwait(false);
@@ -2492,7 +2323,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task ReplaceItemAsync_Conflict_FormulatesCorrectResponse(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode, payload);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
@@ -2511,7 +2342,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task ReplaceItemAsync_ConflictNoContent(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
@@ -2531,7 +2362,7 @@ namespace Microsoft.Datasync.Client.Test.Table
                 Content = new StringContent(sBadJson, Encoding.UTF8, "application/json")
             };
             MockHandler.Responses.Add(response);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             await Assert.ThrowsAsync<JsonException>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
@@ -2546,7 +2377,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task ReplaceItemAsync_RequestFailed_Throws(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
@@ -2988,7 +2819,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task UpdateItemAsync_Success_FormulatesCorrectResponse(bool hasPrecondition)
         {
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             var response = hasPrecondition
@@ -3025,7 +2856,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task UpdateItemAsync_Success_FormulatesCorrectResponse_WithAuth(bool hasPrecondition)
         {
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
-            var client = CreateClientForMocking(new TestAuthenticationProvider(basicToken));
+            var client = GetMockClient(new TestAuthenticationProvider(ValidAuthenticationToken));
             var table = client.GetTable<IdEntity>("movies");
 
             var response = hasPrecondition
@@ -3038,7 +2869,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal("patch", request.Method.ToString().ToLower());
             Assert.Equal($"{sEndpoint}{sId}", request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
             if (hasPrecondition)
             {
                 AssertEx.HasHeader(request.Headers, "If-Match", "\"etag\"");
@@ -3065,7 +2896,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task UpdateItemAsync_Conflict_FormulatesCorrectResponse(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode, payload);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.UpdateItemAsync(sId, changes)).ConfigureAwait(false);
@@ -3084,7 +2915,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task UpdateItemAsync_ConflictNoContent_throws(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.UpdateItemAsync(sId, changes)).ConfigureAwait(false);
@@ -3104,7 +2935,7 @@ namespace Microsoft.Datasync.Client.Test.Table
                 Content = new StringContent(sBadJson, Encoding.UTF8, "application/json")
             };
             MockHandler.Responses.Add(response);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             await Assert.ThrowsAsync<JsonException>(() => table.UpdateItemAsync(sId, changes)).ConfigureAwait(false);
@@ -3119,7 +2950,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task UpdateItemAsync_RequestFailed_Throws(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.UpdateItemAsync(sId, changes)).ConfigureAwait(false);
@@ -3131,7 +2962,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task UpdateItemAsync_SuccessNoContent_Throws()
         {
             MockHandler.AddResponse(HttpStatusCode.OK);
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
 
             var response = await table.UpdateItemAsync(sId, changes).ConfigureAwait(false);
@@ -3401,7 +3232,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "IncludeDeletedItems")]
         public void IncludeDeletedItems_Enabled_AddsKey()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.IncludeDeletedItems(true) as DatasyncTableQuery<IdEntity>;
@@ -3413,7 +3244,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "IncludeDeletedItems")]
         public void IncludeDeletedItems_Disabled_Empty()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.IncludeDeletedItems(false) as DatasyncTableQuery<IdEntity>;
@@ -3425,7 +3256,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "IncludeDeletedItems")]
         public void ToODataQueryString_IncludeDeletedItems_IsWellFormed()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.IncludeDeletedItems() as DatasyncTableQuery<IdEntity>;
@@ -3439,7 +3270,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "IncludeTotalCount")]
         public void IncludeTotalCount_Enabled_AddsKey()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.IncludeTotalCount(true) as DatasyncTableQuery<IdEntity>;
@@ -3450,7 +3281,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "IncludeTotalCount")]
         public void IncludeTotalCount_Disabled_WorksWithEmptyParameters()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.IncludeTotalCount(false) as DatasyncTableQuery<IdEntity>;
@@ -3462,7 +3293,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "IncludeTotalCount")]
         public void ToOdataQueryString_IncludeTotalCount_IsWellFormed()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.IncludeTotalCount() as DatasyncTableQuery<IdEntity>;
@@ -3476,7 +3307,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "OrderBy")]
         public void OrderBy_Null_Throws()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
             Expression<Func<IdEntity, string>> keySelector = null;
             Assert.Throws<ArgumentNullException>(() => table.OrderBy(keySelector));
@@ -3486,7 +3317,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "OrderBy")]
         public void OrderBy_UpdatesQuery()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.OrderBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
@@ -3500,7 +3331,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "OrderBy")]
         public void ToODataQueryString_OrderBy_IsWellFormed()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.OrderBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
@@ -3513,7 +3344,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "OrderBy")]
         public void ToODataQueryString_OrderBy_ThrowsNotSupported()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.OrderBy(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
@@ -3526,7 +3357,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "OrderByDescending")]
         public void OrderByDescending_Null_Throws()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
             Expression<Func<IdEntity, string>> keySelector = null;
             Assert.Throws<ArgumentNullException>(() => table.OrderByDescending(keySelector));
@@ -3536,7 +3367,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "OrderByDescending")]
         public void OrderByDescending_UpdatesQuery()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.OrderByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
@@ -3550,7 +3381,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "OrderByDescending")]
         public void ToODataQueryString_OrderByDescending_IsWellFormed()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.OrderByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
@@ -3563,7 +3394,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "OrderByDescending")]
         public void ToODataQueryString_OrderByDescending_ThrowsNotSupported()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.OrderByDescending(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
@@ -3576,7 +3407,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Select")]
         public void Select_Null_Throws()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             Expression<Func<IdEntity, IdOnly>> selector = null;
@@ -3587,7 +3418,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Select")]
         public void Select_UpdatesQuery()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.Select(m => new IdOnly { Id = m.Id }) as DatasyncTableQuery<IdOnly>;
@@ -3601,7 +3432,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Select")]
         public void ToODataQueryString_Select_IsWellFormed()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.Select(m => new IdOnly { Id = m.Id }) as DatasyncTableQuery<IdOnly>;
@@ -3615,7 +3446,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Skip")]
         public void Skip_Throws_OutOfRange([CombinatorialValues(-10, -1)] int skip)
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             Assert.Throws<ArgumentOutOfRangeException>(() => table.Skip(skip));
@@ -3625,7 +3456,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Skip")]
         public void Skip_Sets_SkipCount()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.Skip(5) as DatasyncTableQuery<IdEntity>;
@@ -3636,7 +3467,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Skip")]
         public void Skip_IsCumulative()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.Skip(5).Skip(20) as DatasyncTableQuery<IdEntity>;
@@ -3648,7 +3479,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Skip")]
         public void ToODataQueryString_Skip_IsWellFormed()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.Skip(5) as DatasyncTableQuery<IdEntity>;
@@ -3662,7 +3493,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Take")]
         public void Take_ThrowsOutOfRange([CombinatorialValues(-10, -1, 0)] int take)
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             Assert.Throws<ArgumentOutOfRangeException>(() => table.Take(take));
@@ -3676,7 +3507,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Take")]
         public void Take_MinimumWins(int first, int second, int expected)
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.Take(first).Take(second) as DatasyncTableQuery<IdEntity>;
@@ -3688,7 +3519,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Take")]
         public void ToODataQueryString_Take_IsWellFormed()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.Take(5) as DatasyncTableQuery<IdEntity>;
@@ -3702,7 +3533,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "ThenBy")]
         public void ThenBy_Null_Throws()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
             Expression<Func<IdEntity, string>> keySelector = null;
             Assert.Throws<ArgumentNullException>(() => table.ThenBy(keySelector));
@@ -3712,7 +3543,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "ThenBy")]
         public void ThenBy_UpdatesQuery()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.ThenBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
@@ -3726,7 +3557,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "ThenBy")]
         public void ToODataQueryString_ThenBy_IsWellFormed()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.ThenBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
@@ -3739,7 +3570,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "ThenBy")]
         public void ToODataQueryString_ThenBy_ThrowsNotSupported()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.ThenBy(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
@@ -3752,7 +3583,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "ThenByDescending")]
         public void ThenByDescending_Null_Throws()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
             Expression<Func<IdEntity, string>> keySelector = null;
             Assert.Throws<ArgumentNullException>(() => table.ThenByDescending(keySelector));
@@ -3762,7 +3593,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "ThenByDescending")]
         public void ThenByDescending_UpdatesQuery()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.ThenByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
@@ -3776,7 +3607,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "ThenByDescending")]
         public void ToODataQueryString_ThenByDescending_IsWellFormed()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.ThenByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
@@ -3789,7 +3620,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "ThenByDescending")]
         public void ToODataQueryString_ThenByDescending_ThrowsNotSupported()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.ThenByDescending(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
@@ -3802,7 +3633,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Where")]
         public void Where_Null_Throws()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
             Expression<Func<IdEntity, bool>> predicate = null;
             Assert.Throws<ArgumentNullException>(() => table.Where(predicate));
@@ -3812,7 +3643,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Where")]
         public void Where_UpdatesQuery()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.Where(m => m.Id.Contains("foo")) as DatasyncTableQuery<IdEntity>;
@@ -3826,7 +3657,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Where")]
         public void ToODataQueryString_Where_IsWellFormed()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.Where(m => m.Id == "foo") as DatasyncTableQuery<IdEntity>;
@@ -3839,7 +3670,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Where")]
         public void ToODataQueryString_Where_ThrowsNotSupported()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.ThenByDescending(m => m.Id.Normalize() == "foo") as DatasyncTableQuery<IdEntity>;
@@ -3854,7 +3685,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "WithParameter")]
         public void WithParameter_Null_Throws(string key, string value)
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             Assert.Throws<ArgumentNullException>(() => table.WithParameter(key, value));
@@ -3874,7 +3705,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "WithParameter")]
         public void WithParameter_Illegal_Throws(string key, string value)
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             Assert.Throws<ArgumentException>(() => table.WithParameter(key, value));
@@ -3884,7 +3715,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "WithParameter")]
         public void WithParameter_SetsParameter()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.WithParameter("testkey", "testvalue") as DatasyncTableQuery<IdEntity>;
@@ -3895,7 +3726,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "WithParameter")]
         public void WithParameter_Overwrites()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.WithParameter("testkey", "testvalue");
@@ -3908,7 +3739,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "WithParameter")]
         public void ToODataQueryString_WithParameter_isWellFormed()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.WithParameter("testkey", "testvalue") as DatasyncTableQuery<IdEntity>;
@@ -3921,7 +3752,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "WithParameter")]
         public void ToODataQueryString_WithParameter_EncodesValue()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.WithParameter("testkey", "test value") as DatasyncTableQuery<IdEntity>;
@@ -3935,7 +3766,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "WithParameters")]
         public void WithParameters_Null_Throws()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             Assert.Throws<ArgumentNullException>(() => table.WithParameters(null));
@@ -3945,7 +3776,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "WithParameters")]
         public void WithParameters_Empty_Throws()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
             var sut = new Dictionary<string, string>();
             Assert.Throws<ArgumentException>(() => table.WithParameters(sut));
@@ -3961,7 +3792,7 @@ namespace Microsoft.Datasync.Client.Test.Table
                 { "key2", "value2" }
             };
 
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.WithParameters(sut) as DatasyncTableQuery<IdEntity>;
@@ -3973,7 +3804,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "WithParameters")]
         public void WithParameters_MergesParams()
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.WithParameter("key1", "value1");
@@ -3994,7 +3825,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "WithParameters")]
         public void WithParameters_CannotSetIllegalParams(string key)
         {
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var sut = new Dictionary<string, string>()
@@ -4016,7 +3847,7 @@ namespace Microsoft.Datasync.Client.Test.Table
                 {  "key1", "value1" },
                 {  "key2", "value 2" }
             };
-            var client = CreateClientForMocking();
+            var client = GetMockClient();
             var table = client.GetTable<IdEntity>();
 
             var query = table.WithParameters(pairs) as DatasyncTableQuery<IdEntity>;

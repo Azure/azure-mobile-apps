@@ -2,8 +2,7 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
-using Datasync.Common.Test.Wraps;
-using Microsoft.Datasync.Client.Test.Helpers;
+using Datasync.Common.Test.Mocks;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -272,7 +271,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "SendAsync")]
         public async Task SendAsync_AddsHeader_BearerAuth()
         {
-            var handler = new TestDelegatingHandler();
+            var handler = new MockDelegatingHandler();
             handler.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK));
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/test");
             var sut = new WrappedAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken))
@@ -293,7 +292,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "SendAsync")]
         public async Task SendAsync_AddsHeader_ZumoAuth()
         {
-            var handler = new TestDelegatingHandler();
+            var handler = new MockDelegatingHandler();
             handler.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK));
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/test");
             var sut = new WrappedAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH")
@@ -313,7 +312,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "SendAsync")]
         public async Task SendAsync_NoHeader_WhenExpired()
         {
-            var handler = new TestDelegatingHandler();
+            var handler = new MockDelegatingHandler();
             handler.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK));
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/test");
             var sut = new WrappedAuthenticationProvider(() => Task.FromResult(ExpiredAuthenticationToken), "X-ZUMO-AUTH")
@@ -333,7 +332,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "SendAsync")]
         public async Task SendAsync_RemoveHeader_WhenExpired()
         {
-            var handler = new TestDelegatingHandler();
+            var handler = new MockDelegatingHandler();
             handler.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK));
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/test");
             request.Headers.Add("X-ZUMO-AUTH", "a-test-header");
@@ -354,7 +353,7 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         [Trait("Method", "SendAsync")]
         public async Task SendAsync_OverwritesHeader_WhenNotExpired()
         {
-            var handler = new TestDelegatingHandler();
+            var handler = new MockDelegatingHandler();
             handler.Responses.Add(new HttpResponseMessage(HttpStatusCode.OK));
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/test");
             request.Headers.Add("X-ZUMO-AUTH", "a-test-header");

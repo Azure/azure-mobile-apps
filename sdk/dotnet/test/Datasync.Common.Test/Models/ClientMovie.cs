@@ -4,7 +4,9 @@
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.Datasync.Client;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 
 namespace Datasync.Common.Test.Models
 {
@@ -101,6 +103,16 @@ namespace Datasync.Common.Test.Models
             }
 
             return entity;
+        }
+
+        /// <summary>
+        /// Converts this object to a dictionary.
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<string, object> ToDictionary()
+        {
+            string json = JsonSerializer.Serialize(this);
+            return JsonSerializer.Deserialize<Dictionary<string, object>>(json);
         }
     }
 }

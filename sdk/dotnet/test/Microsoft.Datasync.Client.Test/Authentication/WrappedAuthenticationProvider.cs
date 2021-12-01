@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client;
 using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Datasync.Common.Test.Wraps
+namespace Microsoft.Datasync.Client.Test.Authentication
 {
     /// <summary>
     /// Wrap of the <see cref="GenericAuthenticationProvider"/> that provides public access to `SendAsync()`

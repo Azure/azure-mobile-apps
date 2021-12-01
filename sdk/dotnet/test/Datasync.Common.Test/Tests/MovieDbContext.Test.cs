@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test;
 using Datasync.Common.Test.Service;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +11,7 @@ using Xunit;
 
 using TestData = Datasync.Common.Test.TestData;
 
-namespace Microsoft.Datasync.Integration.Test
+namespace Datasync.Common.Test
 {
     /// <summary>
     /// We do some pretty major things to make MovieDbContext work "in memory",

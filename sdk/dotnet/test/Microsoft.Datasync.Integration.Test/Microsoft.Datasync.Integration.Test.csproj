@@ -31,8 +31,4 @@
     <ProjectReference Include="..\Datasync.Common.Test\Datasync.Common.Test.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Client\" />
-  </ItemGroup>
-
 </Project>

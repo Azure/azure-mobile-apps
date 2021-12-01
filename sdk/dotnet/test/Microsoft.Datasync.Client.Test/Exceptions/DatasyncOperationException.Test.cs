@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -10,7 +11,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Exceptions
 {
     [ExcludeFromCodeCoverage]
-    public class DatasyncOperationException_Test : OldBaseTest
+    public class DatasyncOperationException_Test : BaseTest
     {
         [Fact]
         [Trait("Method", "Ctor")]

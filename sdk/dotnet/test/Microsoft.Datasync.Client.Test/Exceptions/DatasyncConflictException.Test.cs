@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
+using Datasync.Common.Test.Models;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -12,66 +14,70 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Exceptions
 {
     [ExcludeFromCodeCoverage]
-    public class DatasyncConflictException_Tests : OldBaseTest
+    public class DatasyncConflictException_Tests : BaseTest
     {
-        private class MockObject
-        {
-            public string StringValue { get; set; }
-        }
-
-        private readonly string StandardContent = "{\"stringValue\":\"test\"}";
-        private readonly HttpRequestMessage StandardRequest;
-        private readonly HttpResponseMessage StandardResponse;
-
-        public DatasyncConflictException_Tests()
-        {
-            StandardRequest = new(HttpMethod.Post, Endpoint);
-            StandardResponse = new(HttpStatusCode.Conflict) { Content = new StringContent(StandardContent, Encoding.UTF8, "application/json") };
-        }
-
         [Fact]
         [Trait("Method", "CreateAsync")]
         public async Task CreateAsync_NullRequest_Throws()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(() => DatasyncConflictException<MockObject>.CreateAsync(null, StandardResponse, ClientOptions.DeserializerOptions)).ConfigureAwait(false);
+            var options = new DatasyncClientOptions();
+            var response = new HttpResponseMessage(HttpStatusCode.Conflict);
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                DatasyncConflictException<NoIdEntity>.CreateAsync(null, response, options.DeserializerOptions)).ConfigureAwait(false);
         }
 
         [Fact]
         [Trait("Method", "CreateAsync")]
         public async Task CreateAsync_NullResponse_Throws()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(() => DatasyncConflictException<MockObject>.CreateAsync(StandardRequest, null, ClientOptions.DeserializerOptions)).ConfigureAwait(false);
+            var options = new DatasyncClientOptions();
+            var request = new HttpRequestMessage(HttpMethod.Post, Endpoint);
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                DatasyncConflictException<NoIdEntity>.CreateAsync(request, null, options.DeserializerOptions)).ConfigureAwait(false);
         }
 
         [Fact]
         [Trait("Method", "CreateAsync")]
         public async Task CreateAsync_NullOptions_Throws()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(() => DatasyncConflictException<MockObject>.CreateAsync(StandardRequest, StandardResponse, null)).ConfigureAwait(false);
+            var request = new HttpRequestMessage(HttpMethod.Post, Endpoint);
+            var response = new HttpResponseMessage(HttpStatusCode.Conflict);
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                DatasyncConflictException<NoIdEntity>.CreateAsync(request, response, null)).ConfigureAwait(false);
         }
 
         [Fact]
         [Trait("Method", "CreateAsync")]
         public async Task CreateAsync_CreatesException()
         {
-            var exception = await DatasyncConflictException<MockObject>.CreateAsync(StandardRequest, StandardResponse, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+            var options = new DatasyncClientOptions();
+            const string json = "{\"stringValue\":\"test\"}";
+            var request = new HttpRequestMessage(HttpMethod.Post, Endpoint);
+            var response = new HttpResponseMessage(HttpStatusCode.Conflict)
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
+            };
 
-            Assert.Same(StandardRequest, exception.Request);
-            Assert.Same(StandardResponse, exception.Response);
+            var exception = await DatasyncConflictException<NoIdEntity>.CreateAsync(request, response, options.DeserializerOptions).ConfigureAwait(false);
+
+            Assert.Same(request, exception.Request);
+            Assert.Same(response, exception.Response);
             Assert.Equal(409, exception.StatusCode);
             Assert.NotNull(exception.ServerItem);
             Assert.Equal("test", exception.ServerItem.StringValue);
-            Assert.Equal(StandardContent, Encoding.UTF8.GetString(exception.Content));
+            Assert.Equal(json, Encoding.UTF8.GetString(exception.Content));
         }
 
         [Fact]
         [Trait("Method", "CreateAsync")]
         public async Task CreateAsync_Empty_CreatesException()
         {
+            var options = new DatasyncClientOptions();
+            var request = new HttpRequestMessage(HttpMethod.Post, Endpoint);
             var emptyResponse = new HttpResponseMessage(HttpStatusCode.NoContent);
-            var exception = await DatasyncConflictException<MockObject>.CreateAsync(StandardRequest, emptyResponse, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+            var exception = await DatasyncConflictException<NoIdEntity>.CreateAsync(request, emptyResponse, options.DeserializerOptions).ConfigureAwait(false);
 
-            Assert.Same(StandardRequest, exception.Request);
+            Assert.Same(request, exception.Request);
             Assert.Same(emptyResponse, exception.Response);
             Assert.Equal(204, exception.StatusCode);
             Assert.Null(exception.ServerItem);

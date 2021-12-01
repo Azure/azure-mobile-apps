@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
+using Datasync.Common.Test.Mocks;
 using Microsoft.Datasync.Client.Commands;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,21 +13,11 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Commands
 {
     [ExcludeFromCodeCoverage]
-    public class TaskExtensions_Test : OldBaseTest
+    public class TaskExtensions_Test : BaseTest
     {
-        private class ErrorHandler : IAsyncExceptionHandler
-        {
-            public List<Exception> Received = new();
-
-            public void OnAsyncException(Exception ex)
-            {
-                Received.Add(ex);
-            }
-        }
-
         [Fact]
         [Trait("Method", "FireAndForgetSafeAsync")]
-        public async Task FireAndForget_RunsTask_NoErrorHandler()
+        public async Task FireAndForget_RunsTask_NoTestExceptionHandler()
         {
             int count = 0;
             Task.Run(() => count++).FireAndForgetSafeAsync();
@@ -34,39 +25,38 @@ namespace Microsoft.Datasync.Client.Test.Commands
             // Wait with a timeout
             Assert.True(await WaitUntil(() => count == 1).ConfigureAwait(false), "Timeout waiting for IsBusy to settle");
 
-
             Assert.Equal(1, count);
         }
 
         [Fact]
         [Trait("Method", "FireAndForgetSafeAsync")]
-        public async Task FireAndForget_RunsTask_WithErrorHandler()
+        public async Task FireAndForget_RunsTask_WithTestExceptionHandler()
         {
             int count = 0;
-            var errorHandler = new ErrorHandler();
+            var TestExceptionHandler = new MockExceptionHandler();
 
-            Task.Run(() => count++).FireAndForgetSafeAsync(errorHandler);
+            Task.Run(() => count++).FireAndForgetSafeAsync(TestExceptionHandler);
 
             // Wait with a timeout
             Assert.True(await WaitUntil(() => count == 1).ConfigureAwait(false), "Timeout waiting for IsBusy to settle");
 
             Assert.Equal(1, count);
-            Assert.Empty(errorHandler.Received);
+            Assert.Empty(TestExceptionHandler.Received);
         }
 
         [Fact]
         [Trait("Method", "FireAndForgetSafeAsync")]
-        public async Task FireAndForget_CallsErrorHandler()
+        public async Task FireAndForget_CallsTestExceptionHandler()
         {
-            var errorHandler = new ErrorHandler();
+            var TestExceptionHandler = new MockExceptionHandler();
 
-            Task.Run(() => throw new NotSupportedException()).FireAndForgetSafeAsync(errorHandler);
+            Task.Run(() => throw new NotSupportedException()).FireAndForgetSafeAsync(TestExceptionHandler);
 
             // Sleep some time because async is hard
-            Assert.True(await WaitUntil(() => errorHandler.Received.Count > 0, 1000), "Timeout waiting for error hanlder to be called");
+            Assert.True(await WaitUntil(() => TestExceptionHandler.Received.Count > 0, 1000).ConfigureAwait(false), "Timeout waiting for error hanlder to be called");
 
-            Assert.Single(errorHandler.Received);
-            Assert.IsAssignableFrom<NotSupportedException>(errorHandler.Received[0]);
+            Assert.Single(TestExceptionHandler.Received);
+            Assert.IsAssignableFrom<NotSupportedException>(TestExceptionHandler.Received[0]);
         }
 
         [Fact]

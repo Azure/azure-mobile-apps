@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
@@ -12,7 +13,7 @@ namespace Microsoft.Datasync.Client.Test.Table
     /// Testing JSON Serialization using the default serializer.
     /// </summary>
     [ExcludeFromCodeCoverage]
-    public class Serialization_Test : OldBaseTest
+    public class Serialization_Test : BaseTest
     {
         private class TestClass
         {
@@ -20,12 +21,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             public DateTimeOffset? UpdatedAt { get; set; }
         }
 
-        #region IsoDateTimeConverter
         [Fact]
         public void Serializer_DeserializesDate()
         {
+            var options = new DatasyncClientOptions();
             const string json = "{\"releaseDate\":\"2011-11-27T08:14:32.500Z\"}";
-            var actual = JsonSerializer.Deserialize<TestClass>(json, ClientOptions.DeserializerOptions);
+            var actual = JsonSerializer.Deserialize<TestClass>(json, options.DeserializerOptions);
             var expected = new DateTime(2011, 11, 27, 8, 14, 32, 500, DateTimeKind.Utc).ToLocalTime();
             Assert.Equal(expected, actual.ReleaseDate);
         }
@@ -37,13 +38,11 @@ namespace Microsoft.Datasync.Client.Test.Table
             {
                 ReleaseDate = new DateTime(2011, 11, 27, 8, 14, 32, 500, DateTimeKind.Utc)
             };
+            var options = new DatasyncClientOptions();
             const string expected = "{\"releaseDate\":\"2011-11-27T08:14:32.500Z\"}";
-            var actual = JsonSerializer.Serialize(testClass, ClientOptions.SerializerOptions);
+            var actual = JsonSerializer.Serialize(testClass, options.SerializerOptions);
             Assert.Equal(expected, actual);
         }
-        #endregion
-
-        #region IsoDateTimeOffsetConverter
         [Fact]
         public void Serializer_SerializesDTO()
         {
@@ -51,8 +50,9 @@ namespace Microsoft.Datasync.Client.Test.Table
             {
                 UpdatedAt = new DateTimeOffset(2011, 11, 27, 8, 14, 32, 500, TimeSpan.Zero)
             };
+            var options = new DatasyncClientOptions();
             const string expected = "{\"updatedAt\":\"2011-11-27T08:14:32.500Z\"}";
-            var actual = JsonSerializer.Serialize(testClass, ClientOptions.SerializerOptions);
+            var actual = JsonSerializer.Serialize(testClass, options.SerializerOptions);
             Assert.Equal(expected, actual);
         }
 
@@ -60,10 +60,10 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Serializer_DeserializesDTO()
         {
             const string json = "{\"updatedAt\":\"2011-11-27T08:14:32.500Z\"}";
-            var actual = JsonSerializer.Deserialize<TestClass>(json, ClientOptions.DeserializerOptions);
+            var options = new DatasyncClientOptions();
+            var actual = JsonSerializer.Deserialize<TestClass>(json, options.DeserializerOptions);
             var expected = new DateTimeOffset(2011, 11, 27, 8, 14, 32, 500, TimeSpan.Zero);
             Assert.Equal(expected, actual.UpdatedAt);
         }
-        #endregion
     }
 }

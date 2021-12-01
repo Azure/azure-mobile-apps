@@ -1,15 +1,19 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test.Mocks;
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.Service;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Authentication;
-using Microsoft.Datasync.Client.Test.Helpers;
+using Microsoft.Datasync.Client.Table;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Datasync.Common.Test
 {
@@ -49,6 +53,51 @@ namespace Datasync.Common.Test
         protected Uri Endpoint { get; } = new Uri("https://localhost");
 
         /// <summary>
+        /// The mock handler that allows us to set responses and see requests.
+        /// </summary>
+        protected MockDelegatingHandler MockHandler { get; } = new();
+
+        /// <summary>
+        /// The count of the movies in the data set.
+        /// </summary>
+        protected static int MovieCount { get; } = TestData.Movies.Count;
+
+        /// <summary>
+        /// Creates a <see cref="HttpClient"/> to access the movie server
+        /// </summary>
+        protected HttpClient MovieHttpClient { get => MovieServer.CreateClient(); }
+
+        /// <summary>
+        /// Creates a reference to the movie server, when needed.
+        /// </summary>
+        protected TestServer MovieServer { get => _server.Value; }
+
+        /// <summary>
+        /// The start time for the test.
+        /// </summary>
+        protected DateTimeOffset StartTime { get; } = DateTimeOffset.UtcNow;
+
+        /// <summary>
+        /// Creates a paging response.
+        /// </summary>
+        /// <param name="count">The count of elements to return</param>
+        /// <param name="totalCount">The total count</param>
+        /// <param name="nextLink">The next link</param>
+        /// <returns></returns>
+        protected Page<IdEntity> CreatePageOfItems(int count, long? totalCount = null, Uri nextLink = null)
+        {
+            List<IdEntity> items = new();
+
+            for (int i = 0; i < count; i++)
+            {
+                items.Add(new IdEntity { Id = Guid.NewGuid().ToString("N") });
+            }
+            var page = new Page<IdEntity> { Items = items, Count = totalCount, NextLink = nextLink };
+            MockHandler.AddResponse(HttpStatusCode.OK, page);
+            return page;
+        }
+
+        /// <summary>
         /// Get a datasync client that is completely mocked and doesn't require a service
         /// </summary>
         /// <param name="authProvider">... with the provided authentication provider</param>
@@ -77,6 +126,12 @@ namespace Datasync.Common.Test
         }
 
         /// <summary>
+        /// Gets the random ID for a movie.
+        /// </summary>
+        /// <returns></returns>
+        protected static string GetRandomId() => TestData.Movies.GetRandomId();
+
+        /// <summary>
         /// We use "Black Panther" as a sample movie throughout the tests.
         /// </summary>
         /// <typeparam name="T">The concrete type of create.</typeparam>
@@ -95,31 +150,21 @@ namespace Datasync.Common.Test
         }
 
         /// <summary>
-        /// The mock handler that allows us to set responses and see requests.
+        /// Wait until a condition is met - useful for testing async processes.
         /// </summary>
-        protected TestDelegatingHandler MockHandler { get; } = new();
-
-        /// <summary>
-        /// Creates a reference to the movie server, when needed.
-        /// </summary>
-        protected TestServer MovieServer { get => _server.Value; }
-
-        /// <summary>
-        /// Creates a <see cref="HttpClient"/> to access the movie server
-        /// </summary>
-        protected HttpClient MovieHttpClient { get => MovieServer.CreateClient(); }
-
-        /// <summary>
-        /// The start time for the test.
-        /// </summary>
-        protected DateTimeOffset StartTime { get; } = DateTimeOffset.UtcNow;
-
-        /// <summary>
-        /// Gets the random ID for a movie.
-        /// </summary>
+        /// <param name="func"></param>
+        /// <param name="ms"></param>
+        /// <param name="maxloops"></param>
         /// <returns></returns>
-        protected string GetRandomId() => TestData.Movies.GetRandomId();
-
-
+        protected static async Task<bool> WaitUntil(Func<bool> func, int ms = 10, int maxloops = 500)
+        {
+            int waitCtr = 0;
+            do
+            {
+                waitCtr++;
+                await Task.Delay(ms).ConfigureAwait(false);
+            } while (!func.Invoke() && waitCtr < maxloops);
+            return waitCtr < maxloops;
+        }
     }
 }

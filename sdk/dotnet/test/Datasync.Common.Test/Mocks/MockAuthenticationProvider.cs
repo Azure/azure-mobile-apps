@@ -1,28 +1,28 @@
-﻿using Microsoft.Datasync.Client.Authentication;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.Datasync.Client;
+using Microsoft.Datasync.Client.Authentication;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Datasync.Client.Test.Helpers
+namespace Datasync.Common.Test.Mocks
 {
     /// <summary>
     /// A test authentication provider that just takes an AuthenticationToken and
     /// adds it to the request.
     /// </summary>
-    public class TestAuthenticationProvider : AuthenticationProvider
+    public class MockAuthenticationProvider : AuthenticationProvider
     {
-        public TestAuthenticationProvider(AuthenticationToken token)
+        public MockAuthenticationProvider(AuthenticationToken token)
         {
             Token = token;
         }
 
-        internal AuthenticationToken Token { get; set; }
+        public AuthenticationToken Token { get; set; }
 
-        internal string HeaderName { get; set; } = "X-ZUMO-AUTH";
+        public string HeaderName { get; set; } = "X-ZUMO-AUTH";
 
         public override Task LoginAsync() => Task.CompletedTask;
 
