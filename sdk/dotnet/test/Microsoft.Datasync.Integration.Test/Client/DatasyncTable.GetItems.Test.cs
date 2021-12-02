@@ -88,9 +88,10 @@ namespace Microsoft.Datasync.Integration.Test.Client
         {
             // Arrange
             var segments = testcase.PathAndQuery.Split('?');
+            var tableName = segments[0].Split('/').Last();
             var query = segments.Length > 1 ? segments[1] : string.Empty;
             var client = GetMovieClient();
-            var table = (DatasyncTable<ClientMovie>)client.GetTable<ClientMovie>("movies")!;
+            var table = (DatasyncTable<ClientMovie>)client.GetTable<ClientMovie>(tableName)!;
 
             // Act
             var response = await table.GetPageOfItemsAsync<ClientMovie>(query).ConfigureAwait(false);
@@ -196,7 +197,7 @@ namespace Microsoft.Datasync.Integration.Test.Client
             var segments = pathAndQuery.Split('?');
             var tableName = segments[0].Split('/')[1];
             var query = segments.Length > 1 ? segments[1] : string.Empty;
-            var table = (DatasyncTable<ClientMovie>)client.GetTable<ClientMovie>("movies")!;
+            var table = (DatasyncTable<ClientMovie>)client.GetTable<ClientMovie>(tableName)!;
 
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.GetPageOfItemsAsync<ClientMovie>(query)).ConfigureAwait(false);
 
@@ -211,10 +212,15 @@ namespace Microsoft.Datasync.Integration.Test.Client
         [Trait("Method", "GetPageOfItemsAsync")]
         public async Task GetPageOfItemsAsync_SoftDeleteQuery(string pathAndQuery, int expectedItemCount, string expectedNextLinkQuery, long expectedTotalCount, string[] firstExpectedItems)
         {
+            // Soft-Delete all movies that are R rated
+            await MovieServer.SoftDeleteMoviesAsync(x => x.Rating == "R").ConfigureAwait(false);
+
             // Arrange
-            string query = pathAndQuery.Split('?')[1];
+            var segments = pathAndQuery.Split('?');
+            var tableName = segments[0].Split('/')[1];
+            string query = segments[1];
             var client = GetMovieClient();
-            var table = (DatasyncTable<ClientMovie>)client.GetTable<ClientMovie>("movies")!;
+            var table = (DatasyncTable<ClientMovie>)client.GetTable<ClientMovie>(tableName)!;
 
             // Act
             var response = await table.GetPageOfItemsAsync<ClientMovie>(query).ConfigureAwait(false);

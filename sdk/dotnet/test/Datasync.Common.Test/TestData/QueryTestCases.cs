@@ -9,13 +9,14 @@ namespace Datasync.Common.Test.TestData
 {
     public class QueryTestCase
     {
-        internal QueryTestCase(string pathAndQuery, int itemCount, string nextLinkQuery, long totalCount, string[] firstItems)
+        internal QueryTestCase(string pathAndQuery, int itemCount, string nextLinkQuery, long totalCount, string[] firstItems, string username = null)
         {
             PathAndQuery = pathAndQuery;
             ItemCount = itemCount;
             NextLinkQuery = nextLinkQuery;
             TotalCount = totalCount;
             FirstItems = firstItems.ToArray();
+            Username = username;
         }
 
         public string PathAndQuery { get; }
@@ -27,6 +28,8 @@ namespace Datasync.Common.Test.TestData
         public long TotalCount { get; }
 
         public string[] FirstItems { get; }
+
+        public string Username { get; }
     }
 
     public class QueryTestCases : TheoryData<QueryTestCase>
@@ -67,7 +70,12 @@ namespace Datasync.Common.Test.TestData
             Add(new QueryTestCase("tables/movies?$count=true&$filter=releaseDate gt cast(1999-12-31T00:00:00.000Z,Edm.DateTimeOffset)", 69, null, 69, new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }));
             Add(new QueryTestCase("tables/movies?$count=true&$filter=releaseDate le cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)", 100, "tables/movies?$count=true&$filter=releaseDate le cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)&$skip=100", 179, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }));
             Add(new QueryTestCase("tables/movies?$count=true&$filter=releaseDate lt cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)", 100, "tables/movies?$count=true&$filter=releaseDate lt cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)&$skip=100", 179, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }));
-            Add(new QueryTestCase("tables/movies?$count=true&$filter=round(duration div 60.0) eq 2", 100, "tables/movies?$count=true&$filter=round(duration div 60.0) eq 2&$skip=100", 186, new[] { "id-000", "id-005", "id-009", "id-010", "id-011" }));
+            Add(new QueryTestCase(
+                "tables/movies?$count=true&$filter=round(duration div 60.0) eq 2",
+                100,
+                "tables/movies?$count=true&$filter=round(duration div 60.0) eq 2&$skip=100",
+                Movies.MovieList.Count(x => Math.Round(x.Duration / 60.0) == 2.0),
+                new[] { "id-000", "id-005", "id-009", "id-010", "id-011" }));
             Add(new QueryTestCase("tables/movies?$count=true&$filter=startswith(rating, 'PG')", 64, null, 64, new[] { "id-006", "id-008", "id-010", "id-012", "id-013" }));
             Add(new QueryTestCase("tables/movies?$count=true&$filter=startswith(tolower(title), 'the')", 63, null, 63, new[] { "id-000", "id-001", "id-002", "id-004", "id-006" }));
             Add(new QueryTestCase("tables/movies?$count=true&$filter=startswith(toupper(title), 'THE')", 63, null, 63, new[] { "id-000", "id-001", "id-002", "id-004", "id-006" }));
@@ -339,6 +347,7 @@ namespace Datasync.Common.Test.TestData
             Add(new QueryTestCase("tables/movies?$top=5&$orderby=year desc", 5, null, 0, new[] { "id-033", "id-122", "id-188", "id-064", "id-102" }));
             Add(new QueryTestCase("tables/movies?$top=5&$orderby=year desc,title asc", 5, null, 0, new[] { "id-188", "id-122", "id-033", "id-102", "id-213" }));
             Add(new QueryTestCase("tables/movies?$top=5&$orderby=year desc,title desc", 5, null, 0, new[] { "id-033", "id-122", "id-188", "id-149", "id-064" }));
+            Add(new QueryTestCase("tables/movies_rated", 94, null, 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-007" }, "success"));
         }
     }
 }

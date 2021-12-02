@@ -11,7 +11,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Integration.Test.MovieServer
+namespace Microsoft.Datasync.Integration.Test.Server
 {
     /// <summary>
     /// A set of integration tests that send requests with X-ZUMO-Version: 2.0
