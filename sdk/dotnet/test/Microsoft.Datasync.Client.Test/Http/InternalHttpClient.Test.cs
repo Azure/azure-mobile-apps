@@ -30,7 +30,21 @@ namespace Microsoft.Datasync.Client.Test.Http
             Assert.Throws<ArgumentNullException>(() => new WrappedHttpClient(Endpoint, null));
         }
 
-        [Theory, ClassData(typeof(TestCases.Invalid_Endpoints))]
+        [Theory]
+        [InlineData("", false)]
+        [InlineData("", true)]
+        [InlineData("http://", false)]
+        [InlineData("http://", true)]
+        [InlineData("file://localhost/foo", false)]
+        [InlineData("http://foo.azurewebsites.net", false)]
+        [InlineData("http://foo.azure-api.net", false)]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]", false)]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000", false)]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000/myapi", false)]
+        [InlineData("http://10.0.0.8", false)]
+        [InlineData("http://10.0.0.8:3000", false)]
+        [InlineData("http://10.0.0.8:3000/myapi", false)]
+        [InlineData("foo/bar", true)]
         [Trait("Method", "Ctor")]
         public void Ctor_InvalidEndpoint_Throws(string endpoint, bool isRelative = false)
         {

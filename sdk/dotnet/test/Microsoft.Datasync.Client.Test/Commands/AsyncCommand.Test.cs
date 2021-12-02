@@ -78,7 +78,7 @@ namespace Microsoft.Datasync.Client.Test.Commands
         public async Task ExecuteAsync_CallsEventHandler()
         {
             int count = 0;
-            var command = new AsyncCommand(() => { count++; return Task.CompletedTask; }, () => true);
+            var command = new AsyncCommand(() => Task.CompletedTask, () => true);
             command.CanExecuteChanged += (_, _) => count++;
 
             await command.ExecuteAsync().ConfigureAwait(false);

@@ -516,7 +516,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = GetMockClient();
-            var sEndpoint = new Uri(Endpoint, "/tables/movies").ToString();
+            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
             var page1 = CreatePageOfItems(5, 10, new Uri($"{sEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5, 10, new Uri($"{sEndpoint}?page=3"));
@@ -566,7 +566,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = GetMockClient();
-            var sEndpoint = new Uri(Endpoint, "/tables/movies").ToString();
+            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
             var page1 = CreatePageOfItems(5, 10, new Uri($"{sEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5, 10, new Uri($"{sEndpoint}?page=3"));

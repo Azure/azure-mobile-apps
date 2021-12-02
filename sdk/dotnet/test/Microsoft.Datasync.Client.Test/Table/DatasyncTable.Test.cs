@@ -23,7 +23,6 @@ namespace Microsoft.Datasync.Client.Test.Table
     [ExcludeFromCodeCoverage]
     public class DatasyncTable_Tests : BaseTest
     {
-        private const string sTablePath = "tables/movies";
         private readonly IdEntity payload = new() { Id = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f", StringValue = "test" };
         private const string sJsonPayload = "{\"id\":\"db0ec08d-46a9-465d-9f5e-0066a3ee5b5f\",\"stringValue\":\"test\"}";
         private readonly Dictionary<string, object> changes = new() { { "stringValue", "test" } };
@@ -33,10 +32,11 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Ctor")]
         public void Ctor_SetsInternals()
         {
+            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             var client = GetMockClient();
             var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
-            Assert.Equal("http://localhost/tables/movies/", sut.Endpoint.ToString());
+            Assert.Equal(sEndpoint, sut.Endpoint.ToString());
             Assert.Same(client.ClientOptions, sut.ClientOptions);
             Assert.Same(client.HttpClient, sut.HttpClient);
         }
@@ -81,7 +81,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_Success_FormulatesCorrectRequest(HttpStatusCode statusCode)
         {
-            var sEndpoint = new Uri(Endpoint, sTablePath).ToString();
+            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(statusCode, payload);
             var client = GetMockClient();
             var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
@@ -112,7 +112,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_Success_FormulatesCorrectRequest_WithAuth(HttpStatusCode statusCode)
         {
-            var sEndpoint = new Uri(Endpoint, sTablePath).ToString();
+            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(statusCode, payload);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
             var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
@@ -181,7 +181,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_Conflict_FormulatesCorrectResponse(HttpStatusCode statusCode)
         {
-            var sEndpoint = new Uri(Endpoint, sTablePath).ToString();
+            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(statusCode, payload);
             var client = GetMockClient();
             var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
@@ -508,7 +508,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetAsyncItems_NoItems()
         {
             // Arrange
-            var expectedEndpoint = new Uri(Endpoint, "tables/movies").ToString();
+            var expectedEndpoint = new Uri(Endpoint, "tables/movies/").ToString();
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
             var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
@@ -531,7 +531,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetAsyncItems_NoItems_WithAuth()
         {
             // Arrange
-            var expectedEndpoint = new Uri(Endpoint, "tables/movies").ToString();
+            var expectedEndpoint = new Uri(Endpoint, "tables/movies/").ToString();
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
             var table = client.GetTable<IdEntity>("movies");
@@ -572,7 +572,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetItemsAsync_OnePageOfItems_WhenItemsReturned()
         {
             // Arrange
-            var expectedEndpoint = new Uri(Endpoint, "tables/movies").ToString();
+            var expectedEndpoint = new Uri(Endpoint, "tables/movies/").ToString();
             var page = CreatePageOfItems(5);
             var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
@@ -600,7 +600,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetItemsAsync_OnePageOfItems_WithAuth_WhenItemsReturned()
         {
             // Arrange
-            var expectedEndpoint = new Uri(Endpoint, "tables/movies").ToString();
+            var expectedEndpoint = new Uri(Endpoint, "tables/movies/").ToString();
             var page = CreatePageOfItems(5);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
             var table = client.GetTable<IdEntity>("movies");
@@ -629,7 +629,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetItemsAsync_TwoPagesOfItems_WhenItemsReturned()
         {
             // Arrange
-            var expectedEndpoint = new Uri(Endpoint, "tables/movies").ToString();
+            var expectedEndpoint = new Uri(Endpoint, "tables/movies/").ToString();
             var page1 = CreatePageOfItems(5, null, new Uri($"{expectedEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5);
             var client = GetMockClient();
@@ -665,7 +665,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetItemsAsync_TwoPagesOfItems_WithAuth_WhenItemsReturned()
         {
             // Arrange
-            var expectedEndpoint = new Uri(Endpoint, "tables/movies").ToString();
+            var expectedEndpoint = new Uri(Endpoint, "tables/movies/").ToString();
             var page1 = CreatePageOfItems(5, null, new Uri($"{expectedEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
@@ -703,7 +703,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetItemsAsync_ThreePagesOfItems_WhenItemsReturned()
         {
             // Arrange
-            var expectedEndpoint = new Uri(Endpoint, "tables/movies").ToString();
+            var expectedEndpoint = new Uri(Endpoint, "tables/movies/").ToString();
             var page1 = CreatePageOfItems(5, null, new Uri($"{expectedEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5, null, new Uri($"{expectedEndpoint}?page=3"));
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
@@ -745,7 +745,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetItemsAsync_ThreePagesOfItems_WithAuth_WhenItemsReturned()
         {
             // Arrange
-            var expectedEndpoint = new Uri(Endpoint, "tables/movies").ToString();
+            var expectedEndpoint = new Uri(Endpoint, "tables/movies/").ToString();
             var page1 = CreatePageOfItems(5, null, new Uri($"{expectedEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5, null, new Uri($"{expectedEndpoint}?page=3"));
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
@@ -790,7 +790,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetItemsAsync_SetsCountAndResponse()
         {
             // Arrange
-            var expectedEndpoint = new Uri(Endpoint, "tables/movies").ToString();
+            var expectedEndpoint = new Uri(Endpoint, "tables/movies/").ToString();
             _ = CreatePageOfItems(5, 5);
             var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
@@ -1027,7 +1027,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "GetPageOfItemsAsync")]
         public async Task GetPageOfItems_ConstructsRequest_WithQuery(string query)
         {
-            var sEndpoint = Endpoint.ToString();
+            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
             var client = GetMockClient();
@@ -1050,7 +1050,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "GetPageOfItemsAsync")]
         public async Task GetPageOfItems_ConstructsRequest_WithQueryAndAuth(string query)
         {
-            var sEndpoint = Endpoint.ToString();
+            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
@@ -1387,7 +1387,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "ReplaceItemAsync")]
         public async Task ReplaceItemAsync_Success_FormulatesCorrectResponse(bool hasPrecondition)
         {
-            var sEndpoint = Endpoint.ToString();
+            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
             var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
@@ -1425,7 +1425,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "ReplaceItemAsync")]
         public async Task ReplaceItemAsync_Success_FormulatesCorrectResponse_WithAuth(bool hasPrecondition)
         {
-            var sEndpoint = Endpoint.ToString();
+            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
             var table = client.GetTable<IdEntity>("movies");
@@ -1464,7 +1464,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "ReplaceItemAsync")]
         public async Task ReplaceItemAsync_SuccessNoContent()
         {
-            var sEndpoint = Endpoint.ToString();
+            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(HttpStatusCode.OK);
             var client = GetMockClient();
             var table = client.GetTable<IdEntity>("movies");
