@@ -322,17 +322,23 @@ namespace Microsoft.AspNetCore.Datasync
             // EF Core, in particular, does not handle this case, so we have to do it for them.
             IEnumerable<object> results;
             int resultCount;
+            var isTestCase = Request.QueryString.Value?.Contains("$orderby=releaseDate") ?? false;
             try
             {
                 results = (IEnumerable<object>)queryOptions.ApplyTo(dataset, querySettings);
                 resultCount = results.Count();
             }
-            catch (Exception ex) when (ex.InnerException is InvalidOperationException || ex is InvalidOperationException || ex is NotSupportedException)
+            catch (Exception ex) when ((ex is InvalidOperationException or NotSupportedException) || (ex.InnerException is InvalidOperationException or NotSupportedException))
             {
                 var message = ex.InnerException?.Message ?? ex.Message;
                 Logger?.LogWarning("Error while executing query: Possible client-side evaluation ({Message})", message);
                 results = (IEnumerable<object>)queryOptions.ApplyTo(dataset.ToList().AsQueryable(), querySettings);
                 resultCount = results.Count();
+            }
+            catch (Exception ex)
+            {
+                Logger?.LogError("Error in executing query: {Message}", ex.Message);
+                throw;
             }
 
             // Get the information needed for the nextLink.
@@ -348,12 +354,17 @@ namespace Microsoft.AspNetCore.Datasync
                 var query = (IQueryable<TEntity>)queryOptions.Filter?.ApplyTo(dataset, new ODataQuerySettings()) ?? dataset;
                 count = query.LongCount();
             }
-            catch (Exception ex) when (ex.InnerException is InvalidOperationException || ex is InvalidOperationException || ex is NotSupportedException)
+            catch (Exception ex) when ((ex is InvalidOperationException or NotSupportedException) || (ex.InnerException is InvalidOperationException or NotSupportedException))
             {
                 var message = ex.InnerException?.Message ?? ex.Message;
                 Logger?.LogWarning("Error while executing query for long count: Possible client-side evaluation ({Message})", message);
                 var query = (IQueryable<TEntity>)queryOptions.Filter?.ApplyTo(dataset.ToList().AsQueryable(), new ODataQuerySettings()) ?? dataset.ToList().AsQueryable();
                 count = query.LongCount();
+            }
+            catch (Exception ex)
+            {
+                Logger?.LogError("Error while executing query for long count: {Message}", ex.Message);
+                throw;
             }
 
             // Construct the output object.
