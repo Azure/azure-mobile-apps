@@ -8,6 +8,7 @@ using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Commands;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
+using Microsoft.OData.Edm.Vocabularies;
 using System;
 using System.Collections.Generic;
 using System.Linq;

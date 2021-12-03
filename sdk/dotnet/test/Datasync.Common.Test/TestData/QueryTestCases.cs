@@ -9,7 +9,7 @@ namespace Datasync.Common.Test.TestData
 {
     public class QueryTestCase
     {
-        internal QueryTestCase(string pathAndQuery, int itemCount, string nextLinkQuery, long totalCount, string[] firstItems, string username = null)
+        public QueryTestCase(string pathAndQuery, int itemCount, string nextLinkQuery, long totalCount, string[] firstItems, string username = null)
         {
             PathAndQuery = pathAndQuery;
             ItemCount = itemCount;

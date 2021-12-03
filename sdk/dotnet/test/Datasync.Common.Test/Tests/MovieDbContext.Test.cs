@@ -88,19 +88,5 @@ namespace Datasync.Common.Test
             var entity2 = context.Movies.Single(x => x.Id == id);
             Assert.Equal(exampleDate, entity.ReleaseDate);
         }
-
-        [Fact]
-        public void CanOrderBy_DateTimeOffset()
-        {
-            // Arrange
-            using var scope = server.Host.Services.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<MovieDbContext>();
-
-            // Act
-            var entities = context.Movies.OrderBy(x => x.ReleaseDate).ToList();
-
-            // Assert
-            Assert.Equal(254, entities.Count);
-        }
     }
 }
