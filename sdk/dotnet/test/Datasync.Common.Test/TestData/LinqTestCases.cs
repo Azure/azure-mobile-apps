@@ -173,7 +173,7 @@ namespace Datasync.Common.Test
             Add(new LinqTestCase("where-072", m => m.Where(x => (x.Year - 1900) < x.Duration), "$filter=((year sub 1900) lt duration)", 230, new string[] { "id-000", "id-001", "id-002", "id-003", "id-004" }));
             Add(new LinqTestCase("where-073", m => m.Where(x => (x.Duration * 2) < 180), "$filter=((duration mul 2) lt 180)", 21, new string[] { "id-041", "id-044", "id-054", "id-079", "id-089" }));
             Add(new LinqTestCase("where-074", m => m.Where(x => (x.Year / 1000.5) == 2), "$filter=((year div 1000.5) eq 2.0)", 6, new string[] { "id-012", "id-042", "id-061", "id-173", "id-194" }));
-            Add(new LinqTestCase("where-075", m => m.Where(x => (x.Duration % 2) == 1), "$filter=((duration mod 2) eq 1)", 123, new string[] { "id-001", "id-004", "id-007", "id-008", "id-009" }));
+            Add(new LinqTestCase("where-075", m => m.Where(x => (x.Duration % 2) == 1), "$filter=((duration mod 2) eq 1)", 124, new string[] { "id-001", "id-004", "id-007", "id-008", "id-009" }));
             Add(new LinqTestCase("where-076", m => m.Where(x => (x.Year - 1900) >= 80 && (x.Year + 10) <= 2000 && x.Duration <= 120), "$filter=((((year sub 1900) ge 80) and ((year add 10) le 2000)) and (duration le 120))", 13, new string[] { "id-026", "id-047", "id-081", "id-103", "id-121" }));
 
             // Date field accessors

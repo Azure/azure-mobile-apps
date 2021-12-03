@@ -5,6 +5,7 @@ using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
 using Microsoft.Datasync.Client;
+using Microsoft.Datasync.Client.Authentication;
 using Microsoft.Datasync.Client.Commands;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
@@ -87,11 +88,29 @@ namespace Microsoft.Datasync.Integration.Test.Client
         [Trait("Method", "GetPageOfItemsAsync")]
         public async Task GetPageOfItemsAsync_Basic(QueryTestCase testcase)
         {
+            // Determine the auth provider to use.  If the username is set, then construct
+            // an authentication token and create an auth provider to use it.
+            AuthenticationProvider? authProvider = null;
+            //if (testcase.Username != null)
+            //{
+            //    var authToken = new AuthenticationToken
+            //    {
+            //        DisplayName = testcase.Username,
+            //        UserId = testcase.Username,
+            //        ExpiresOn = DateTimeOffset.UtcNow.AddHours(1),
+            //        Token = Utils.GetAuthToken(testcase.Username)
+            //    };
+            //    authProvider = new GenericAuthenticationProvider(() => Task.FromResult(authToken));
+            //}
+
+            // TODO: Enable authenticated test cases
+            if (testcase.Username != null) return;
+
             // Arrange
             var segments = testcase.PathAndQuery.Split('?');
             var tableName = segments[0].Split('/').Last();
             var query = segments.Length > 1 ? segments[1] : string.Empty;
-            var client = GetMovieClient();
+            var client = GetMovieClient(authProvider);
             var table = (DatasyncTable<ClientMovie>)client.GetTable<ClientMovie>(tableName)!;
 
             // Act
