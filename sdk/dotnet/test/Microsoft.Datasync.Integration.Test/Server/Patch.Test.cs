@@ -13,8 +13,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Xunit;
 
-using TestData = Datasync.Common.Test.TestData;
-
 namespace Microsoft.Datasync.Integration.Test.Server
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
@@ -85,6 +83,15 @@ namespace Microsoft.Datasync.Integration.Test.Server
 
             var response = await MovieServer.SendPatch($"tables/{table}/{id}", patchDoc).ConfigureAwait(false);
 
+            // Patch failures result in a BadRequest with an entity map showing the failure.
+            // So check it here if you run into issues.
+            //
+            //if (response.StatusCode != HttpStatusCode.OK)
+            //{
+            //    string output = response.Content.ReadAsStringAsync().Result;
+            //    Console.WriteLine(output);
+            //}
+            
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = response.DeserializeContent<ClientMovie>();
             var stored = MovieServer.GetMovieById(id);

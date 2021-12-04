@@ -249,12 +249,11 @@ namespace Microsoft.AspNetCore.Datasync
                 Logger?.LogWarning("Patch({Id}): Item not found (not in view)", id);
                 return NotFound();
             }
-            if (patchDocument.ModifiesSystemProperties(entity))
+            if (patchDocument.ModifiesSystemProperties(entity, out Dictionary<string, string> systemPropertyValidationErrors))
             {
                 Logger?.LogWarning("Patch({Id}): Patch document changes system properties (which is disallowed)", id);
-                return BadRequest();
+                return BadRequest(systemPropertyValidationErrors);
             }
-
             await AuthorizeRequest(TableOperation.Update, entity, token).ConfigureAwait(false);
             if (Options.EnableSoftDelete && entity.Deleted && !patchDocument.Contains("replace", "/deleted", false))
             {
@@ -266,7 +265,7 @@ namespace Microsoft.AspNetCore.Datasync
             patchDocument.ApplyTo(entity);
             if (!TryValidateModel(entity))
             {
-                return BadRequest();
+                return BadRequest(ModelState);
             }
 
             await AccessControlProvider.PreCommitHookAsync(TableOperation.Update, entity, token).ConfigureAwait(false);
@@ -322,7 +321,6 @@ namespace Microsoft.AspNetCore.Datasync
             // EF Core, in particular, does not handle this case, so we have to do it for them.
             IEnumerable<object> results;
             int resultCount;
-            var isTestCase = Request.QueryString.Value?.Contains("$orderby=releaseDate") ?? false;
             try
             {
                 results = (IEnumerable<object>)queryOptions.ApplyTo(dataset, querySettings);
