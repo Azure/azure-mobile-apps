@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
@@ -42,10 +43,14 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             };
 
             // Act
-            var actual = patchDoc.ModifiesSystemProperties(entity);
+            var actual = patchDoc.ModifiesSystemProperties(entity, out Dictionary<string, string> validationErrors);
 
             // Assert
             Assert.Equal(expected, actual);
+            if (expected)
+            {
+                Assert.Equal(2, validationErrors.Count);
+            }
         }
     }
 }
