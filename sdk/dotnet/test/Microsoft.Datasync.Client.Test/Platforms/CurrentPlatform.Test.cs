@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
 using Microsoft.Datasync.Client.Platforms;
 using Microsoft.Datasync.Client.Utils;
 using System.Diagnostics.CodeAnalysis;

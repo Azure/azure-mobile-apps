@@ -1,19 +1,21 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test.Models;
+using Datasync.Common.Test.Service;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Datasync.Common.Test.Models;
-using Microsoft.AspNetCore.Datasync;
-using Microsoft.AspNetCore.Datasync.InMemory;
-using Microsoft.AspNetCore.TestHost;
 
-namespace Datasync.Common.Test.Extensions
+namespace Datasync.Common.Test
 {
     /// <summary>
     /// A set of extension methods that make it easier to send unit tests to the test server.
@@ -35,20 +37,41 @@ namespace Datasync.Common.Test.Extensions
         private static JsonSerializerOptions SerializerOptions { get; } = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
         /// <summary>
-        /// Gets a reference to the underlying <see cref="IRepository{TEntity}"/> registered within the test service.
+        /// Returns the movie in the database.
         /// </summary>
-        /// <typeparam name="T">The type of entity stored in the repository</typeparam>
-        /// <param name="server"></param>
-        /// <returns>The <see cref="IRepository{TEntity}"/> for the provided entity type</returns>
-        /// <exception cref="InvalidOperationException">if no repository can be found for the provided type.</exception>
-        public static InMemoryRepository<T> GetRepository<T>(this TestServer server) where T : InMemoryTableData
+        /// <param name="server">The server to retrieve the context from</param>
+        /// <param name="id">The ID of the movie</param>
+        /// <returns>The movie, or null if it doesn't exist.</returns>
+        public static EFMovie GetMovieById(this TestServer server, string id)
         {
-            object service = server.Services.GetService(typeof(IRepository<T>));
-            if (service == null)
-            {
-                throw new InvalidOperationException($"Service for type IRepository<{typeof(T).Name}> not found");
-            }
-            return (InMemoryRepository<T>)service;
+            using var scope = server.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MovieDbContext>();
+            return context.GetMovieById(id);
+        }
+
+        /// <summary>
+        /// Soft-deletes a set of movies.
+        /// </summary>
+        /// <param name="server">The server to use for the action</param>
+        /// <param name="predicate">A predicate to find the movies to soft-delete</param>
+        /// <returns></returns>
+        public static Task SoftDeleteMoviesAsync(this TestServer server, Expression<Func<EFMovie, bool>> predicate)
+        {
+            using var scope = server.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MovieDbContext>();
+            return context.SoftDeleteMoviesAsync(predicate);
+        }
+
+        /// <summary>
+        /// Returns a current count of the movies.
+        /// </summary>
+        /// <param name="server">The server to query</param>
+        /// <returns></returns>
+        public static int GetMovieCount(this TestServer server)
+        {
+            using var scope = server.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MovieDbContext>();
+            return context.Movies.Count();
         }
 
         /// <summary>

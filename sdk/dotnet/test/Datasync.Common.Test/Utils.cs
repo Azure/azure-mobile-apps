@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
 namespace Datasync.Common.Test
 {
@@ -39,6 +41,41 @@ namespace Datasync.Common.Test
                 headers.Add("X-MS-CLIENT-PRINCIPAL", Utils.GetAuthToken(userId));
                 headers.Add("X-MS-CLIENT-PRINCIPAL-IDP", "aad");
                 headers.Add("X-MS-CLIENT-PRINCIPAL-NAME", "testuser@outlook.com");
+            }
+        }
+
+        /// <summary>
+        /// A basic AsyncEnumerator.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static async IAsyncEnumerable<int> RangeAsync(int start, int count, int ms = 1)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                await Task.Delay(ms).ConfigureAwait(false);
+                yield return start + i;
+            }
+        }
+
+        /// <summary>
+        /// An alternate basic AsyncEnumerator that throws half way through.
+        /// </summary>
+        /// <returns></returns>
+        public static async IAsyncEnumerable<int> ThrowAsync()
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                await Task.Delay(1).ConfigureAwait(false);
+                if (i < 10)
+                {
+                    yield return i;
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
             }
         }
     }

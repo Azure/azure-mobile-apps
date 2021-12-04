@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Datasync.Tables;
+using Microsoft.AspNetCore.Http;
+using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Models

@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
+using Datasync.Common.Test.Mocks;
 using Microsoft.Datasync.Client.Commands;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,36 +16,6 @@ namespace Microsoft.Datasync.Client.Test.Commands
     [ExcludeFromCodeCoverage]
     public class AsyncCommand_Tests : BaseTest
     {
-        private class IntAsyncCommand : AsyncCommand
-        {
-            public IntAsyncCommand(Func<Task> execute, Func<bool> canExecute = null, IAsyncExceptionHandler handler = null)
-                : base(execute, canExecute, handler)
-            {
-            }
-
-            public Func<Task> IntExecuteFunc { get => base.ExecuteFunc; }
-            public Func<bool> IntCanExecuteFunc { get => base.CanExecuteFunc; }
-            public IAsyncExceptionHandler IntExceptionHandler { get => base.ExceptionHandler; }
-        }
-
-        private class ExceptionHandler : IAsyncExceptionHandler
-        {
-            internal List<Exception> Received = new();
-
-            public void OnAsyncException(Exception ex)
-            {
-                Received.Add(ex);
-            }
-        }
-
-        private int executionCount = 0;
-
-        private Task DoWorkAsync()
-        {
-            executionCount++;
-            return Task.CompletedTask;
-        }
-
         [Fact]
         [Trait("Method", "Ctor")]
         public void Ctor_NullExecute_Throws()
@@ -56,47 +27,50 @@ namespace Microsoft.Datasync.Client.Test.Commands
         [Trait("Method", "Ctor")]
         public void Ctor_Stores_Values()
         {
-            var handler = new ExceptionHandler();
-            Func<Task> dowork = DoWorkAsync;
+            var handler = new MockExceptionHandler();
+            Func<Task> dowork = () => Task.CompletedTask;
             Func<bool> canexecute = () => true;
-            var command = new IntAsyncCommand(dowork, canexecute, handler);
+            var command = new WrappedAsyncCommand(dowork, canexecute, handler);
 
-            Assert.Same(dowork, command.IntExecuteFunc);
-            Assert.Same(canexecute, command.IntCanExecuteFunc);
-            Assert.Same(handler, command.IntExceptionHandler);
+            Assert.Same(dowork, command.WrappedExecuteFunc);
+            Assert.Same(canexecute, command.WrappedCanExecuteFunc);
+            Assert.Same(handler, command.WrappedExceptionHandler);
         }
 
         [Fact]
         [Trait("Method", "ExecuteAsync")]
         public async Task ExecuteAsync_Executes_NoCanExecute()
         {
-            var command = new AsyncCommand(DoWorkAsync);
+            var count = 0;
+            var command = new AsyncCommand(() => { count++; return Task.CompletedTask; });
 
             await command.ExecuteAsync().ConfigureAwait(false);
 
-            Assert.Equal(1, executionCount);
+            Assert.Equal(1, count);
         }
 
         [Fact]
         [Trait("Method", "ExecuteAsync")]
         public async Task ExecuteAsync_Executes_CanExecute_True()
         {
-            var command = new AsyncCommand(DoWorkAsync, () => true);
+            var count = 0;
+            var command = new AsyncCommand(() => { count++; return Task.CompletedTask; }, () => true);
 
             await command.ExecuteAsync().ConfigureAwait(false);
 
-            Assert.Equal(1, executionCount);
+            Assert.Equal(1, count);
         }
 
         [Fact]
         [Trait("Method", "ExecuteAsync")]
         public async Task ExecuteAsync_NotExecute_CanExecute_False()
         {
-            var command = new AsyncCommand(DoWorkAsync, () => false);
+            var count = 0;
+            var command = new AsyncCommand(() => { count++; return Task.CompletedTask; }, () => false);
 
             await command.ExecuteAsync().ConfigureAwait(false);
 
-            Assert.Equal(0, executionCount);
+            Assert.Equal(0, count);
         }
 
         [Fact]
@@ -104,7 +78,7 @@ namespace Microsoft.Datasync.Client.Test.Commands
         public async Task ExecuteAsync_CallsEventHandler()
         {
             int count = 0;
-            var command = new AsyncCommand(DoWorkAsync, () => true);
+            var command = new AsyncCommand(() => Task.CompletedTask, () => true);
             command.CanExecuteChanged += (_, _) => count++;
 
             await command.ExecuteAsync().ConfigureAwait(false);
@@ -118,7 +92,8 @@ namespace Microsoft.Datasync.Client.Test.Commands
         {
             int count = 0;
             bool CanExecuteFunc() { count++; return true; }
-            var command = new IntAsyncCommand(DoWorkAsync, CanExecuteFunc);
+
+            var command = new WrappedAsyncCommand(() => { count++; return Task.CompletedTask; }, CanExecuteFunc);
 
             Assert.True(command.CanExecute());
             Assert.Equal(1, count);
@@ -130,7 +105,8 @@ namespace Microsoft.Datasync.Client.Test.Commands
         {
             int count = 0;
             bool CanExecuteFunc() { count++; return true; }
-            var command = new IntAsyncCommand(DoWorkAsync, CanExecuteFunc);
+
+            var command = new WrappedAsyncCommand(() => { count++; return Task.CompletedTask; }, CanExecuteFunc);
             var icommand = command as ICommand;
 
             Assert.True(icommand.CanExecute(new object()));
@@ -141,8 +117,9 @@ namespace Microsoft.Datasync.Client.Test.Commands
         [Trait("Method", "Execute")]
         public void ICommand_Execute_CallsExceptionHandler()
         {
-            var handler = new ExceptionHandler();
+            var handler = new MockExceptionHandler();
             var command = new AsyncCommand(() => throw new NotSupportedException(), () => true, handler);
+
             var icommand = command as ICommand;
 
             icommand.Execute(new object());

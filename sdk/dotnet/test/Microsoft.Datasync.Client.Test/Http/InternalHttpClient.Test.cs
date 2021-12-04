@@ -2,14 +2,12 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
-using Microsoft.Datasync.Client.Authentication;
-using Microsoft.Datasync.Client.Http;
-using Microsoft.Datasync.Client.Test.Helpers;
+using Datasync.Common.Test.Mocks;
+using Datasync.Common.Test.TestData;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -18,80 +16,67 @@ namespace Microsoft.Datasync.Client.Test.Http
     [ExcludeFromCodeCoverage]
     public class InternalHttpClient_Test : BaseTest
     {
-        /// <summary>
-        /// Test version of <see cref="InternalHttpClient"/> that exposes the protected elements.
-        /// </summary>
-        internal class IntHttpClient : InternalHttpClient
-        {
-            internal IntHttpClient(Uri endpoint, DatasyncClientOptions options) : base(endpoint, options)
-            {
-            }
-
-            internal IntHttpClient(Uri endpoint, AuthenticationProvider provider, DatasyncClientOptions options) : base(endpoint, provider, options)
-            {
-            }
-
-            internal string IntEndpoint { get => Endpoint.ToString(); }
-            internal HttpMessageHandler HttpHandler { get => httpHandler; }
-            internal HttpClient HttpClient { get => httpClient; }
-            internal void IntDispose(bool dispose) => base.Dispose(dispose);
-            internal void IntDispose() => base.Dispose();
-            internal Task<HttpResponseMessage> IntSendAsync(HttpRequestMessage request, CancellationToken token = default)
-                => base.SendAsync(request, token);
-        }
-
-        #region Ctor
         [Fact]
         [Trait("Method", "Ctor")]
         public void Ctor_NullEndpoint_Throws()
         {
-            Assert.Throws<ArgumentNullException>(() => new IntHttpClient(null, ClientOptions));
+            Assert.Throws<ArgumentNullException>(() => new WrappedHttpClient(null, new DatasyncClientOptions()));
         }
 
         [Fact]
         [Trait("Method", "Ctor")]
         public void Ctor_NullOptions_Throws()
         {
-            Assert.Throws<ArgumentNullException>(() => new IntHttpClient(Endpoint, null));
+            Assert.Throws<ArgumentNullException>(() => new WrappedHttpClient(Endpoint, null));
         }
 
-        [Theory, ClassData(typeof(TestCases.Invalid_Endpoints))]
+        [Theory]
+        [InlineData("", false)]
+        [InlineData("", true)]
+        [InlineData("http://", false)]
+        [InlineData("http://", true)]
+        [InlineData("file://localhost/foo", false)]
+        [InlineData("http://foo.azurewebsites.net", false)]
+        [InlineData("http://foo.azure-api.net", false)]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]", false)]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000", false)]
+        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000/myapi", false)]
+        [InlineData("http://10.0.0.8", false)]
+        [InlineData("http://10.0.0.8:3000", false)]
+        [InlineData("http://10.0.0.8:3000/myapi", false)]
+        [InlineData("foo/bar", true)]
         [Trait("Method", "Ctor")]
         public void Ctor_InvalidEndpoint_Throws(string endpoint, bool isRelative = false)
         {
-            Assert.Throws<UriFormatException>(() => new IntHttpClient(isRelative ? new Uri(endpoint, UriKind.Relative) : new Uri(endpoint), ClientOptions));
+            var options = new DatasyncClientOptions();
+            Assert.Throws<UriFormatException>(() => new WrappedHttpClient(isRelative ? new Uri(endpoint, UriKind.Relative) : new Uri(endpoint), options));
         }
 
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Theory, ClassData(typeof(EndpointTestCases))]
         [Trait("Method", "Ctor")]
-        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case does not check for endpoint")]
-        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case does not check for endpoint")]
-        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Test case does not check for endpoint")]
-        public void Ctor_ValidEndpoint_CreatesClient(string endpoint, string normalized)
+        public void Ctor_ValidEndpoint_CreatesClient(EndpointTestCase testcase)
         {
-            var client = new IntHttpClient(new Uri(normalized), ClientOptions);
-            Assert.Equal(normalized, client.IntEndpoint);
+            var options = new DatasyncClientOptions();
+            var client = new WrappedHttpClient(new Uri(testcase.NormalizedEndpoint), options);
+            Assert.Equal(testcase.NormalizedEndpoint, client.WrappedEndpoint);
             Assert.NotNull(client.HttpHandler);
             Assert.NotNull(client.HttpClient);
 
             // DefaultRequestHeaders must contain the list of headers
-            Assert.Equal(ClientOptions.UserAgent, client.HttpClient.DefaultRequestHeaders.UserAgent.ToString());
-            AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-VERSION", ClientOptions.UserAgent);
+            Assert.Equal(options.UserAgent, client.HttpClient.DefaultRequestHeaders.UserAgent.ToString());
+            AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-VERSION", options.UserAgent);
             AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-INSTALLATION-ID", ClientOptions.InstallationId);
-            Assert.Equal(normalized, client.HttpClient.BaseAddress.ToString());
+            AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-INSTALLATION-ID", options.InstallationId);
+            Assert.Equal(testcase.NormalizedEndpoint, client.HttpClient.BaseAddress.ToString());
         }
 
-        [Theory, ClassData(typeof(TestCases.Valid_Endpoints))]
+        [Theory, ClassData(typeof(EndpointTestCases))]
         [Trait("Method", "Ctor")]
-        [SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters", Justification = "Test case does not check for endpoint")]
-        [SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "Test case does not check for endpoint")]
-        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Test case does not check for endpoint")]
-        public void Ctor_ValidEndpoint_CustomOptions_CreatesClient(string endpoint, string normalized)
+        public void Ctor_ValidEndpoint_CustomOptions_CreatesClient(EndpointTestCase testcase)
         {
             var options = new DatasyncClientOptions { HttpPipeline = null, InstallationId = "test-int-id", UserAgent = "test-user-agent" };
-            var client = new IntHttpClient(new Uri(normalized), options);
-            Assert.Equal(normalized, client.IntEndpoint);
+            var client = new WrappedHttpClient(new Uri(testcase.NormalizedEndpoint), options);
+            Assert.Equal(testcase.NormalizedEndpoint, client.WrappedEndpoint);
             Assert.NotNull(client.HttpHandler);
             Assert.NotNull(client.HttpClient);
 
@@ -100,11 +85,9 @@ namespace Microsoft.Datasync.Client.Test.Http
             AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-VERSION", "test-user-agent");
             AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "ZUMO-API-VERSION", "3.0.0");
             AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-INSTALLATION-ID", "test-int-id");
-            Assert.Equal(normalized, client.HttpClient.BaseAddress.ToString());
+            Assert.Equal(testcase.NormalizedEndpoint, client.HttpClient.BaseAddress.ToString());
         }
-        #endregion
 
-        #region CreatePipeline
         [Fact]
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_NoHandlers_CreatesPipeline()
@@ -112,7 +95,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var options = new DatasyncClientOptions { HttpPipeline = Array.Empty<HttpMessageHandler>() };
 
             // Act
-            var client = new IntHttpClient(Endpoint, options);
+            var client = new WrappedHttpClient(Endpoint, options);
 
             // Assert
             Assert.IsAssignableFrom<HttpClientHandler>(client.HttpHandler);
@@ -127,7 +110,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { c } };
 
             // Act
-            var client = new IntHttpClient(Endpoint, options);
+            var client = new WrappedHttpClient(Endpoint, options);
 
             // Assert
             Assert.Same(c, client.HttpHandler);
@@ -137,12 +120,12 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_B_CreatesPipeline()
         {
-            var b = new TestDelegatingHandler();
+            var b = new MockDelegatingHandler();
 
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { b } };
 
             // Act
-            var client = new IntHttpClient(Endpoint, options);
+            var client = new WrappedHttpClient(Endpoint, options);
 
             // Assert
             Assert.Same(b, client.HttpHandler);
@@ -153,13 +136,13 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_BC_CreatesPipeline()
         {
-            var b = new TestDelegatingHandler();
+            var b = new MockDelegatingHandler();
             var c = new HttpClientHandler();
 
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { b, c } };
 
             // Act
-            var client = new IntHttpClient(Endpoint, options);
+            var client = new WrappedHttpClient(Endpoint, options);
 
             // Assert
             Assert.Same(b, client.HttpHandler);
@@ -170,13 +153,13 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_AB_CreatesPipeline()
         {
-            var a = new TestDelegatingHandler();
-            var b = new TestDelegatingHandler();
+            var a = new MockDelegatingHandler();
+            var b = new MockDelegatingHandler();
 
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { a, b } };
 
             // Act
-            var client = new IntHttpClient(Endpoint, options);
+            var client = new WrappedHttpClient(Endpoint, options);
 
             // Assert
             Assert.Same(a, client.HttpHandler);
@@ -188,14 +171,14 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_ABC_CreatesPipeline()
         {
-            var a = new TestDelegatingHandler();
-            var b = new TestDelegatingHandler();
+            var a = new MockDelegatingHandler();
+            var b = new MockDelegatingHandler();
             var c = new HttpClientHandler();
 
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { a, b, c } };
 
             // Act
-            var client = new IntHttpClient(Endpoint, options);
+            var client = new WrappedHttpClient(Endpoint, options);
 
             // Assert
             Assert.Same(a, client.HttpHandler);
@@ -207,41 +190,41 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_CB_ThrowsArgumentException()
         {
-            var b = new TestDelegatingHandler();
+            var b = new MockDelegatingHandler();
             var c = new HttpClientHandler();
 
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { c, b } };
 
             // Act
-            Assert.Throws<ArgumentException>(() => _ = new IntHttpClient(Endpoint, options));
+            Assert.Throws<ArgumentException>(() => _ = new WrappedHttpClient(Endpoint, options));
         }
 
         [Fact]
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_CAB_ThrowsArgumentException()
         {
-            var a = new TestDelegatingHandler();
-            var b = new TestDelegatingHandler();
+            var a = new MockDelegatingHandler();
+            var b = new MockDelegatingHandler();
             var c = new HttpClientHandler();
 
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { c, a, b } };
 
             // Act
-            Assert.Throws<ArgumentException>(() => _ = new IntHttpClient(Endpoint, options));
+            Assert.Throws<ArgumentException>(() => _ = new WrappedHttpClient(Endpoint, options));
         }
 
         [Fact]
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_ACB_ThrowsArgumentException()
         {
-            var a = new TestDelegatingHandler();
-            var b = new TestDelegatingHandler();
+            var a = new MockDelegatingHandler();
+            var b = new MockDelegatingHandler();
             var c = new HttpClientHandler();
 
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { a, c, b } };
 
             // Act
-            Assert.Throws<ArgumentException>(() => _ = new IntHttpClient(Endpoint, options));
+            Assert.Throws<ArgumentException>(() => _ = new WrappedHttpClient(Endpoint, options));
         }
 
         [Fact]
@@ -251,8 +234,8 @@ namespace Microsoft.Datasync.Client.Test.Http
             var options = new DatasyncClientOptions { HttpPipeline = Array.Empty<HttpMessageHandler>() };
 
             // Act
-            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
-            var client = new IntHttpClient(Endpoint, authProvider, options);
+            var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
+            var client = new WrappedHttpClient(Endpoint, authProvider, options);
 
             // Assert
             Assert.Same(authProvider, client.HttpHandler);
@@ -268,8 +251,8 @@ namespace Microsoft.Datasync.Client.Test.Http
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { c } };
 
             // Act
-            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
-            var client = new IntHttpClient(Endpoint, authProvider, options);
+            var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
+            var client = new WrappedHttpClient(Endpoint, authProvider, options);
 
             // Assert
             Assert.Same(authProvider, client.HttpHandler);
@@ -280,13 +263,13 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_BWithAuth_CreatesPipeline()
         {
-            var b = new TestDelegatingHandler();
+            var b = new MockDelegatingHandler();
 
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { b } };
 
             // Act
-            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
-            var client = new IntHttpClient(Endpoint, authProvider, options);
+            var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
+            var client = new WrappedHttpClient(Endpoint, authProvider, options);
 
             // Assert
             Assert.Same(authProvider, client.HttpHandler);
@@ -298,14 +281,14 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_BCWithAuth_CreatesPipeline()
         {
-            var b = new TestDelegatingHandler();
+            var b = new MockDelegatingHandler();
             var c = new HttpClientHandler();
 
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { b, c } };
 
             // Act
-            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
-            var client = new IntHttpClient(Endpoint, authProvider, options);
+            var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
+            var client = new WrappedHttpClient(Endpoint, authProvider, options);
 
             // Assert
             Assert.Same(authProvider, client.HttpHandler);
@@ -317,14 +300,14 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_ABWithAuth_CreatesPipeline()
         {
-            var a = new TestDelegatingHandler();
-            var b = new TestDelegatingHandler();
+            var a = new MockDelegatingHandler();
+            var b = new MockDelegatingHandler();
 
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { a, b } };
 
             // Act
-            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
-            var client = new IntHttpClient(Endpoint, authProvider, options);
+            var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
+            var client = new WrappedHttpClient(Endpoint, authProvider, options);
 
             // Assert
             Assert.Same(authProvider, client.HttpHandler);
@@ -337,15 +320,15 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_ABCWithAuth_CreatesPipeline()
         {
-            var a = new TestDelegatingHandler();
-            var b = new TestDelegatingHandler();
+            var a = new MockDelegatingHandler();
+            var b = new MockDelegatingHandler();
             var c = new HttpClientHandler();
 
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { a, b, c } };
 
             // Act
-            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
-            var client = new IntHttpClient(Endpoint, authProvider, options);
+            var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
+            var client = new WrappedHttpClient(Endpoint, authProvider, options);
 
             // Assert
             Assert.Same(authProvider, client.HttpHandler);
@@ -358,57 +341,55 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_CBWithAuth_ThrowsArgumentException()
         {
-            var b = new TestDelegatingHandler();
+            var b = new MockDelegatingHandler();
             var c = new HttpClientHandler();
 
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { c, b } };
 
             // Act
-            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
-            Assert.Throws<ArgumentException>(() => _ = new IntHttpClient(Endpoint, authProvider, options));
+            var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
+            Assert.Throws<ArgumentException>(() => _ = new WrappedHttpClient(Endpoint, authProvider, options));
         }
 
         [Fact]
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_CABWithAuth_ThrowsArgumentException()
         {
-            var a = new TestDelegatingHandler();
-            var b = new TestDelegatingHandler();
+            var a = new MockDelegatingHandler();
+            var b = new MockDelegatingHandler();
             var c = new HttpClientHandler();
 
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { c, a, b } };
 
             // Act
-            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
-            Assert.Throws<ArgumentException>(() => _ = new IntHttpClient(Endpoint, authProvider, options));
+            var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
+            Assert.Throws<ArgumentException>(() => _ = new WrappedHttpClient(Endpoint, authProvider, options));
         }
 
         [Fact]
         [Trait("Method", "CreatePipeline")]
         public void CreatePipeline_ACBWithAuth_ThrowsArgumentException()
         {
-            var a = new TestDelegatingHandler();
-            var b = new TestDelegatingHandler();
+            var a = new MockDelegatingHandler();
+            var b = new MockDelegatingHandler();
             var c = new HttpClientHandler();
 
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { a, c, b } };
 
             // Act
-            var authProvider = new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH");
-            Assert.Throws<ArgumentException>(() => _ = new IntHttpClient(Endpoint, authProvider, options));
+            var authProvider = new GenericAuthenticationProvider(() => Task.FromResult(ValidAuthenticationToken), "X-ZUMO-AUTH");
+            Assert.Throws<ArgumentException>(() => _ = new WrappedHttpClient(Endpoint, authProvider, options));
         }
-        #endregion
 
-        #region IDisposable
         [Fact]
         [Trait("Method", "Dispose(boolean)")]
         public void Dispose_True_Disposes()
         {
-            var client = new IntHttpClient(Endpoint, ClientOptions);
+            var client = new WrappedHttpClient(Endpoint, new DatasyncClientOptions());
             Assert.NotNull(client.HttpHandler);
             Assert.NotNull(client.HttpClient);
 
-            client.IntDispose(true);
+            client.WrappedDispose(true);
             Assert.Null(client.HttpHandler);
             Assert.Null(client.HttpClient);
         }
@@ -417,11 +398,11 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Trait("Method", "Dispose(boolean)")]
         public void Dispose_False_Disposes()
         {
-            var client = new IntHttpClient(Endpoint, ClientOptions);
+            var client = new WrappedHttpClient(Endpoint, new DatasyncClientOptions());
             Assert.NotNull(client.HttpHandler);
             Assert.NotNull(client.HttpClient);
 
-            client.IntDispose(false);
+            client.WrappedDispose(false);
             Assert.NotNull(client.HttpHandler);
             Assert.NotNull(client.HttpClient);
         }
@@ -430,37 +411,34 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Trait("Method", "Dispose")]
         public void Dispose_Disposes()
         {
-            var client = new IntHttpClient(Endpoint, ClientOptions);
+            var client = new WrappedHttpClient(Endpoint, new DatasyncClientOptions());
             Assert.NotNull(client.HttpHandler);
             Assert.NotNull(client.HttpClient);
 
-            client.IntDispose();
+            client.WrappedDispose();
             Assert.Null(client.HttpHandler);
             Assert.Null(client.HttpClient);
         }
-        #endregion
-
-        #region SendAsync
         [Fact]
         [Trait("Method", "SendAsync")]
         public async Task SendAsync_NullRequest_Throws()
         {
-            var client = new IntHttpClient(Endpoint, ClientOptions);
-            await Assert.ThrowsAsync<ArgumentNullException>(() => client.IntSendAsync(null)).ConfigureAwait(false);
+            var client = new WrappedHttpClient(Endpoint, new DatasyncClientOptions());
+            await Assert.ThrowsAsync<ArgumentNullException>(() => client.WrappedSendAsync(null)).ConfigureAwait(false);
         }
 
         [Fact]
         [Trait("Method", "SendAsync")]
         public async Task SendAsync_OnBadRequest()
         {
-            var handler = new TestDelegatingHandler();
+            var handler = new MockDelegatingHandler();
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { handler } };
-            var client = new IntHttpClient(Endpoint, options);
+            var client = new WrappedHttpClient(Endpoint, options);
             var response = new HttpResponseMessage(HttpStatusCode.BadRequest);
             handler.Responses.Add(response);
             var request = new HttpRequestMessage(HttpMethod.Get, "");
 
-            var actualResponse = await client.IntSendAsync(request).ConfigureAwait(false);
+            var actualResponse = await client.WrappedSendAsync(request).ConfigureAwait(false);
 
             Assert.Same(response, actualResponse);      // We get the provided response back.
 
@@ -478,14 +456,14 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Trait("Method", "SendAsync")]
         public async Task SendAsync_OnSuccessfulRequest()
         {
-            var handler = new TestDelegatingHandler();
+            var handler = new MockDelegatingHandler();
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { handler } };
-            var client = new IntHttpClient(Endpoint, options);
+            var client = new WrappedHttpClient(Endpoint, options);
             var response = new HttpResponseMessage(HttpStatusCode.OK);
             handler.Responses.Add(response);
             var request = new HttpRequestMessage(HttpMethod.Get, "");
 
-            var actualResponse = await client.IntSendAsync(request).ConfigureAwait(false);
+            var actualResponse = await client.WrappedSendAsync(request).ConfigureAwait(false);
 
             Assert.Same(response, actualResponse);      // We get the provided response back.
 
@@ -505,24 +483,25 @@ namespace Microsoft.Datasync.Client.Test.Http
         {
             var handler = new TimeoutDelegatingHandler();
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { handler } };
-            var client = new IntHttpClient(Endpoint, options);
+            var client = new WrappedHttpClient(Endpoint, options);
             var request = new HttpRequestMessage(HttpMethod.Get, "");
 
-            await Assert.ThrowsAsync<TimeoutException>(() => client.IntSendAsync(request)).ConfigureAwait(false);
+            await Assert.ThrowsAsync<TimeoutException>(() => client.WrappedSendAsync(request)).ConfigureAwait(false);
         }
 
         [Fact]
         [Trait("Method", "SendAsync")]
         public async Task SendAsync_OnSuccessfulRequest_WithAuth()
         {
-            var handler = new TestDelegatingHandler();
+            var handler = new MockDelegatingHandler();
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { handler } };
-            var client = new IntHttpClient(Endpoint, new GenericAuthenticationProvider(basicRequestor, "X-ZUMO-AUTH"), options);
+            var requestor = () => Task.FromResult(ValidAuthenticationToken);
+            var client = new WrappedHttpClient(Endpoint, new GenericAuthenticationProvider(requestor, "X-ZUMO-AUTH"), options);
             var response = new HttpResponseMessage(HttpStatusCode.OK);
             handler.Responses.Add(response);
             var request = new HttpRequestMessage(HttpMethod.Get, "");
 
-            var actualResponse = await client.IntSendAsync(request).ConfigureAwait(false);
+            var actualResponse = await client.WrappedSendAsync(request).ConfigureAwait(false);
 
             Assert.Same(response, actualResponse);      // We get the provided response back.
 
@@ -533,20 +512,8 @@ namespace Microsoft.Datasync.Client.Test.Http
             Assert.Equal(options.UserAgent, actual.Headers.UserAgent.ToString());
             AssertEx.HasHeader(actual.Headers, "X-ZUMO-VERSION", options.UserAgent);
             AssertEx.HasHeader(actual.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(actual.Headers, "X-ZUMO-AUTH", basicToken.Token);
+            AssertEx.HasHeader(actual.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
             AssertEx.HasHeader(actual.Headers, "X-ZUMO-INSTALLATION-ID", options.InstallationId);
-        }
-        #endregion
-
-        /// <summary>
-        /// A test delegating handler that simulates timeout.
-        /// </summary>
-        public class TimeoutDelegatingHandler : DelegatingHandler
-        {
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
-            {
-                throw new OperationCanceledException();
-            }
         }
     }
 }

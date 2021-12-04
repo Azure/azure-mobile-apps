@@ -8,7 +8,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Utils
 {
     [ExcludeFromCodeCoverage]
-    public class Platform_Test : BaseTest
+    public class Platform_Test
     {
         [Fact]
         [Trait("Method", "ApplicationStorage")]
@@ -36,7 +36,7 @@ namespace Microsoft.Datasync.Client.Test.Utils
 
         [Fact]
         [Trait("Method", "UserAgentDetails")]
-        public void UserAgentDetails_IsNotNUll()
+        public void UserAgentDetails_IsNotNull()
         {
             Assert.NotNull(Platform.UserAgentDetails);
             Assert.Contains("lang=Managed", Platform.UserAgentDetails);

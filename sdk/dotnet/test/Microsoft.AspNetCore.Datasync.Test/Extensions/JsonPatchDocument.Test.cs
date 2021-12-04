@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using System;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Extensions
@@ -14,8 +15,6 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class JsonPatchDocument_Tests
     {
-        private class Entity : InMemoryTableData { }
-
         [Theory]
         [InlineData("replace", "/id", "changed", true)]
         [InlineData("replace", "/id", "test", false)]
@@ -30,13 +29,13 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         public void ModifiesSystemProperties_BasicTests(string op, string path, string value, bool expected)
         {
             // Arrange
-            var patchDoc = new JsonPatchDocument<Entity>();
+            var patchDoc = new JsonPatchDocument<InMemoryEntity>();
             if (path.Equals("/updatedAt", StringComparison.OrdinalIgnoreCase) && value.EndsWith(".000Z"))
-                patchDoc.Operations.Add(new Operation<Entity>(op, path, null, DateTime.Parse(value)));
+                patchDoc.Operations.Add(new Operation<InMemoryEntity>(op, path, null, DateTime.Parse(value)));
             else
-                patchDoc.Operations.Add(new Operation<Entity>(op, path, null, value));
+                patchDoc.Operations.Add(new Operation<InMemoryEntity>(op, path, null, value));
 
-            var entity = new Entity
+            var entity = new InMemoryEntity
             {
                 Id = "test",
                 UpdatedAt = DateTimeOffset.Parse("2021-12-31T05:30:00.000Z"),
@@ -44,10 +43,14 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             };
 
             // Act
-            var actual = patchDoc.ModifiesSystemProperties(entity);
+            var actual = patchDoc.ModifiesSystemProperties(entity, out Dictionary<string, string> validationErrors);
 
             // Assert
             Assert.Equal(expected, actual);
+            if (expected)
+            {
+                Assert.Equal(2, validationErrors.Count);
+            }
         }
     }
 }

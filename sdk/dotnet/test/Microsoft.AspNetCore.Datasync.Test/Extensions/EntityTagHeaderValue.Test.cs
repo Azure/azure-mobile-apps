@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using System;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.Net.Http.Headers;
+using System;
+using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Extensions

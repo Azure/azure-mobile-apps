@@ -38,6 +38,16 @@ namespace Datasync.Common.Test.TestData
         public const int Count = 248;
 
         /// <summary>
+        /// Gets a random ID from the set.
+        /// </summary>
+        /// <returns>A random ID</returns>
+        public static string GetRandomId()
+        {
+            var random = new Random();
+            return Utils.GetMovieId(random.Next(Count));
+        }
+
+        /// <summary>
         /// The list of movies.
         /// </summary>
         public static MovieBase[] MovieList { get; } = new MovieBase[]
@@ -495,7 +505,7 @@ namespace Datasync.Common.Test.TestData
             new MovieBase /* 050 */
             {
                 BestPictureWinner = false,
-                Duration = 150,
+                Duration = 149,
                 Rating = "R",
                 ReleaseDate = new DateTimeOffset(2003, 03, 28, 0, 0, 0, TimeSpan.Zero),
                 Title = "The Pianist",

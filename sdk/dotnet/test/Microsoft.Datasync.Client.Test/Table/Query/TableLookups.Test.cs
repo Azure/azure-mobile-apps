@@ -12,13 +12,6 @@ namespace Microsoft.Datasync.Client.Test.Table.Query
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class TableLookups_Tests
     {
-        private static readonly Guid guid = Guid.Parse("775db25a-754a-455d-9ade-68d327e41c43");
-        private const string sGuid = "cast(775db25a-754a-455d-9ade-68d327e41c43,Edm.Guid)";
-
-        private static readonly DateTime dt1 = new(1994, 10, 14, 0, 0, 0, DateTimeKind.Utc);
-        private static readonly DateTimeOffset dto1 = new(1994, 10, 14, 0, 0, 0, TimeSpan.Zero);
-        private const string dts1 = "cast(1994-10-14T00:00:00.000Z,Edm.DateTimeOffset)";
-
         [Fact]
         [Trait("Method", "BinaryOperatorKind.ToODataString")]
         public void BinaryOperatorKind_ToODataString_ThrowsOnOutOfRange()
@@ -51,14 +44,14 @@ namespace Microsoft.Datasync.Client.Test.Table.Query
         [Trait("Method", "ConstantNode.ToODataString")]
         public void ConstantNode_ToODataString_ReturnsExpected_ForNonTheory()
         {
-            var guidNode = new ConstantNode(guid);
-            var dtNode = new ConstantNode(dt1);
-            var dtoNode = new ConstantNode(dto1);
+            var guidNode = new ConstantNode(Guid.Parse("775db25a-754a-455d-9ade-68d327e41c43"));
+            var dtNode = new ConstantNode(new DateTime(1994, 10, 14, 0, 0, 0, DateTimeKind.Utc));
+            var dtoNode = new ConstantNode(new DateTimeOffset(1994, 10, 14, 0, 0, 0, TimeSpan.Zero));
             var decNode = new ConstantNode((decimal)2.0);
 
-            Assert.Equal(sGuid, guidNode.ToODataString());
-            Assert.Equal(dts1, dtNode.ToODataString());
-            Assert.Equal(dts1, dtoNode.ToODataString());
+            Assert.Equal("cast(775db25a-754a-455d-9ade-68d327e41c43,Edm.Guid)", guidNode.ToODataString());
+            Assert.Equal("cast(1994-10-14T00:00:00.000Z,Edm.DateTimeOffset)", dtNode.ToODataString());
+            Assert.Equal("cast(1994-10-14T00:00:00.000Z,Edm.DateTimeOffset)", dtoNode.ToODataString());
             Assert.Equal("2M", decNode.ToODataString());
         }
     }

@@ -2,13 +2,17 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Datasync;
+using Microsoft.Datasync.Client;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Datasync.Common.Test.Models
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class ClientMovie : ClientTableData, IMovie, IEquatable<IMovie>
+    public class ClientMovie : DatasyncClientData, IMovie, IEquatable<IMovie>
     {
         /// <summary>
         /// True if the movie won the oscar for Best Picture
@@ -23,6 +27,7 @@ namespace Datasync.Common.Test.Models
         /// <summary>
         /// The MPAA rating for the movie, if available.
         /// </summary>
+        [JsonPropertyName("rating")]
         public string Rating { get; set; }
 
         /// <summary>
@@ -100,6 +105,16 @@ namespace Datasync.Common.Test.Models
             }
 
             return entity;
+        }
+
+        /// <summary>
+        /// Converts this object to a dictionary.
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<string, object> ToDictionary()
+        {
+            string json = JsonSerializer.Serialize(this);
+            return JsonSerializer.Deserialize<Dictionary<string, object>>(json);
         }
     }
 }

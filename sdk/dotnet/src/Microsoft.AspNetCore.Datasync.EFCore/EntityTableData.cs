@@ -8,9 +8,7 @@ using System.Linq;
 namespace Microsoft.AspNetCore.Datasync.EFCore
 {
     /// <summary>
-    /// An "Entity Framework ready" version of the <see cref="ITableData"/> that
-    /// can be used for augmenting the data transfer objects used
-    /// with Microsoft.Zumo.Server.
+    /// An "Entity Framework ready" version of the <see cref="ITableData"/>.
     /// </summary>
     public abstract class EntityTableData : ITableData
     {

@@ -105,12 +105,12 @@ namespace Microsoft.AspNetCore.Datasync
             var isAuthorized = await AccessControlProvider.IsAuthorizedAsync(operation, entity, token).ConfigureAwait(false);
             if (!isAuthorized)
             {
-                Logger?.LogWarning($"Not authorized to perform operation {operation} on entity {entity?.Id}");
+                Logger?.LogWarning("Not authorized to perform operation {Operation} on entity {Id}", operation, entity?.Id);
                 throw new HttpException(Options.UnauthorizedStatusCode);
             }
             else
             {
-                Logger?.LogDebug($"Authorized to perform operation {operation} on entity {entity?.Id}");
+                Logger?.LogDebug("Authorized to perform operation {Operation} on entity {Id}", operation, entity?.Id);
             }
         }
 
@@ -139,12 +139,12 @@ namespace Microsoft.AspNetCore.Datasync
             {
                 if (contentType.MediaType == "application/json-patch+json")
                 {
-                    Logger?.LogInformation($"Patch({id}): Received JSON PATCH");
+                    Logger?.LogInformation("Patch({Id}): Received JSON PATCH", id);
                     return JsonConvert.DeserializeObject<JsonPatchDocument<TEntity>>(json);
                 }
                 else
                 {
-                    Logger?.LogInformation($"Patch({id}): Received MERGE PATCH");
+                    Logger?.LogInformation("Patch({Id}): Received MERGE PATCH", id);
                     var mergepatch = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
                     var patch = new JsonPatchDocument<TEntity>();
                     foreach (var kv in mergepatch)
@@ -181,7 +181,7 @@ namespace Microsoft.AspNetCore.Datasync
             await AuthorizeRequest(TableOperation.Create, item, token).ConfigureAwait(false);
             await AccessControlProvider.PreCommitHookAsync(TableOperation.Create, item, token).ConfigureAwait(false);
             await Repository.CreateAsync(item, token).ConfigureAwait(false);
-            Logger?.LogInformation($"Create: Item stored at {item.Id}");
+            Logger?.LogInformation("Create: Item stored at {Id}", item.Id);
             return CreatedAtAction(nameof(ReadAsync), new { id = item.Id }, item);
         }
 
@@ -196,29 +196,29 @@ namespace Microsoft.AspNetCore.Datasync
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public virtual async Task<IActionResult> DeleteAsync([FromRoute] string id, CancellationToken token = default)
         {
-            Logger?.LogInformation($"Delete({id}): initiated");
+            Logger?.LogInformation("Delete({Id}): initiated", id);
             var entity = await Repository.ReadAsync(id, token).ConfigureAwait(false);
             if (entity == null || !EntityIsInView(entity))
             {
-                Logger?.LogWarning($"Delete({id}): Item not found (not in view)");
+                Logger?.LogWarning("Delete({Id}): Item not found (not in view)", id);
                 return NotFound();
             }
             await AuthorizeRequest(TableOperation.Delete, entity, token).ConfigureAwait(false);
             if (Options.EnableSoftDelete && entity.Deleted)
             {
-                Logger?.LogWarning($"Delete({id}): Item not found (soft-delete)");
+                Logger?.LogWarning("Delete({Id}): Item not found (soft-delete)", id);
                 return StatusCode(StatusCodes.Status410Gone);
             }
             Request.ParseConditionalRequest(entity, out byte[] version);
             if (Options.EnableSoftDelete)
             {
-                Logger?.LogInformation($"Delete({id}): Marking item as deleted (soft-delete)");
+                Logger?.LogInformation("Delete({Id}): Marking item as deleted (soft-delete)", id);
                 entity.Deleted = true;
                 await Repository.ReplaceAsync(entity, version, token).ConfigureAwait(false);
             }
             else
             {
-                Logger?.LogInformation($"Delete({id}): Deleting item (hard-delete)");
+                Logger?.LogInformation("Delete({Id}): Deleting item (hard-delete)", id);
                 await Repository.DeleteAsync(id, version, token).ConfigureAwait(false);
             }
             return NoContent();
@@ -237,7 +237,7 @@ namespace Microsoft.AspNetCore.Datasync
         [ProducesResponseType(StatusCodes.Status200OK)]
         public virtual async Task<IActionResult> PatchAsync([FromRoute] string id, CancellationToken token = default)
         {
-            Logger?.LogInformation($"Patch({id}): initiated");
+            Logger?.LogInformation("Patch({Id}): initiated", id);
 
             // Read the body as a string and convert into a JsonPatchDocument.
             string json = await Request.GetBodyAsStringAsync().ConfigureAwait(false);
@@ -246,19 +246,18 @@ namespace Microsoft.AspNetCore.Datasync
             var entity = await Repository.ReadAsync(id, token).ConfigureAwait(false);
             if (entity == null || !EntityIsInView(entity))
             {
-                Logger?.LogWarning($"Patch({id}): Item not found (not in view)");
+                Logger?.LogWarning("Patch({Id}): Item not found (not in view)", id);
                 return NotFound();
             }
-            if (patchDocument.ModifiesSystemProperties(entity))
+            if (patchDocument.ModifiesSystemProperties(entity, out Dictionary<string, string> systemPropertyValidationErrors))
             {
-                Logger?.LogWarning($"Patch({id}): Patch document changes system properties (which is disallowed)");
-                return BadRequest();
+                Logger?.LogWarning("Patch({Id}): Patch document changes system properties (which is disallowed)", id);
+                return BadRequest(systemPropertyValidationErrors);
             }
-
             await AuthorizeRequest(TableOperation.Update, entity, token).ConfigureAwait(false);
             if (Options.EnableSoftDelete && entity.Deleted && !patchDocument.Contains("replace", "/deleted", false))
             {
-                Logger?.LogWarning($"Patch({id}): Item not found (soft-delete)");
+                Logger?.LogWarning("Patch({Id}): Item not found (soft-delete)", id);
                 return StatusCode(StatusCodes.Status410Gone);
             }
             Request.ParseConditionalRequest(entity, out byte[] version);
@@ -266,12 +265,12 @@ namespace Microsoft.AspNetCore.Datasync
             patchDocument.ApplyTo(entity);
             if (!TryValidateModel(entity))
             {
-                return BadRequest();
+                return BadRequest(ModelState);
             }
 
             await AccessControlProvider.PreCommitHookAsync(TableOperation.Update, entity, token).ConfigureAwait(false);
             await Repository.ReplaceAsync(entity, version, token).ConfigureAwait(false);
-            Logger?.LogDebug($"Patch({id}): successfully patched");
+            Logger?.LogDebug("Patch({Id}): successfully patched", id);
             return Ok(entity);
         }
 
@@ -296,7 +295,7 @@ namespace Microsoft.AspNetCore.Datasync
         [ProducesResponseType(StatusCodes.Status200OK)]
         public virtual async Task<IActionResult> QueryAsync(CancellationToken token = default)
         {
-            Logger?.LogInformation($"Query: {Request.QueryString}");
+            Logger?.LogInformation("Query: {QueryString}", Request.QueryString);
             await AuthorizeRequest(TableOperation.Query, null, token).ConfigureAwait(false);
 
             var dataset = Repository.AsQueryable()
@@ -313,16 +312,60 @@ namespace Microsoft.AspNetCore.Datasync
             }
             catch (ODataException validationException)
             {
-                Logger?.LogWarning($"Query: Error when validating query: {validationException.Message}");
+                Logger?.LogWarning("Query: Error when validating query: {Message}", validationException.Message);
                 return BadRequest(validationException.Message);
             }
 
-            var results = (IEnumerable<object>)queryOptions.ApplyTo(dataset, querySettings);
-            var query = (IQueryable<TEntity>)queryOptions.Filter?.ApplyTo(dataset, new ODataQuerySettings()) ?? dataset;
-            int skip = (queryOptions.Skip?.Value ?? 0) + results.Count();
-            int top = (queryOptions.Top?.Value ?? 0) - results.Count();
-            long count = query.LongCount();
+            // Get the actual items needed for the response.
+            // Some IQueryable providers cannot execute all queries, so have to revert to client-side evaluation.
+            // EF Core, in particular, does not handle this case, so we have to do it for them.
+            IEnumerable<object> results;
+            int resultCount;
+            try
+            {
+                results = (IEnumerable<object>)queryOptions.ApplyTo(dataset, querySettings);
+                resultCount = results.Count();
+            }
+            catch (Exception ex) when ((ex is InvalidOperationException or NotSupportedException) || (ex.InnerException is InvalidOperationException or NotSupportedException))
+            {
+                var message = ex.InnerException?.Message ?? ex.Message;
+                Logger?.LogWarning("Error while executing query: Possible client-side evaluation ({Message})", message);
+                results = (IEnumerable<object>)queryOptions.ApplyTo(dataset.ToList().AsQueryable(), querySettings);
+                resultCount = results.Count();
+            }
+            catch (Exception ex)
+            {
+                Logger?.LogError("Error in executing query: {Message}", ex.Message);
+                throw;
+            }
 
+            // Get the information needed for the nextLink.
+            int skip = (queryOptions.Skip?.Value ?? 0) + resultCount;
+            int top = (queryOptions.Top?.Value ?? 0) - resultCount;
+
+            // Get the total count of items that would be returned.
+            // Some IQueryable providers cannot execute all queries, so have to revert to client-side evaluation.
+            // EF Core, in particular, does not handle this case, so we have to do it for them.
+            long count;
+            try
+            {
+                var query = (IQueryable<TEntity>)queryOptions.Filter?.ApplyTo(dataset, new ODataQuerySettings()) ?? dataset;
+                count = query.LongCount();
+            }
+            catch (Exception ex) when ((ex is InvalidOperationException or NotSupportedException) || (ex.InnerException is InvalidOperationException or NotSupportedException))
+            {
+                var message = ex.InnerException?.Message ?? ex.Message;
+                Logger?.LogWarning("Error while executing query for long count: Possible client-side evaluation ({Message})", message);
+                var query = (IQueryable<TEntity>)queryOptions.Filter?.ApplyTo(dataset.ToList().AsQueryable(), new ODataQuerySettings()) ?? dataset.ToList().AsQueryable();
+                count = query.LongCount();
+            }
+            catch (Exception ex)
+            {
+                Logger?.LogError("Error while executing query for long count: {Message}", ex.Message);
+                throw;
+            }
+
+            // Construct the output object.
             var result = new PagedResult(results) { Count = queryOptions.Count != null ? count : null };
             if (queryOptions.Top != null)
             {
@@ -333,7 +376,7 @@ namespace Microsoft.AspNetCore.Datasync
                 result.NextLink = skip >= count ? null : Request.CreateNextLink(skip, 0);
             }
 
-            Logger?.LogInformation($"Query: {result.Items.Count()} items being returned");
+            Logger?.LogInformation("Query: {Count} items being returned", result.Items.Count());
             return Ok(result);
         }
 
@@ -349,21 +392,21 @@ namespace Microsoft.AspNetCore.Datasync
         [ProducesResponseType(StatusCodes.Status200OK)]
         public virtual async Task<IActionResult> ReadAsync([FromRoute] string id, CancellationToken token = default)
         {
-            Logger?.LogInformation($"Read({id}): initiated");
+            Logger?.LogInformation("Read({Id}): initiated", id);
             var entity = await Repository.ReadAsync(id, token).ConfigureAwait(false);
             if (entity == null || !EntityIsInView(entity))
             {
-                Logger?.LogWarning($"Read({id}): Item not found (not in view)");
+                Logger?.LogWarning("Read({Id}): Item not found (not in view)", id);
                 return NotFound();
             }
             await AuthorizeRequest(TableOperation.Delete, entity, token).ConfigureAwait(false);
             if (Options.EnableSoftDelete && entity.Deleted)
             {
-                Logger?.LogWarning($"Read({id}): Item not found (soft-delete)");
+                Logger?.LogWarning("Read({Id}): Item not found (soft-delete)", id);
                 return StatusCode(StatusCodes.Status410Gone);
             }
             Request.ParseConditionalRequest(entity, out _);
-            Logger?.LogInformation($"Read({id}): Item found - returning");
+            Logger?.LogInformation("Read({Id}): Item found - returning", id);
             return Ok(entity);
         }
 
@@ -380,30 +423,30 @@ namespace Microsoft.AspNetCore.Datasync
         [ProducesResponseType(StatusCodes.Status200OK)]
         public virtual async Task<IActionResult> ReplaceAsync([FromRoute] string id, [FromBody] TEntity item, CancellationToken token = default)
         {
-            Logger?.LogInformation($"Replace({id}): initiating");
+            Logger?.LogInformation("Replace({Id}): initiating", id);
             if (item.Id != id)
             {
-                Logger?.LogWarning($"Replace({id}): item does not match ID");
+                Logger?.LogWarning("Replace({Id}): item does not match ID", id);
                 return BadRequest();
             }
 
             var entity = await Repository.ReadAsync(id, token).ConfigureAwait(false);
             if (entity == null || !EntityIsInView(entity))
             {
-                Logger?.LogWarning($"Replace({id}): Item not found (not in view)");
+                Logger?.LogWarning("Replace({Id}): Item not found (not in view)", id);
                 return NotFound();
             }
 
             await AuthorizeRequest(TableOperation.Update, entity, token).ConfigureAwait(false);
             if (Options.EnableSoftDelete && entity.Deleted)
             {
-                Logger?.LogWarning($"Replace({id}): Item not found (soft-delete)");
+                Logger?.LogWarning("Replace({Id}): Item not found (soft-delete)", id);
                 return StatusCode(StatusCodes.Status410Gone);
             }
             Request.ParseConditionalRequest(entity, out byte[] version);
             await AccessControlProvider.PreCommitHookAsync(TableOperation.Update, item, token).ConfigureAwait(false);
             await Repository.ReplaceAsync(item, version, token).ConfigureAwait(false);
-            Logger?.LogInformation($"Replace({id}): Item replaced");
+            Logger?.LogInformation("Replace({Id}): Item replaced", id);
             return Ok(item);
         }
         #endregion

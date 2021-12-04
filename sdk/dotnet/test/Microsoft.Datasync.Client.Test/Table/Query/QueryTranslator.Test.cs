@@ -1,15 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
+using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Table.Query;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Table.Query
@@ -20,67 +18,37 @@ namespace Microsoft.Datasync.Client.Test.Table.Query
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class QueryTranslator_Tests : BaseTest
     {
-        #region Test Setup
-        private DatasyncClient MockClient { get; }
-        private DatasyncTable<IdEntity> Table { get; }
-
-        public QueryTranslator_Tests()
-        {
-            MockClient = CreateClientForMocking();
-            Table = MockClient.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-        }
-        #endregion
-
-        /// <summary>
-        /// A duplicate of the QueryTranslator that allows access to internal protected methods
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        internal class TestQueryTranslator<T> : QueryTranslator<T>
-        {
-            internal TestQueryTranslator(DatasyncTableQuery<T> query, DatasyncClientOptions options) : base(query, options)
-            {
-            }
-
-            internal int CountOrderings() => QueryDescription.Ordering.Count;
-
-            internal void TestAddFilter(MethodCallExpression expression)
-                => AddFilter(expression);
-
-            internal void TestAddOrdering(MethodCallExpression expression)
-                => AddOrdering(expression, true, false);
-
-            internal void TestAddOrderByNode(string memberName)
-                => AddOrderByNode(memberName, true, false);
-
-            internal void TestAddProjection(MethodCallExpression expression)
-                => AddProjection(expression);
-        }
-
         [Fact]
         [Trait("Method", "AddFilter")]
         public void AddFilter_Null_Throws()
         {
-            var query = new DatasyncTableQuery<IdEntity>(Table);
-            var translator = new TestQueryTranslator<IdEntity>(query, ClientOptions);
-            Assert.Throws<NotSupportedException>(() => translator.TestAddFilter(null));
+            var client = GetMockClient();
+            var table = client.GetTable<IdEntity>();
+            var query = new DatasyncTableQuery<IdEntity>(table);
+            var translator = new TestQueryTranslator<IdEntity>(query, new DatasyncClientOptions());
+            Assert.Throws<NotSupportedException>(() => translator.AddFilter(null));
         }
 
         [Fact]
         [Trait("Method", "AddOrdering")]
         public void AddOrdering_Null_Throws()
         {
-            var query = new DatasyncTableQuery<IdEntity>(Table);
-            var translator = new TestQueryTranslator<IdEntity>(query, ClientOptions);
-            Assert.Throws<NotSupportedException>(() => translator.TestAddOrdering(null));
+            var client = GetMockClient();
+            var table = client.GetTable<IdEntity>();
+            var query = new DatasyncTableQuery<IdEntity>(table);
+            var translator = new TestQueryTranslator<IdEntity>(query, new DatasyncClientOptions());
+            Assert.Throws<NotSupportedException>(() => translator.AddOrdering(null));
         }
 
         [Fact]
         [Trait("Method", "AddOrderByNode")]
         public void AddOrderByNode_Null_Returns()
         {
-            var query = new DatasyncTableQuery<IdEntity>(Table);
-            var translator = new TestQueryTranslator<IdEntity>(query, ClientOptions);
-            translator.TestAddOrderByNode(null);
+            var client = GetMockClient();
+            var table = client.GetTable<IdEntity>();
+            var query = new DatasyncTableQuery<IdEntity>(table);
+            var translator = new TestQueryTranslator<IdEntity>(query, new DatasyncClientOptions());
+            translator.AddOrderByNode(null);
             Assert.Equal(0, translator.CountOrderings());
         }
 
@@ -88,9 +56,11 @@ namespace Microsoft.Datasync.Client.Test.Table.Query
         [Trait("Method", "AddProjection")]
         public void AddProjection_Null_Throws()
         {
-            var query = new DatasyncTableQuery<IdEntity>(Table);
-            var translator = new TestQueryTranslator<IdEntity>(query, ClientOptions);
-            Assert.Throws<NotSupportedException>(() => translator.TestAddProjection(null));
+            var client = GetMockClient();
+            var table = client.GetTable<IdEntity>();
+            var query = new DatasyncTableQuery<IdEntity>(table);
+            var translator = new TestQueryTranslator<IdEntity>(query, new DatasyncClientOptions());
+            Assert.Throws<NotSupportedException>(() => translator.AddProjection(null));
         }
 
         [Fact]

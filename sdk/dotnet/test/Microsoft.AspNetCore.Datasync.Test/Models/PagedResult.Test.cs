@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
 using Microsoft.AspNetCore.Datasync.Models;
 using System.Diagnostics.CodeAnalysis;

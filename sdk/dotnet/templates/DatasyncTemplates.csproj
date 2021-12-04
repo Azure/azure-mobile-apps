@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <ContentTargetFolders>content</ContentTargetFolders>
-    <Description>Templates to use when creating ASP.NET Core datasync applications.</Description>
+    <Description>Template for creating an ASP.NET Core Datasync Service</Description>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IncludeContentInPack>true</IncludeContentInPack>
     <PackageId>Microsoft.AspNetCore.Datasync.Template.CSharp</PackageId>
-    <PackageTags>dotnet-new;templates;aspnetcore;datasync</PackageTags>
+    <PackageTags>dotnet-new;template;aspnetcore;datasync</PackageTags>
     <PackageType>Template</PackageType>
     <TargetFramework>net5.0</TargetFramework>
-    <Title>ASP.NET Core Datasync Templates</Title>
+    <Title>Template for an ASP.NET Core Datasync Service</Title>
   </PropertyGroup>
 
   <Import Project="..\Shared.Build.props" />

@@ -1,16 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test.Extensions;
-using Datasync.Common.Test.Models;
-using Datasync.Webservice;
 using Microsoft.AspNetCore.Datasync.InMemory;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Tables
@@ -21,20 +14,14 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables
         [Fact]
         public void Repository_Throws_WhenSetNull()
         {
-            // Arrange
             var controller = new TableController<InMemoryMovie>();
-
-            // Act
             Assert.Throws<ArgumentNullException>(() => controller.Repository = null);
         }
 
         [Fact]
         public void Repository_Throws_WhenGetNull()
         {
-            // Arrange
             var controller = new TableController<InMemoryMovie>();
-
-            // Act
             Assert.Throws<InvalidOperationException>(() => controller.Repository);
         }
 
@@ -42,82 +29,10 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables
         [SuppressMessage("Style", "IDE0017:Simplify object initialization", Justification = "Proper split of arrange/act/assert")]
         public void Repository_CanBeStored()
         {
-            // Arrange
             var repository = new InMemoryRepository<InMemoryMovie>();
-            var controller = new TableController<InMemoryMovie>();
-
-            // Act
-            controller.Repository = repository;
-
-            // Assert
+            var controller = new TableController<InMemoryMovie>() { Repository = repository };
             Assert.NotNull(controller.Repository);
             Assert.Equal(repository, controller.Repository);
-        }
-
-        [Theory]
-        [InlineData("tables/movies/id-001", null)]
-        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=true", null)]
-        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=0", null)]
-        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=somevalue", null)]
-        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=1.0", null)]
-        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=9.0.0", null)]
-        [InlineData("tables/movies/id-001", "true")]
-        [InlineData("tables/movies/id-001", "0")]
-        [InlineData("tables/movies/id-001", "somevalue")]
-        [InlineData("tables/movies/id-001", "1.0")]
-        [InlineData("tables/movies/id-001", "9.0.0")]
-        public async Task ZumoVersion_MissingOrInvalid_BadRequest(string relativeUri, string headerValue)
-        {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var client = server.CreateClient();
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri($"https://localhost/{relativeUri}")
-            };
-            if (headerValue != null)
-            {
-                request.Headers.Add("ZUMO-API-VERSION", headerValue);
-            }
-
-            // Act
-            var response = await client.SendAsync(request).ConfigureAwait(false);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            var result = await response.DeserializeContentAsync<Dictionary<string, object>>().ConfigureAwait(false);
-            Assert.True(result.ContainsKey("title"));
-            Assert.True(result.ContainsKey("detail"));
-        }
-
-        [Theory]
-        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=3.0", null)]
-        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=3.0.0", null)]
-        [InlineData("tables/movies/id-001?ZUMO-API-VERSION=3.0.1", null)]
-        [InlineData("tables/movies/id-001", "3.0")]
-        [InlineData("tables/movies/id-001", "3.0.0")]
-        [InlineData("tables/movies/id-001", "3.0.1")]
-        public async Task ZumoVersion_V3_0_OK(string relativeUri, string headerValue)
-        {
-            // Arrange
-            var server = Program.CreateTestServer();
-            var client = server.CreateClient();
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri($"https://localhost/{relativeUri}")
-            };
-            if (headerValue != null)
-            {
-                request.Headers.Add("ZUMO-API-VERSION", headerValue);
-            }
-
-            // Act
-            var response = await client.SendAsync(request).ConfigureAwait(false);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
     }
 }

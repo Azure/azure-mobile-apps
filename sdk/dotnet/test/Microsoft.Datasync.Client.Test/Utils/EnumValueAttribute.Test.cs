@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
 using Microsoft.Datasync.Client.Utils;
 using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Utils
 {
-    [ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class EnumValueAttribute_Test : BaseTest
     {
         [Theory]
