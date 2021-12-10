@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Datasync.Converters;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -47,6 +46,7 @@ namespace Microsoft.AspNetCore.Datasync
                     // but they aren't released as of 8.0.1, so need to have them explicitly included.
                     options.SerializerSettings.Converters.Add(new JSelectExpandWrapperConverter());
                     options.SerializerSettings.Converters.Add(new JDynamicTypeWrapperConverter());
+                    options.SerializerSettings.Converters.Add(new DateTimeOffsetJsonConverter());
                 });
 
             return services;
