@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
+using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Http;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -16,24 +17,6 @@ namespace Microsoft.Datasync.Client.Test.Http
     [ExcludeFromCodeCoverage]
     public class ServiceResponse_Tests : BaseTest
     {
-        private readonly string jsonPayload = "{\"stringValue\":\"test\"}";
-
-        public class MockObject
-        {
-            public bool BooleanValue { get; set; }
-            public char CharValue { get; set; }
-            public DateTime DateTimeValue { get; set; }
-            public DateTimeOffset DTOValue { get; set; }
-            public decimal DecimalValue { get; set; }
-            public double DoubleValue { get; set; }
-            public float FloatValue { get; set; }
-            public Guid GuidValue { get; set; }
-            public int IntValue { get; set; }
-            public long LongValue { get; set; }
-            public string StringValue { get; set; }
-        }
-
-        #region ServiceResponse.FromResponseAsync
         [Fact]
         [Trait("Method", "ServiceResponse.FromResponseAsync")]
         public async Task FromResponseAsync_Null_Throws()
@@ -68,6 +51,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         public async Task FromResponseAsync_NoHeaders(HttpStatusCode statusCode, bool hasContent, bool isSuccessful, bool isConflict)
         {
             // Arrange
+            const string jsonPayload = "{\"stringValue\":\"test\"}";
             var sut = new HttpResponseMessage(statusCode);
             if (hasContent)
             {
@@ -122,6 +106,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         public async Task FromResponseAsync_WithHeaders(HttpStatusCode statusCode, bool hasContent, bool isSuccessful, bool isConflict)
         {
             // Arrange
+            const string jsonPayload = "{\"stringValue\":\"test\"}";
             var sut = new HttpResponseMessage(statusCode);
             if (hasContent)
             {
@@ -152,14 +137,14 @@ namespace Microsoft.Datasync.Client.Test.Http
             AssertEx.Contains("ETag", "\"42\"", response.Headers);
             AssertEx.Contains("ZUMO-API-VERSION", "3.0.0", response.Headers);
         }
-        #endregion
 
-        #region ServiceResponse.FromResponseAsync<T>
         [Fact]
         [Trait("Method", "ServiceResponse.FromResponseAsync<T>")]
         public async Task FromResponseAsyncOfT_NullResponse_Throws()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(() => ServiceResponse.FromResponseAsync<MockObject>(null, ClientOptions.DeserializerOptions)).ConfigureAwait(false);
+            var options = new DatasyncClientOptions();
+            await Assert.ThrowsAsync<ArgumentNullException>(()
+                => ServiceResponse.FromResponseAsync<KitchenSinkEntity>(null, options.DeserializerOptions)).ConfigureAwait(false);
         }
 
         [Fact]
@@ -167,7 +152,8 @@ namespace Microsoft.Datasync.Client.Test.Http
         public async Task FromResponseAsyncOfT_NullOptions_Throws()
         {
             var response = new HttpResponseMessage(HttpStatusCode.NoContent);
-            await Assert.ThrowsAsync<ArgumentNullException>(() => ServiceResponse.FromResponseAsync<MockObject>(response, null)).ConfigureAwait(false);
+            await Assert.ThrowsAsync<ArgumentNullException>(()
+                => ServiceResponse.FromResponseAsync<KitchenSinkEntity>(response, null)).ConfigureAwait(false);
         }
 
         [Theory]
@@ -197,6 +183,8 @@ namespace Microsoft.Datasync.Client.Test.Http
         public async Task FromResponseAsyncOfT_NoHeaders(HttpStatusCode statusCode, bool hasContent, bool isSuccessful, bool isConflict)
         {
             // Arrange
+            const string jsonPayload = "{\"stringValue\":\"test\"}";
+            var options = new DatasyncClientOptions();
             var sut = new HttpResponseMessage(statusCode);
             if (hasContent)
             {
@@ -204,7 +192,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             }
 
             // Act
-            var response = await ServiceResponse.FromResponseAsync<MockObject>(sut, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+            var response = await ServiceResponse.FromResponseAsync<KitchenSinkEntity>(sut, options.DeserializerOptions).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(hasContent, response.HasContent);
@@ -254,6 +242,8 @@ namespace Microsoft.Datasync.Client.Test.Http
         public async Task FromResponseAsyncOfT_WithHeaders(HttpStatusCode statusCode, bool hasContent, bool isSuccessful, bool isConflict)
         {
             // Arrange
+            const string jsonPayload = "{\"stringValue\":\"test\"}";
+            var options = new DatasyncClientOptions();
             var sut = new HttpResponseMessage(statusCode);
             if (hasContent)
             {
@@ -263,7 +253,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             sut.Headers.Add("ZUMO-API-VERSION", "3.0.0");
 
             // Act
-            var response = await ServiceResponse.FromResponseAsync<MockObject>(sut, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+            var response = await ServiceResponse.FromResponseAsync<KitchenSinkEntity>(sut, options.DeserializerOptions).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(hasContent, response.HasContent);
@@ -293,6 +283,8 @@ namespace Microsoft.Datasync.Client.Test.Http
         public async Task FromResponseAsyncOfT_ImplicitOperator([CombinatorialValues(200, 201, 409, 412)] int statusCode, [CombinatorialValues(true, false)] bool hasContent)
         {
             // Arrange
+            const string jsonPayload = "{\"stringValue\":\"test\"}";
+            var options = new DatasyncClientOptions();
             var sut = new HttpResponseMessage((HttpStatusCode)statusCode);
             if (hasContent)
             {
@@ -300,7 +292,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             }
 
             // Act
-            MockObject response = await ServiceResponse.FromResponseAsync<MockObject>(sut, ClientOptions.DeserializerOptions).ConfigureAwait(false);
+            KitchenSinkEntity response = await ServiceResponse.FromResponseAsync<KitchenSinkEntity>(sut, options.DeserializerOptions).ConfigureAwait(false);
 
             // Assert
             if (hasContent)
@@ -313,6 +305,5 @@ namespace Microsoft.Datasync.Client.Test.Http
                 Assert.Null(response);
             }
         }
-        #endregion
     }
 }

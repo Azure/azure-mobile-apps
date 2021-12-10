@@ -16,17 +16,17 @@ namespace Microsoft.AspNetCore.Datasync.EFCore.Test
         }
 
         private static readonly DateTimeOffset[] testTimes = new DateTimeOffset[] {
-        DateTimeOffset.MinValue,
-        DateTimeOffset.Now.AddDays(-1),
-        DateTimeOffset.Now,
-        DateTimeOffset.MaxValue
-    };
+            DateTimeOffset.MinValue,
+            DateTimeOffset.Now.AddDays(-1),
+            DateTimeOffset.Now,
+            DateTimeOffset.MaxValue
+        };
 
         private static readonly byte[][] testVersions = new byte[][]
         {
-        Array.Empty<byte>(),
-        new byte[] { 0x01 },
-        Guid.NewGuid().ToByteArray()
+            Array.Empty<byte>(),
+            new byte[] { 0x01 },
+            Guid.NewGuid().ToByteArray()
         };
         #endregion
 

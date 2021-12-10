@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
 using Microsoft.Datasync.Client.Platforms;
-using Moq;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.IsolatedStorage;
@@ -13,16 +13,10 @@ namespace Microsoft.Datasync.Client.Test.Platforms
     [ExcludeFromCodeCoverage]
     public class ApplicationStorage_Test : BaseTest
     {
-        private IsolatedStorageFile defaultStore;
-
-        public ApplicationStorage_Test()
-        {
-            defaultStore = IsolatedStorageFile.GetUserStoreForApplication();
-        }
-
         [Fact]
         public void Storage_CanCreateDefaultContainer()
         {
+            var defaultStore = IsolatedStorageFile.GetUserStoreForApplication();
             var storage = new ApplicationStorage(defaultStore);
 
             // Storage an item within the storage.
@@ -65,6 +59,7 @@ namespace Microsoft.Datasync.Client.Test.Platforms
         [Fact]
         public void Storage_CanCreateNonDefaultContainer()
         {
+            var defaultStore = IsolatedStorageFile.GetUserStoreForApplication();
             const string containerName = "test2-container-name";
             var storage = new ApplicationStorage(defaultStore, containerName);
 
@@ -108,6 +103,7 @@ namespace Microsoft.Datasync.Client.Test.Platforms
         [Fact]
         public void Storage_ContainersAreSeparate()
         {
+            var defaultStore = IsolatedStorageFile.GetUserStoreForApplication();
             const string containerName = "test3-container-name";
             var storage = new ApplicationStorage(defaultStore, containerName);
 
@@ -134,6 +130,7 @@ namespace Microsoft.Datasync.Client.Test.Platforms
         [Fact]
         public void Storage_CanClearEmptyStorage()
         {
+            var defaultStore = IsolatedStorageFile.GetUserStoreForApplication();
             const string containerName = "test4-container-name";
             var storage = new ApplicationStorage(defaultStore, containerName);
             storage.ClearValues();
@@ -142,6 +139,7 @@ namespace Microsoft.Datasync.Client.Test.Platforms
         [Fact]
         public void Storage_CanClearFilledStorage()
         {
+            var defaultStore = IsolatedStorageFile.GetUserStoreForApplication();
             var storage = new ApplicationStorage(defaultStore);
 
             // Storage an item within the storage.

@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AspNetCore.Datasync.Extensions;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Datasync.Extensions;
-using Microsoft.AspNetCore.Datasync.InMemory;
-using Microsoft.AspNetCore.Http;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Extensions
@@ -13,14 +12,8 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class IHeaderDictionary_Tests
     {
-        #region Test Artifacts
-        private class Entity : InMemoryTableData
-        {
-        }
-
         private readonly byte[] testVersion = new byte[] { 0x01, 0x00, 0x42, 0x22, 0x47, 0x8F };
         private readonly string testETag = "\"AQBCIkeP\"";
-        #endregion
 
         [Fact]
         public void AddFromEntity_NoAdds_WhenNullEntity()
@@ -41,7 +34,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         {
             // Arrange
             var headers = new HeaderDictionary();
-            var entity = new Entity { Version = null, UpdatedAt = default };
+            var entity = new InMemoryEntity { Version = null, UpdatedAt = default };
 
             // Act
             headers.AddFromEntity(entity);
@@ -56,7 +49,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         {
             // Arrange
             var headers = new HeaderDictionary();
-            var entity = new Entity { Version = Array.Empty<byte>(), UpdatedAt = default };
+            var entity = new InMemoryEntity { Version = Array.Empty<byte>(), UpdatedAt = default };
 
             // Act
             headers.AddFromEntity(entity);
@@ -71,7 +64,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         {
             // Arrange
             var headers = new HeaderDictionary();
-            var entity = new Entity { Version = testVersion, UpdatedAt = default };
+            var entity = new InMemoryEntity { Version = testVersion, UpdatedAt = default };
 
             // Act
             headers.AddFromEntity(entity);
@@ -87,7 +80,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         {
             // Arrange
             var headers = new HeaderDictionary();
-            var entity = new Entity { Version = null, UpdatedAt = DateTimeOffset.Parse("2019-01-30T13:30:15Z") };
+            var entity = new InMemoryEntity { Version = null, UpdatedAt = DateTimeOffset.Parse("2019-01-30T13:30:15Z") };
 
             // Act
             headers.AddFromEntity(entity);
@@ -103,7 +96,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         {
             // Arrange
             var headers = new HeaderDictionary();
-            var entity = new Entity { Version = testVersion, UpdatedAt = DateTimeOffset.Parse("2019-01-30T13:30:15Z") };
+            var entity = new InMemoryEntity { Version = testVersion, UpdatedAt = DateTimeOffset.Parse("2019-01-30T13:30:15Z") };
 
             // Act
             headers.AddFromEntity(entity);
@@ -123,7 +116,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             {
                 { "Host", "Localhost" }
             };
-            var entity = new Entity { Version = testVersion, UpdatedAt = DateTimeOffset.Parse("2019-01-30T13:30:15Z") };
+            var entity = new InMemoryEntity { Version = testVersion, UpdatedAt = DateTimeOffset.Parse("2019-01-30T13:30:15Z") };
 
             // Act
             headers.AddFromEntity(entity);
@@ -146,7 +139,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
                 { "ETag", "Foo" },
                 { "Last-Modified", "Yes" }
             };
-            var entity = new Entity { Version = testVersion, UpdatedAt = DateTimeOffset.Parse("2019-01-30T13:30:15Z") };
+            var entity = new InMemoryEntity { Version = testVersion, UpdatedAt = DateTimeOffset.Parse("2019-01-30T13:30:15Z") };
 
             // Act
             headers.AddFromEntity(entity);

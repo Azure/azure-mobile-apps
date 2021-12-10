@@ -4,12 +4,14 @@
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 
 namespace Microsoft.AspNetCore.Datasync.Extensions
 {
     internal static class JsonPatchDocumentExtensions
     {
-        private const string UniversalTimeFormat = "yyyyMMddTHHmmss.fff";
+        private static string timeFormat = "yyyy-MM-dd'T'HH:mm:ss.fff";
 
         /// <summary>
         /// Returns true if one of the operations is the operation specified.
@@ -39,39 +41,50 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
         /// to adjust system properties, and only replace operations are allowed.
         /// </summary>
         /// <param name="patch">The patch document</param>
-        internal static bool ModifiesSystemProperties<TEntity>(this JsonPatchDocument<TEntity> patch, TEntity entity) where TEntity : class, ITableData
+        internal static bool ModifiesSystemProperties<TEntity>(this JsonPatchDocument<TEntity> patch, TEntity entity, out Dictionary<string, string> validationErrors) where TEntity : class, ITableData
         {
+            validationErrors = new Dictionary<string, string>();
+            bool returnValue = false;
             foreach (var operation in patch.Operations)
             {
                 switch (operation.OperationType)
                 {
                     case OperationType.Replace:
                         if (operation.path.Equals("/id", StringComparison.OrdinalIgnoreCase) && !entity.Id.Equals(operation.value))
-                            return true;
+                        {
+                            validationErrors.Add("entity.Id", entity.Id);
+                            validationErrors.Add("patch./id", (string)operation.value);
+                            returnValue = true;
+                        }
 
                         if (operation.path.Equals("/version", StringComparison.OrdinalIgnoreCase))
                         {
                             string stored = entity.GetETag().Trim('"');
                             if (!stored.Equals(operation.value))
-                                return true;
+                            {
+                                validationErrors.Add("entity.Version", stored);
+                                validationErrors.Add("patch./version", (string)operation.value);
+                                returnValue = true;
+                            }
                         }
 
                         if (operation.path.Equals("/updatedAt", StringComparison.OrdinalIgnoreCase) && operation.value is DateTime dt)
                         {
-                            string stored = entity.UpdatedAt.ToUniversalTime().ToString(UniversalTimeFormat);
-                            string dtzval = dt.ToUniversalTime().ToString(UniversalTimeFormat);
+                            string stored = entity.UpdatedAt.ToUniversalTime().ToString(timeFormat, CultureInfo.InvariantCulture);
+                            string dtzval = dt.ToUniversalTime().ToString(timeFormat, CultureInfo.InvariantCulture);
                             if (stored != dtzval)
-                                return true;
+                            {
+                                validationErrors.Add("entity.UpdatedAt", stored);
+                                validationErrors.Add("patch./updatedAt", dtzval);
+                                returnValue = true;
+                            }
                         }
-
-                        break;
-                    case OperationType.Test:
                         break;
                     default:
-                        return true;
+                        break;
                 }
             }
-            return false;
+            return returnValue;
         }
     }
 }

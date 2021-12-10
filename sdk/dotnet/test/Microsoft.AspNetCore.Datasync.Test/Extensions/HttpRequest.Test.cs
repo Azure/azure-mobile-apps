@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AspNetCore.Datasync.Extensions;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Datasync.Extensions;
-using Microsoft.AspNetCore.Datasync.InMemory;
-using Microsoft.AspNetCore.Http;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Extensions
@@ -13,12 +12,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class HttpRequest_Tests
     {
-        #region Test Artifacts
-        private class Entity : InMemoryTableData
-        {
-        }
-
-        private readonly Entity testEntity = new()
+        private readonly InMemoryEntity testEntity = new()
         {
             Id = Guid.NewGuid().ToString("N"),
             Deleted = false,
@@ -30,21 +24,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         private const string laterTestDate = "Thu, 31 Jan 2019 13:30:15 GMT";
         private const string matchingETag = "\"AQBCIkeP\"";
         private const string nonMatchingETag = "\"Foo\"";
-        #endregion
 
-        // "GET"
-        // "POST"
-        // true
-        // false
-
-        // If-Match: matchingETag
-        // If-Match: nonMatchingETag
-        // If-None-Match: matchingETag
-        // If-None-Match: nonMatchingETag
-        // If-Unmodified-Since: earlierTestDate
-        // If-Unmodified-Since: laterTestDate
-        // If-Modified-Since: earlierTestDate
-        // If-Modified-Since: laterTestDate
         [Theory]
         [InlineData("GET", false, null, null, null)]
         [InlineData("GET", false, "If-None-Match", nonMatchingETag, null)]
@@ -71,7 +51,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             {
                 request.Headers.Add(headerName, headerValue);
             }
-            Entity entity = usesObject ? testEntity : null;
+            InMemoryEntity entity = usesObject ? testEntity : null;
 
             // Act
             request.ParseConditionalRequest(entity, out byte[] version);
@@ -93,7 +73,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             {
                 request.Headers.Add(headerName, headerValue);
             }
-            Entity entity = usesObject ? testEntity : null;
+            InMemoryEntity entity = usesObject ? testEntity : null;
             byte[] version = null;
 
             // Act
@@ -132,7 +112,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             {
                 request.Headers.Add(headerName, headerValue);
             }
-            Entity entity = usesObject ? testEntity : null;
+            InMemoryEntity entity = usesObject ? testEntity : null;
             byte[] version = null;
 
             // Act
@@ -156,9 +136,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
         public void IsDefaultPort_Works(string scheme, int port, bool expected)
         {
             // Arrange
-            var builder = new UriBuilder();
-            builder.Scheme = scheme;
-            builder.Port = port;
+            var builder = new UriBuilder { Scheme = scheme, Port = port };
 
             // Act
             bool actual = builder.IsDefaultPort();

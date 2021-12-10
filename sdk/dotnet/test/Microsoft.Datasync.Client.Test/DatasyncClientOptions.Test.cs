@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Test.Helpers;
+using Datasync.Common.Test.Mocks;
 using Microsoft.Datasync.Client.Utils;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test
 {
     [ExcludeFromCodeCoverage]
-    public class DatasyncClientOptions_Test : BaseTest
+    public class DatasyncClientOptions_Test
     {
         [Fact]
         [Trait("Method", "DeserializerOptions")]
@@ -44,7 +44,7 @@ namespace Microsoft.Datasync.Client.Test
         [Trait("Method", "HttpPipeline")]
         public void HttpPipeline_CanRoundTrip()
         {
-            var testHandler = new TestDelegatingHandler();
+            var testHandler = new MockDelegatingHandler();
             var sut = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { testHandler } };
             Assert.Single(sut.HttpPipeline);
             Assert.Same(testHandler, sut.HttpPipeline.First());

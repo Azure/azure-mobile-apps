@@ -1,6 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AspNetCore.Datasync;
+using Microsoft.AspNetCore.Datasync.Extensions;
+using Microsoft.Datasync.Client;
+using Microsoft.Net.Http.Headers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -9,10 +13,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using Datasync.Common.Test.Models;
-using Microsoft.AspNetCore.Datasync;
-using Microsoft.AspNetCore.Datasync.Extensions;
-using Microsoft.Net.Http.Headers;
 using Xunit;
 
 namespace Datasync.Common.Test
@@ -57,8 +57,6 @@ namespace Datasync.Common.Test
         /// <param name="interval"></param>
         public static void CloseTo(DateTimeOffset expected, DateTimeOffset actual, int interval = 2000)
         {
-            Assert.NotNull(expected);
-            Assert.NotNull(actual);
             var ms = Math.Abs((expected.Subtract(actual)).TotalMilliseconds);
             Assert.True(ms < interval, $"Date {expected} and {actual} are {ms}ms apart");
         }
@@ -71,7 +69,6 @@ namespace Datasync.Common.Test
         /// <param name="actual"></param>
         public static void IsBetween(DateTimeOffset start, DateTimeOffset end, DateTimeOffset actual)
         {
-            Assert.NotNull(actual);
             Assert.True(actual >= start, $"Date {actual} is earlier than expected start date {start}");
             Assert.True(actual <= end, $"Date {actual} is later than expected end date {end}");
         }
@@ -104,7 +101,7 @@ namespace Datasync.Common.Test
         {
             string allHeaders = Enumerable.Empty<(String name, String value)>().Concat(
                 headers.SelectMany(kvp => kvp.Value.Select(v => (name: kvp.Key, value: v)))
-            ).Aggregate(seed: new StringBuilder(), func: (sb, pair) => sb.Append(pair.name).Append(": ").Append(pair.value).AppendLine(), resultSelector: sb => sb.ToString());
+            ).Aggregate(seed: new StringBuilder(), func: (sb, pair) => sb.Append(pair.name).Append(": ").AppendLine(pair.value), resultSelector: sb => sb.ToString());
 
             Assert.True(headers.TryGetValues(headerName, out IEnumerable<string> values), $"The request/response does not contain header {headerName} (Headers = {allHeaders})");
             Assert.True(values.Count() == 1, $"There are {values.Count()} values for header {headerName} (values = {string.Join(';', values)})");
@@ -139,7 +136,7 @@ namespace Datasync.Common.Test
         /// </summary>
         /// <param name="expected"></param>
         /// <param name="actual"></param>
-        public static void SystemPropertiesMatch(ITableData expected, ClientTableData actual)
+        public static void SystemPropertiesMatch(ITableData expected, DatasyncClientData actual)
         {
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.UpdatedAt, actual.UpdatedAt);

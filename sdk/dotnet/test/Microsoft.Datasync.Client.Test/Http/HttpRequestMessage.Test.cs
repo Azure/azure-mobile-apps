@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
+using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Http;
 using System;
 using System.Collections.Generic;
@@ -15,14 +16,6 @@ namespace Microsoft.Datasync.Client.Test.Http
     [ExcludeFromCodeCoverage]
     public class HttpRequestMessage_Test : BaseTest
     {
-        private class TestClass
-        {
-            public string Id { get; set; }
-            public DateTimeOffset? UpdatedAt { get; set; }
-            public long Number { get; set; }
-        }
-
-        #region WithHeader
         [Fact]
         [Trait("Method", "WithHeader")]
         public void WithHeader_AddsNormalHeader()
@@ -58,9 +51,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var sut = new HttpRequestMessage(HttpMethod.Get, "");
             Assert.Throws<InvalidOperationException>(() => sut.WithHeader("Content-Type", "text/plain; encoding=utf-8"));
         }
-        #endregion
 
-        #region WithHeaders
         [Fact]
         [Trait("Method", "WithHeaders")]
         public void WithHeaders_AddsWholeDictionary()
@@ -114,9 +105,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             };
             Assert.Throws<InvalidOperationException>(() => sut.WithHeaders(dict));
         }
-        #endregion
 
-        #region WithFeatureHeader
         [Fact]
         [Trait("Method", "WithFeatureHeader")]
         public void WithFeatureHeader_None_NoAdditions()
@@ -142,17 +131,16 @@ namespace Microsoft.Datasync.Client.Test.Http
             var result = sut.WithFeatureHeader(features);
             AssertEx.HasHeader(result.Headers, "X-ZUMO-FEATURES", expected);
         }
-        #endregion
 
-        #region WithContent
         [Fact]
         [Trait("Method", "WithContent")]
         public void WithContent_SerializesContent()
         {
             var sut = new HttpRequestMessage(HttpMethod.Get, "");
-            var testClass = new TestClass { Id = "1234", UpdatedAt = new DateTimeOffset(2011, 11, 27, 8, 14, 32, 500, TimeSpan.Zero), Number = 42L };
+            var options = new DatasyncClientOptions();
+            var testClass = new DTOIdEntity { Id = "1234", UpdatedAt = new DateTimeOffset(2011, 11, 27, 8, 14, 32, 500, TimeSpan.Zero), Number = 42L };
             const string expected = "{\"id\":\"1234\",\"updatedAt\":\"2011-11-27T08:14:32.500Z\",\"number\":42}";
-            var result = sut.WithContent(testClass, ClientOptions.SerializerOptions);
+            var result = sut.WithContent(testClass, options.SerializerOptions);
             var actual = result.Content.ReadAsStringAsync().Result;
             Assert.Equal(expected, actual);
             Assert.Equal("application/json", result.Content.Headers.ContentType.MediaType);
@@ -165,9 +153,10 @@ namespace Microsoft.Datasync.Client.Test.Http
         public void WithContent_SerializesContent_WithMediaType()
         {
             var sut = new HttpRequestMessage(HttpMethod.Get, "");
-            var testClass = new TestClass { Id = "1234", UpdatedAt = new DateTimeOffset(2011, 11, 27, 8, 14, 32, 500, TimeSpan.Zero), Number = 42L };
+            var options = new DatasyncClientOptions();
+            var testClass = new DTOIdEntity { Id = "1234", UpdatedAt = new DateTimeOffset(2011, 11, 27, 8, 14, 32, 500, TimeSpan.Zero), Number = 42L };
             const string expected = "{\"id\":\"1234\",\"updatedAt\":\"2011-11-27T08:14:32.500Z\",\"number\":42}";
-            var result = sut.WithContent(testClass, ClientOptions.SerializerOptions, "application/json+test");
+            var result = sut.WithContent(testClass, options.SerializerOptions, "application/json+test");
             var actual = result.Content.ReadAsStringAsync().Result;
             Assert.Equal(expected, actual);
             Assert.Equal("application/json+test", result.Content.Headers.ContentType.MediaType);
@@ -180,8 +169,9 @@ namespace Microsoft.Datasync.Client.Test.Http
         public void WithContent_NullContent_Throws()
         {
             var sut = new HttpRequestMessage(HttpMethod.Get, "");
-            TestClass testClass = null;
-            Assert.Throws<ArgumentNullException>(() => sut.WithContent(testClass, ClientOptions.SerializerOptions));
+            var options = new DatasyncClientOptions();
+            DTOIdEntity testClass = null;
+            Assert.Throws<ArgumentNullException>(() => sut.WithContent(testClass, options.SerializerOptions));
         }
 
         [Fact]
@@ -189,9 +179,8 @@ namespace Microsoft.Datasync.Client.Test.Http
         public void WithContent_NullSerializerOptions_Throws()
         {
             var sut = new HttpRequestMessage(HttpMethod.Get, "");
-            var testClass = new TestClass { Id = "1234", UpdatedAt = new DateTimeOffset(2011, 11, 27, 8, 14, 32, 500, TimeSpan.Zero), Number = 42L };
+            var testClass = new DTOIdEntity { Id = "1234", UpdatedAt = new DateTimeOffset(2011, 11, 27, 8, 14, 32, 500, TimeSpan.Zero), Number = 42L };
             Assert.Throws<ArgumentNullException>(() => sut.WithContent(testClass, null));
         }
-        #endregion
     }
 }

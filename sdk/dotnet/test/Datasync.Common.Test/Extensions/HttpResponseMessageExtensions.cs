@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Datasync.Common.Test.Extensions
+namespace Datasync.Common.Test
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public static class HttpResponseMessageExtensions
@@ -26,8 +26,7 @@ namespace Datasync.Common.Test.Extensions
         public static async Task<T> DeserializeContentAsync<T>(this HttpResponseMessage response) where T : class
         {
             var payload = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var result = JsonSerializer.Deserialize<T>(payload, SerializerOptions);
-            return result;
+            return JsonSerializer.Deserialize<T>(payload, SerializerOptions);
         }
 
         /// <summary>
@@ -37,10 +36,6 @@ namespace Datasync.Common.Test.Extensions
         /// <param name="response">The response object</param>
         /// <returns>The object</returns>
         public static T DeserializeContent<T>(this HttpResponseMessage response) where T : class
-        {
-            var payload = response.Content.ReadAsStringAsync().Result;
-            var result = JsonSerializer.Deserialize<T>(payload, SerializerOptions);
-            return result;
-        }
+            => JsonSerializer.Deserialize<T>(response.Content.ReadAsStringAsync().Result, SerializerOptions);
     }
 }
