@@ -33,6 +33,25 @@ namespace Microsoft.Datasync.Integration.Test.Server
             AssertEx.ResponseHasConditionalHeaders(expected, response);
         }
 
+        /// <summary>
+        /// Issue #215 - serialization of DateTimeOffset must respond with ms accuracy.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task UpdatedAt_CorrectFormat()
+        {
+            string id = GetRandomId();
+            var expected = MovieServer.GetMovieById(id)!;
+            var expectedDTO = expected.UpdatedAt.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fffK");
+
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/movies/{id}").ConfigureAwait(false);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var actual = response.DeserializeContent<Dictionary<string, object>>();
+            Assert.True(actual.ContainsKey("updatedAt"));
+            Assert.Equal(expectedDTO, actual["updatedAt"].ToString());
+        }
+
         [Theory]
         [InlineData("tables/movies/not-found", HttpStatusCode.NotFound)]
         [InlineData("tables/movies_pagesize/not-found", HttpStatusCode.NotFound)]
