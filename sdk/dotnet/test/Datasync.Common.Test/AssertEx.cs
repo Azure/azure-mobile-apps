@@ -24,6 +24,11 @@ namespace Datasync.Common.Test
     public static class AssertEx
     {
         /// <summary>
+        /// the format for time comparisons - ms accuracy
+        /// </summary>
+        private const string format = "yyyy-MM-dd'T'HH:mm:ss.fffK";
+
+        /// <summary>
         /// Asserts if the dictionary contains the provided value.
         /// </summary>
         /// <param name="key">the header name</param>
@@ -139,7 +144,7 @@ namespace Datasync.Common.Test
         public static void SystemPropertiesMatch(ITableData expected, DatasyncClientData actual)
         {
             Assert.Equal(expected.Id, actual.Id);
-            Assert.Equal(expected.UpdatedAt, actual.UpdatedAt);
+            Assert.Equal(expected.UpdatedAt.ToUniversalTime().ToString(format), actual.UpdatedAt?.ToUniversalTime().ToString(format));
             Assert.Equal(expected.Deleted, actual.Deleted);
             Assert.Equal(Convert.ToBase64String(expected.Version), actual.Version);
         }
