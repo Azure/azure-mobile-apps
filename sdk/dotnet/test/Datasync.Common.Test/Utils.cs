@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AspNetCore.Authentication;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Datasync.Common.Test
@@ -27,7 +30,40 @@ namespace Datasync.Common.Test
         /// <param name="userId"></param>
         /// <returns></returns>
         public static string GetAuthToken(string userId)
-            => userId == "success" ? ValidAadToken : InvalidAadToken;
+        {
+            return userId == "success" ? ValidAadToken : InvalidAadToken;
+            // The tokens are Base64 encoded JSON objects.
+            //var token = new AzureAppServiceToken()
+            //{
+            //    Provider = "aad",
+            //    NameType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+            //    RoleType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+            //};
+            //List<AzureAppServiceToken.UserClaim> claims = new();
+            //claims.Add(new AzureAppServiceToken.UserClaim { Type = "aud", Value = "e9ed5e53-bb27-4213-86e4-8d3347b16a33" });
+            //claims.Add(new AzureAppServiceToken.UserClaim { Type = "iss", Value = "https://login.microsoftonline.com/abcdefab-c7b4-4773-a899-bab2b97f6868/v2.0" });
+            //claims.Add(new AzureAppServiceToken.UserClaim { Type = "iat", Value = "1619712243" });
+            //claims.Add(new AzureAppServiceToken.UserClaim { Type = "nbf", Value = "1619712243" });
+            //claims.Add(new AzureAppServiceToken.UserClaim { Type = "exp", Value = "1619716143" });
+            //claims.Add(new AzureAppServiceToken.UserClaim { Type = "rh", Value = "0.ARoAAYBVorTHc0eombqyuX9oaFNe7eknuxNChuSNM0exajMSAME." });
+            //if (userId == "success")
+            //{
+            //    claims.Add(new AzureAppServiceToken.UserClaim { Type = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", Value = "testuser@outlook.com" });
+            //}
+            //claims.Add(new AzureAppServiceToken.UserClaim { Type = "name", Value = "Test User" });
+            //claims.Add(new AzureAppServiceToken.UserClaim { Type = "http://schemas.microsoft.com/identity/claims/objectidentifier", Value = "fd1400e1-4ab9-4392-bb5f-0a98e7c0bd7c" });
+            //claims.Add(new AzureAppServiceToken.UserClaim { Type = "preferred_username", Value = "testuser@outlook.com" });
+            //claims.Add(new AzureAppServiceToken.UserClaim { Type = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", Value = "vILZd7OfbkcvIufJDT4KAZZs3gZerRtJilzXoBD4uec" });
+            //claims.Add(new AzureAppServiceToken.UserClaim { Type = "http://schemas.microsoft.com/identity/claims/tenantid", Value = "abcdefab-c7b4-4773-a899-bab2b97f6868" });
+            //claims.Add(new AzureAppServiceToken.UserClaim { Type = "uti", Value = "rbc0j9381kyexLTpHEBQAQ" });
+            //claims.Add(new AzureAppServiceToken.UserClaim { Type = "ver", Value = "2.0" });
+
+            //token.Claims = claims;
+
+            //var json = JsonSerializer.Serialize<AzureAppServiceToken>(token);
+            //var b64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+            //return b64;
+        }
 
         /// <summary>
         /// Adds the authentication headers to the provided headers.

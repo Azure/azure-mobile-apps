@@ -14,6 +14,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -88,28 +90,65 @@ namespace Microsoft.Datasync.Integration.Test.Client
         [Trait("Method", "GetPageOfItemsAsync")]
         public async Task GetPageOfItemsAsync_Basic(QueryTestCase testcase)
         {
-            // Determine the auth provider to use.  If the username is set, then construct
-            // an authentication token and create an auth provider to use it.
-            AuthenticationProvider? authProvider = null;
-            //if (testcase.Username != null)
-            //{
-            //    var authToken = new AuthenticationToken
-            //    {
-            //        DisplayName = testcase.Username,
-            //        UserId = testcase.Username,
-            //        ExpiresOn = DateTimeOffset.UtcNow.AddHours(1),
-            //        Token = Utils.GetAuthToken(testcase.Username)
-            //    };
-            //    authProvider = new GenericAuthenticationProvider(() => Task.FromResult(authToken));
-            //}
-
-            // TODO: Enable authenticated test cases
-            if (testcase.Username != null) return;
-
             // Arrange
             var segments = testcase.PathAndQuery.Split('?');
             var tableName = segments[0].Split('/').Last();
             var query = segments.Length > 1 ? segments[1] : string.Empty;
+            var client = GetMovieClient();
+            var table = (DatasyncTable<ClientMovie>)client.GetTable<ClientMovie>(tableName)!;
+
+            // Act
+            var response = await table.GetPageOfItemsAsync<ClientMovie>(query).ConfigureAwait(false);
+            var result = response.Value;
+            var items = result.Items.ToArray();
+
+            // Assert
+            Assert.Equal(testcase.ItemCount, items.Length);
+            Assert.Equal(testcase.TotalCount, result.Count ?? 0);
+
+            if (testcase.NextLinkQuery == null)
+            {
+                Assert.Null(result.NextLink);
+            }
+            else
+            {
+                var nextlinkSegments = result.NextLink.PathAndQuery.Split('?');
+                var expectedSegments = testcase.NextLinkQuery.Split('?');
+                Assert.Equal(expectedSegments[0].Trim('/'), nextlinkSegments[0].Trim('/'));
+                Assert.Equal(expectedSegments[1], Uri.UnescapeDataString(nextlinkSegments[1]));
+            }
+
+            // The first n items must match what is expected
+            Assert.True(items.Length >= testcase.FirstItems.Length);
+            Assert.Equal(testcase.FirstItems, result.Items.Take(testcase.FirstItems.Length).Select(m => m.Id).ToArray());
+            for (int idx = 0; idx < testcase.FirstItems.Length; idx++)
+            {
+                var expected = MovieServer.GetMovieById(testcase.FirstItems[idx]);
+                var actual = items[idx];
+                Assert.Equal<IMovie>(expected, actual);
+                AssertEx.SystemPropertiesMatch(expected, actual);
+            }
+        }
+
+        [Fact]
+        [Trait("Method", "GetPageOfItemsAsync")]
+        public async Task GetPageOfItemsAsync_Authenticated()
+        {
+            // Arrange
+            var testcase = QueryTestCases.AuthenticatedTestcase;
+            var segments = testcase.PathAndQuery.Split('?');
+            var tableName = segments[0].Split('/').Last();
+            var query = segments.Length > 1 ? segments[1] : string.Empty;
+
+            AuthenticationToken authToken = new()
+            {
+                DisplayName = testcase.Username,
+                ExpiresOn = DateTimeOffset.UtcNow.AddHours(1),
+                UserId = testcase.Username,
+                Token = Utils.GetAuthToken(testcase.Username)
+            };
+            AuthenticationProvider authProvider = new TestAuthenticationProvider(authToken);
+
             var client = GetMovieClient(authProvider);
             var table = (DatasyncTable<ClientMovie>)client.GetTable<ClientMovie>(tableName)!;
 
@@ -411,6 +450,47 @@ namespace Microsoft.Datasync.Integration.Test.Client
 
             Assert.False(sut.HasMoreItems);
             Assert.Equal(MovieCount, sut.Count);
+        }
+    }
+
+    /// <summary>
+    /// A test authentication provider to simulate the X-ZUMO-AUTH properly
+    /// </summary>
+    internal class TestAuthenticationProvider : AuthenticationProvider
+    {
+        private const string TokenHeader = "X-MS-CLIENT-PRINCIPAL";
+        private const string IdpHeader = "X-MS-CLIENT-PRINCIPAL-IDP";
+        private const string NameHeader = "X-MS-CLIENT-PRINCIPAL-NAME";
+
+        public TestAuthenticationProvider(AuthenticationToken token)
+        {
+            AuthToken = token;
+        }
+
+        internal AuthenticationToken AuthToken { get; set; }
+
+        public override Task LoginAsync() => Task.CompletedTask;
+
+        /// <summary>
+        /// The delegating handler for this request - injects the authorization header into the request.
+        /// </summary>
+        /// <param name="request">The request</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+        /// <returns>The response (asynchronously)</returns>
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+        {
+            // Remove the headers we deal with
+            try { request.Headers.Remove(TokenHeader); } catch { }
+            try { request.Headers.Remove(IdpHeader); } catch { }
+            try { request.Headers.Remove(NameHeader); } catch { }
+
+            // Now add them again, but this time with the right values
+            request.Headers.TryAddWithoutValidation(TokenHeader, AuthToken.Token);
+            request.Headers.TryAddWithoutValidation(IdpHeader, "aad");
+            request.Headers.TryAddWithoutValidation(NameHeader, AuthToken.UserId);
+
+            // Do the request
+            return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
     }
 }

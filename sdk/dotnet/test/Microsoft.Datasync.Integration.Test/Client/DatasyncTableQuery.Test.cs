@@ -64,7 +64,6 @@ namespace Microsoft.Datasync.Integration.Test.Client
             Assert.Equal(testcase.FirstResults, actualItems);
         }
 
-
         [Theory]
         [ClassData(typeof(LinqTestCases))]
         [Trait("Method", "ToAsyncEnumerable")]

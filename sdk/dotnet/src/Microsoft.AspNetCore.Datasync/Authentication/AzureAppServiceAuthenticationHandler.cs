@@ -39,7 +39,6 @@ namespace Microsoft.AspNetCore.Authentication
             _logger = loggerFactory.CreateLogger<AzureAppServiceAuthenticationHandler>();
         }
 
-
         /// <summary>
         /// Handle an authentication challenge.
         /// </summary>
@@ -59,7 +58,7 @@ namespace Microsoft.AspNetCore.Authentication
                     return Task.FromResult(AuthenticateResult.NoResult());
                 }
 
-                _logger.LogDebug($"Azure App Service Token = {encodedToken}");
+                _logger.LogDebug("Azure App Service Token = {encodedToken}", encodedToken);
                 var token = AzureAppServiceToken.FromString(encodedToken);
                 var claims = token.Claims.Select(claim => new Claim(claim.Type, claim.Value));
 
@@ -71,7 +70,7 @@ namespace Microsoft.AspNetCore.Authentication
                 {
                     throw new TokenValidationException($"{AppServicePrincipalIdP} header does not match the token value");
                 }
-                if (claims.Count(c => c.Type.Equals(token.NameType, StringComparison.InvariantCultureIgnoreCase)) == 0)
+                if (!claims.Any(c => c.Type.Equals(token.NameType, StringComparison.InvariantCultureIgnoreCase)))
                 {
                     throw new TokenValidationException($"{AppServicePrincipalToken} token does not contain any names");
                 }
@@ -79,12 +78,12 @@ namespace Microsoft.AspNetCore.Authentication
                 Context.User = new ClaimsPrincipal();
                 Context.User.AddIdentity(new ClaimsIdentity(claims, token.Provider, token.NameType, token.RoleType));
 
-                _logger.LogDebug($"Azure App Service Authentication for user {claims.Single(claims => claims.Type == token.NameType).Value} succeeded");
+                _logger.LogDebug("Azure App Service Authentication for user {user} succeeded", claims.Single(claims => claims.Type == token.NameType).Value);
                 return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(Context.User, token.Provider)));
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to handle Azure App Service authentication: {ex.Message}");
+                _logger.LogError("Failed to handle Azure App Service authentication: {Message}", ex.Message);
                 return Task.FromResult(AuthenticateResult.Fail(ex));
             }
         }
