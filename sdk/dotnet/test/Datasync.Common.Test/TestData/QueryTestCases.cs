@@ -34,6 +34,9 @@ namespace Datasync.Common.Test.TestData
 
     public class QueryTestCases : TheoryData<QueryTestCase>
     {
+        public static QueryTestCase AuthenticatedTestcase { get; }
+            = new QueryTestCase("tables/movies_rated", 94, null, 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-007" }, "success");
+
         public QueryTestCases()
         {
             Add(new QueryTestCase("tables/movies", 100, "tables/movies?$skip=100", 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }));
@@ -347,7 +350,6 @@ namespace Datasync.Common.Test.TestData
             Add(new QueryTestCase("tables/movies?$top=5&$orderby=year desc", 5, null, 0, new[] { "id-033", "id-122", "id-188", "id-064", "id-102" }));
             Add(new QueryTestCase("tables/movies?$top=5&$orderby=year desc,title asc", 5, null, 0, new[] { "id-188", "id-122", "id-033", "id-102", "id-213" }));
             Add(new QueryTestCase("tables/movies?$top=5&$orderby=year desc,title desc", 5, null, 0, new[] { "id-033", "id-122", "id-188", "id-149", "id-064" }));
-            Add(new QueryTestCase("tables/movies_rated", 94, null, 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-007" }, "success"));
         }
     }
 }
