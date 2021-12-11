@@ -33,7 +33,5 @@ namespace Microsoft.Datasync.Client.Authentication
         /// </summary>
         /// <returns>An async task that resolves when the login is complete</returns>
         public abstract Task LoginAsync();
-
-
     }
 }
