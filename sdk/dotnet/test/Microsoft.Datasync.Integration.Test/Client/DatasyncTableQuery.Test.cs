@@ -7,12 +7,15 @@ using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Commands;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Datasync.Integration.Test.Client
 {
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
+    [Collection("Integration")]
     public class DatasyncTableQuery_Tests : BaseTest
     {
         [Theory]

@@ -18,6 +18,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
     /// The only tests here concentrate on the differences between OData v3 and OData v4
     /// </summary>
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
+    [Collection("Integration")]
     public class V2Query_Tests : BaseTest
     {
         [Theory]
