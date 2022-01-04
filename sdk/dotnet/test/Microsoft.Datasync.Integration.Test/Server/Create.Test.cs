@@ -17,6 +17,7 @@ using TestData = Datasync.Common.Test.TestData;
 namespace Microsoft.Datasync.Integration.Test.Server
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
+    [Collection("Integration")]
     public class Create_Tests : BaseTest
     {
         [Theory, CombinatorialData]

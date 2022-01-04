@@ -14,11 +14,10 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
-using TestData = Datasync.Common.Test.TestData;
-
 namespace Microsoft.Datasync.Integration.Test.Server
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
+    [Collection("Integration")]
     public class Replace_Tests : BaseTest
     {
         [Theory, CombinatorialData]
@@ -257,7 +256,6 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [Theory, CombinatorialData]
         public async Task ReplaceSoftNotDeleted_Works([CombinatorialValues("soft", "soft_logged")] string table)
         {
-
             var id = GetRandomId();
             var original = MovieServer.GetMovieById(id)!;
             var expected = original.Clone();

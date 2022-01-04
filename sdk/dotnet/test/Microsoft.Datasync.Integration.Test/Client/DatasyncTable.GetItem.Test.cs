@@ -12,6 +12,7 @@ using Xunit;
 namespace Microsoft.Datasync.Integration.Test.Client
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
+    [Collection("Integration")]
     public class DatasyncTable_GetItem_Test : BaseTest
     {
         [Fact]

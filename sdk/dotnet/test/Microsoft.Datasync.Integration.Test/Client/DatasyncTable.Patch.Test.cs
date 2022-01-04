@@ -6,11 +6,14 @@ using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.Datasync.Client;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Datasync.Integration.Test.Client
 {
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
+    [Collection("Integration")]
     public class DatasyncTable_Patch_Tests : BaseTest
     {
         [Fact]
