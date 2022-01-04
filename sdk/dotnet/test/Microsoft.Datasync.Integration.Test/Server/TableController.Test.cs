@@ -4,6 +4,7 @@
 using Datasync.Common.Test;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -11,6 +12,8 @@ using Xunit;
 
 namespace Microsoft.Datasync.Integration.Test.Server
 {
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
+    [Collection("Integration")]
     public class TableController_Tests : BaseTest
     {
         [Theory]

@@ -18,6 +18,7 @@ using TestData = Datasync.Common.Test.TestData;
 namespace Microsoft.Datasync.Integration.Test.Server
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
+    [Collection("Integration")]
     public class Query_Tests : BaseTest
     {
         [Theory, ClassData(typeof(QueryTestCases))]
