@@ -9,6 +9,9 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
+
+#pragma warning disable RCS1090 // Add call to 'ConfigureAwait' (or vice versa).
 
 namespace Microsoft.Datasync.Integration.Test.Server
 {
@@ -16,6 +19,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
     [Collection("Integration")]
     public class TableController_Tests : BaseTest
     {
+        public TableController_Tests(ITestOutputHelper logger) : base(logger) { }
+
         [Theory]
         [InlineData("tables/movies/id-001", null)]
         [InlineData("tables/movies/id-001?ZUMO-API-VERSION=true", null)]
@@ -40,9 +45,9 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 request.Headers.Add("ZUMO-API-VERSION", headerValue);
             }
 
-            var response = await MovieHttpClient.SendAsync(request).ConfigureAwait(false);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            var result = await response.DeserializeContentAsync<Dictionary<string, object>>().ConfigureAwait(false);
+            var response = await MovieHttpClient.SendAsync(request);
+            await AssertResponseWithLoggingAsync(HttpStatusCode.BadRequest, response);
+            var result = await response.DeserializeContentAsync<Dictionary<string, object>>();
             Assert.True(result?.ContainsKey("title") ?? false);
             Assert.True(result?.ContainsKey("detail") ?? false);
         }
@@ -66,8 +71,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 request.Headers.Add("ZUMO-API-VERSION", headerValue);
             }
 
-            var response = await MovieHttpClient.SendAsync(request).ConfigureAwait(false);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var response = await MovieHttpClient.SendAsync(request);
+            await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
         }
     }
 }

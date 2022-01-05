@@ -12,8 +12,9 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
-using TestData = Datasync.Common.Test.TestData;
+#pragma warning disable RCS1090 // Add call to 'ConfigureAwait' (or vice versa).
 
 namespace Microsoft.Datasync.Integration.Test.Server
 {
@@ -21,16 +22,18 @@ namespace Microsoft.Datasync.Integration.Test.Server
     [Collection("Integration")]
     public class Query_Tests : BaseTest
     {
+        public Query_Tests(ITestOutputHelper logger) : base(logger) { }
+
         [Theory, ClassData(typeof(QueryTestCases))]
         public async Task BasicQueryTest(QueryTestCase testcase)
         {
             Dictionary<string, string> headers = new();
             Utils.AddAuthHeaders(headers, testcase.Username);
 
-            var response = await MovieServer.SendRequest(HttpMethod.Get, testcase.PathAndQuery, headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, testcase.PathAndQuery, headers);
 
             // Response has the right Status Code
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
 
             // Response payload can be decoded
             var result = response.DeserializeContent<PageOfItems<ClientMovie>>();
@@ -76,10 +79,10 @@ namespace Microsoft.Datasync.Integration.Test.Server
             if (selection.Count == 0) return;
             var query = $"tables/movies?$top=5&$skip=5&$select={string.Join(',', selection)}";
 
-            var response = await MovieServer.SendRequest(HttpMethod.Get, query).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, query);
 
             // Response has the right Status Code
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
 
             // Response payload can be decoded
             var result = response.DeserializeContent<PageOfItems<ClientObject>>();
@@ -115,8 +118,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
             {
                 loops++;
 
-                var response = await MovieServer.SendRequest(HttpMethod.Get, query).ConfigureAwait(false);
-                Assert.True(response.IsSuccessStatusCode);
+                var response = await MovieServer.SendRequest(HttpMethod.Get, query);
+                await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
                 var result = response.DeserializeContent<StringNextLinkPage<ClientMovie>>();
                 Assert.NotNull(result?.Items);
                 foreach (var item in result!.Items!)
@@ -173,10 +176,10 @@ namespace Microsoft.Datasync.Integration.Test.Server
             if (headerName != null && headerValue != null) headers.Add(headerName, headerValue);
 
             // Act
-            var response = await MovieServer.SendRequest(HttpMethod.Get, relativeUri, headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, relativeUri, headers);
 
             // Assert
-            Assert.Equal(expectedStatusCode, response.StatusCode);
+            await AssertResponseWithLoggingAsync(expectedStatusCode, response);
         }
 
         /// <summary>
@@ -197,14 +200,14 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [InlineData("tables/soft?__includedeleted=true", 100, "tables/soft?__includedeleted=true&$skip=100", 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-004", "id-005" })]
         public async Task SoftDeleteQueryTest(string query, int expectedItemCount, string expectedNextLinkQuery, long expectedTotalCount, string[] firstExpectedItems, string? headerName = null, string? headerValue = null)
         {
-            await MovieServer.SoftDeleteMoviesAsync(m => m.Rating == "R").ConfigureAwait(false);
+            await MovieServer.SoftDeleteMoviesAsync(m => m.Rating == "R");
             Dictionary<string, string> headers = new();
             if (headerName != null && headerValue != null) headers.Add(headerName, headerValue);
 
-            var response = await MovieServer.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, query, headers);
 
             // Response has the right Status Code
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
 
             // Response payload can be decoded
             var result = response.DeserializeContent<PageOfItems<ClientMovie>>();

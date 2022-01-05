@@ -14,6 +14,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Datasync.Common.Test
 {
@@ -24,6 +26,16 @@ namespace Datasync.Common.Test
     public class BaseTest
     {
         private readonly Lazy<TestServer> _server = new(() => MovieApiServer.CreateTestServer());
+        private readonly ITestOutputHelper logger;
+
+        protected BaseTest(ITestOutputHelper helper)
+        {
+            logger = helper;
+        }
+
+        protected BaseTest()
+        {
+        }
 
         /// <summary>
         /// An authentication token that is expired.
@@ -165,6 +177,23 @@ namespace Datasync.Common.Test
                 await Task.Delay(ms).ConfigureAwait(false);
             } while (!func.Invoke() && waitCtr < maxloops);
             return waitCtr < maxloops;
+        }
+
+        /// <summary>
+        /// Log the provided response.
+        /// </summary>
+        /// <param name="logger">The logger</param>
+        /// <param name="response">The response</param>
+        /// <returns></returns>
+        protected async Task AssertResponseWithLoggingAsync(HttpStatusCode expectedStatusCode, HttpResponseMessage response)
+        {
+            if (response.StatusCode != expectedStatusCode)
+            {
+                logger?.WriteLine($"Response (expected: {expectedStatusCode}): {response.StatusCode} {response.ReasonPhrase}");
+                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(true);
+                logger?.WriteLine($"Content: {content}");
+            }
+            Assert.Equal(expectedStatusCode, response.StatusCode);
         }
     }
 }

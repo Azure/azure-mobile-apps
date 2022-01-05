@@ -10,8 +10,10 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
-
+using Xunit.Abstractions;
 using TestData = Datasync.Common.Test.TestData;
+
+#pragma warning disable RCS1090 // Add call to 'ConfigureAwait' (or vice versa).
 
 namespace Microsoft.Datasync.Integration.Test.Server
 {
@@ -19,14 +21,15 @@ namespace Microsoft.Datasync.Integration.Test.Server
     [Collection("Integration")]
     public class Delete_Tests : BaseTest
     {
+        public Delete_Tests(ITestOutputHelper helper) : base(helper) { }
+
         [Fact]
         public async Task BasicDeleteTests()
         {
             var id = GetRandomId();
 
-            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/movies/{id}").ConfigureAwait(false);
-
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/movies/{id}");
+            await AssertResponseWithLoggingAsync(HttpStatusCode.NoContent, response);
             Assert.Equal(TestData.Movies.Count - 1, MovieServer.GetMovieCount());
             Assert.Null(MovieServer.GetMovieById(id));
         }
@@ -36,9 +39,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [InlineData("tables/movies_pagesize/not-found", HttpStatusCode.NotFound)]
         public async Task FailedDeleteTests(string relativeUri, HttpStatusCode expectedStatusCode)
         {
-            var response = await MovieServer.SendRequest(HttpMethod.Delete, relativeUri).ConfigureAwait(false);
-
-            Assert.Equal(expectedStatusCode, response.StatusCode);
+            var response = await MovieServer.SendRequest(HttpMethod.Delete, relativeUri);
+            await AssertResponseWithLoggingAsync(expectedStatusCode, response);
             Assert.Equal(TestData.Movies.Count, MovieServer.GetMovieCount());
         }
 
@@ -52,18 +54,18 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Dictionary<string, string> headers = new();
             Utils.AddAuthHeaders(headers, userId);
 
-            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}", headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}", headers);
 
             if (userId != "success")
             {
                 var statusCode = table.Contains("legal") ? HttpStatusCode.UnavailableForLegalReasons : HttpStatusCode.Unauthorized;
-                Assert.Equal(statusCode, response.StatusCode);
+                await AssertResponseWithLoggingAsync(statusCode, response);
                 Assert.Equal(TestData.Movies.Count, MovieServer.GetMovieCount());
                 Assert.NotNull(MovieServer.GetMovieById(id));
             }
             else
             {
-                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+                await AssertResponseWithLoggingAsync(HttpStatusCode.NoContent, response);
                 Assert.Equal(TestData.Movies.Count - 1, MovieServer.GetMovieCount());
                 Assert.Null(MovieServer.GetMovieById(id));
             }
@@ -83,9 +85,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 { headerName, headerValue ?? expected.GetETag() }
             };
 
-            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/movies/{id}", headers).ConfigureAwait(false);
-
-            Assert.Equal(expectedStatusCode, response.StatusCode);
+            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/movies/{id}", headers);
+            await AssertResponseWithLoggingAsync(expectedStatusCode, response);
             switch (expectedStatusCode)
             {
                 case HttpStatusCode.NoContent:
@@ -116,9 +117,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 { headerName, expected.UpdatedAt.AddHours(offset).ToString("R") }
             };
 
-            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/movies/{id}", headers).ConfigureAwait(false);
-
-            Assert.Equal(expectedStatusCode, response.StatusCode);
+            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/movies/{id}", headers);
+            await AssertResponseWithLoggingAsync(expectedStatusCode, response);
             switch (expectedStatusCode)
             {
                 case HttpStatusCode.NoContent:
@@ -140,9 +140,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
         {
             var id = GetRandomId();
 
-            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}").ConfigureAwait(false);
-
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}");
+            await AssertResponseWithLoggingAsync(HttpStatusCode.NoContent, response);
             Assert.Equal(TestData.Movies.Count, MovieServer.GetMovieCount());
             var entity = MovieServer.GetMovieById(id)!;
             Assert.True(entity.Deleted);
@@ -152,11 +151,10 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task SoftDeleteItem_GoneWhenDeleted([CombinatorialValues("soft", "soft_logged")] string table)
         {
             var id = GetRandomId();
-            await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
+            await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id);
 
-            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}").ConfigureAwait(false);
-
-            Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
+            var response = await MovieServer.SendRequest(HttpMethod.Delete, $"tables/{table}/{id}");
+            await AssertResponseWithLoggingAsync(HttpStatusCode.Gone, response);
             Assert.Equal(TestData.Movies.Count, MovieServer.GetMovieCount());
             var currentEntity = MovieServer.GetMovieById(id)!;
             Assert.True(currentEntity.Deleted);
