@@ -10,6 +10,9 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
+
+#pragma warning disable RCS1090 // Add call to 'ConfigureAwait' (or vice versa).
 
 namespace Microsoft.Datasync.Integration.Test.Server
 {
@@ -21,6 +24,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
     [Collection("Integration")]
     public class V2Query_Tests : BaseTest
     {
+        public V2Query_Tests(ITestOutputHelper logger) : base(logger) { }
+
         [Theory]
         [InlineData("tables/movies", 100, new[] { "id-000", "id-001", "id-002", "id-003", "id-004" })]
         [InlineData("tables/movies?$filter=releaseDate eq datetimeoffset'1994-10-14T00:00:00.000Z'", 2, new[] { "id-000", "id-003" })]
@@ -78,14 +83,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Dictionary<string, string> headers = new() { { "ZUMO-API-VERSION", "2.0.0" } };
 
             var response = await MovieServer.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
-
-            // Response has the right Status Code
-            if (!response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                Assert.NotNull(content);
-            }
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
 
             // Response payload can be decoded
             var result = response.DeserializeContent<List<ClientMovie>>();
@@ -133,9 +131,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Dictionary<string, string> headers = new() { { "ZUMO-API-VERSION", "2.0.0" } };
 
             var response = await MovieServer.SendRequest(HttpMethod.Get, query, headers).ConfigureAwait(false);
-
-            // Response has the right Status Code
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
 
             // Response payload can be decoded
             var result = response.DeserializeContent<V2PageOfItems<ClientMovie>>();
