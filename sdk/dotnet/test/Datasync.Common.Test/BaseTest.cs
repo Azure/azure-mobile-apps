@@ -187,6 +187,10 @@ namespace Datasync.Common.Test
         /// <returns></returns>
         protected async Task AssertResponseWithLoggingAsync(HttpStatusCode expectedStatusCode, HttpResponseMessage response)
         {
+            if (response.RequestMessage != null)
+            {
+                logger?.WriteLine($"Request: {response.RequestMessage.RequestUri}");
+            }
             if (response.StatusCode != expectedStatusCode)
             {
                 logger?.WriteLine($"Response (expected: {expectedStatusCode}): {response.StatusCode} {response.ReasonPhrase}");
