@@ -10,8 +10,9 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
-using TestData = Datasync.Common.Test.TestData;
+#pragma warning disable RCS1090 // Add call to 'ConfigureAwait' (or vice versa).
 
 namespace Microsoft.Datasync.Integration.Test.Server
 {
@@ -19,25 +20,22 @@ namespace Microsoft.Datasync.Integration.Test.Server
     [Collection("Integration")]
     public class Read_Tests : BaseTest
     {
+        public Read_Tests(ITestOutputHelper logger) : base(logger) { }
+
         [Theory, CombinatorialData]
         public async Task BasicReadTests([CombinatorialValues("movies", "movies_pagesize")] string table)
         {
             string id = GetRandomId();
             var expected = MovieServer.GetMovieById(id)!;
 
-            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
-
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/{table}/{id}");
+            await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
             var actual = response.DeserializeContent<ClientMovie>();
             Assert.Equal<IMovie>(expected, actual!);
             AssertEx.SystemPropertiesMatch(expected, actual);
             AssertEx.ResponseHasConditionalHeaders(expected, response);
         }
 
-        /// <summary>
-        /// Issue #215 - serialization of DateTimeOffset must respond with ms accuracy.
-        /// </summary>
-        /// <returns></returns>
         [Fact]
         public async Task UpdatedAt_CorrectFormat()
         {
@@ -45,9 +43,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
             var expected = MovieServer.GetMovieById(id)!;
             var expectedDTO = expected.UpdatedAt.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fffK");
 
-            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/movies/{id}").ConfigureAwait(false);
-
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/movies/{id}");
+            await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
             var actual = response.DeserializeContent<Dictionary<string, object>>();
             Assert.True(actual.ContainsKey("updatedAt"));
             Assert.Equal(expectedDTO, actual["updatedAt"].ToString());
@@ -58,7 +55,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [InlineData("tables/movies_pagesize/not-found", HttpStatusCode.NotFound)]
         public async Task FailedReadTests(string relativeUri, HttpStatusCode expectedStatusCode)
         {
-            var response = await MovieServer.SendRequest(HttpMethod.Get, relativeUri).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, relativeUri);
             Assert.Equal(expectedStatusCode, response.StatusCode);
         }
 
@@ -73,16 +70,16 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Dictionary<string, string> headers = new();
             Utils.AddAuthHeaders(headers, userId);
 
-            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/{table}/{id}", headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/{table}/{id}", headers);
 
             if (userId != "success")
             {
                 var statusCode = table.Contains("legal") ? HttpStatusCode.UnavailableForLegalReasons : HttpStatusCode.Unauthorized;
-                Assert.Equal(statusCode, response.StatusCode);
+                await AssertResponseWithLoggingAsync(statusCode, response);
             }
             else
             {
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
                 var actual = response.DeserializeContent<ClientMovie>();
                 Assert.Equal<IMovie>(expected, actual!);
                 AssertEx.SystemPropertiesMatch(expected, actual);
@@ -104,9 +101,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 { headerName, headerValue ?? expected.GetETag() }
             };
 
-            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/movies/{id}", headers).ConfigureAwait(false);
-
-            Assert.Equal(expectedStatusCode, response.StatusCode);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/movies/{id}", headers);
+            await AssertResponseWithLoggingAsync(expectedStatusCode, response);
             if (expectedStatusCode == HttpStatusCode.OK || expectedStatusCode == HttpStatusCode.PreconditionFailed)
             {
                 var actual = response.DeserializeContent<ClientMovie>();
@@ -130,9 +126,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 { headerName, expected.UpdatedAt.AddHours(offset).ToString("R") }
             };
 
-            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/movies/{id}", headers).ConfigureAwait(false);
-
-            Assert.Equal(expectedStatusCode, response.StatusCode);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/movies/{id}", headers);
+            await AssertResponseWithLoggingAsync(expectedStatusCode, response);
             if (expectedStatusCode == HttpStatusCode.OK || expectedStatusCode == HttpStatusCode.PreconditionFailed)
             {
                 var actual = response.DeserializeContent<ClientMovie>();
@@ -148,9 +143,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
             var id = GetRandomId();
             var expected = MovieServer.GetMovieById(id)!;
 
-            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
-
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/{table}/{id}");
+            await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
             var actual = response.DeserializeContent<ClientMovie>();
             Assert.Equal<IMovie>(expected, actual!);
             AssertEx.SystemPropertiesMatch(expected, actual);
@@ -161,10 +155,10 @@ namespace Microsoft.Datasync.Integration.Test.Server
         public async Task ReadSoftDeletedItem_ReturnsGoneIfDeleted([CombinatorialValues("soft", "soft_logged")] string table)
         {
             var id = GetRandomId();
-            await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
+            await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id);
 
-            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/{table}/{id}").ConfigureAwait(false);
-            Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/{table}/{id}");
+            await AssertResponseWithLoggingAsync(HttpStatusCode.Gone, response);
         }
     }
 }

@@ -11,8 +11,10 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
-
+using Xunit.Abstractions;
 using TestData = Datasync.Common.Test.TestData;
+
+#pragma warning disable RCS1090 // Add call to 'ConfigureAwait' (or vice versa).
 
 namespace Microsoft.Datasync.Integration.Test.Server
 {
@@ -20,6 +22,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
     [Collection("Integration")]
     public class Create_Tests : BaseTest
     {
+        public Create_Tests(ITestOutputHelper helper) : base(helper) { }
+
         [Theory, CombinatorialData]
         public async Task BasicCreateTests([CombinatorialValues("movies", "movies_pagesize")] string table, bool hasId)
         {
@@ -29,8 +33,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 movieToAdd.Id = Guid.NewGuid().ToString("N");
             }
 
-            var response = await MovieServer.SendRequest<ClientMovie>(HttpMethod.Post, $"tables/{table}", movieToAdd).ConfigureAwait(false);
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            var response = await MovieServer.SendRequest<ClientMovie>(HttpMethod.Post, $"tables/{table}", movieToAdd);
+            await AssertResponseWithLoggingAsync(HttpStatusCode.Created, response);
 
             var result = response.DeserializeContent<ClientMovie>();
             Assert.NotNull(result);
@@ -60,8 +64,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
             if (useUpdatedAt) { movieToAdd.UpdatedAt = DateTimeOffset.Parse("2018-12-31T01:01:01.000Z"); }
             if (useVersion) { movieToAdd.Version = Convert.ToBase64String(Guid.NewGuid().ToByteArray()); }
 
-            var response = await MovieServer.SendRequest<ClientMovie>(HttpMethod.Post, "tables/movies", movieToAdd).ConfigureAwait(false);
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            var response = await MovieServer.SendRequest<ClientMovie>(HttpMethod.Post, "tables/movies", movieToAdd);
+            await AssertResponseWithLoggingAsync(HttpStatusCode.Created, response);
 
             var result = response.DeserializeContent<ClientMovie>();
             Assert.NotNull(result);
@@ -114,9 +118,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
             else
                 movieToAdd[propName] = propValue;
 
-            var response = await MovieServer.SendRequest(HttpMethod.Post, "tables/movies", movieToAdd, null).ConfigureAwait(false);
-
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            var response = await MovieServer.SendRequest(HttpMethod.Post, "tables/movies", movieToAdd, null);
+            await AssertResponseWithLoggingAsync(HttpStatusCode.BadRequest, response);
             Assert.Equal(TestData.Movies.Count, MovieServer.GetMovieCount());
             Assert.Null(MovieServer.GetMovieById("test-id"));
         }
@@ -128,9 +131,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
             movieToAdd.Id = GetRandomId();
             var expectedMovie = MovieServer.GetMovieById(movieToAdd.Id)!;
 
-            var response = await MovieServer.SendRequest<ClientMovie>(HttpMethod.Post, "tables/movies", movieToAdd).ConfigureAwait(false);
-
-            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            var response = await MovieServer.SendRequest<ClientMovie>(HttpMethod.Post, "tables/movies", movieToAdd);
+            await AssertResponseWithLoggingAsync(HttpStatusCode.Conflict, response);
             Assert.Equal(TestData.Movies.Count, MovieServer.GetMovieCount());
 
             var result = response.DeserializeContent<ClientMovie>()!;
@@ -155,18 +157,18 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Utils.AddAuthHeaders(headers, userId);
 
             // Act
-            var response = await MovieServer.SendRequest<ClientMovie>(HttpMethod.Post, $"tables/{table}", movieToAdd, headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest<ClientMovie>(HttpMethod.Post, $"tables/{table}", movieToAdd, headers);
 
             // Assert
             if (userId != "success")
             {
                 var statusCode = table.Contains("legal") ? HttpStatusCode.UnavailableForLegalReasons : HttpStatusCode.Unauthorized;
-                Assert.Equal(statusCode, response.StatusCode);
+                await AssertResponseWithLoggingAsync(statusCode, response);
                 Assert.Equal(TestData.Movies.Count, MovieServer.GetMovieCount());
             }
             else
             {
-                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+                await AssertResponseWithLoggingAsync(HttpStatusCode.Created, response);
 
                 var result = response.DeserializeContent<ClientMovie>();
                 Assert.NotNull(result);
@@ -190,12 +192,11 @@ namespace Microsoft.Datasync.Integration.Test.Server
         {
             var movieToAdd = GetSampleMovie<ClientMovie>();
             movieToAdd.Id = GetRandomId();
-            await MovieServer.SoftDeleteMoviesAsync(x => x.Id == movieToAdd.Id).ConfigureAwait(false);
+            await MovieServer.SoftDeleteMoviesAsync(x => x.Id == movieToAdd.Id);
             var expectedMovie = MovieServer.GetMovieById(movieToAdd.Id)!;
 
-            var response = await MovieServer.SendRequest<ClientMovie>(HttpMethod.Post, $"tables/{table}", movieToAdd).ConfigureAwait(false);
-
-            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            var response = await MovieServer.SendRequest<ClientMovie>(HttpMethod.Post, $"tables/{table}", movieToAdd);
+            await AssertResponseWithLoggingAsync(HttpStatusCode.Conflict, response);
             Assert.Equal(TestData.Movies.Count, MovieServer.GetMovieCount());
 
             var result = response.DeserializeContent<ClientMovie>()!;
@@ -221,10 +222,10 @@ namespace Microsoft.Datasync.Integration.Test.Server
             };
 
             // Act
-            var response = await MovieServer.SendRequest<ClientMovie>(HttpMethod.Post, "tables/movies", movieToAdd, headers).ConfigureAwait(false);
+            var response = await MovieServer.SendRequest<ClientMovie>(HttpMethod.Post, "tables/movies", movieToAdd, headers);
 
             // Assert
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            await AssertResponseWithLoggingAsync(HttpStatusCode.Created, response);
 
             var result = response.DeserializeContent<ClientMovie>();
             Assert.NotNull(result);
