@@ -16,6 +16,7 @@
             <Style x:Key="listItemTitle" TargetType="Label">
                 <Setter Property="HorizontalOptions" Value="FillAndExpand" />
                 <Setter Property="VerticalOptions" Value="Center" />
+                <Setter Property="TextColor" Value="Black" />
             </Style>
             <Style x:Key="listItemIcon" TargetType="Image">
                 <Setter Property="Source" Value="completed.png" />
