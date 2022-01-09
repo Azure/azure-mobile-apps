@@ -29,18 +29,21 @@ namespace ZumoQuickstart
 
         private void OnServiceUpdated(object sender, TodoListEventArgs e)
         {
-            switch (e.Action)
+            Device.BeginInvokeOnMainThread(new Action(async () =>
             {
-                case TodoListAction.Add:
-                    Items.Add(e.Item);
-                    break;
-                case TodoListAction.Delete:
-                    Items.RemoveIf(m => m.Id == e.Item.Id);
-                    break;
-                case TodoListAction.Update:
-                    Items.ReplaceIf(m => m.Id == e.Item.Id, e.Item);
-                    break;
-            }
+                switch (e.Action)
+                {
+                    case TodoListAction.Add:
+                        Items.Add(e.Item);
+                        break;
+                    case TodoListAction.Delete:
+                        Items.RemoveIf(m => m.Id == e.Item.Id);
+                        break;
+                    case TodoListAction.Update:
+                        Items.ReplaceIf(m => m.Id == e.Item.Id, e.Item);
+                        break;
+                }
+            }));
         }
 
         /// <summary>
