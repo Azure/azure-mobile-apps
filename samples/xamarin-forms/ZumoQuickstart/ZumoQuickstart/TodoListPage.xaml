@@ -3,6 +3,7 @@
     x:Class="ZumoQuickstart.TodoListPage"
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:ZumoQuickstart"
     Title="{Binding Title}">
     <ContentPage.ToolbarItems>
         <ToolbarItem Command="{Binding RefreshItemsCommand}" IconImageSource="refresh.png" />
@@ -25,7 +26,7 @@
                 ItemsSource="{Binding Items}"
                 RefreshCommand="{Binding RefreshItemsCommand}">
                 <ListView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="local:TodoItem">
                         <ViewCell>
                             <StackLayout Padding="10,5,10,5" Orientation="Horizontal">
                                 <Label Style="{StaticResource listItemTitle}" Text="{Binding Text}" />
