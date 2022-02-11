@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 namespace Microsoft.Datasync.Client.Test.Http
 {
     /// <summary>
-    /// Wrapped version of the <see cref="InternalHttpClient"/> that exposes protected elements.
+    /// Wrapped version of the <see cref="ServiceHttpClient"/> that exposes protected elements.
     /// </summary>
-    internal class WrappedHttpClient : InternalHttpClient
+    internal class WrappedHttpClient : ServiceHttpClient
     {
         internal WrappedHttpClient(Uri endpoint, DatasyncClientOptions options) : base(endpoint, options)
         {

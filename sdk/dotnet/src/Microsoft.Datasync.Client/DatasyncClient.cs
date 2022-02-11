@@ -116,7 +116,7 @@ namespace Microsoft.Datasync.Client
 
             Endpoint = endpoint.NormalizeEndpoint();
             ClientOptions = clientOptions ?? new DatasyncClientOptions();
-            HttpClient = new InternalHttpClient(Endpoint, authenticationProvider, ClientOptions);
+            HttpClient = new ServiceHttpClient(Endpoint, authenticationProvider, ClientOptions);
         }
 
         /// <summary>
@@ -130,9 +130,9 @@ namespace Microsoft.Datasync.Client
         public DatasyncClientOptions ClientOptions { get; }
 
         /// <summary>
-        /// The <see cref="InternalHttpClient"/> used to communicate with the remote datasync service.
+        /// The <see cref="ServiceHttpClient"/> used to communicate with the remote datasync service.
         /// </summary>
-        internal InternalHttpClient HttpClient { get; private set; }
+        internal ServiceHttpClient HttpClient { get; private set; }
 
         /// <summary>
         /// Obtain an <see cref="IDatasyncTable{T}"/> instance, which provides typed data operations for the specified type.

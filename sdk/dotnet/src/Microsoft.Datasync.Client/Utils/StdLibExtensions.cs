@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Text.Json;
 
 namespace Microsoft.Datasync.Client.Utils
 {
@@ -35,6 +36,40 @@ namespace Microsoft.Datasync.Client.Utils
         {
             builder.Query = string.IsNullOrWhiteSpace(queryString) ? string.Empty : queryString.Trim();
             return builder;
+        }
+
+        /// <summary>
+        /// Gets the ID for a given <see cref="JsonDocument"/> entity.
+        /// </summary>
+        /// <param name="document">The document to process.</param>
+        /// <returns>The ID of the document.</returns>
+        internal static string GetId(this JsonDocument document)
+        {
+            if (document.RootElement.TryGetProperty("id", out JsonElement idElement))
+            {
+                if (idElement.ValueKind == JsonValueKind.String)
+                {
+                    return idElement.GetString();
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the version for a given <see cref="JsonDocument"/> entity.
+        /// </summary>
+        /// <param name="document">The document to process.</param>
+        /// <returns>The version of the document.</returns>
+        internal static byte[] GetVersion(this JsonDocument document)
+        {
+            if (document.RootElement.TryGetProperty("version", out JsonElement versionElement))
+            {
+                if (versionElement.ValueKind == JsonValueKind.String)
+                {
+                    return Convert.FromBase64String(versionElement.GetString());
+                }
+            }
+            return Array.Empty<byte>();
         }
     }
 }

@@ -6,7 +6,7 @@ namespace Microsoft.Datasync.Client.Http
     /// <summary>
     /// A list of HTTP headers that the datasync service may expect.
     /// </summary>
-    internal static class InternalHttpHeaders
+    internal static class ServiceHeaders
     {
         /// <summary>
         /// The features being used in the request library.

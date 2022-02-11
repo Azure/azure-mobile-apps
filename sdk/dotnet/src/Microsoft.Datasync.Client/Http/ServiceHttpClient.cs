@@ -17,7 +17,7 @@ namespace Microsoft.Datasync.Client.Http
     /// An internal version of the <see cref="HttpClient"/> class that provides
     /// pipeline policies, and standardized headers.
     /// </summary>
-    internal class InternalHttpClient : IDisposable
+    internal class ServiceHttpClient : IDisposable
     {
         /// <summary>
         /// The protocol version this library implements.
@@ -51,21 +51,21 @@ namespace Microsoft.Datasync.Client.Http
         protected static Func<HttpMessageHandler> DefaultHandlerFactory = GetDefaultHttpClientHandler;
 
         /// <summary>
-        /// Instantiates a new <see cref="InternalHttpClient"/> which performs all the requests to a datasync service.
+        /// Instantiates a new <see cref="ServiceHttpClient"/> which performs all the requests to a datasync service.
         /// </summary>
         /// <param name="endpoint">The endpoint to communicate with</param>
         /// <param name="clientOptions">The client options for the connection</param>
-        public InternalHttpClient(Uri endpoint, DatasyncClientOptions clientOptions) : this(endpoint, null, clientOptions)
+        public ServiceHttpClient(Uri endpoint, DatasyncClientOptions clientOptions) : this(endpoint, null, clientOptions)
         {
         }
 
         /// <summary>
-        /// Instantiates a new <see cref="InternalHttpClient"/> which performs all the requests to a datasync service.
+        /// Instantiates a new <see cref="ServiceHttpClient"/> which performs all the requests to a datasync service.
         /// </summary>
         /// <param name="endpoint">The endpoint to communicate with</param>
         /// <param name="authenticationProvider">The authentication provider to use for authenticating each request</param>
         /// <param name="clientOptions">The client options for the connection</param>
-        public InternalHttpClient(Uri endpoint, AuthenticationProvider authenticationProvider, DatasyncClientOptions clientOptions)
+        public ServiceHttpClient(Uri endpoint, AuthenticationProvider authenticationProvider, DatasyncClientOptions clientOptions)
         {
             Validate.IsValidEndpoint(endpoint, nameof(endpoint));
             Validate.IsNotNull(clientOptions, nameof(clientOptions));
@@ -82,10 +82,10 @@ namespace Microsoft.Datasync.Client.Http
             }
 
             httpClient = new HttpClient(httpHandler) { BaseAddress = Endpoint };
-            httpClient.DefaultRequestHeaders.TryAddWithoutValidation(InternalHttpHeaders.UserAgent, userAgentHeaderValue);
-            httpClient.DefaultRequestHeaders.Add(InternalHttpHeaders.InternalUserAgent, userAgentHeaderValue);
-            httpClient.DefaultRequestHeaders.Add(InternalHttpHeaders.ProtocolVersion, ProtocolVersion);
-            httpClient.DefaultRequestHeaders.Add(InternalHttpHeaders.InstallationId, installationId);
+            httpClient.DefaultRequestHeaders.TryAddWithoutValidation(ServiceHeaders.UserAgent, userAgentHeaderValue);
+            httpClient.DefaultRequestHeaders.Add(ServiceHeaders.InternalUserAgent, userAgentHeaderValue);
+            httpClient.DefaultRequestHeaders.Add(ServiceHeaders.ProtocolVersion, ProtocolVersion);
+            httpClient.DefaultRequestHeaders.Add(ServiceHeaders.InstallationId, installationId);
         }
 
         /// <summary>

@@ -31,9 +31,9 @@ namespace Microsoft.Datasync.Client.Table
         /// Creates a new <see cref="DatasyncTable{T}"/> at the provided endpoint.
         /// </summary>
         /// <param name="relativeUri">The relative URI to the endpoint.</param>
-        /// <param name="client">The <see cref="InternalHttpClient"/> to use for communication.</param>
+        /// <param name="client">The <see cref="ServiceHttpClient"/> to use for communication.</param>
         /// <param name="options">The client options for adjusting the request and response.</param>
-        public DatasyncTable(string relativeUri, InternalHttpClient client, DatasyncClientOptions options)
+        public DatasyncTable(string relativeUri, ServiceHttpClient client, DatasyncClientOptions options)
         {
             Validate.IsRelativeUri(relativeUri, nameof(relativeUri));
             Validate.IsNotNull(client, nameof(client));
@@ -48,9 +48,9 @@ namespace Microsoft.Datasync.Client.Table
         /// Creates a new <see cref="DatasyncTable{T}"/> at the provided endpoint.
         /// </summary>
         /// <param name="endpoint">The absolute Uri to the table endpoint.</param>
-        /// <param name="client">The <see cref="InternalHttpClient"/> to use for communication.</param>
+        /// <param name="client">The <see cref="ServiceHttpClient"/> to use for communication.</param>
         /// <param name="options">The client options for adjusting the request and response.</param>
-        public DatasyncTable(Uri endpoint, InternalHttpClient client, DatasyncClientOptions options)
+        public DatasyncTable(Uri endpoint, ServiceHttpClient client, DatasyncClientOptions options)
         {
             Validate.IsValidEndpoint(endpoint, nameof(endpoint));
             Validate.IsNotNull(client, nameof(client));
@@ -62,9 +62,9 @@ namespace Microsoft.Datasync.Client.Table
         }
 
         /// <summary>
-        /// The <see cref="InternalHttpClient"/> to use for communication.
+        /// The <see cref="ServiceHttpClient"/> to use for communication.
         /// </summary>
-        internal InternalHttpClient HttpClient { get; }
+        internal ServiceHttpClient HttpClient { get; }
 
         /// <summary>
         /// The base <see cref="Uri"/> for the table.
