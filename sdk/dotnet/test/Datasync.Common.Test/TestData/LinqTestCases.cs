@@ -14,6 +14,7 @@ namespace Datasync.Common.Test
     /// <summary>
     /// The model for each test case returned by the <see cref="LinqTestCases"/> class.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class LinqTestCase
     {
         internal LinqTestCase(string testCase, Func<ITableQuery<ClientMovie>, ITableQuery<ClientMovie>> linqExpression, string oDataString, int resultCount, string[] firstResults)

@@ -4,6 +4,7 @@
 using Microsoft.Datasync.Client.Authentication;
 using Microsoft.Datasync.Client.Http;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ namespace Microsoft.Datasync.Client.Test.Http
     /// <summary>
     /// Wrapped version of the <see cref="ServiceHttpClient"/> that exposes protected elements.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     internal class WrappedHttpClient : ServiceHttpClient
     {
         internal WrappedHttpClient(Uri endpoint, DatasyncClientOptions options) : base(endpoint, options)

@@ -2,11 +2,13 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Xunit;
 
 namespace Datasync.Common.Test.TestData
 {
+    [ExcludeFromCodeCoverage]
     public class QueryTestCase
     {
         public QueryTestCase(string pathAndQuery, int itemCount, string nextLinkQuery, long totalCount, string[] firstItems, string username = null)
@@ -32,6 +34,7 @@ namespace Datasync.Common.Test.TestData
         public string Username { get; }
     }
 
+    [ExcludeFromCodeCoverage]
     public class QueryTestCases : TheoryData<QueryTestCase>
     {
         public static QueryTestCase AuthenticatedTestcase { get; }

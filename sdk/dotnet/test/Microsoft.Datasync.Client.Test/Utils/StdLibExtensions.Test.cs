@@ -5,6 +5,7 @@ using Datasync.Common.Test.TestData;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using Xunit;
 
 #pragma warning disable RCS1196 // Call extension method as instance method.
@@ -78,6 +79,38 @@ namespace Microsoft.Datasync.Client.Test.Utils
             var actual = builder.WithQuery(query);
             Assert.Same(builder, actual);
             Assert.Equal(expected, actual.Uri.ToString());
+        }
+
+        [Theory]
+        [InlineData(null, null)]
+        [InlineData("[]", null)]
+        [InlineData("1234", null)]
+        [InlineData("{}", null)]
+        [InlineData("{\"version\":\"1234\"}", null)]
+        [InlineData("{\"Id\":\"1234\"}", null)]
+        [InlineData("{\"id\":\"1234\"}", "1234")]
+        [InlineData("{\"version\":\"1234\",\"id\":\"5678\"}", "5678")]
+        [InlineData("{\"id\":\"1234\",\"version\":\"5678\"}", "1234")]
+        public void GetId_Works(string sut, string expected)
+        {
+            JsonDocument document = sut == null ? null : JsonDocument.Parse(sut);
+            Assert.Equal(expected, document.GetId());
+        }
+
+        [Theory]
+        [InlineData(null, null)]
+        [InlineData("[]", null)]
+        [InlineData("1234", null)]
+        [InlineData("{}", null)]
+        [InlineData("{\"version\":\"1234\"}", "1234")]
+        [InlineData("{\"Version\":\"1234\"}", null)]
+        [InlineData("{\"id\":\"1234\"}", null)]
+        [InlineData("{\"version\":\"1234\",\"id\":\"5678\"}", "1234")]
+        [InlineData("{\"id\":\"1234\",\"version\":\"5678\"}", "5678")]
+        public void GetVersion_Works(string sut, string expected)
+        {
+            JsonDocument document = sut == null ? null : JsonDocument.Parse(sut);
+            Assert.Equal(expected, document.GetVersion());
         }
     }
 }

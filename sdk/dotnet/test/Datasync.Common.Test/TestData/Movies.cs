@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Datasync;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Datasync.Common.Test.TestData
 {
@@ -43,8 +44,9 @@ namespace Datasync.Common.Test.TestData
         /// <returns>A random ID</returns>
         public static string GetRandomId()
         {
+            List<string> Ids = Movies.OfType<EFMovie>().Where(m => m.Rating != null).Select(m => m.Id).ToList();
             var random = new Random();
-            return Utils.GetMovieId(random.Next(Count));
+            return Ids[random.Next(Ids.Count)];
         }
 
         /// <summary>

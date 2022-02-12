@@ -92,15 +92,13 @@ namespace Microsoft.Datasync.Client.Table
             {
                 var result = await ServiceResponse.FromResponseAsync(response, cancellationToken).ConfigureAwait(false);
                 OnItemDeleted(id);
+                request.Dispose();
+                response.Dispose();
                 return result;
-            }
-            else if (response.IsConflictStatusCode())
-            {
-                throw await DatasyncConflictException<JsonDocument>.CreateAsync(request, response, ClientOptions.DeserializerOptions, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                throw new DatasyncOperationException(request, response);
+                throw await ThrowResponseException(request, response, cancellationToken).ConfigureAwait(true);
             }
         }
 
@@ -128,11 +126,14 @@ namespace Microsoft.Datasync.Client.Table
 
             if (response.IsSuccessStatusCode)
             {
-                return await ServiceResponse.FromResponseAsync<JsonDocument>(response, ClientOptions.DeserializerOptions, cancellationToken).ConfigureAwait(false);
+                var result = await ServiceResponse.FromResponseAsync<JsonDocument>(response, ClientOptions.DeserializerOptions, cancellationToken).ConfigureAwait(false);
+                request.Dispose();
+                response.Dispose();
+                return result;
             }
             else
             {
-                throw new DatasyncOperationException(request, response);
+                throw await ThrowResponseException(request, response, cancellationToken).ConfigureAwait(true);
             }
         }
 
@@ -150,7 +151,7 @@ namespace Microsoft.Datasync.Client.Table
 
             var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
                 .WithFeatureHeader(Features)
-                .WithJsonContent(item);
+                .WithContent(item, ClientOptions.SerializerOptions);
             var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
             if (response.IsSuccessStatusCode)
             {
@@ -160,13 +161,9 @@ namespace Microsoft.Datasync.Client.Table
                 response.Dispose();
                 return result;
             }
-            else if (response.IsConflictStatusCode())
-            {
-                throw await DatasyncConflictException<JsonDocument>.CreateAsync(request, response, ClientOptions.DeserializerOptions, cancellationToken).ConfigureAwait(false);
-            }
             else
             {
-                throw new DatasyncOperationException(request, response);
+                throw await ThrowResponseException(request, response, cancellationToken).ConfigureAwait(true);
             }
         }
 
@@ -192,21 +189,19 @@ namespace Microsoft.Datasync.Client.Table
             var request = new HttpRequestMessage(HttpMethod.Put, new Uri(Endpoint, id))
                 .WithFeatureHeader(Features)
                 .WithHeader(precondition?.HeaderName, precondition?.HeaderValue)
-                .WithJsonContent(item);
+                .WithContent(item, ClientOptions.SerializerOptions);
             var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
             if(response.IsSuccessStatusCode)
             {
                 var result = await ServiceResponse.FromResponseAsync<JsonDocument>(response, ClientOptions.DeserializerOptions, cancellationToken).ConfigureAwait(false);
                 OnItemReplaced(result.Value);
+                request.Dispose();
+                response.Dispose();
                 return result;
-            }
-            else if (response.IsConflictStatusCode())
-            {
-                throw await DatasyncConflictException<JsonDocument>.CreateAsync(request, response, ClientOptions.DeserializerOptions, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                throw new DatasyncOperationException(request, response);
+                throw await ThrowResponseException(request, response, cancellationToken).ConfigureAwait(true);
             }
         }
 
@@ -232,15 +227,13 @@ namespace Microsoft.Datasync.Client.Table
             {
                 var result = await ServiceResponse.FromResponseAsync<JsonDocument>(response, ClientOptions.DeserializerOptions, cancellationToken).ConfigureAwait(false);
                 OnItemReplaced(result.Value);
+                request.Dispose();
+                response.Dispose();
                 return result;
-            }
-            else if (response.IsConflictStatusCode())
-            {
-                throw await DatasyncConflictException<JsonDocument>.CreateAsync(request, response, ClientOptions.DeserializerOptions, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                throw new DatasyncOperationException(request, response);
+                throw await ThrowResponseException(request, response, cancellationToken).ConfigureAwait(true);
             }
         }
         #endregion
@@ -259,11 +252,37 @@ namespace Microsoft.Datasync.Client.Table
             var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
             if (response.IsSuccessStatusCode)
             {
-                return await ServiceResponse.FromResponseAsync<Page<JsonDocument>>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+                var result = await ServiceResponse.FromResponseAsync<Page<JsonDocument>>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+                request.Dispose();
+                response.Dispose();
+                return result;
             }
             else
             {
-                throw new DatasyncOperationException(request, response);
+                throw await ThrowResponseException(request, response, token).ConfigureAwait(true);
+            }
+        }
+
+        /// <summary>
+        /// Throws the standard errors.  If this method returns, it wasn't a valid error condition.
+        /// </summary>
+        /// <param name="request">The <see cref="HttpRequestMessage"/> that caused the error.</param>
+        /// <param name="response">The <see cref="HttpResponseMessage"/> that caused the error.</param>
+        /// <param name="token">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>The exception to throw.</returns>
+        private async Task<Exception> ThrowResponseException(HttpRequestMessage request, HttpResponseMessage response, CancellationToken token = default)
+        {
+            if (response.IsConflictStatusCode())
+            {
+                return await DatasyncConflictException<JsonDocument>.CreateAsync(request, response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+            }
+            else if (response.Content != null)
+            {
+                return new DatasyncOperationException(request, response, await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+            }
+            else
+            {
+                return new DatasyncOperationException(request, response);
             }
         }
 

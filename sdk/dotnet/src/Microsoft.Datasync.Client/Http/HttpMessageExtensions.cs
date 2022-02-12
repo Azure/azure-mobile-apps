@@ -45,21 +45,6 @@ namespace Microsoft.Datasync.Client.Http
         }
 
         /// <summary>
-        /// Serialize a JSON document to the request.  This will not serialize the updatedAt or version fields,
-        /// as they should never be sent to the service.
-        /// </summary>
-        /// <param name="request">The request to modify.</param>
-        /// <param name="content">The <see cref="JsonDocument"/> to serialize.</param>
-        /// <param name="mediaType">The media type.</param>
-        /// <returns>The modified request.</returns>
-        internal static HttpRequestMessage WithJsonContent(this HttpRequestMessage request, JsonDocument content, string mediaType = "application/json")
-        {
-            Validate.IsNotNull(content, nameof(content));
-            request.Content = new StringContent(content.ToString(), Encoding.UTF8, mediaType);
-            return request;
-        }
-
-        /// <summary>
         /// Adds a set of headers to the request.
         /// </summary>
         /// <param name="request">The request to modify</param>

@@ -45,11 +45,14 @@ namespace Microsoft.Datasync.Client.Utils
         /// <returns>The ID of the document.</returns>
         internal static string GetId(this JsonDocument document)
         {
-            if (document.RootElement.TryGetProperty("id", out JsonElement idElement))
+            if (document?.RootElement.ValueKind == JsonValueKind.Object)
             {
-                if (idElement.ValueKind == JsonValueKind.String)
+                if (document.RootElement.TryGetProperty("id", out JsonElement idElement))
                 {
-                    return idElement.GetString();
+                    if (idElement.ValueKind == JsonValueKind.String)
+                    {
+                        return idElement.GetString();
+                    }
                 }
             }
             return null;
@@ -60,16 +63,20 @@ namespace Microsoft.Datasync.Client.Utils
         /// </summary>
         /// <param name="document">The document to process.</param>
         /// <returns>The version of the document.</returns>
-        internal static byte[] GetVersion(this JsonDocument document)
+        internal static string GetVersion(this JsonDocument document)
         {
-            if (document.RootElement.TryGetProperty("version", out JsonElement versionElement))
+            if (document?.RootElement.ValueKind == JsonValueKind.Object)
             {
-                if (versionElement.ValueKind == JsonValueKind.String)
+                if (document.RootElement.TryGetProperty("version", out JsonElement versionElement))
                 {
-                    return Convert.FromBase64String(versionElement.GetString());
+                    if (versionElement.ValueKind == JsonValueKind.String)
+                    {
+                        return versionElement.GetString();
+                    }
                 }
             }
-            return Array.Empty<byte>();
+
+            return null;
         }
     }
 }

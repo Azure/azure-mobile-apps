@@ -3,6 +3,7 @@
 
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Table.Query;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace Microsoft.Datasync.Client.Test.Table.Query
@@ -12,6 +13,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Query
     /// the protected values.
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    [ExcludeFromCodeCoverage]
     internal class TestQueryTranslator<T> : QueryTranslator<T>
     {
         internal TestQueryTranslator(DatasyncTableQuery<T> query, DatasyncClientOptions options) : base(query, options)

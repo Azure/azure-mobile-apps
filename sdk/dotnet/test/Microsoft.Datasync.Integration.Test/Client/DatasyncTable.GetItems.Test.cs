@@ -459,6 +459,7 @@ namespace Microsoft.Datasync.Integration.Test.Client
     /// <summary>
     /// A test authentication provider to simulate the X-ZUMO-AUTH properly
     /// </summary>
+    [ExcludeFromCodeCoverage]
     internal class TestAuthenticationProvider : AuthenticationProvider
     {
         private const string TokenHeader = "X-MS-CLIENT-PRINCIPAL";

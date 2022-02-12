@@ -78,12 +78,14 @@ namespace Datasync.Common.Test.Models
         public string StringValue { get; set; }
     }
 
+    [ExcludeFromCodeCoverage]
     public class SelectResult
     {
         public string Id { get; set; }
         public string Title { get; set; }
     }
 
+    [ExcludeFromCodeCoverage]
     public class RenamedEntity
     {
         [JsonPropertyName("rating")]

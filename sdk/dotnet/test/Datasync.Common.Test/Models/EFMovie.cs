@@ -1,16 +1,17 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync.EFCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 
 namespace Datasync.Common.Test.Models
 {
+    [ExcludeFromCodeCoverage]
     public class EFMovie : EntityTableData, IMovie, IEquatable<IMovie>
     {
         /// <summary>

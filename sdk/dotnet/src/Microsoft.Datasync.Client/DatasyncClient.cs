@@ -135,6 +135,19 @@ namespace Microsoft.Datasync.Client
         internal ServiceHttpClient HttpClient { get; private set; }
 
         /// <summary>
+        /// Obtains a reference to a remote table, which provides untyped data operations for the
+        /// specified table.
+        /// </summary>
+        /// <param name="tableName">The name of the table, or relative URI to the table endpoint.</param>
+        /// <returns>A reference to the remote table.</returns>
+        public IRemoteTable GetRemoteTable(string tableName)
+        {
+            string relativeUri = tableName.StartsWith("/") ? tableName : ToRelativeUri(tableName);
+            Validate.IsRelativeUri(relativeUri, nameof(relativeUri));
+            return new RemoteTable(relativeUri, HttpClient, ClientOptions);
+        }
+
+        /// <summary>
         /// Obtain an <see cref="IDatasyncTable{T}"/> instance, which provides typed data operations for the specified type.
         /// The table is converted to lower case and then combined with the <see cref="DatasyncClientOptions.TablesPrefix"/>
         /// to generate the relative URI.
