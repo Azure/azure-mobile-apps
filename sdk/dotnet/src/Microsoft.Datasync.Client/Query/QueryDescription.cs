@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Table.Query.Nodes;
+using Microsoft.Datasync.Client.Query.Nodes;
+using Microsoft.Datasync.Client.Query.Visitor;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
-namespace Microsoft.Datasync.Client.Table.Query
+namespace Microsoft.Datasync.Client.Query
 {
     /// <summary>
     /// Represents the structural elements of an OData query over the
@@ -34,7 +34,7 @@ namespace Microsoft.Datasync.Client.Table.Query
         /// <summary>
         /// A list of additional parameters to send with the query.
         /// </summary>
-        internal Dictionary<string, string> Parameters { get; set; } = new();
+        internal IDictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
 
         /// <summary>
         /// The list of projections that should be applied to each element of the query.

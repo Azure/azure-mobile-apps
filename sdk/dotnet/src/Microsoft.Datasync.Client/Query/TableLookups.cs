@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Table.Query.Nodes;
+using Microsoft.Datasync.Client.Query.Nodes;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace Microsoft.Datasync.Client.Table.Query
+namespace Microsoft.Datasync.Client.Query
 {
     /// <summary>
     /// The list of supported types for constants.

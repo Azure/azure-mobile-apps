@@ -1,43 +1,29 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Table.Query.Nodes;
+using Microsoft.Datasync.Client.Query.Nodes;
+using Microsoft.Datasync.Client.Query.Visitor;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Linq.Expressions;
 
-namespace Microsoft.Datasync.Client.Table.Query
+namespace Microsoft.Datasync.Client.Query
 {
     /// <summary>
-    /// Compiles a LINQ expression tree into a <see cref="QueryDescription"/>
-    /// that can be executed on the server.
+    /// Compiles a LINQ expression tree into a <see cref="QueryDescription"/> that can be executed on the server.
     /// </summary>
     /// <remarks>
     /// We use internal protected instead of private methods so that the corner cases can be more easily tested.
     /// </remarks>
-    /// <typeparam name="T"></typeparam>
-    internal class QueryTranslator<T> where T : notnull
+    /// <typeparam name="T">The type of the items being searched.</typeparam>
+    internal class QueryTranslator<T>
     {
-        /// <summary>
-        /// The compiled <see cref="QueryDescription"/> generated from the expression tree.
-        /// </summary>
-        internal protected QueryDescription QueryDescription { get; }
-
-        /// <summary>
-        /// The <see cref="DatasyncTableQuery{T}"/> being translated.
-        /// </summary>
-        internal protected DatasyncTableQuery<T> TableQuery { get; }
-
-        /// <summary>
-        /// The <see cref="DatasyncClientOptions"/> for the table being referenced.
-        /// </summary>
-        internal protected DatasyncClientOptions ClientOptions { get; }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryTranslator{T}"/>.
         /// </summary>
         /// <param name="query">The <see cref="DatasyncTableQuery{T}"/> to parse.</param>
-        internal QueryTranslator(DatasyncTableQuery<T> query, DatasyncClientOptions clientOptions)
+        /// <param name="clientOptions">The current <see cref="DatasyncClientOptions"/> used to serialize the request.</param>
+        internal QueryTranslator(TableQuery<T> query, DatasyncClientOptions clientOptions)
         {
             Validate.IsNotNull(query, nameof(query));
             Validate.IsNotNull(clientOptions, nameof(clientOptions));
@@ -53,6 +39,21 @@ namespace Microsoft.Datasync.Client.Table.Query
         }
 
         /// <summary>
+        /// The <see cref="DatasyncClientOptions"/> for the table being referenced.
+        /// </summary>
+        internal protected DatasyncClientOptions ClientOptions { get; }
+
+        /// <summary>
+        /// The compiled <see cref="QueryDescription"/> generated from the expression tree.
+        /// </summary>
+        internal protected QueryDescription QueryDescription { get; }
+
+        /// <summary>
+        /// The <see cref="DatasyncTableQuery{T}"/> being translated.
+        /// </summary>
+        internal protected TableQuery<T> TableQuery { get; }
+
+        /// <summary>
         /// Translate an expression tree into a compiled <see cref="QueryDescription"/>
         /// that can be executed on the server.
         /// </summary>
@@ -63,37 +64,40 @@ namespace Microsoft.Datasync.Client.Table.Query
             // constants or things that depend directly on our values.
             var expression = TableQuery.Query.Expression.PartiallyEvaluate();
 
-            // Initiate the visit to the expression.  The root of the expression will always
-            // be a MethodCallExpression because we generate via the DatasyncTableQuery.
-            if (expression is MethodCallExpression mce)
+            // Initiate the visit to the expression.  The root of the expression tree will
+            // always be a MethodCallExpression because we generate it via the TableQuery<T>.
+            if (expression is MethodCallExpression methodCall)
             {
-                VisitMethodCall(mce);
+                VisitMethodCall(methodCall);
             }
 
-            // Set the projection type if there was no projection in the query
+            // Set the projection type if there was no projection in the query.
             QueryDescription.ProjectionArgumentType ??= typeof(T);
+
+            // ... and return the result.
             return QueryDescription;
         }
 
         /// <summary>
-        /// Process the core LINQ operators that are supported by the datasync service.
+        /// Process the core LINQ operators that are supported by a datasync service using
+        /// a visitor process.
         /// </summary>
         /// <param name="expression">The expression to visit.</param>
-        /// <returns>The visited expression</returns>
+        /// <returns>The visited expression.</returns>
         internal protected Expression VisitMethodCall(MethodCallExpression expression)
         {
-            // Recurse down the target of the method call.
+            // Recurse down the target of the method call until we get to something we need to process.
             if (expression.Arguments.Count >= 1)
             {
                 Expression firstArgument = expression.Arguments[0];
-                if (firstArgument is MethodCallExpression mce && firstArgument.NodeType == ExpressionType.Call)
+                if (firstArgument is MethodCallExpression methodCall && firstArgument.NodeType == ExpressionType.Call)
                 {
-                    VisitMethodCall(mce);
+                    VisitMethodCall(methodCall);
                 }
             }
 
-            // Handle the method call itself
-            //string? name = expression.Method.DeclaringType == typeof(Queryable) ? expression.Method.Name : null;
+            // Handle the method call itself.  There is only a certain list of LINQ method calls that we handle.
+            // Note that Skip(), Take(), and non-standard LINQ calls are handled elsewhere.
             switch (expression.Method.Name)
             {
                 case "OrderBy":
@@ -115,7 +119,7 @@ namespace Microsoft.Datasync.Client.Table.Query
                     AddFilter(expression);
                     break;
                 default:
-                    throw new NotSupportedException($"'{expression.Method.Name} clause in query expression is not supported");
+                    throw new NotSupportedException($"'{expression.Method.Name}' caluse in query expression is not supported.");
             }
             return expression;
         }
@@ -129,7 +133,7 @@ namespace Microsoft.Datasync.Client.Table.Query
             if (expression.IsValidLambdaExpression(out LambdaExpression lambda))
             {
                 QueryNode filter = FilterBuildingExpressionVisitor.Compile(lambda!.Body, ClientOptions);
-                if (QueryDescription.Filter != null)
+                if (QueryDescription != null)
                 {
                     QueryDescription.Filter = new BinaryOperatorNode(BinaryOperatorKind.And, QueryDescription.Filter, filter);
                 }
@@ -139,7 +143,7 @@ namespace Microsoft.Datasync.Client.Table.Query
                 }
                 return;
             }
-            throw new NotSupportedException("'Where' clause in query expression contains an invalid predicate");
+            throw new NotSupportedException("'Where' clause in query expression contains in invalid predicate");
         }
 
         /// <summary>

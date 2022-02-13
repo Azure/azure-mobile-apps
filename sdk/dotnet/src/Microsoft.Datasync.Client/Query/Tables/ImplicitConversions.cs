@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Microsoft.Datasync.Client.Table.Query.Tables
+namespace Microsoft.Datasync.Client.Query.Tables
 {
     /// <summary>
     /// A list of implicit numeric type conversions.

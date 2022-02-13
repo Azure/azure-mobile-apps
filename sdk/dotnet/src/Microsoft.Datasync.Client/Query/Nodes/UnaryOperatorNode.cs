@@ -4,9 +4,8 @@
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace Microsoft.Datasync.Client.Table.Query.Nodes
+namespace Microsoft.Datasync.Client.Query.Nodes
 {
     /// <summary>
     /// Enumeration of the supported unary operators.

@@ -29,10 +29,16 @@ namespace Microsoft.Datasync.Client.Table
             Validate.IsNotNull(client, nameof(client));
             Validate.IsNotNull(options, nameof(options));
 
+            RelativeUri = relativeUri;
             Endpoint = new Uri(client.Endpoint, relativeUri.TrimStart('/')).NormalizeEndpoint();
             HttpClient = client;
             ClientOptions = options;
         }
+
+        /// <summary>
+        /// The relative URI for the table.
+        /// </summary>
+        internal string RelativeUri { get; }
 
         /// <summary>
         /// The <see cref="ServiceHttpClient"/> to use for communication.
@@ -59,7 +65,7 @@ namespace Microsoft.Datasync.Client.Table
         /// An event that is fired when the table is modified - an entity is either
         /// created, deleted, or updated.
         /// </summary>
-        public event EventHandler<TableModifiedEventArgs> TableModified;
+        public virtual event EventHandler<TableModifiedEventArgs> TableModified;
 
         /// <summary>
         /// Deletes an item from the store.  If the version is provided, then the document
@@ -75,7 +81,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <exception cref="ArgumentException">if the item provided does not have an ID.</exception>
         /// <exception cref="DatasyncConflictException{T}">if there is a version mismatch.</exception>
         /// <exception cref="DatasyncOperationException">if an HTTP error is received from the service.</exception>
-        public async Task<ServiceResponse> DeleteItemAsync(JsonDocument item, CancellationToken cancellationToken = default)
+        public virtual async Task<ServiceResponse> DeleteItemAsync(JsonDocument item, CancellationToken cancellationToken = default)
         {
             Validate.IsNotNull(item, nameof(item));
             string id = item.GetId();
@@ -108,7 +114,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="query">The query string to send to the service.  This can be any OData compatible query string.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>An <see cref="AsyncPageable{T}"/> for retrieving the items asynchronously.</returns>
-        public AsyncPageable<JsonDocument> GetAsyncItems(string query = "", CancellationToken cancellationToken = default)
+        public virtual AsyncPageable<JsonDocument> GetAsyncItems(string query = "", CancellationToken cancellationToken = default)
             => new FuncAsyncPageable<JsonDocument>(nextLink => GetNextPageAsync(query, nextLink, cancellationToken));
 
         /// <summary>
@@ -117,7 +123,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="id">The ID of the item to retrieve.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>The service response containing the object if successful.</returns>
-        public async Task<ServiceResponse<JsonDocument>> GetItemAsync(string id, CancellationToken cancellationToken = default)
+        public virtual async Task<ServiceResponse<JsonDocument>> GetItemAsync(string id, CancellationToken cancellationToken = default)
         {
             Validate.IsValidId(id, nameof(id));
 
@@ -145,7 +151,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <returns>The service response containing the inserted object if successful.</returns>
         /// <exception cref="DatasyncConflictException{T}">if the item to insert has an ID and that ID already exists in the table.</exception>
         /// <exception cref="DatasyncOperationException">if an HTTP error is received from the service.</exception>
-        public async Task<ServiceResponse<JsonDocument>> InsertItemAsync(JsonDocument item, CancellationToken cancellationToken = default)
+        public virtual async Task<ServiceResponse<JsonDocument>> InsertItemAsync(JsonDocument item, CancellationToken cancellationToken = default)
         {
             Validate.IsNotNull(item, nameof(item));
 
@@ -178,7 +184,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <returns>A <see cref="ServiceResponse{T}"/> object with the item that was stored.</returns>
         /// <exception cref="DatasyncConflictException{T}">if there is a version mismatch.</exception>
         /// <exception cref="DatasyncOperationException">if an HTTP error is received from the service.</exception>
-        public async Task<ServiceResponse<JsonDocument>> ReplaceItemAsync(JsonDocument item, CancellationToken cancellationToken = default)
+        public virtual async Task<ServiceResponse<JsonDocument>> ReplaceItemAsync(JsonDocument item, CancellationToken cancellationToken = default)
         {
             Validate.IsNotNull(item, nameof(item));
             string id = item.GetId();
@@ -213,7 +219,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A <see cref="ServiceResponse{T}"/> object with the item that was stored.</returns>
-        public async Task<ServiceResponse<JsonDocument>> UpdateItemAsync(string id, IReadOnlyDictionary<string, object> changes, IfMatch precondition = null, CancellationToken cancellationToken = default)
+        public virtual async Task<ServiceResponse<JsonDocument>> UpdateItemAsync(string id, IReadOnlyDictionary<string, object> changes, IfMatch precondition = null, CancellationToken cancellationToken = default)
         {
             Validate.IsValidId(id, nameof(id));
             Validate.IsNotNullOrEmpty(changes, nameof(changes));

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Table.Query.Nodes;
+using Microsoft.Datasync.Client.Query.Nodes;
 using System;
 using System.Text;
 
-namespace Microsoft.Datasync.Client.Table.Query
+namespace Microsoft.Datasync.Client.Query.Visitor
 {
     /// <summary>
     /// Walks the expression tree provided, generating an OData filter.

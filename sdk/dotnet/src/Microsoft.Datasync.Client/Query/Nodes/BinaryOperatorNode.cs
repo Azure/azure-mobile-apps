@@ -5,7 +5,7 @@ using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.Datasync.Client.Table.Query.Nodes
+namespace Microsoft.Datasync.Client.Query.Nodes
 {
     /// <summary>
     /// Enumerator of the supported binary operators.

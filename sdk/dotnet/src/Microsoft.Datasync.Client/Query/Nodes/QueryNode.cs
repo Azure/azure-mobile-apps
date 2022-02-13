@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.Datasync.Client.Table.Query.Nodes
+namespace Microsoft.Datasync.Client.Query.Nodes
 {
     /// <summary>
     /// The base class for all types of QueryNode.

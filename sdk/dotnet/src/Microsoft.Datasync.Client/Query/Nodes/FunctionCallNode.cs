@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.Datasync.Client.Table.Query.Nodes
+namespace Microsoft.Datasync.Client.Query.Nodes
 {
     /// <summary>
     /// A <see cref="QueryNode"/> representing a function call

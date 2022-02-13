@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Microsoft.Datasync.Client.Table.Query
+namespace Microsoft.Datasync.Client.Query
 {
     /// <summary>
     /// A version of <see cref="MemberInfo"/> that can be used as a key in

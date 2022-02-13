@@ -4,7 +4,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.Datasync.Client.Table.Query.Nodes
+namespace Microsoft.Datasync.Client.Query.Nodes
 {
     /// <summary>
     /// A <see cref="QueryNode"/> representing a conversion from one type to another.

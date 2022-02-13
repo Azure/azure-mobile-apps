@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.Datasync.Client.Table.Query.Tables
+namespace Microsoft.Datasync.Client.Query.Tables
 {
     /// <summary>
     /// The list of instance properties and the OData method name that supports them.

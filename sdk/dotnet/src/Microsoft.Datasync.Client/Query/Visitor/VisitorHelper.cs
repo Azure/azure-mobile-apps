@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace Microsoft.Datasync.Client.Table.Query
+namespace Microsoft.Datasync.Client.Query.Visitor
 {
     /// <summary>
     /// Visit all the members of specific types of expression tree nodes.  This
@@ -16,7 +16,6 @@ namespace Microsoft.Datasync.Client.Table.Query
     /// We don't test for code coverage here, since not all paths are relevant to the product.  What
     /// paths are relevant are tested by using the FilterBuildingExpressionVisitor.
     /// </remarks>
-    [ExcludeFromCodeCoverage]
     internal sealed class VisitorHelper : ExpressionVisitor
     {
         /// <summary>

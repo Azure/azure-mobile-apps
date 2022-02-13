@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Table.Query.Nodes;
+using Microsoft.Datasync.Client.Query.Nodes;
+using Microsoft.Datasync.Client.Query.Visitor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace Microsoft.Datasync.Client.Table.Query
+namespace Microsoft.Datasync.Client.Query
 {
     /// <summary>
     /// A set of useful extension methods for the <see cref="Expression"/> class and other LINQ classes.
@@ -19,24 +20,23 @@ namespace Microsoft.Datasync.Client.Table.Query
         /// </summary>
         /// <param name="type">The <see cref="ExpressionType"/></param>
         /// <returns>The equivalent <see cref="BinaryOperatorKind"/></returns>
-        internal static BinaryOperatorKind ToBinaryOperatorKind(this ExpressionType type)
-            => type switch
-            {
-                ExpressionType.Add => BinaryOperatorKind.Add,
-                ExpressionType.AndAlso => BinaryOperatorKind.And,
-                ExpressionType.Divide => BinaryOperatorKind.Divide,
-                ExpressionType.Equal => BinaryOperatorKind.Equal,
-                ExpressionType.GreaterThan => BinaryOperatorKind.GreaterThan,
-                ExpressionType.GreaterThanOrEqual => BinaryOperatorKind.GreaterThanOrEqual,
-                ExpressionType.LessThan => BinaryOperatorKind.LessThan,
-                ExpressionType.LessThanOrEqual => BinaryOperatorKind.LessThanOrEqual,
-                ExpressionType.Modulo => BinaryOperatorKind.Modulo,
-                ExpressionType.Multiply => BinaryOperatorKind.Multiply,
-                ExpressionType.NotEqual => BinaryOperatorKind.NotEqual,
-                ExpressionType.OrElse => BinaryOperatorKind.Or,
-                ExpressionType.Subtract => BinaryOperatorKind.Subtract,
-                _ => throw new NotSupportedException($"The operator '{type}' is not supported in the 'Where' query expression")
-            };
+        internal static BinaryOperatorKind ToBinaryOperatorKind(this ExpressionType type) => type switch
+        {
+            ExpressionType.Add => BinaryOperatorKind.Add,
+            ExpressionType.AndAlso => BinaryOperatorKind.And,
+            ExpressionType.Divide => BinaryOperatorKind.Divide,
+            ExpressionType.Equal => BinaryOperatorKind.Equal,
+            ExpressionType.GreaterThan => BinaryOperatorKind.GreaterThan,
+            ExpressionType.GreaterThanOrEqual => BinaryOperatorKind.GreaterThanOrEqual,
+            ExpressionType.LessThan => BinaryOperatorKind.LessThan,
+            ExpressionType.LessThanOrEqual => BinaryOperatorKind.LessThanOrEqual,
+            ExpressionType.Modulo => BinaryOperatorKind.Modulo,
+            ExpressionType.Multiply => BinaryOperatorKind.Multiply,
+            ExpressionType.NotEqual => BinaryOperatorKind.NotEqual,
+            ExpressionType.OrElse => BinaryOperatorKind.Or,
+            ExpressionType.Subtract => BinaryOperatorKind.Subtract,
+            _ => throw new NotSupportedException($"The operator '{type}' is not supported in the 'Where' query expression")
+        };
 
         /// <summary>
         /// Remove the quote from quoted expressions.

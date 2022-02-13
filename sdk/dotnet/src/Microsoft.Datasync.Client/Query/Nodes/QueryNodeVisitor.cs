@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-namespace Microsoft.Datasync.Client.Table.Query.Nodes
+namespace Microsoft.Datasync.Client.Query.Nodes
 {
     /// <summary>
-    /// Visitor interface for walking the QueryNode tree.
+    /// Visitor interface for walking the <see cref="QueryNode"/> tree.
     /// </summary>
     /// <typeparam name="T">Type produced by the visitor.</typeparam>
     internal abstract class QueryNodeVisitor<T>

@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.Datasync.Client.Table.Query.Tables
+namespace Microsoft.Datasync.Client.Query.Tables
 {
     /// <summary>
     /// The list of method names we support as function calls, and their OData equivalent.

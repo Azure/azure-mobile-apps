@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Table.Query.Nodes;
-using Microsoft.Datasync.Client.Table.Query.Tables;
+using Microsoft.Datasync.Client.Query.Nodes;
+using Microsoft.Datasync.Client.Query.Tables;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
-namespace Microsoft.Datasync.Client.Table.Query
+namespace Microsoft.Datasync.Client.Query.Visitor
 {
     /// <summary>
     /// Walks the LINQ expression tree to compile the expression into a simplified tree of

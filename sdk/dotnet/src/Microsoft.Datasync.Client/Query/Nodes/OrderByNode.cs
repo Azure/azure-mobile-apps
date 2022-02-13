@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-namespace Microsoft.Datasync.Client.Table.Query.Nodes
+using Microsoft.Datasync.Client.Query.Visitor;
+
+namespace Microsoft.Datasync.Client.Query.Nodes
 {
     /// <summary>
     /// The ordering direction possibilities.
