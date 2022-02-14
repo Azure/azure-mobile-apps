@@ -11,39 +11,53 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Integration.Test.Client
+namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     [Collection("Integration")]
-    public class DatasyncTable_Delete_Test : BaseTest
+    public class RemoteTable_Delete_Tests : BaseTest
     {
+        private readonly DatasyncClient client;
+        private readonly IRemoteTable<ClientMovie> table;
+        private readonly List<TableModifiedEventArgs> modifications = new();
+
+        public RemoteTable_Delete_Tests()
+        {
+            client = GetMovieClient();
+            table = client.GetRemoteTable<ClientMovie>("movies");
+            table.TableModified += (_, e) => modifications.Add(e);
+        }
+
+        #region Helpers
+        /// <summary>
+        /// Assert that the event handler was called with the correct values.
+        /// </summary>
+        /// <param name="id"></param>
+        private void AssertEventHandlerCalled(string id)
+        {
+            Assert.Single(modifications);
+            Assert.Equal(TableModifiedEventArgs.TableOperation.Delete, modifications[0].Operation);
+            Assert.Equal(new Uri(Endpoint, "tables/movies"), modifications[0].TableEndpoint);
+            Assert.Equal(id, modifications[0].Id);
+        }
+        #endregion
+
         [Fact]
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_Basic()
         {
             // Arrange
-            var client = GetMovieClient();
             var id = GetRandomId();
-
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("movies");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
+            var item = new ClientMovie { Id = id };
 
             // Act
-            var response = await table.DeleteItemAsync(id).ConfigureAwait(false);
+            var response = await table.DeleteItemAsync(item).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(204, response.StatusCode);
             Assert.Equal(MovieCount - 1, MovieServer.GetMovieCount());
             Assert.Null(MovieServer.GetMovieById(id));
-
-            Assert.Single(modifications);
-            var modArg = modifications[0];
-            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
-            Assert.Equal(Microsoft.Datasync.Client.TableOperation.Delete, modArg.Operation);
-            Assert.Equal(id, modArg.Id);
-            Assert.Null(modArg.Entity);
+            AssertEventHandlerCalled(id);
         }
 
         [Fact]
@@ -51,16 +65,11 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task DeleteItemAsync_NotFound()
         {
             // Arrange
-            var client = GetMovieClient();
             const string id = "not-found";
-
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("movies");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
+            var item = new ClientMovie { Id = id };
 
             // Act
-            var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(id)).ConfigureAwait(false);
+            var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(item)).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(exception.Request);
@@ -75,30 +84,17 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task DeleteItemAsync_ConditionalSuccess()
         {
             // Arrange
-            var client = GetMovieClient();
             var id = GetRandomId();
-            var expected = MovieServer.GetMovieById(id);
-            var etag = Convert.ToBase64String(expected.Version);
-
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("movies");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
+            var item = ClientMovie.From(MovieServer.GetMovieById(id));
 
             // Act
-            var response = await table.DeleteItemAsync(id, IfMatch.Version(etag)).ConfigureAwait(false);
+            var response = await table.DeleteItemAsync(item).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(204, response.StatusCode);
             Assert.Equal(MovieCount - 1, MovieServer.GetMovieCount());
             Assert.Null(MovieServer.GetMovieById(id));
-
-            Assert.Single(modifications);
-            var modArg = modifications[0];
-            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
-            Assert.Equal(Microsoft.Datasync.Client.TableOperation.Delete, modArg.Operation);
-            Assert.Equal(id, modArg.Id);
-            Assert.Null(modArg.Entity);
+            AssertEventHandlerCalled(id);
         }
 
         [Fact]
@@ -106,18 +102,12 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task DeleteItemAsync_ConditionalFailure()
         {
             // Arrange
-            var client = GetMovieClient();
             var id = GetRandomId();
             var expected = MovieServer.GetMovieById(id);
-            const string etag = "dGVzdA==";
-
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("movies");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
+            var item = new ClientMovie { Id = id, Version = "dGVzdA==" };
 
             // Act
-            var exception = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.DeleteItemAsync(id, IfMatch.Version(etag))).ConfigureAwait(false);
+            var exception = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.DeleteItemAsync(item)).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(exception.Request);
@@ -140,29 +130,22 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task DeleteItemAsync_SoftDelete()
         {
             // Arrange
-            var client = GetMovieClient();
-            var id = GetRandomId();
+            var table = client.GetRemoteTable<ClientMovie>("soft");
+            table.TableModified += (_, e) => modifications.Add(e);
 
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("soft");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
+            var id = GetRandomId();
+            var item = ClientMovie.From(MovieServer.GetMovieById(id));
+
 
             // Act
-            var response = await table.DeleteItemAsync(id).ConfigureAwait(false);
+            var response = await table.DeleteItemAsync(item).ConfigureAwait(false);
 
             // Assert
             Assert.Equal(204, response.StatusCode);
             Assert.Equal(MovieCount, MovieServer.GetMovieCount());
             var entity = MovieServer.GetMovieById(id)!;
             Assert.True(entity.Deleted);
-
-            Assert.Single(modifications);
-            var modArg = modifications[0];
-            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
-            Assert.Equal(Microsoft.Datasync.Client.TableOperation.Delete, modArg.Operation);
-            Assert.Equal(id, modArg.Id);
-            Assert.Null(modArg.Entity);
+            AssertEventHandlerCalled(id);
         }
 
         [Fact]
@@ -170,17 +153,15 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task DeleteItemAsync_GoneWhenDeleted()
         {
             // Arrange
-            var client = GetMovieClient();
+            var table = client.GetRemoteTable<ClientMovie>("soft");
+            table.TableModified += (_, e) => modifications.Add(e);
+
             var id = GetRandomId();
+            var item = ClientMovie.From(MovieServer.GetMovieById(id));
             await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
 
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("soft");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
-
             // Act
-            var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(id)).ConfigureAwait(false);
+            var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(item)).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(exception.Request);

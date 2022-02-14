@@ -5,6 +5,7 @@ using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Commands;
+using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using System.Diagnostics.CodeAnalysis;
@@ -12,26 +13,33 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Integration.Test.Client
+namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     [Collection("Integration")]
-    public class DatasyncTableQuery_Tests : BaseTest
+    public class RemoteTable_Query_Tests : BaseTest
     {
+        private readonly DatasyncClient client;
+        private readonly IRemoteTable<ClientMovie> table;
+
+        public RemoteTable_Query_Tests()
+        {
+            client = GetMovieClient();
+            table = client.GetRemoteTable<ClientMovie>("movies");
+        }
+
         [Theory]
         [ClassData(typeof(LinqTestCases))]
         [Trait("Method", "ToODataQueryString")]
         public async Task ToLazyObservableCollection_WithPageCount_WithLinq(LinqTestCase testcase)
         {
             // Arrange
-            var client = GetMovieClient();
-            var table = client.GetTable<ClientMovie>("movies");
             int loops = 0;
             int maxLoops = (MovieCount / 50) + 2;
-            var query = new DatasyncTableQuery<ClientMovie>(table);
+            var query = new TableQuery<ClientMovie>(table);
 
             // Act
-            var sut = (testcase.LinqExpression.Invoke(query) as DatasyncTableQuery<ClientMovie>)?.ToLazyObservableCollection(50) as InternalLazyObservableCollection<ClientMovie>;
+            var sut = (testcase.LinqExpression.Invoke(query) as TableQuery<ClientMovie>)?.ToLazyObservableCollection(50) as InternalLazyObservableCollection<ClientMovie>;
             var loadMore = sut!.LoadMoreCommand as IAsyncCommand;
             await WaitUntil(() => !sut.IsBusy).ConfigureAwait(false);
             while (loops < maxLoops && sut.HasMoreItems)
@@ -53,9 +61,7 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task ToAsyncPageable_WithLiveServer(LinqTestCase testcase)
         {
             // Arrange
-            var client = GetMovieClient();
-            var table = client.GetTable<ClientMovie>("movies");
-            var query = new DatasyncTableQuery<ClientMovie>(table as DatasyncTable<ClientMovie>);
+            var query = new TableQuery<ClientMovie>(table as RemoteTable<ClientMovie>);
 
             // Act
             var pageable = testcase.LinqExpression.Invoke(query).ToAsyncPageable();
@@ -73,9 +79,7 @@ namespace Microsoft.Datasync.Integration.Test.Client
         internal async Task ToAsyncEnumerable_WithLiveServer(LinqTestCase testcase)
         {
             // Arrange
-            var client = GetMovieClient();
-            var table = client.GetTable<ClientMovie>("movies");
-            var query = new DatasyncTableQuery<ClientMovie>(table as DatasyncTable<ClientMovie>);
+            var query = new TableQuery<ClientMovie>(table as RemoteTable<ClientMovie>);
 
             // Act
             var pageable = testcase.LinqExpression.Invoke(query).ToAsyncEnumerable();

@@ -4,6 +4,7 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using FluentAssertions;
+using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
 using System;
 using System.Collections.Generic;
@@ -18,13 +19,13 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Table
 {
     [ExcludeFromCodeCoverage]
-    public class DatasyncTableQuery_Tests : BaseTest
+    public class TableQuery_Tests : BaseTest
     {
         [Fact]
         [Trait("Method", "Ctor")]
         public void Ctor_NullTable_Throws()
         {
-            Assert.Throws<ArgumentNullException>(() => new DatasyncTableQuery<IdEntity>(null));
+            Assert.Throws<ArgumentNullException>(() => new TableQuery<IdEntity>(null));
         }
 
         [Fact]
@@ -32,8 +33,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Ctor_BlankSetup()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
             Assert.Same(table, query.Table);
             Assert.IsAssignableFrom<IQueryable<IdEntity>>(query.Query);
             Assert.Empty(query.QueryParameters);
@@ -42,14 +43,14 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         public void ToODataString_BlankQuery_ReturnsEmptyString()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
 
-            Assert.Empty(query.ToODataQueryString());
+            Assert.Empty(query.ToQueryString());
         }
 
         [Fact]
@@ -57,11 +58,11 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void IncludeDeletedItems_Enabled_ChangesKey()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
             query.QueryParameters.Add("__includedeleted", "test");
 
-            var actual = query.IncludeDeletedItems() as DatasyncTableQuery<IdEntity>;
+            var actual = query.IncludeDeletedItems() as TableQuery<IdEntity>;
 
             AssertEx.Contains("__includedeleted", "true", actual.QueryParameters);
         }
@@ -71,11 +72,11 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void IncludeDeletedItems_Disabled_RemovesKey()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
             query.QueryParameters.Add("__includedeleted", "true");
 
-            var actual = query.IncludeDeletedItems(false) as DatasyncTableQuery<IdEntity>;
+            var actual = query.IncludeDeletedItems(false) as TableQuery<IdEntity>;
 
             Assert.False(actual.QueryParameters.ContainsKey("__includedeleted"));
         }
@@ -85,24 +86,24 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void IncludeDeletedItems_Disabled_WorksWithEmptyParameters()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
 
-            var actual = query.IncludeDeletedItems(false) as DatasyncTableQuery<IdEntity>;
+            var actual = query.IncludeDeletedItems(false) as TableQuery<IdEntity>;
 
             Assert.False(actual.QueryParameters.ContainsKey("__includedeleted"));
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "IncludeDeletedItems")]
-        public void ToODataQueryString_IncludeDeletedItems_IsWellFormed()
+        public void ToQueryString_IncludeDeletedItems_IsWellFormed()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).IncludeDeletedItems() as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).IncludeDeletedItems() as TableQuery<IdEntity>;
 
-            var odata = query.ToODataQueryString();
+            var odata = query.ToQueryString();
             Assert.Equal("__includedeleted=true", odata);
         }
 
@@ -111,8 +112,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void IncludeTotalCount_Enabled_AddsKey()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).IncludeTotalCount(true) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).IncludeTotalCount(true) as TableQuery<IdEntity>;
 
             AssertEx.Contains("$count", "true", query.QueryParameters);
         }
@@ -122,11 +123,11 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void IncludeTotalCount_Enabled_ChangesKey()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
             query.QueryParameters.Add("$count", "test");
 
-            var actual = query.IncludeTotalCount() as DatasyncTableQuery<IdEntity>;
+            var actual = query.IncludeTotalCount() as TableQuery<IdEntity>;
 
             AssertEx.Contains("$count", "true", actual.QueryParameters);
         }
@@ -136,11 +137,11 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void IncludeTotalCount_Disabled_RemovesKey()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
             query.QueryParameters.Add("$count", "true");
 
-            var actual = query.IncludeTotalCount(false) as DatasyncTableQuery<IdEntity>;
+            var actual = query.IncludeTotalCount(false) as TableQuery<IdEntity>;
 
             Assert.False(actual.QueryParameters.ContainsKey("$count"));
         }
@@ -150,24 +151,24 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void IncludeTotalCount_Disabled_WorksWithEmptyParameters()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
 
-            var actual = query.IncludeTotalCount(false) as DatasyncTableQuery<IdEntity>;
+            var actual = query.IncludeTotalCount(false) as TableQuery<IdEntity>;
 
             Assert.False(actual.QueryParameters.ContainsKey("$count"));
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "IncludeTotalCount")]
-        public void ToOdataQueryString_IncludeTotalCount_IsWellFormed()
+        public void ToQueryString_IncludeTotalCount_IsWellFormed()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).IncludeTotalCount() as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).IncludeTotalCount() as TableQuery<IdEntity>;
 
-            var odata = query.ToODataQueryString();
+            var odata = query.ToQueryString();
             Assert.Equal("$count=true", odata);
         }
 
@@ -176,8 +177,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void OrderBy_Null_Throws()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
             Expression<Func<IdEntity, string>> keySelector = null;
 
             Assert.Throws<ArgumentNullException>(() => query.OrderBy(keySelector));
@@ -188,9 +189,9 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void OrderBy_UpdatesQuery()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
-            var actual = query.OrderBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
+            var actual = query.OrderBy(m => m.Id) as TableQuery<IdEntity>;
 
             Assert.IsAssignableFrom<MethodCallExpression>(actual.Query.Expression);
             var expression = actual.Query.Expression as MethodCallExpression;
@@ -198,29 +199,29 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "OrderBy")]
-        public void ToODataQueryString_OrderBy_IsWellFormed()
+        public void ToQueryString_OrderBy_IsWellFormed()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).OrderBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).OrderBy(m => m.Id) as TableQuery<IdEntity>;
 
-            var odata = query.ToODataQueryString();
+            var odata = query.ToQueryString();
 
             Assert.Equal("$orderby=id", odata);
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "OrderBy")]
-        public void ToODataQueryString_OrderBy_ThrowsNotSupported()
+        public void ToQueryString_OrderBy_ThrowsNotSupported()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).OrderBy(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).OrderBy(m => m.Id.ToLower()) as TableQuery<IdEntity>;
 
-            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+            Assert.Throws<NotSupportedException>(() => query.ToQueryString());
         }
 
         [Fact]
@@ -228,8 +229,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void OrderByDescending_Null_Throws()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
             Expression<Func<IdEntity, string>> keySelector = null;
 
             Assert.Throws<ArgumentNullException>(() => query.OrderByDescending(keySelector));
@@ -240,9 +241,9 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void OrderByDescending_UpdatesQuery()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
-            var actual = query.OrderByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
+            var actual = query.OrderByDescending(m => m.Id) as TableQuery<IdEntity>;
 
             Assert.IsAssignableFrom<MethodCallExpression>(actual.Query.Expression);
             var expression = actual.Query.Expression as MethodCallExpression;
@@ -250,29 +251,29 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "OrderByDescending")]
-        public void ToODataQueryString_OrderByDescending_IsWellFormed()
+        public void ToQueryString_OrderByDescending_IsWellFormed()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).OrderByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).OrderByDescending(m => m.Id) as TableQuery<IdEntity>;
 
-            var odata = query.ToODataQueryString();
+            var odata = query.ToQueryString();
 
             Assert.Equal("$orderby=id desc", odata);
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "OrderByDescending")]
-        public void ToODataQueryString_OrderByDescending_ThrowsNotSupported()
+        public void ToQueryString_OrderByDescending_ThrowsNotSupported()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).OrderByDescending(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).OrderByDescending(m => m.Id.ToLower()) as TableQuery<IdEntity>;
 
-            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+            Assert.Throws<NotSupportedException>(() => query.ToQueryString());
         }
 
         [Fact]
@@ -280,8 +281,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Select_Null_Throws()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
             Expression<Func<IdEntity, IdOnly>> selector = null;
 
             Assert.Throws<ArgumentNullException>(() => query.Select(selector));
@@ -292,9 +293,9 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Select_UpdatesQuery()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
-            var actual = query.Select(m => new IdOnly { Id = m.Id }) as DatasyncTableQuery<IdOnly>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
+            var actual = query.Select(m => new IdOnly { Id = m.Id }) as TableQuery<IdOnly>;
 
             Assert.IsAssignableFrom<MethodCallExpression>(actual.Query.Expression);
             var expression = actual.Query.Expression as MethodCallExpression;
@@ -302,15 +303,15 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "Select")]
-        public void ToODataQueryString_Select_IsWellFormed()
+        public void ToQueryString_Select_IsWellFormed()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).Select(m => new IdOnly { Id = m.Id }) as DatasyncTableQuery<IdOnly>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).Select(m => new IdOnly { Id = m.Id }) as TableQuery<IdOnly>;
 
-            var odata = query.ToODataQueryString();
+            var odata = query.ToQueryString();
 
             Assert.Equal("$select=id", odata);
         }
@@ -320,8 +321,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Skip_Throws_OutOfRange([CombinatorialValues(-10, -1)] int skip)
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
 
             Assert.Throws<ArgumentOutOfRangeException>(() => query.Skip(skip));
         }
@@ -331,10 +332,10 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Skip_Sets_SkipCount()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
 
-            var actual = query.Skip(5) as DatasyncTableQuery<IdEntity>;
+            var actual = query.Skip(5) as TableQuery<IdEntity>;
 
             Assert.Equal(5, actual.SkipCount);
         }
@@ -344,24 +345,24 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Skip_IsCumulative()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
 
-            var actual = query.Skip(5).Skip(20) as DatasyncTableQuery<IdEntity>;
+            var actual = query.Skip(5).Skip(20) as TableQuery<IdEntity>;
 
             Assert.Equal(25, actual.SkipCount);
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "Skip")]
-        public void ToODataQueryString_Skip_IsWellFormed()
+        public void ToQueryString_Skip_IsWellFormed()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).Skip(5) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).Skip(5) as TableQuery<IdEntity>;
 
-            var odata = query.ToODataQueryString();
+            var odata = query.ToQueryString();
             Assert.Equal("$skip=5", odata);
         }
 
@@ -370,8 +371,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Take_ThrowsOutOfRange([CombinatorialValues(-10, -1, 0)] int take)
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
 
             Assert.Throws<ArgumentOutOfRangeException>(() => query.Take(take));
         }
@@ -385,24 +386,24 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Take_MinimumWins(int first, int second, int expected)
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
 
-            var actual = query.Take(first).Take(second) as DatasyncTableQuery<IdEntity>;
+            var actual = query.Take(first).Take(second) as TableQuery<IdEntity>;
 
             Assert.Equal(expected, actual.TakeCount);
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "Take")]
-        public void ToODataQueryString_Take_IsWellFormed()
+        public void ToQueryString_Take_IsWellFormed()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).Take(5) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).Take(5) as TableQuery<IdEntity>;
 
-            var odata = query.ToODataQueryString();
+            var odata = query.ToQueryString();
             Assert.Equal("$top=5", odata);
         }
 
@@ -411,8 +412,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ThenBy_Null_Throws()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
             Expression<Func<IdEntity, string>> keySelector = null;
 
             Assert.Throws<ArgumentNullException>(() => query.ThenBy(keySelector));
@@ -423,9 +424,9 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ThenBy_UpdatesQuery()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
-            var actual = query.ThenBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
+            var actual = query.ThenBy(m => m.Id) as TableQuery<IdEntity>;
 
             Assert.IsAssignableFrom<MethodCallExpression>(actual.Query.Expression);
             var expression = actual.Query.Expression as MethodCallExpression;
@@ -433,29 +434,29 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "ThenBy")]
-        public void ToODataQueryString_ThenBy_IsWellFormed()
+        public void ToQueryString_ThenBy_IsWellFormed()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).ThenBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).ThenBy(m => m.Id) as TableQuery<IdEntity>;
 
-            var odata = query.ToODataQueryString();
+            var odata = query.ToQueryString();
 
             Assert.Equal("$orderby=id", odata);
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "ThenBy")]
-        public void ToODataQueryString_ThenBy_ThrowsNotSupported()
+        public void ToQueryString_ThenBy_ThrowsNotSupported()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).ThenBy(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).ThenBy(m => m.Id.ToLower()) as TableQuery<IdEntity>;
 
-            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+            Assert.Throws<NotSupportedException>(() => query.ToQueryString());
         }
 
         [Fact]
@@ -463,8 +464,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ThenByDescending_Null_Throws()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
             Expression<Func<IdEntity, string>> keySelector = null;
 
             Assert.Throws<ArgumentNullException>(() => query.ThenByDescending(keySelector));
@@ -475,9 +476,9 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ThenByDescending_UpdatesQuery()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
-            var actual = query.ThenByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
+            var actual = query.ThenByDescending(m => m.Id) as TableQuery<IdEntity>;
 
             Assert.IsAssignableFrom<MethodCallExpression>(actual.Query.Expression);
             var expression = actual.Query.Expression as MethodCallExpression;
@@ -485,29 +486,29 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "ThenByDescending")]
-        public void ToODataQueryString_ThenByDescending_IsWellFormed()
+        public void ToQueryString_ThenByDescending_IsWellFormed()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).ThenByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).ThenByDescending(m => m.Id) as TableQuery<IdEntity>;
 
-            var odata = query.ToODataQueryString();
+            var odata = query.ToQueryString();
 
             Assert.Equal("$orderby=id desc", odata);
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "ThenByDescending")]
-        public void ToODataQueryString_ThenByDescending_ThrowsNotSupported()
+        public void ToQueryString_ThenByDescending_ThrowsNotSupported()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).ThenByDescending(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).ThenByDescending(m => m.Id.ToLower()) as TableQuery<IdEntity>;
 
-            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+            Assert.Throws<NotSupportedException>(() => query.ToQueryString());
         }
 
         [Fact]
@@ -517,12 +518,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             var client = GetMockClient();
             var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
             var page1 = CreatePageOfItems(5, 10, new Uri($"{sEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5, 10, new Uri($"{sEndpoint}?page=3"));
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
             List<IdEntity> items = new();
-            var query = new DatasyncTableQuery<IdEntity>(table).IncludeTotalCount();
+            var query = new TableQuery<IdEntity>(table).IncludeTotalCount();
             long? count = null;
 
             // Act
@@ -567,12 +568,12 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             var client = GetMockClient();
             var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
             var page1 = CreatePageOfItems(5, 10, new Uri($"{sEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5, 10, new Uri($"{sEndpoint}?page=3"));
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
             List<IdEntity> items = new();
-            var query = new DatasyncTableQuery<IdEntity>(table).Where(m => m.StringValue == "foo").IncludeTotalCount();
+            var query = new TableQuery<IdEntity>(table).Where(m => m.StringValue == "foo").IncludeTotalCount();
             long? count = null;
 
             // Act
@@ -611,8 +612,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Where_Null_Throws()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
             Expression<Func<IdEntity, bool>> predicate = null;
 
             Assert.Throws<ArgumentNullException>(() => query.Where(predicate));
@@ -623,9 +624,9 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Where_UpdatesQuery()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
-            var actual = query.Where(m => m.Id.Contains("foo")) as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
+            var actual = query.Where(m => m.Id.Contains("foo")) as TableQuery<IdEntity>;
 
             Assert.IsAssignableFrom<MethodCallExpression>(actual.Query.Expression);
             var expression = actual.Query.Expression as MethodCallExpression;
@@ -633,29 +634,29 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "Where")]
-        public void ToODataQueryString_Where_IsWellFormed()
+        public void ToQueryString_Where_IsWellFormed()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).Where(m => m.Id == "foo") as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).Where(m => m.Id == "foo") as TableQuery<IdEntity>;
 
-            var odata = query.ToODataQueryString();
+            var odata = query.ToQueryString();
 
             Assert.Equal("$filter=(id%20eq%20'foo')", odata);
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "Where")]
-        public void ToODataQueryString_Where_ThrowsNotSupported()
+        public void ToQueryString_Where_ThrowsNotSupported()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).ThenByDescending(m => m.Id.Normalize() == "foo") as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).ThenByDescending(m => m.Id.Normalize() == "foo") as TableQuery<IdEntity>;
 
-            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+            Assert.Throws<NotSupportedException>(() => query.ToQueryString());
         }
 
         [Theory]
@@ -665,8 +666,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameter_Null_Throws(string key, string value)
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
 
             Assert.Throws<ArgumentNullException>(() => query.WithParameter(key, value));
         }
@@ -686,8 +687,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameter_Illegal_Throws(string key, string value)
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
 
             Assert.Throws<ArgumentException>(() => query.WithParameter(key, value));
         }
@@ -697,10 +698,10 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameter_SetsParameter()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
 
-            var actual = query.WithParameter("testkey", "testvalue") as DatasyncTableQuery<IdEntity>;
+            var actual = query.WithParameter("testkey", "testvalue") as TableQuery<IdEntity>;
 
             AssertEx.Contains("testkey", "testvalue", actual.QueryParameters);
         }
@@ -710,38 +711,38 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameter_Overwrites()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).WithParameter("testkey", "testvalue");
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).WithParameter("testkey", "testvalue");
 
-            var actual = query.WithParameter("testkey", "replacement") as DatasyncTableQuery<IdEntity>;
+            var actual = query.WithParameter("testkey", "replacement") as TableQuery<IdEntity>;
 
             AssertEx.Contains("testkey", "replacement", actual.QueryParameters);
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "WithParameter")]
-        public void ToODataQueryString_WithParameter_isWellFormed()
+        public void ToQueryString_WithParameter_isWellFormed()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).WithParameter("testkey", "testvalue") as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).WithParameter("testkey", "testvalue") as TableQuery<IdEntity>;
 
-            var odata = query.ToODataQueryString();
+            var odata = query.ToQueryString();
 
             Assert.Equal("testkey=testvalue", odata);
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "WithParameter")]
-        public void ToODataQueryString_WithParameter_EncodesValue()
+        public void ToQueryString_WithParameter_EncodesValue()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).WithParameter("testkey", "test value") as DatasyncTableQuery<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).WithParameter("testkey", "test value") as TableQuery<IdEntity>;
 
-            var odata = query.ToODataQueryString();
+            var odata = query.ToQueryString();
 
             Assert.Equal("testkey=test%20value", odata);
         }
@@ -751,8 +752,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameters_Null_Throws()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
 
             Assert.Throws<ArgumentNullException>(() => query.WithParameters(null));
         }
@@ -762,8 +763,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameters_Empty_Throws()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
             var sut = new Dictionary<string, string>();
 
             Assert.Throws<ArgumentException>(() => query.WithParameters(sut));
@@ -774,15 +775,15 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameters_CopiesParams()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
             var sut = new Dictionary<string, string>()
             {
                 { "key1", "value1" },
                 { "key2", "value2" }
             };
 
-            var actual = query.WithParameters(sut) as DatasyncTableQuery<IdEntity>;
+            var actual = query.WithParameters(sut) as TableQuery<IdEntity>;
 
             AssertEx.Contains("key1", "value1", actual.QueryParameters);
             AssertEx.Contains("key2", "value2", actual.QueryParameters);
@@ -793,15 +794,15 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameters_MergesParams()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table).WithParameter("key1", "value1");
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).WithParameter("key1", "value1");
             var sut = new Dictionary<string, string>()
             {
                 { "key1", "replacement" },
                 { "key2", "value2" }
             };
 
-            var actual = query.WithParameters(sut) as DatasyncTableQuery<IdEntity>;
+            var actual = query.WithParameters(sut) as TableQuery<IdEntity>;
 
             AssertEx.Contains("key1", "replacement", actual.QueryParameters);
             AssertEx.Contains("key2", "value2", actual.QueryParameters);
@@ -814,8 +815,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameters_CannotSetIllegalParams(string key)
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table);
             var sut = new Dictionary<string, string>()
             {
                 { key, "true" },
@@ -826,36 +827,36 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
 
         [Fact]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         [Trait("Method", "WithParameters")]
-        public void ToODataQueryString_WithParameters_isWellFormed()
+        public void ToQueryString_WithParameters_isWellFormed()
         {
             var client = GetMockClient();
-            DatasyncTable<IdEntity> table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
             var pairs = new Dictionary<string, string>()
             {
                 {  "key1", "value1" },
                 {  "key2", "value 2" }
             };
-            var query = new DatasyncTableQuery<IdEntity>(table).WithParameters(pairs) as DatasyncTableQuery<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).WithParameters(pairs) as TableQuery<IdEntity>;
 
-            var odata = query.ToODataQueryString();
+            var odata = query.ToQueryString();
 
             Assert.Equal("key1=value1&key2=value%202", odata);
         }
 
         [Theory]
         [ClassData(typeof(LinqTestCases))]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         internal void LinqODataConversions(LinqTestCase testcase)
         {
             // Arrange
             var client = GetMockClient();
-            var table = new DatasyncTable<ClientMovie>(Endpoint, client.HttpClient, client.ClientOptions);
-            var query = new DatasyncTableQuery<ClientMovie>(table);
+            var table = new RemoteTable<ClientMovie>("tables/movies", client.HttpClient, client.ClientOptions);
+            var query = new TableQuery<ClientMovie>(table);
 
             // Act
-            var actual = (testcase.LinqExpression.Invoke(query) as DatasyncTableQuery<ClientMovie>)?.ToODataQueryString();
+            var actual = (testcase.LinqExpression.Invoke(query) as TableQuery<ClientMovie>)?.ToQueryString();
             var tester = Uri.UnescapeDataString(actual);
 
             // Assert
@@ -869,13 +870,13 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Theory]
         [ClassData(typeof(LinqTestCases))]
-        [Trait("Method", "ToODataQueryString")]
+        [Trait("Method", "ToQueryString")]
         internal void LinqODataWithSelectConversions(LinqTestCase testcase)
         {
             // Arrange
             var client = GetMockClient();
-            var table = new DatasyncTable<ClientMovie>(Endpoint, client.HttpClient, client.ClientOptions);
-            var query = new DatasyncTableQuery<ClientMovie>(table);
+            var table = new RemoteTable<ClientMovie>("tables/movies/", client.HttpClient, client.ClientOptions);
+            var query = new TableQuery<ClientMovie>(table);
 
             // Need to make sure the $select statement is added in the right spot.
             var splitArgs = testcase.ODataString.Split('&').ToList();
@@ -884,7 +885,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var expectedWithSelect = string.Join('&', splitArgs).TrimStart('&');
 
             // Act
-            var actual = (testcase.LinqExpression.Invoke(query).Select(m => new SelectResult { Id = m.Id, Title = m.Title }) as DatasyncTableQuery<SelectResult>)?.ToODataQueryString();
+            var actual = (testcase.LinqExpression.Invoke(query).Select(m => new SelectResult { Id = m.Id, Title = m.Title }) as TableQuery<SelectResult>)?.ToQueryString();
             var tester = Uri.UnescapeDataString(actual);
 
             // Assert
@@ -897,12 +898,12 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = GetMockClient();
-            var table = new DatasyncTable<ClientMovie>(Endpoint, client.HttpClient, client.ClientOptions);
-            var query = new DatasyncTableQuery<ClientMovie>(table);
+            var table = new RemoteTable<ClientMovie>("tables/movies/", client.HttpClient, client.ClientOptions);
+            var query = new TableQuery<ClientMovie>(table);
 
             // Act
-            var actual = query.Where(m => m.ReleaseDate.UtcDateTime > new DateTime(2001, 12, 31)) as DatasyncTableQuery<ClientMovie>;
-            Assert.Throws<NotSupportedException>(() => actual.ToODataQueryString());
+            var actual = query.Where(m => m.ReleaseDate.UtcDateTime > new DateTime(2001, 12, 31)) as TableQuery<ClientMovie>;
+            Assert.Throws<NotSupportedException>(() => actual.ToQueryString());
         }
 
         [Fact]
@@ -910,12 +911,12 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = GetMockClient();
-            var table = new DatasyncTable<ClientMovie>(Endpoint, client.HttpClient, client.ClientOptions);
-            var query = new DatasyncTableQuery<ClientMovie>(table);
+            var table = new RemoteTable<ClientMovie>("tables/movies/", client.HttpClient, client.ClientOptions);
+            var query = new TableQuery<ClientMovie>(table);
 
             // Act
-            var actual = query.Where(m => m.Title.LastIndexOf("er") > 0) as DatasyncTableQuery<ClientMovie>;
-            Assert.Throws<NotSupportedException>(() => actual.ToODataQueryString());
+            var actual = query.Where(m => m.Title.LastIndexOf("er") > 0) as TableQuery<ClientMovie>;
+            Assert.Throws<NotSupportedException>(() => actual.ToQueryString());
         }
 
         [Fact]
@@ -923,12 +924,12 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = GetMockClient();
-            var table = new DatasyncTable<ClientMovie>(Endpoint, client.HttpClient, client.ClientOptions);
-            var query = new DatasyncTableQuery<ClientMovie>(table);
+            var table = new RemoteTable<ClientMovie>("tables/movies/", client.HttpClient, client.ClientOptions);
+            var query = new TableQuery<ClientMovie>(table);
 
             // Act
-            var actual = query.Where(m => (m.Year ^ 1024) == 0) as DatasyncTableQuery<ClientMovie>;
-            Assert.Throws<NotSupportedException>(() => actual.ToODataQueryString());
+            var actual = query.Where(m => (m.Year ^ 1024) == 0) as TableQuery<ClientMovie>;
+            Assert.Throws<NotSupportedException>(() => actual.ToQueryString());
         }
 
         [Fact]
@@ -936,12 +937,12 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = GetMockClient();
-            var table = new DatasyncTable<ClientMovie>(Endpoint, client.HttpClient, client.ClientOptions);
-            var query = new DatasyncTableQuery<ClientMovie>(table);
+            var table = new RemoteTable<ClientMovie>("tables/movies/", client.HttpClient, client.ClientOptions);
+            var query = new TableQuery<ClientMovie>(table);
 
             // Act
-            var actual = query.Where(m => (5 * (-m.Duration)) > -180) as DatasyncTableQuery<ClientMovie>;
-            Assert.Throws<NotSupportedException>(() => actual.ToODataQueryString());
+            var actual = query.Where(m => (5 * (-m.Duration)) > -180) as TableQuery<ClientMovie>;
+            Assert.Throws<NotSupportedException>(() => actual.ToQueryString());
         }
 
         [Fact]
@@ -949,14 +950,14 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = GetMockClient();
-            var table = new DatasyncTable<ClientMovie>(Endpoint, client.HttpClient, client.ClientOptions);
-            var query = new DatasyncTableQuery<ClientMovie>(table);
+            var table = new RemoteTable<ClientMovie>("tables/movies/", client.HttpClient, client.ClientOptions);
+            var query = new TableQuery<ClientMovie>(table);
 
             // Act - really - you should NOT be doing this!
             query.Query = query.Query.Distinct();
 
             // Assert
-            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+            Assert.Throws<NotSupportedException>(() => query.ToQueryString());
         }
 
         [Fact]
@@ -964,10 +965,10 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = GetMockClient();
-            var table = new DatasyncTable<ClientMovie>(Endpoint, client.HttpClient, client.ClientOptions);
-            var query = new DatasyncTableQuery<ClientMovie>(table).Where(m => (-m.Year) <= -2000) as DatasyncTableQuery<ClientMovie>;
+            var table = new RemoteTable<ClientMovie>("tables/movies/", client.HttpClient, client.ClientOptions);
+            var query = new TableQuery<ClientMovie>(table).Where(m => (-m.Year) <= -2000) as TableQuery<ClientMovie>;
 
-            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+            Assert.Throws<NotSupportedException>(() => query.ToQueryString());
         }
 
         [Fact]
@@ -975,10 +976,10 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = GetMockClient();
-            var table = new DatasyncTable<ClientMovie>(Endpoint, client.HttpClient, client.ClientOptions);
-            var query = new DatasyncTableQuery<ClientMovie>(table).OrderBy(m => m.Id == "foo" ? "yes" : "no") as DatasyncTableQuery<ClientMovie>;
+            var table = new RemoteTable<ClientMovie>("tables/movies/", client.HttpClient, client.ClientOptions);
+            var query = new TableQuery<ClientMovie>(table).OrderBy(m => m.Id == "foo" ? "yes" : "no") as TableQuery<ClientMovie>;
 
-            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+            Assert.Throws<NotSupportedException>(() => query.ToQueryString());
         }
 
         [Fact]
@@ -986,10 +987,10 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = GetMockClient();
-            var table = new DatasyncTable<ClientMovie>(Endpoint, client.HttpClient, client.ClientOptions);
-            var query = new DatasyncTableQuery<ClientMovie>(table).OrderBy(m => m.GetHashCode()) as DatasyncTableQuery<ClientMovie>;
+            var table = new RemoteTable<ClientMovie>("tables/movies/", client.HttpClient, client.ClientOptions);
+            var query = new TableQuery<ClientMovie>(table).OrderBy(m => m.GetHashCode()) as TableQuery<ClientMovie>;
 
-            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+            Assert.Throws<NotSupportedException>(() => query.ToQueryString());
         }
 
         [Fact]
@@ -997,10 +998,10 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             // Arrange
             var client = GetMockClient();
-            var table = new DatasyncTable<ClientMovie>(Endpoint, client.HttpClient, client.ClientOptions);
-            var query = new DatasyncTableQuery<ClientMovie>(table).OrderBy(m => m.ReleaseDate.ToString("o")) as DatasyncTableQuery<ClientMovie>;
+            var table = new RemoteTable<ClientMovie>("tables/movies/", client.HttpClient, client.ClientOptions);
+            var query = new TableQuery<ClientMovie>(table).OrderBy(m => m.ReleaseDate.ToString("o")) as TableQuery<ClientMovie>;
 
-            Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
+            Assert.Throws<NotSupportedException>(() => query.ToQueryString());
         }
     }
 }

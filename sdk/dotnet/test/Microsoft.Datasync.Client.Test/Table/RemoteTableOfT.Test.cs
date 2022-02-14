@@ -21,7 +21,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Table
 {
     [ExcludeFromCodeCoverage]
-    public class DatasyncTable_Tests : BaseTest
+    public class RemoteTableOfT_Tests : BaseTest
     {
         private readonly IdEntity payload = new() { Id = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f", StringValue = "test" };
         private const string sJsonPayload = "{\"id\":\"db0ec08d-46a9-465d-9f5e-0066a3ee5b5f\",\"stringValue\":\"test\"}";
@@ -34,7 +34,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             var client = GetMockClient();
-            var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
             Assert.Equal(sEndpoint, sut.Endpoint.ToString());
             Assert.Same(client.ClientOptions, sut.ClientOptions);
@@ -47,7 +47,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             var client = GetMockClient();
             const string relativeUri = null;
-            Assert.Throws<ArgumentNullException>(() => new DatasyncTable<IdEntity>(relativeUri, client.HttpClient, client.ClientOptions));
+            Assert.Throws<ArgumentNullException>(() => new RemoteTable<IdEntity>(relativeUri, client.HttpClient, client.ClientOptions));
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Ctor_NullClient_Throws()
         {
             var client = GetMockClient();
-            Assert.Throws<ArgumentNullException>(() => new DatasyncTable<IdEntity>("tables/movies", null, client.ClientOptions));
+            Assert.Throws<ArgumentNullException>(() => new RemoteTable<IdEntity>("tables/movies", null, client.ClientOptions));
         }
 
         [Fact]
@@ -63,30 +63,30 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Ctor_NullOptions_Throws()
         {
             var client = GetMockClient();
-            Assert.Throws<ArgumentNullException>(() => new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, null));
+            Assert.Throws<ArgumentNullException>(() => new RemoteTable<IdEntity>("tables/movies", client.HttpClient, null));
         }
 
         [Fact]
-        [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_ThrowsOnNull()
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_ThrowsOnNull()
         {
             var client = GetMockClient();
-            var table = client.GetTable<ClientMovie>("movies");
-            await Assert.ThrowsAsync<ArgumentNullException>(() => table.CreateItemAsync(null)).ConfigureAwait(false);
+            var table = client.GetRemoteTable<ClientMovie>("movies");
+            await Assert.ThrowsAsync<ArgumentNullException>(() => table.InsertItemAsync(null)).ConfigureAwait(false);
         }
 
         [Theory]
         [InlineData(HttpStatusCode.OK)]
         [InlineData(HttpStatusCode.Created)]
-        [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_Success_FormulatesCorrectRequest(HttpStatusCode statusCode)
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_Success_FormulatesCorrectRequest(HttpStatusCode statusCode)
         {
             var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(statusCode, payload);
             var client = GetMockClient();
-            var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
-            var response = await sut.CreateItemAsync(payload).ConfigureAwait(false);
+            var response = await sut.InsertItemAsync(payload).ConfigureAwait(false);
 
             // Check Request
             Assert.Single(MockHandler.Requests);
@@ -109,15 +109,15 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Theory]
         [InlineData(HttpStatusCode.OK)]
         [InlineData(HttpStatusCode.Created)]
-        [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_Success_FormulatesCorrectRequest_WithAuth(HttpStatusCode statusCode)
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_Success_FormulatesCorrectRequest_WithAuth(HttpStatusCode statusCode)
         {
             var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(statusCode, payload);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
-            var response = await sut.CreateItemAsync(payload).ConfigureAwait(false);
+            var response = await sut.InsertItemAsync(payload).ConfigureAwait(false);
 
             // Check Request
             Assert.Single(MockHandler.Requests);
@@ -141,14 +141,14 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Theory]
         [InlineData(HttpStatusCode.OK)]
         [InlineData(HttpStatusCode.Created)]
-        [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_SuccessNoContent(HttpStatusCode statusCode)
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_SuccessNoContent(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode);
             var client = GetMockClient();
-            var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
-            var response = await sut.CreateItemAsync(payload).ConfigureAwait(false);
+            var response = await sut.InsertItemAsync(payload).ConfigureAwait(false);
             Assert.Equal((int)statusCode, response.StatusCode);
             Assert.False(response.HasContent);
             Assert.Empty(response.Content);
@@ -159,8 +159,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Theory]
         [InlineData(HttpStatusCode.OK)]
         [InlineData(HttpStatusCode.Created)]
-        [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_SuccessWithBadJson_Throws(HttpStatusCode statusCode)
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_SuccessWithBadJson_Throws(HttpStatusCode statusCode)
         {
             var payload = new IdEntity() { Id = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f", StringValue = "test" };
 
@@ -170,23 +170,23 @@ namespace Microsoft.Datasync.Client.Test.Table
             };
             MockHandler.Responses.Add(response);
             var client = GetMockClient();
-            var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
-            await Assert.ThrowsAsync<JsonException>(() => sut.CreateItemAsync(payload)).ConfigureAwait(false);
+            await Assert.ThrowsAsync<JsonException>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
         }
 
         [Theory]
         [InlineData(HttpStatusCode.Conflict)]
         [InlineData(HttpStatusCode.PreconditionFailed)]
-        [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_Conflict_FormulatesCorrectResponse(HttpStatusCode statusCode)
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_Conflict_FormulatesCorrectResponse(HttpStatusCode statusCode)
         {
             var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(statusCode, payload);
             var client = GetMockClient();
-            var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
-            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => sut.CreateItemAsync(payload)).ConfigureAwait(false);
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
 
             // Check Request
             Assert.Single(MockHandler.Requests);
@@ -206,13 +206,13 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Theory]
         [InlineData(HttpStatusCode.Conflict)]
         [InlineData(HttpStatusCode.PreconditionFailed)]
-        [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_ConflictNoContent_Throws(HttpStatusCode statusCode)
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_ConflictNoContent_Throws(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode);
             var client = GetMockClient();
-            var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
-            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => sut.CreateItemAsync(payload)).ConfigureAwait(false);
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
             Assert.Equal((int)statusCode, ex.StatusCode);
             Assert.Empty(ex.Content);
             Assert.Null(ex.ServerItem);
@@ -221,8 +221,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Theory]
         [InlineData(HttpStatusCode.Conflict)]
         [InlineData(HttpStatusCode.PreconditionFailed)]
-        [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_ConflictWithBadJson_Throws(HttpStatusCode statusCode)
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_ConflictWithBadJson_Throws(HttpStatusCode statusCode)
         {
             var response = new HttpResponseMessage(statusCode)
             {
@@ -230,9 +230,9 @@ namespace Microsoft.Datasync.Client.Test.Table
             };
             MockHandler.Responses.Add(response);
             var client = GetMockClient();
-            var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
-            await Assert.ThrowsAsync<JsonException>(() => sut.CreateItemAsync(payload)).ConfigureAwait(false);
+            await Assert.ThrowsAsync<JsonException>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
         }
 
         [Theory]
@@ -240,14 +240,14 @@ namespace Microsoft.Datasync.Client.Test.Table
         [InlineData(HttpStatusCode.MethodNotAllowed)]
         [InlineData(HttpStatusCode.Unauthorized)]
         [InlineData(HttpStatusCode.InternalServerError)]
-        [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_RequestFailed_Throws(HttpStatusCode statusCode)
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_RequestFailed_Throws(HttpStatusCode statusCode)
         {
             MockHandler.AddResponse(statusCode);
             var client = GetMockClient();
-            var sut = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
 
-            var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => sut.CreateItemAsync(payload)).ConfigureAwait(false);
+            var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
             Assert.Equal((int)statusCode, ex.StatusCode);
         }
 
@@ -256,7 +256,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task DeleteItemAsync_ThrowsOnNull()
         {
             var client = GetMockClient();
-            var table = client.GetTable<ClientMovie>("movies");
+            var table = client.GetRemoteTable<ClientMovie>("movies");
             await Assert.ThrowsAsync<ArgumentNullException>(() => table.DeleteItemAsync(null)).ConfigureAwait(false);
         }
 
@@ -274,8 +274,9 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task DeleteItemAsync_ThrowsOnInvalidId(string id)
         {
             var client = GetMockClient();
-            var table = client.GetTable<ClientMovie>("movies");
-            await Assert.ThrowsAsync<ArgumentException>(() => table.DeleteItemAsync(id)).ConfigureAwait(false);
+            var table = client.GetRemoteTable<ClientMovie>("movies");
+            var item = new ClientMovie { Id = id };
+            await Assert.ThrowsAsync<ArgumentException>(() => table.DeleteItemAsync(item)).ConfigureAwait(false);
         }
 
         [Theory, CombinatorialData]
@@ -286,9 +287,10 @@ namespace Microsoft.Datasync.Client.Test.Table
             var expectedEndpoint = new Uri(Endpoint, $"/tables/movies/{sId}").ToString();
             MockHandler.AddResponse(HttpStatusCode.NoContent);
             var client = GetMockClient();
-            var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var table = new RemoteTable<ClientMovie>("tables/movies", client.HttpClient, client.ClientOptions);
+            var item = new ClientMovie { Id = sId, Version = hasPrecondition ? "etag" : null };
 
-            var response = await table.DeleteItemAsync(sId, hasPrecondition ? IfMatch.Version("etag") : null).ConfigureAwait(false);
+            var response = await table.DeleteItemAsync(item).ConfigureAwait(false);
 
             // Check Request
             Assert.Single(MockHandler.Requests);
@@ -320,9 +322,10 @@ namespace Microsoft.Datasync.Client.Test.Table
             var expectedEndpoint = new Uri(Endpoint, $"/tables/movies/{sId}").ToString();
             MockHandler.AddResponse(HttpStatusCode.NoContent);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var table = new RemoteTable<ClientMovie>("tables/movies", client.HttpClient, client.ClientOptions);
+            var item = new ClientMovie { Id = sId, Version = hasPrecondition ? "etag" : null };
 
-            var response = await table.DeleteItemAsync(sId, hasPrecondition ? IfMatch.Version("etag") : null).ConfigureAwait(false);
+            var response = await table.DeleteItemAsync(item).ConfigureAwait(false);
 
             // Check Request
             Assert.Single(MockHandler.Requests);
@@ -356,15 +359,15 @@ namespace Microsoft.Datasync.Client.Test.Table
             var sId = Guid.NewGuid().ToString("N");
             MockHandler.AddResponse(statusCode, payload);
             var client = GetMockClient();
-            var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var table = new RemoteTable<ClientMovie>("tables/movies", client.HttpClient, client.ClientOptions);
+            var item = new ClientMovie { Id = sId };
 
-            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.DeleteItemAsync(sId)).ConfigureAwait(false);
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.DeleteItemAsync(item)).ConfigureAwait(false);
 
             // Check Response
             Assert.Equal((int)statusCode, ex.StatusCode);
             Assert.False(ex.Response.IsSuccessStatusCode);
             Assert.Equal(Encoding.UTF8.GetBytes(sJsonPayload), ex.Content);
-            Assert.Equal("test", ex.ServerItem.StringValue);
         }
 
         [Theory]
@@ -377,9 +380,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             MockHandler.AddResponse(statusCode);
             var client = GetMockClient();
-            var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var table = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var item = new IdEntity { Id = sId };
 
-            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.DeleteItemAsync(sId)).ConfigureAwait(false);
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.DeleteItemAsync(item)).ConfigureAwait(false);
 
             // Check Response
             Assert.Equal((int)statusCode, ex.StatusCode);
@@ -401,9 +405,10 @@ namespace Microsoft.Datasync.Client.Test.Table
             };
             MockHandler.Responses.Add(response);
             var client = GetMockClient();
-            var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var table = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var item = new IdEntity { Id = sId };
 
-            await Assert.ThrowsAsync<JsonException>(() => table.DeleteItemAsync(sId)).ConfigureAwait(false);
+            await Assert.ThrowsAsync<JsonException>(() => table.DeleteItemAsync(item)).ConfigureAwait(false);
         }
 
         [Theory]
@@ -417,67 +422,11 @@ namespace Microsoft.Datasync.Client.Test.Table
             var sId = Guid.NewGuid().ToString("N");
             MockHandler.AddResponse(statusCode);
             var client = GetMockClient();
-            var table = new DatasyncTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var table = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var item = new IdEntity { Id = sId };
 
-            var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(sId)).ConfigureAwait(false);
+            var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(item)).ConfigureAwait(false);
             Assert.Equal((int)statusCode, ex.StatusCode);
-        }
-
-        [Fact]
-        [Trait("Method", "GetIdFromItem")]
-        public void GetIdFromItem_Null_Throws()
-        {
-            Assert.Throws<ArgumentNullException>(() => DatasyncTable<IdEntity>.GetIdFromItem(null));
-        }
-
-        [Fact]
-        [Trait("Method", "GetIdFromItem")]
-        public void GetIdFromItem_IdEntity_ReturnsId()
-        {
-            IdEntity entity = new() { Id = "test" };
-            var id = DatasyncTable<IdEntity>.GetIdFromItem(entity);
-            Assert.Equal("test", id);
-        }
-
-        [Fact]
-        [Trait("Method", "GetIdFromItem")]
-        public void GetIdFromItem_IdEntity_Null_Throws()
-        {
-            IdEntity entity = new() { Id = null };
-            Assert.Throws<ArgumentException>(() => DatasyncTable<IdEntity>.GetIdFromItem(entity));
-        }
-
-        [Fact]
-        [Trait("Method", "GetIdFromItem")]
-        public void GetIdFromItem_KeyAttribute_ReturnsId()
-        {
-            KeyEntity entity = new() { KeyId = "test" };
-            var id = DatasyncTable<KeyEntity>.GetIdFromItem(entity);
-            Assert.Equal("test", id);
-        }
-
-        [Fact]
-        [Trait("Method", "GetIdFromItem")]
-        public void GetIdFromItem_KeyAttribute_Null_Throws()
-        {
-            KeyEntity entity = new() { KeyId = null };
-            Assert.Throws<ArgumentException>(() => DatasyncTable<KeyEntity>.GetIdFromItem(entity));
-        }
-
-        [Fact]
-        [Trait("Method", "GetIdFromItem")]
-        public void GetIdFromItem_NoId_Throws()
-        {
-            NoIdEntity entity = new() { StringValue = "test" };
-            Assert.Throws<MissingMemberException>(() => DatasyncTable<NoIdEntity>.GetIdFromItem(entity));
-        }
-
-        [Fact]
-        [Trait("Method", "GetIdFromItem")]
-        public void GetIdFromItem_NonStringId_Throws()
-        {
-            NonStringIdEntity entity = new() { Id = true };
-            Assert.Throws<MemberAccessException>(() => DatasyncTable<NonStringIdEntity>.GetIdFromItem(entity));
         }
 
         [Theory]
@@ -492,7 +441,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             MockHandler.AddResponse(statusCode);
             var client = GetMockClient();
-            var table = client.GetTable<ClientMovie>("movies");
+            var table = client.GetRemoteTable<ClientMovie>("movies");
 
             // Act
             var pageable = table.GetAsyncItems<ClientMovie>();
@@ -511,7 +460,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var expectedEndpoint = new Uri(Endpoint, "tables/movies/").ToString();
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             // Act
             var enumerator = table.GetAsyncItems<IdEntity>().GetAsyncEnumerator();
@@ -534,7 +483,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var expectedEndpoint = new Uri(Endpoint, "tables/movies/").ToString();
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             // Act
             var enumerator = table.GetAsyncItems<IdEntity>().GetAsyncEnumerator();
@@ -575,7 +524,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var expectedEndpoint = new Uri(Endpoint, "tables/movies/").ToString();
             var page = CreatePageOfItems(5);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
             // Act
@@ -603,7 +552,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var expectedEndpoint = new Uri(Endpoint, "tables/movies/").ToString();
             var page = CreatePageOfItems(5);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
             // Act
@@ -633,7 +582,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var page1 = CreatePageOfItems(5, null, new Uri($"{expectedEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
             // Act
@@ -669,7 +618,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var page1 = CreatePageOfItems(5, null, new Uri($"{expectedEndpoint}?page=2"));
             var page2 = CreatePageOfItems(5);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
             // Act
@@ -708,7 +657,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var page2 = CreatePageOfItems(5, null, new Uri($"{expectedEndpoint}?page=3"));
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
             // Act
@@ -750,7 +699,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var page2 = CreatePageOfItems(5, null, new Uri($"{expectedEndpoint}?page=3"));
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
             List<IdEntity> items = new();
 
             // Act
@@ -793,7 +742,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var expectedEndpoint = new Uri(Endpoint, "tables/movies/").ToString();
             _ = CreatePageOfItems(5, 5);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             // Act
             var pageable = table.GetAsyncItems<IdEntity>();
@@ -822,7 +771,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             _ = CreatePageOfItems(5, 5);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             // Act
             var pageable = table.GetAsyncItems<IdEntity>();
@@ -849,7 +798,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetItemAsync_ThrowsOnNull()
         {
             var client = GetMockClient();
-            var table = client.GetTable<ClientMovie>("movies");
+            var table = client.GetRemoteTable<ClientMovie>("movies");
             await Assert.ThrowsAsync<ArgumentNullException>(() => table.GetItemAsync(null)).ConfigureAwait(false);
         }
 
@@ -867,13 +816,13 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task GetItemAsync_ThrowsOnInvalidId(string id)
         {
             var client = GetMockClient();
-            var table = client.GetTable<ClientMovie>("movies");
+            var table = client.GetRemoteTable<ClientMovie>("movies");
             await Assert.ThrowsAsync<ArgumentException>(() => table.GetItemAsync(id)).ConfigureAwait(false);
         }
 
-        [Theory, CombinatorialData]
+        [Fact]
         [Trait("Method", "GetItemAsync")]
-        public async Task GetItemAsync_FormulatesCorrectRequest(bool hasPrecondition)
+        public async Task GetItemAsync_FormulatesCorrectRequest()
         {
             // Arrange
             var sId = Guid.NewGuid().ToString("N");
@@ -881,12 +830,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             // Act
-            var response = hasPrecondition
-                ? await table.GetItemAsync(sId, IfNoneMatch.Version("etag")).ConfigureAwait(false)
-                : await table.GetItemAsync(sId).ConfigureAwait(false);
+            var response = await table.GetItemAsync(sId).ConfigureAwait(false);
 
             // Assert
             Assert.Single(MockHandler.Requests);
@@ -894,14 +841,6 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(HttpMethod.Get, request.Method);
             Assert.Equal(expectedEndpoint, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            if (hasPrecondition)
-            {
-                AssertEx.HasHeader(request.Headers, "If-None-Match", "\"etag\"");
-            }
-            else
-            {
-                Assert.False(request.Headers.Contains("If-None-Match"));
-            }
 
             Assert.Equal(200, response.StatusCode);
             Assert.True(response.IsSuccessStatusCode);
@@ -912,9 +851,9 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal("test", response.Value.StringValue);
         }
 
-        [Theory, CombinatorialData]
+        [Fact]
         [Trait("Method", "GetItemAsync")]
-        public async Task GetItemAsync_FormulatesCorrectRequest_WithAuth(bool hasPrecondition)
+        public async Task GetItemAsync_FormulatesCorrectRequest_WithAuth()
         {
             // Arrange
             var sId = Guid.NewGuid().ToString("N");
@@ -922,12 +861,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             // Act
-            var response = hasPrecondition
-                ? await table.GetItemAsync(sId, IfNoneMatch.Version("etag")).ConfigureAwait(false)
-                : await table.GetItemAsync(sId).ConfigureAwait(false);
+            var response =  await table.GetItemAsync(sId).ConfigureAwait(false);
 
             // Assert
             Assert.Single(MockHandler.Requests);
@@ -936,14 +873,6 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Equal(expectedEndpoint, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
             AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
-            if (hasPrecondition)
-            {
-                AssertEx.HasHeader(request.Headers, "If-None-Match", "\"etag\"");
-            }
-            else
-            {
-                Assert.False(request.Headers.Contains("If-None-Match"));
-            }
 
             Assert.Equal(200, response.StatusCode);
             Assert.True(response.IsSuccessStatusCode);
@@ -964,7 +893,7 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             MockHandler.AddResponse(HttpStatusCode.OK);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             // Act
             var response = await table.GetItemAsync(sId).ConfigureAwait(false);
@@ -1000,7 +929,7 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             MockHandler.AddResponse(statusCode);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.GetItemAsync(sId)).ConfigureAwait(false);
             Assert.Equal((int)statusCode, ex.StatusCode);
@@ -1014,7 +943,7 @@ namespace Microsoft.Datasync.Client.Test.Table
 
             MockHandler.AddResponse(HttpStatusCode.NotModified);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<EntityNotModifiedException>(() => table.GetItemAsync(sId)).ConfigureAwait(false);
             Assert.Equal(304, ex.StatusCode);
@@ -1031,7 +960,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
             var expectedUri = string.IsNullOrEmpty(query) ? sEndpoint : $"{sEndpoint}?{query}";
 
             _ = await table.GetPageOfItemsAsync<IdEntity>(query).ConfigureAwait(false);
@@ -1054,7 +983,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
             var expectedUri = string.IsNullOrEmpty(query) ? sEndpoint : $"{sEndpoint}?{query}";
 
             _ = await table.GetPageOfItemsAsync<IdEntity>(query).ConfigureAwait(false);
@@ -1078,7 +1007,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
 
             // Act
             _ = await table.GetPageOfItemsAsync<IdEntity>("", requestUri).ConfigureAwait(false);
@@ -1102,7 +1031,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
 
             // Act
             _ = await table.GetPageOfItemsAsync<IdEntity>("", requestUri).ConfigureAwait(false);
@@ -1127,7 +1056,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
             const string requestUri = "https://localhost/tables/foo?$count=true&$skip=5&$top=10&__includedeleted=true";
 
             // Act
@@ -1152,7 +1081,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Page<IdEntity> result = new();
             MockHandler.AddResponse(HttpStatusCode.OK, result);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
             const string requestUri = "https://localhost/tables/foo?$count=true&$skip=5&$top=10&__includedeleted=true";
 
             // Act
@@ -1175,7 +1104,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } } };
             MockHandler.AddResponse(HttpStatusCode.OK, result);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
 
             // Act
             var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
@@ -1201,7 +1130,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Page<IdEntity> result = new() { Count = 42 };
             MockHandler.AddResponse(HttpStatusCode.OK, result);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
 
             // Act
             var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
@@ -1227,7 +1156,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Page<IdEntity> result = new() { NextLink = new Uri(nextLink) };
             MockHandler.AddResponse(HttpStatusCode.OK, result);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
 
             // Act
             var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
@@ -1252,7 +1181,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } }, Count = 42 };
             MockHandler.AddResponse(HttpStatusCode.OK, result);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
 
             // Act
             var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
@@ -1279,7 +1208,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } }, NextLink = new Uri(nextLink) };
             MockHandler.AddResponse(HttpStatusCode.OK, result);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
 
             // Act
             var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
@@ -1306,7 +1235,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Page<IdEntity> result = new() { Items = new IdEntity[] { new() { Id = "1234" } }, Count = 42, NextLink = new Uri(nextLink) };
             MockHandler.AddResponse(HttpStatusCode.OK, result);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
 
             // Act
             var response = await table.GetPageOfItemsAsync<IdEntity>(null).ConfigureAwait(false);
@@ -1336,7 +1265,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Arrange
             MockHandler.AddResponse(statusCode);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies") as DatasyncTable<IdEntity>;
+            var table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
 
             // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.GetPageOfItemsAsync<IdEntity>(null)).ConfigureAwait(false);
@@ -1350,7 +1279,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task ReplaceItemAsync_ThrowsOnNull()
         {
             var client = GetMockClient();
-            var table = client.GetTable<ClientMovie>("movies");
+            var table = client.GetRemoteTable<ClientMovie>("movies");
             await Assert.ThrowsAsync<ArgumentNullException>(() => table.ReplaceItemAsync(null)).ConfigureAwait(false);
         }
 
@@ -1360,7 +1289,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             var obj = new ClientMovie { Id = null };
             var client = GetMockClient();
-            var table = client.GetTable<ClientMovie>("movies");
+            var table = client.GetRemoteTable<ClientMovie>("movies");
             await Assert.ThrowsAsync<ArgumentException>(() => table.ReplaceItemAsync(obj)).ConfigureAwait(false);
         }
 
@@ -1379,7 +1308,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             var obj = new ClientMovie { Id = id };
             var client = GetMockClient();
-            var table = client.GetTable<ClientMovie>("movies");
+            var table = client.GetRemoteTable<ClientMovie>("movies");
             await Assert.ThrowsAsync<ArgumentException>(() => table.ReplaceItemAsync(obj)).ConfigureAwait(false);
         }
 
@@ -1390,7 +1319,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             var response = hasPrecondition
                 ? await table.ReplaceItemAsync(payload, IfMatch.Version("etag")).ConfigureAwait(false)
@@ -1428,7 +1357,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             var response = hasPrecondition
                 ? await table.ReplaceItemAsync(payload, IfMatch.Version("etag")).ConfigureAwait(false)
@@ -1467,7 +1396,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(HttpStatusCode.OK);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             var response = await table.ReplaceItemAsync(payload).ConfigureAwait(false);
 
@@ -1495,7 +1424,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             MockHandler.AddResponse(statusCode, payload);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
 
@@ -1514,7 +1443,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             MockHandler.AddResponse(statusCode);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
             Assert.Equal((int)statusCode, ex.StatusCode);
@@ -1534,7 +1463,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             };
             MockHandler.Responses.Add(response);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             await Assert.ThrowsAsync<JsonException>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
         }
@@ -1549,7 +1478,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             MockHandler.AddResponse(statusCode);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
             Assert.Equal((int)statusCode, ex.StatusCode);
@@ -1560,7 +1489,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task UpdateItemAsync_ThrowsOnNullId()
         {
             var client = GetMockClient();
-            var table = client.GetTable<ClientMovie>("movies");
+            var table = client.GetRemoteTable<ClientMovie>("movies");
             var updates = new Dictionary<string, object>()
             {
                 { "Title", "Replacement Title" },
@@ -1574,7 +1503,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task UpdateItemAsync_ThrowsOnNullUpdates()
         {
             var client = GetMockClient();
-            var table = client.GetTable<ClientMovie>("movies");
+            var table = client.GetRemoteTable<ClientMovie>("movies");
             await Assert.ThrowsAsync<ArgumentNullException>(() => table.UpdateItemAsync("id-107", null)).ConfigureAwait(false);
         }
 
@@ -1583,7 +1512,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task UpdateItemAsync_ThrowsOnEmptyUpdates()
         {
             var client = GetMockClient();
-            var table = client.GetTable<ClientMovie>("movies");
+            var table = client.GetRemoteTable<ClientMovie>("movies");
             var updates = new Dictionary<string, object>();
             await Assert.ThrowsAsync<ArgumentException>(() => table.UpdateItemAsync("id-107", updates)).ConfigureAwait(false);
         }
@@ -1602,7 +1531,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task UpdateItemAsync_ThrowsOnInvalidId(string id)
         {
             var client = GetMockClient();
-            var table = client.GetTable<ClientMovie>("movies");
+            var table = client.GetRemoteTable<ClientMovie>("movies");
             var updates = new Dictionary<string, object>()
             {
                 { "Title", "Replacement Title" },
@@ -1619,7 +1548,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             var response = hasPrecondition
                 ? await table.UpdateItemAsync(sId, changes, IfMatch.Version("etag")).ConfigureAwait(false)
@@ -1658,7 +1587,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             var response = hasPrecondition
                 ? await table.UpdateItemAsync(sId, changes, IfMatch.Version("etag")).ConfigureAwait(false)
@@ -1699,7 +1628,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var sId = Guid.NewGuid().ToString("N");
             MockHandler.AddResponse(statusCode, payload);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.UpdateItemAsync(sId, changes)).ConfigureAwait(false);
 
@@ -1719,7 +1648,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var sId = Guid.NewGuid().ToString("N");
             MockHandler.AddResponse(statusCode);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.UpdateItemAsync(sId, changes)).ConfigureAwait(false);
             Assert.Equal((int)statusCode, ex.StatusCode);
@@ -1740,7 +1669,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             };
             MockHandler.Responses.Add(response);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             await Assert.ThrowsAsync<JsonException>(() => table.UpdateItemAsync(sId, changes)).ConfigureAwait(false);
         }
@@ -1756,7 +1685,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var sId = Guid.NewGuid().ToString("N");
             MockHandler.AddResponse(statusCode);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.UpdateItemAsync(sId, changes)).ConfigureAwait(false);
             Assert.Equal((int)statusCode, ex.StatusCode);
@@ -1770,7 +1699,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
             MockHandler.AddResponse(HttpStatusCode.OK);
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>("movies");
+            var table = client.GetRemoteTable<IdEntity>("movies");
 
             var response = await table.UpdateItemAsync(sId, changes).ConfigureAwait(false);
 
@@ -1796,7 +1725,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void IncludeDeletedItems_Enabled_AddsKey()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.IncludeDeletedItems(true) as DatasyncTableQuery<IdEntity>;
 
@@ -1808,7 +1737,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void IncludeDeletedItems_Disabled_Empty()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.IncludeDeletedItems(false) as DatasyncTableQuery<IdEntity>;
             Assert.Empty(query.QueryParameters);
@@ -1820,7 +1749,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_IncludeDeletedItems_IsWellFormed()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.IncludeDeletedItems() as DatasyncTableQuery<IdEntity>;
             var odata = query.ToODataQueryString();
@@ -1832,7 +1761,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void IncludeTotalCount_Enabled_AddsKey()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.IncludeTotalCount(true) as DatasyncTableQuery<IdEntity>;
             AssertEx.Contains("$count", "true", query.QueryParameters);
@@ -1843,7 +1772,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void IncludeTotalCount_Disabled_WorksWithEmptyParameters()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.IncludeTotalCount(false) as DatasyncTableQuery<IdEntity>;
             Assert.False(query.QueryParameters.ContainsKey("$count"));
@@ -1855,7 +1784,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToOdataQueryString_IncludeTotalCount_IsWellFormed()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.IncludeTotalCount() as DatasyncTableQuery<IdEntity>;
             var odata = query.ToODataQueryString();
@@ -1867,7 +1796,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void OrderBy_Null_Throws()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
             Expression<Func<IdEntity, string>> keySelector = null;
             Assert.Throws<ArgumentNullException>(() => table.OrderBy(keySelector));
         }
@@ -1877,7 +1806,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void OrderBy_UpdatesQuery()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.OrderBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
             Assert.IsAssignableFrom<MethodCallExpression>(query.Query.Expression);
@@ -1891,7 +1820,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_OrderBy_IsWellFormed()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.OrderBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
             var odata = query.ToODataQueryString();
@@ -1904,7 +1833,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_OrderBy_ThrowsNotSupported()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.OrderBy(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
             Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
@@ -1915,7 +1844,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void OrderByDescending_Null_Throws()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
             Expression<Func<IdEntity, string>> keySelector = null;
             Assert.Throws<ArgumentNullException>(() => table.OrderByDescending(keySelector));
         }
@@ -1925,7 +1854,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void OrderByDescending_UpdatesQuery()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.OrderByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
             Assert.IsAssignableFrom<MethodCallExpression>(query.Query.Expression);
@@ -1939,7 +1868,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_OrderByDescending_IsWellFormed()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.OrderByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
             var odata = query.ToODataQueryString();
@@ -1952,7 +1881,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_OrderByDescending_ThrowsNotSupported()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.OrderByDescending(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
             Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
@@ -1963,7 +1892,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Select_Null_Throws()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             Expression<Func<IdEntity, IdOnly>> selector = null;
             Assert.Throws<ArgumentNullException>(() => table.Select(selector));
@@ -1974,7 +1903,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Select_UpdatesQuery()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.Select(m => new IdOnly { Id = m.Id }) as DatasyncTableQuery<IdOnly>;
             Assert.IsAssignableFrom<MethodCallExpression>(query.Query.Expression);
@@ -1988,7 +1917,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_Select_IsWellFormed()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.Select(m => new IdOnly { Id = m.Id }) as DatasyncTableQuery<IdOnly>;
             var odata = query.ToODataQueryString();
@@ -2000,7 +1929,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Skip_Throws_OutOfRange([CombinatorialValues(-10, -1)] int skip)
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             Assert.Throws<ArgumentOutOfRangeException>(() => table.Skip(skip));
         }
@@ -2010,7 +1939,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Skip_Sets_SkipCount()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.Skip(5) as DatasyncTableQuery<IdEntity>;
             Assert.Equal(5, query.SkipCount);
@@ -2021,7 +1950,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Skip_IsCumulative()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.Skip(5).Skip(20) as DatasyncTableQuery<IdEntity>;
             Assert.Equal(25, query.SkipCount);
@@ -2033,7 +1962,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_Skip_IsWellFormed()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.Skip(5) as DatasyncTableQuery<IdEntity>;
             var odata = query.ToODataQueryString();
@@ -2045,7 +1974,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Take_ThrowsOutOfRange([CombinatorialValues(-10, -1, 0)] int take)
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             Assert.Throws<ArgumentOutOfRangeException>(() => table.Take(take));
         }
@@ -2059,7 +1988,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Take_MinimumWins(int first, int second, int expected)
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.Take(first).Take(second) as DatasyncTableQuery<IdEntity>;
             Assert.Equal(expected, query.TakeCount);
@@ -2071,7 +2000,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_Take_IsWellFormed()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.Take(5) as DatasyncTableQuery<IdEntity>;
             var odata = query.ToODataQueryString();
@@ -2083,7 +2012,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ThenBy_Null_Throws()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
             Expression<Func<IdEntity, string>> keySelector = null;
             Assert.Throws<ArgumentNullException>(() => table.ThenBy(keySelector));
         }
@@ -2093,7 +2022,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ThenBy_UpdatesQuery()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.ThenBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
             Assert.IsAssignableFrom<MethodCallExpression>(query.Query.Expression);
@@ -2107,7 +2036,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_ThenBy_IsWellFormed()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.ThenBy(m => m.Id) as DatasyncTableQuery<IdEntity>;
             var odata = query.ToODataQueryString();
@@ -2120,7 +2049,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_ThenBy_ThrowsNotSupported()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.ThenBy(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
             Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
@@ -2131,7 +2060,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ThenByDescending_Null_Throws()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
             Expression<Func<IdEntity, string>> keySelector = null;
             Assert.Throws<ArgumentNullException>(() => table.ThenByDescending(keySelector));
         }
@@ -2141,7 +2070,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ThenByDescending_UpdatesQuery()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.ThenByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
             Assert.IsAssignableFrom<MethodCallExpression>(query.Query.Expression);
@@ -2155,7 +2084,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_ThenByDescending_IsWellFormed()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.ThenByDescending(m => m.Id) as DatasyncTableQuery<IdEntity>;
             var odata = query.ToODataQueryString();
@@ -2168,7 +2097,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_ThenByDescending_ThrowsNotSupported()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.ThenByDescending(m => m.Id.ToLower()) as DatasyncTableQuery<IdEntity>;
             Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
@@ -2179,7 +2108,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Where_Null_Throws()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
             Expression<Func<IdEntity, bool>> predicate = null;
             Assert.Throws<ArgumentNullException>(() => table.Where(predicate));
         }
@@ -2189,7 +2118,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void Where_UpdatesQuery()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.Where(m => m.Id.Contains("foo")) as DatasyncTableQuery<IdEntity>;
             Assert.IsAssignableFrom<MethodCallExpression>(query.Query.Expression);
@@ -2203,7 +2132,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_Where_IsWellFormed()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.Where(m => m.Id == "foo") as DatasyncTableQuery<IdEntity>;
             var odata = query.ToODataQueryString();
@@ -2216,7 +2145,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_Where_ThrowsNotSupported()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.ThenByDescending(m => m.Id.Normalize() == "foo") as DatasyncTableQuery<IdEntity>;
             Assert.Throws<NotSupportedException>(() => query.ToODataQueryString());
@@ -2229,7 +2158,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameter_Null_Throws(string key, string value)
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             Assert.Throws<ArgumentNullException>(() => table.WithParameter(key, value));
         }
@@ -2249,7 +2178,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameter_Illegal_Throws(string key, string value)
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             Assert.Throws<ArgumentException>(() => table.WithParameter(key, value));
         }
@@ -2259,7 +2188,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameter_SetsParameter()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.WithParameter("testkey", "testvalue") as DatasyncTableQuery<IdEntity>;
             AssertEx.Contains("testkey", "testvalue", query.QueryParameters);
@@ -2270,7 +2199,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameter_Overwrites()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.WithParameter("testkey", "testvalue");
             var actual = query.WithParameter("testkey", "replacement") as DatasyncTableQuery<IdEntity>;
@@ -2283,7 +2212,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_WithParameter_isWellFormed()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.WithParameter("testkey", "testvalue") as DatasyncTableQuery<IdEntity>;
             var odata = query.ToODataQueryString();
@@ -2296,7 +2225,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void ToODataQueryString_WithParameter_EncodesValue()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.WithParameter("testkey", "test value") as DatasyncTableQuery<IdEntity>;
             var odata = query.ToODataQueryString();
@@ -2308,7 +2237,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameters_Null_Throws()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             Assert.Throws<ArgumentNullException>(() => table.WithParameters(null));
         }
@@ -2318,7 +2247,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameters_Empty_Throws()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
             var sut = new Dictionary<string, string>();
             Assert.Throws<ArgumentException>(() => table.WithParameters(sut));
         }
@@ -2334,7 +2263,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             };
 
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.WithParameters(sut) as DatasyncTableQuery<IdEntity>;
             AssertEx.Contains("key1", "value1", query.QueryParameters);
@@ -2346,7 +2275,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameters_MergesParams()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.WithParameter("key1", "value1");
             var sut = new Dictionary<string, string>()
@@ -2367,7 +2296,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public void WithParameters_CannotSetIllegalParams(string key)
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var sut = new Dictionary<string, string>()
             {
@@ -2389,7 +2318,7 @@ namespace Microsoft.Datasync.Client.Test.Table
                 {  "key2", "value 2" }
             };
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
+            var table = client.GetRemoteTable<IdEntity>();
 
             var query = table.WithParameters(pairs) as DatasyncTableQuery<IdEntity>;
             var odata = query.ToODataQueryString();

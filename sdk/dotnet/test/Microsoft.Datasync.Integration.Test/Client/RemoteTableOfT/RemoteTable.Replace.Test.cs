@@ -5,33 +5,56 @@ using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.Datasync.Client;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Integration.Test.Client
+namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     [Collection("Integration")]
-    public class DatasyncTable_Replace_Tests : BaseTest
+    public class RemoteTable_Replace_Tests : BaseTest
     {
+        private readonly DatasyncClient client;
+        private readonly IRemoteTable<ClientMovie> table;
+        private readonly List<TableModifiedEventArgs> modifications = new();
+
+        public RemoteTable_Replace_Tests()
+        {
+            client = GetMovieClient();
+            table = client.GetRemoteTable<ClientMovie>("movies");
+            table.TableModified += (_, e) => modifications.Add(e);
+        }
+
+        #region Helpers
+        /// <summary>
+        /// Checks that the TableModified event handler was fired and it has the correct
+        /// information in it.
+        /// </summary>
+        /// <param name="item">The expected insertion.</param>
+        private void AssertEventHandlerCalled(ClientMovie item)
+        {
+            Assert.Single(modifications);
+            Assert.Equal(TableModifiedEventArgs.TableOperation.Replace, modifications[0].Operation);
+            Assert.Equal(new Uri(Endpoint, "tables/movies"), modifications[0].TableEndpoint);
+            Assert.Equal(item.Id, modifications[0].Id);
+            Assert.IsAssignableFrom<ClientMovie>(modifications[0].Entity);
+            Assert.Equal<IMovie>(item, (ClientMovie)modifications[0].Entity);
+        }
+        #endregion
+
         [Fact]
         [Trait("Method", "ReplaceItemAsync")]
         public async Task ReplaceItemAsync_Basic()
         {
             // Arrange
-            var client = GetMovieClient();
             var id = GetRandomId();
             var original = MovieServer.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
-
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("movies");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
 
             // Act
             var response = await table.ReplaceItemAsync(expected).ConfigureAwait(false);
@@ -43,13 +66,7 @@ namespace Microsoft.Datasync.Integration.Test.Client
             AssertEx.SystemPropertiesChanged(original, stored);
             AssertEx.SystemPropertiesMatch(stored, response.Value);
             AssertEx.Contains("ETag", $"\"{response.Value.Version}\"", response.Headers);
-
-            Assert.Single(modifications);
-            var modArg = modifications[0];
-            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
-            Assert.Equal(Microsoft.Datasync.Client.TableOperation.Update, modArg.Operation);
-            Assert.Equal(response.Value.Id, modArg.Id);
-            Assert.Equal<IMovie>(response.Value, (IMovie)modArg.Entity);
+            AssertEventHandlerCalled(response.Value);
         }
 
         [Theory]
@@ -65,7 +82,6 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task ReplaceItemAsync_Validation(string propName, object propValue)
         {
             // Arrange
-            var client = GetMovieClient();
             var id = GetRandomId();
             var original = MovieServer.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
@@ -78,11 +94,6 @@ namespace Microsoft.Datasync.Integration.Test.Client
                 case "title": entity.Title = (string)propValue; break;
                 case "year": entity.Year = (int)propValue; break;
             }
-
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("movies");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
 
             // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.ReplaceItemAsync(entity)).ConfigureAwait(false);
@@ -100,14 +111,8 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task ReplaceItemAsync_ThrowsWhenNotFound()
         {
             // Arrange
-            var client = GetMovieClient();
             var obj = GetSampleMovie<ClientMovie>();
             obj.Id = "not-found";
-
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("movies");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
 
             // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.ReplaceItemAsync(obj)).ConfigureAwait(false);
@@ -119,60 +124,18 @@ namespace Microsoft.Datasync.Integration.Test.Client
 
         [Fact]
         [Trait("Method", "ReplaceItemAsync")]
-        public async Task ReplaceItemAsync_ConditionalSuccess()
-        {
-            // Arrange
-            var client = GetMovieClient();
-            var id = GetRandomId();
-            var original = MovieServer.GetMovieById(id);
-            var expected = ClientMovie.From(original);
-            expected.Title = "Replacement Title";
-            expected.Rating = "PG-13";
-
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("movies");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
-
-            // Act
-            var response = await table.ReplaceItemAsync(expected, IfMatch.Version(expected.Version)).ConfigureAwait(false);
-            var stored = MovieServer.GetMovieById(id);
-
-            // Assert
-            Assert.Equal(200, response.StatusCode);
-            Assert.Equal<IMovie>(expected, stored);
-            AssertEx.SystemPropertiesChanged(original, stored);
-            AssertEx.SystemPropertiesMatch(stored, response.Value);
-            AssertEx.Contains("ETag", $"\"{response.Value.Version}\"", response.Headers);
-
-            Assert.Single(modifications);
-            var modArg = modifications[0];
-            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
-            Assert.Equal(Microsoft.Datasync.Client.TableOperation.Update, modArg.Operation);
-            Assert.Equal(response.Value.Id, modArg.Id);
-            Assert.Equal<IMovie>(response.Value, (IMovie)modArg.Entity);
-        }
-
-        [Fact]
-        [Trait("Method", "ReplaceItemAsync")]
         public async Task ReplaceItemAsync_ConditionalFailure()
         {
             // Arrange
-            var client = GetMovieClient();
             var id = GetRandomId();
             var original = MovieServer.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
-            const string etag = "dGVzdA==";
-
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("movies");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
+            expected.Version = "dGVzdA==";
 
             // Act
-            var exception = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.ReplaceItemAsync(expected, IfMatch.Version(etag))).ConfigureAwait(false);
+            var exception = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.ReplaceItemAsync(expected)).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(exception.Request);
@@ -195,17 +158,14 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task ReplaceItemAsync_SoftNotDeleted()
         {
             // Arrange
-            var client = GetMovieClient();
+            var table = client.GetRemoteTable<ClientMovie>("soft");
+            table.TableModified += (_, e) => modifications.Add(e);
+
             var id = GetRandomId();
             var original = MovieServer.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
-
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("soft");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
 
             // Act
             var response = await table.ReplaceItemAsync(expected).ConfigureAwait(false);
@@ -217,13 +177,7 @@ namespace Microsoft.Datasync.Integration.Test.Client
             AssertEx.SystemPropertiesChanged(original, stored);
             AssertEx.SystemPropertiesMatch(stored, response.Value);
             AssertEx.Contains("ETag", $"\"{response.Value.Version}\"", response.Headers);
-
-            Assert.Single(modifications);
-            var modArg = modifications[0];
-            Assert.Equal(table.Endpoint, modArg.TableEndpoint);
-            Assert.Equal(Microsoft.Datasync.Client.TableOperation.Update, modArg.Operation);
-            Assert.Equal(response.Value.Id, modArg.Id);
-            Assert.Equal<IMovie>(response.Value, (IMovie)modArg.Entity);
+            AssertEventHandlerCalled(response.Value);
         }
 
         [Fact]
@@ -231,18 +185,15 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task ReplaceItemAsync_SoftDeleted_ReturnsGone()
         {
             // Arrange
-            var client = GetMovieClient();
+            var table = client.GetRemoteTable<ClientMovie>("soft");
+            table.TableModified += (_, e) => modifications.Add(e);
+
             var id = GetRandomId();
             await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
             var original = MovieServer.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
-
-            // Set up event handler
-            var table = client.GetTable<ClientMovie>("soft");
-            var modifications = new List<DatasyncTableEventArgs>();
-            table.TableModified += (_, args) => modifications.Add(args);
 
             // Act
             var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.ReplaceItemAsync(expected)).ConfigureAwait(false);

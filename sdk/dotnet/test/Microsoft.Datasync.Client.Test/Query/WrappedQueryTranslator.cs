@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Table;
-using Microsoft.Datasync.Client.Table.Query;
+using Microsoft.Datasync.Client.Query;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace Microsoft.Datasync.Client.Test.Table.Query
+namespace Microsoft.Datasync.Client.Test.Query
 {
     /// <summary>
     /// A wrapped version of <see cref="QueryTranslator{T}"/> that exposes all
@@ -16,7 +15,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Query
     [ExcludeFromCodeCoverage]
     internal class TestQueryTranslator<T> : QueryTranslator<T>
     {
-        internal TestQueryTranslator(DatasyncTableQuery<T> query, DatasyncClientOptions options) : base(query, options)
+        internal TestQueryTranslator(TableQuery<T> query, DatasyncClientOptions options) : base(query, options)
         {
         }
 

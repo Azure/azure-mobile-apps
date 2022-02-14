@@ -3,14 +3,14 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
-using Microsoft.Datasync.Client.Table.Query;
+using Microsoft.Datasync.Client.Query.Visitor;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Text.Json;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Table.Query
+namespace Microsoft.Datasync.Client.Test.Query
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class FilterBuildingExpressionVisitor_Tests : BaseTest

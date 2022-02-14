@@ -3,14 +3,13 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
-using Microsoft.Datasync.Client.Table;
-using Microsoft.Datasync.Client.Table.Query;
+using Microsoft.Datasync.Client.Query;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Table.Query
+namespace Microsoft.Datasync.Client.Test.Query
 {
     /// <summary>
     /// Tests for some corner cases that *SHOULD* never happen
@@ -23,8 +22,8 @@ namespace Microsoft.Datasync.Client.Test.Table.Query
         public void AddFilter_Null_Throws()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            var table = client.GetRemoteTable<IdEntity>();
+            var query = new TableQuery<IdEntity>(table);
             var translator = new TestQueryTranslator<IdEntity>(query, new DatasyncClientOptions());
             Assert.Throws<NotSupportedException>(() => translator.AddFilter(null));
         }
@@ -34,8 +33,8 @@ namespace Microsoft.Datasync.Client.Test.Table.Query
         public void AddOrdering_Null_Throws()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            var table = client.GetRemoteTable<IdEntity>();
+            var query = new TableQuery<IdEntity>(table);
             var translator = new TestQueryTranslator<IdEntity>(query, new DatasyncClientOptions());
             Assert.Throws<NotSupportedException>(() => translator.AddOrdering(null));
         }
@@ -45,8 +44,8 @@ namespace Microsoft.Datasync.Client.Test.Table.Query
         public void AddOrderByNode_Null_Returns()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            var table = client.GetRemoteTable<IdEntity>();
+            var query = new TableQuery<IdEntity>(table);
             var translator = new TestQueryTranslator<IdEntity>(query, new DatasyncClientOptions());
             translator.AddOrderByNode(null);
             Assert.Equal(0, translator.CountOrderings());
@@ -57,8 +56,8 @@ namespace Microsoft.Datasync.Client.Test.Table.Query
         public void AddProjection_Null_Throws()
         {
             var client = GetMockClient();
-            var table = client.GetTable<IdEntity>();
-            var query = new DatasyncTableQuery<IdEntity>(table);
+            var table = client.GetRemoteTable<IdEntity>();
+            var query = new TableQuery<IdEntity>(table);
             var translator = new TestQueryTranslator<IdEntity>(query, new DatasyncClientOptions());
             Assert.Throws<NotSupportedException>(() => translator.AddProjection(null));
         }

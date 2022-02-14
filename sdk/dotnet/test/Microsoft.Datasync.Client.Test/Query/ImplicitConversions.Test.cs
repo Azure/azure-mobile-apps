@@ -1,16 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Table.Query.Tables;
+using Microsoft.Datasync.Client.Query.Tables;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Table.Query.Tables
+namespace Microsoft.Datasync.Client.Test.Query
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class ImplicitConversions_Tests
@@ -33,7 +30,6 @@ namespace Microsoft.Datasync.Client.Test.Table.Query.Tables
 
         [Fact]
         [Trait("Method", "Unwrap")]
-        [SuppressMessage("Simplification", "RCS1020:Simplify Nullable<T> to T?.", Justification = "Part of test")]
         public void Unwrap_UnwrapsNullableDate()
         {
             // Arrange

@@ -1204,7 +1204,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task UpdateItemAsync_ThrowsOnEmptyUpdates()
         {
             var client = GetMockClient();
-            var table = client.GetTable<ClientMovie>("movies");
+            var table = client.GetRemoteTable<ClientMovie>("movies");
             var updates = new Dictionary<string, object>();
             await Assert.ThrowsAsync<ArgumentException>(() => table.UpdateItemAsync(sId, updates)).ConfigureAwait(false);
         }

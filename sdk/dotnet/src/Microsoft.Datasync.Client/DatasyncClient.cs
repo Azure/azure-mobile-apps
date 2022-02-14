@@ -154,8 +154,8 @@ namespace Microsoft.Datasync.Client
         /// </summary>
         /// <typeparam name="T">The strongly-typed model type</typeparam>
         /// <returns>A generic typed table reference.</returns>
-        public IRemoteTable<T> GetTable<T>()
-            => GetTable<T>(ToRelativeUri(typeof(T).Name.ToLowerInvariant()));
+        public IRemoteTable<T> GetRemoteTable<T>()
+            => GetRemoteTable<T>(ToRelativeUri(typeof(T).Name.ToLowerInvariant()));
 
         /// <summary>
         /// Obtain an <see cref="IDatasyncTable{T}"/> instance, which provides typed data operations for the specified table.
@@ -167,7 +167,7 @@ namespace Microsoft.Datasync.Client
         /// <typeparam name="T">The strongly-typed model type.</typeparam>
         /// <param name="tableName">The name of the table, or relative URI to the table.</param>
         /// <returns>A generic typed table reference.</returns>
-        public IRemoteTable<T> GetTable<T>(string tableName)
+        public IRemoteTable<T> GetRemoteTable<T>(string tableName)
         {
             string relativeUri = tableName.StartsWith("/") ? tableName : ToRelativeUri(tableName);
             Validate.IsRelativeUri(relativeUri, nameof(relativeUri));

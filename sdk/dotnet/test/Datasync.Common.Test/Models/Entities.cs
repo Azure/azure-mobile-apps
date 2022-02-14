@@ -34,14 +34,6 @@ namespace Datasync.Common.Test.Models
     }
 
     [ExcludeFromCodeCoverage]
-    public class KeyEntity
-    {
-        [Id]
-        public string KeyId { get; set; }
-        public string KeyVersion { get; set; }
-    }
-
-    [ExcludeFromCodeCoverage]
     public class NoIdEntity
     {
         public string StringValue { get; set; }

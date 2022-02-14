@@ -19,20 +19,26 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Integration.Test.Client
-
+namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     [Collection("Integration")]
-    public class DatasyncTable_GetItems_Test : BaseTest
+    public class RemoteTable_GetItems_Tests : BaseTest
     {
+        private readonly DatasyncClient client;
+        private readonly RemoteTable<ClientMovie> table;
+
+        public RemoteTable_GetItems_Tests()
+        {
+            client = GetMovieClient();
+            table = (RemoteTable<ClientMovie>)client.GetRemoteTable<ClientMovie>("movies");
+        }
+
         [Fact]
         [Trait("Method", "GetAsyncItems")]
         public async Task GetAsyncItems_RetrievesItems()
         {
             // Arrange
-            var client = GetMovieClient();
-            var table = client.GetTable<ClientMovie>("movies");
             int count = 0;
 
             var pageable = table.GetAsyncItems<ClientMovie>("$count=true");
@@ -62,8 +68,6 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task GetAsyncItems_AsPages_RetrievesItems()
         {
             // Arrange
-            var client = GetMovieClient();
-            var table = client.GetTable<ClientMovie>("movies");
             int itemCount = 0, pageCount = 0;
 
             var pageable = table.GetAsyncItems<ClientMovie>().AsPages();
@@ -97,11 +101,9 @@ namespace Microsoft.Datasync.Integration.Test.Client
             var segments = testcase.PathAndQuery.Split('?');
             var tableName = segments[0].Split('/').Last();
             var query = segments.Length > 1 ? segments[1] : string.Empty;
-            var client = GetMovieClient();
-            var table = (DatasyncTable<ClientMovie>)client.GetTable<ClientMovie>(tableName)!;
 
             // Act
-            var response = await table.GetPageOfItemsAsync<ClientMovie>(query).ConfigureAwait(false);
+            var response = await table.GetNextPageAsync<ClientMovie>(query).ConfigureAwait(false);
             var result = response.Value;
             var items = result.Items.ToArray();
 
@@ -153,10 +155,10 @@ namespace Microsoft.Datasync.Integration.Test.Client
             AuthenticationProvider authProvider = new TestAuthenticationProvider(authToken);
 
             var client = GetMovieClient(authProvider);
-            var table = (DatasyncTable<ClientMovie>)client.GetTable<ClientMovie>(tableName)!;
+            var table = (RemoteTable<ClientMovie>)client.GetRemoteTable<ClientMovie>(tableName);
 
             // Act
-            var response = await table.GetPageOfItemsAsync<ClientMovie>(query).ConfigureAwait(false);
+            var response = await table.GetNextPageAsync<ClientMovie>(query).ConfigureAwait(false);
             var result = response.Value;
             var items = result.Items.ToArray();
 
@@ -193,9 +195,6 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task GetPageOfItemsAsync_Select(bool sId, bool sUpdatedAt, bool sVersion, bool sDeleted, bool sBPW, bool sduration, bool srating, bool sreleaseDate, bool stitle, bool syear)
         {
             // Arrange
-            var client = GetMovieClient();
-            var table = (DatasyncTable<ClientMovie>)client.GetTable<ClientMovie>("movies")!;
-
             List<string> selection = new();
             if (sId) selection.Add("id");
             if (sUpdatedAt) selection.Add("updatedAt");
@@ -211,7 +210,7 @@ namespace Microsoft.Datasync.Integration.Test.Client
             var query = $"$top=5&$skip=5&$select={string.Join(',', selection)}";
 
             // Act
-            var response = await table.GetPageOfItemsAsync<Dictionary<string, object>>(query).ConfigureAwait(false);
+            var response = await table.GetNextPageAsync<Dictionary<string, object>>(query).ConfigureAwait(false);
             var result = response.Value;
             var items = result.Items.ToArray();
 
@@ -255,13 +254,12 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task GetPageOfItemsAsync_FailedQuery(string pathAndQuery, HttpStatusCode expectedStatusCode)
         {
             // Arrange
-            var client = GetMovieClient();
             var segments = pathAndQuery.Split('?');
             var tableName = segments[0].Split('/')[1];
             var query = segments.Length > 1 ? segments[1] : string.Empty;
-            var table = (DatasyncTable<ClientMovie>)client.GetTable<ClientMovie>(tableName)!;
+            var table = (RemoteTable<ClientMovie>)client.GetRemoteTable<ClientMovie>(tableName)!;
 
-            var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.GetPageOfItemsAsync<ClientMovie>(query)).ConfigureAwait(false);
+            var exception = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.GetNextPageAsync<ClientMovie>(query)).ConfigureAwait(false);
 
             Assert.Equal(expectedStatusCode, exception.Response.StatusCode);
         }
@@ -281,11 +279,10 @@ namespace Microsoft.Datasync.Integration.Test.Client
             var segments = pathAndQuery.Split('?');
             var tableName = segments[0].Split('/')[1];
             string query = segments[1];
-            var client = GetMovieClient();
-            var table = (DatasyncTable<ClientMovie>)client.GetTable<ClientMovie>(tableName)!;
+            var table = (RemoteTable<ClientMovie>)client.GetRemoteTable<ClientMovie>(tableName)!;
 
             // Act
-            var response = await table.GetPageOfItemsAsync<ClientMovie>(query).ConfigureAwait(false);
+            var response = await table.GetNextPageAsync<ClientMovie>(query).ConfigureAwait(false);
             var result = response.Value;
             var items = result.Items.ToArray();
 
@@ -322,12 +319,9 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task ToAsyncEnumerable_RetrievesItems()
         {
             // Arrange
-            var client = GetMovieClient();
-            var table = client.GetTable<ClientMovie>("movies");
             int count = 0;
 
             var result = table.ToAsyncEnumerable();
-
             var enumerator = result.GetAsyncEnumerator();
             while (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
@@ -349,8 +343,6 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task ToAsyncPageable_RetrievesItems()
         {
             // Arrange
-            var client = GetMovieClient();
-            var table = client.GetTable<ClientMovie>("movies");
             int count = 0;
 
             var pageable = table.ToAsyncPageable();
@@ -380,8 +372,6 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task ToAsyncPageable_AsPages_RetrievesItems()
         {
             // Arrange
-            var client = GetMovieClient();
-            var table = client.GetTable<ClientMovie>("movies");
             int itemCount = 0, pageCount = 0;
 
             var pageable = table.ToAsyncPageable().AsPages();
@@ -412,8 +402,6 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task ToLazyObservableCollection_LoadsData()
         {
             // Arrange
-            var client = GetMovieClient();
-            var table = client.GetTable<ClientMovie>("movies");
             int loops = 0;
             const int maxLoops = (Movies.Count / 20) + 1;
 
@@ -436,8 +424,6 @@ namespace Microsoft.Datasync.Integration.Test.Client
         public async Task ToLazyObservableCollection_WtithPageCount_LoadsData()
         {
             // Arrange
-            var client = GetMovieClient();
-            var table = client.GetTable<ClientMovie>("movies");
             int loops = 0;
             const int maxLoops = (Movies.Count / 50) + 1;
 

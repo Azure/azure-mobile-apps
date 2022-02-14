@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Table.Query;
-using Microsoft.Datasync.Client.Table.Query.Nodes;
+using Microsoft.Datasync.Client.Query;
+using Microsoft.Datasync.Client.Query.Nodes;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Table.Query
+namespace Microsoft.Datasync.Client.Test.Query
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class TableLookups_Tests
