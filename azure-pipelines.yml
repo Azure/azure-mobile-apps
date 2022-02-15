@@ -6,8 +6,7 @@ pr:
   - main
 
 pool:
-  name: 'AzurePipelines-EO'
-  vmImage: 'AzurePipelinesWindows2022compliant'
+  name: 'MAUI-DevDiv'
 
 variables:
   buildConfiguration: 'Release'
