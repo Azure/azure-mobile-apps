@@ -6,7 +6,7 @@ pr:
   - main
 
 pool:
-  name: 'MAUI-DevDiv'
+  name: 'VSEngSS-MicroBuild2022-1ES'
 
 variables:
   buildConfiguration: 'Release'
