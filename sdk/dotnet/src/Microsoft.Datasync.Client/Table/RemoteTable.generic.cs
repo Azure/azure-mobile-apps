@@ -72,6 +72,7 @@ namespace Microsoft.Datasync.Client.Table
             {
                 throw new ArgumentException("Item does not have an ID field", nameof(item));
             }
+            Validate.IsValidId(systemProperties.Id, nameof(item));
             var precondition = systemProperties.Version == null ? null : IfMatch.Version(systemProperties.Version);
             var request = new HttpRequestMessage(HttpMethod.Delete, new Uri(Endpoint, systemProperties.Id))
                 .WithFeatureHeader(Features)
@@ -135,9 +136,14 @@ namespace Microsoft.Datasync.Client.Table
                 response.Dispose();
                 return result;
             }
+            else if (response.StatusCode == HttpStatusCode.NotModified)
+            {
+                throw new EntityNotModifiedException(request, response);
+            }
             else
             {
-                throw await ThrowResponseException(request, response, cancellationToken).ConfigureAwait(false);
+                var content = response.Content != null ? await response.Content.ReadAsStringAsync().ConfigureAwait(false) : null;
+                throw new DatasyncOperationException(request, response, content);
             }
         }
 
@@ -184,6 +190,7 @@ namespace Microsoft.Datasync.Client.Table
             {
                 throw new ArgumentException("Item does not have an ID field", nameof(item));
             }
+            Validate.IsValidId(systemProperties.Id, nameof(item));
             var precondition = systemProperties.Version == null ? null : IfMatch.Version(systemProperties.Version);
             var request = new HttpRequestMessage(HttpMethod.Get, new Uri(Endpoint, systemProperties.Id))
                 .WithFeatureHeader(Features)
@@ -223,6 +230,7 @@ namespace Microsoft.Datasync.Client.Table
             {
                 throw new ArgumentException("Item does not have an ID field", nameof(item));
             }
+            Validate.IsValidId(systemProperties.Id, nameof(item));
             var precondition = systemProperties.Version == null ? null : IfMatch.Version(systemProperties.Version);
             var request = new HttpRequestMessage(HttpMethod.Put, new Uri(Endpoint, systemProperties.Id))
                 .WithFeatureHeader(Features)

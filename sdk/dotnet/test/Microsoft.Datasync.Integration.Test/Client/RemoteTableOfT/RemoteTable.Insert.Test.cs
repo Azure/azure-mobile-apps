@@ -34,11 +34,11 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
         /// information in it.
         /// </summary>
         /// <param name="item">The expected insertion.</param>
-        private void AssertEventHandlerCalled(ClientMovie item)
+        private void AssertEventHandlerCalled(ClientMovie item, string relativeUri = "tables/movies/")
         {
             Assert.Single(modifications);
             Assert.Equal(TableModifiedEventArgs.TableOperation.Create, modifications[0].Operation);
-            Assert.Equal(new Uri(Endpoint, "tables/movies"), modifications[0].TableEndpoint);
+            Assert.Equal(new Uri(Endpoint, relativeUri), modifications[0].TableEndpoint);
             Assert.Equal(item.Id, modifications[0].Id);
             Assert.IsAssignableFrom<ClientMovie>(modifications[0].Entity);
             Assert.Equal<IMovie>(item, (ClientMovie)modifications[0].Entity);

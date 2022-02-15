@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Reflection;
 using System.Text.Json.Serialization;
@@ -16,10 +15,13 @@ namespace Microsoft.Datasync.Client.Serialization
         private const string versionPropertyName = "Version";
         private const string updatedAtPropertyName = "UpdatedAt";
 
-        public static void GetSystemProperties<T>(T item, out DatasyncClientData systemProperties)
+        public static void GetSystemProperties<T>(T? item, out DatasyncClientData systemProperties)
         {
-            Validate.IsNotNull(item, nameof(item));
             systemProperties = new SystemProperties();
+            if (item == null)
+            {
+                return; // Early return when the item is null.
+            }
 
             // We look for things in reverse order, so the most significant type is last in the list.
             // Least Priority: Specific names of the properties.

@@ -265,9 +265,9 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
         }
 
         [Theory]
-        [InlineData("tables/soft?$count=true", 100, "tables/soft?$count=true&$skip=100", 154, new[] { "id-004", "id-005", "id-006", "id-008", "id-010" })]
+        [InlineData("tables/soft?$count=true", 100, "tables/soft?$count=true&$skip=100", 153, new[] { "id-004", "id-005", "id-006", "id-008", "id-010" })]
         [InlineData("tables/soft?$filter=deleted eq false&__includedeleted=true", 100, "tables/soft?$filter=deleted eq false&__includedeleted=true&$skip=100", 0, new[] { "id-004", "id-005", "id-006", "id-008", "id-010" })]
-        [InlineData("tables/soft?$filter=deleted eq true&__includedeleted=true", 94, null, 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-007" })]
+        [InlineData("tables/soft?$filter=deleted eq true&__includedeleted=true", 95, null, 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-007" })]
         [InlineData("tables/soft?__includedeleted=true", 100, "tables/soft?__includedeleted=true&$skip=100", 0, new[] { "id-000", "id-001", "id-002", "id-003", "id-004", "id-005" })]
         [Trait("Method", "GetPageOfItemsAsync")]
         public async Task GetPageOfItemsAsync_SoftDeleteQuery(string pathAndQuery, int expectedItemCount, string expectedNextLinkQuery, long expectedTotalCount, string[] firstExpectedItems)

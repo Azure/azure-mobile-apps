@@ -33,11 +33,11 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
         /// Assert that the event handler was called with the correct values.
         /// </summary>
         /// <param name="id"></param>
-        private void AssertEventHandlerCalled(string id)
+        private void AssertEventHandlerCalled(string id, string relativeUri = "tables/movies/")
         {
             Assert.Single(modifications);
             Assert.Equal(TableModifiedEventArgs.TableOperation.Delete, modifications[0].Operation);
-            Assert.Equal(new Uri(Endpoint, "tables/movies"), modifications[0].TableEndpoint);
+            Assert.Equal(new Uri(Endpoint, relativeUri), modifications[0].TableEndpoint);
             Assert.Equal(id, modifications[0].Id);
         }
         #endregion
@@ -136,7 +136,6 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
             var id = GetRandomId();
             var item = ClientMovie.From(MovieServer.GetMovieById(id));
 
-
             // Act
             var response = await table.DeleteItemAsync(item).ConfigureAwait(false);
 
@@ -145,7 +144,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
             Assert.Equal(MovieCount, MovieServer.GetMovieCount());
             var entity = MovieServer.GetMovieById(id)!;
             Assert.True(entity.Deleted);
-            AssertEventHandlerCalled(id);
+            AssertEventHandlerCalled(id, "tables/soft/");
         }
 
         [Fact]

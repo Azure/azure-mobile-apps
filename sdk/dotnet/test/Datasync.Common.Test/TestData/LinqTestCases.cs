@@ -20,14 +20,22 @@ namespace Datasync.Common.Test
     {
         internal LinqTestCase(string testCase, Func<ITableQuery<ClientMovie>, ITableQuery<ClientMovie>> linqExpression, string oDataString, int resultCount, string[] firstResults)
         {
-            Name = testCase;
+            ATestCaseName = testCase;
             LinqExpression = linqExpression;
             ODataString = oDataString;
             ResultCount = resultCount;
             FirstResults = firstResults.ToArray();
         }
 
-        public string Name { get; }
+        /// <summary>
+        /// This begins with A because then it's shown first in the XUnit output
+        /// </summary>
+        public string ATestCaseName { get; }
+
+        /// <summary>
+        /// This is used in reporting for the test case
+        /// </summary>
+        public string Name { get => ATestCaseName; }
 
         public Func<ITableQuery<ClientMovie>, ITableQuery<ClientMovie>> LinqExpression { get; }
 
@@ -85,7 +93,7 @@ namespace Datasync.Common.Test
 
             Add(new LinqTestCase("orderbydesc-1", m => m.OrderByDescending(x => x.BestPictureWinner), "$orderby=bestPictureWinner desc", Movies.Count, new string[] { "id-001", "id-002", "id-007", "id-008", "id-011" }));
             Add(new LinqTestCase("orderbydesc-2", m => m.OrderByDescending(x => x.Duration), "$orderby=duration desc", Movies.Count, new string[] { "id-153", "id-065", "id-165", "id-008", "id-002" }));
-            Add(new LinqTestCase("orderbydesc-3", m => m.OrderByDescending(x => x.Rating), "$orderby=rating desc", Movies.Count, new string[] { "id-197", "id-107", "id-115", "id-028", "id-039" }));
+            Add(new LinqTestCase("orderbydesc-3", m => m.OrderByDescending(x => x.Rating), "$orderby=rating desc", Movies.Count, new string[] { "id-000", "id-001", "id-002", "id-003", "id-007" }));
             Add(new LinqTestCase("orderbydesc-4", m => m.OrderByDescending(x => x.Title), "$orderby=title desc", Movies.Count, new string[] { "id-107", "id-100", "id-123", "id-190", "id-149" }));
             Add(new LinqTestCase("orderbydesc-5", m => m.OrderByDescending(x => x.ReleaseDate), "$orderby=releaseDate desc", Movies.Count, new string[] { "id-188", "id-033", "id-122", "id-186", "id-064" }));
 
@@ -97,14 +105,14 @@ namespace Datasync.Common.Test
 
             Add(new LinqTestCase("thenbydesc-1", m => m.ThenByDescending(x => x.BestPictureWinner), "$orderby=bestPictureWinner desc", Movies.Count, new string[] { "id-001", "id-002", "id-007", "id-008", "id-011" }));
             Add(new LinqTestCase("thenbydesc-2", m => m.ThenByDescending(x => x.Duration), "$orderby=duration desc", Movies.Count, new string[] { "id-153", "id-065", "id-165", "id-008", "id-002" }));
-            Add(new LinqTestCase("thenbydesc-3", m => m.ThenByDescending(x => x.Rating), "$orderby=rating desc", Movies.Count, new string[] { "id-197", "id-107", "id-115", "id-028", "id-039" }));
+            Add(new LinqTestCase("thenbydesc-3", m => m.ThenByDescending(x => x.Rating), "$orderby=rating desc", Movies.Count, new string[] { "id-000", "id-001", "id-002", "id-003", "id-007" }));
             Add(new LinqTestCase("thenbydesc-4", m => m.ThenByDescending(x => x.Title), "$orderby=title desc", Movies.Count, new string[] { "id-107", "id-100", "id-123", "id-190", "id-149" }));
             Add(new LinqTestCase("thenbydesc-5", m => m.ThenByDescending(x => x.ReleaseDate), "$orderby=releaseDate desc", Movies.Count, new string[] { "id-188", "id-033", "id-122", "id-186", "id-064" }));
 
             Add(new LinqTestCase("ordering-1", m => m.OrderBy(x => x.Year).ThenBy(x => x.Rating), "$orderby=year,rating", Movies.Count, new string[] { "id-125", "id-229", "id-133", "id-227", "id-118" }));
             Add(new LinqTestCase("ordering-2", m => m.OrderBy(x => x.Year).ThenByDescending(x => x.Title), "$orderby=year,title desc", Movies.Count, new string[] { "id-125", "id-229", "id-133", "id-227", "id-118" }));
             Add(new LinqTestCase("ordering-3", m => m.OrderByDescending(x => x.Year).ThenBy(x => x.Rating), "$orderby=year desc,rating", Movies.Count, new string[] { "id-033", "id-122", "id-188", "id-102", "id-149" }));
-            Add(new LinqTestCase("ordering-4", m => m.OrderByDescending(x => x.Rating).ThenByDescending(x => x.Title), "$orderby=rating desc,title desc", Movies.Count, new string[] { "id-197", "id-107", "id-115", "id-028", "id-148" }));
+            Add(new LinqTestCase("ordering-4", m => m.OrderByDescending(x => x.Rating).ThenByDescending(x => x.Title), "$orderby=rating desc,title desc", Movies.Count, new string[] { "id-107", "id-160", "id-092", "id-176", "id-147" }));
             Add(new LinqTestCase("ordering-5", m => m.OrderBy(x => x.UpdatedAt), "$orderby=updatedAt", Movies.Count, new string[] { "id-000", "id-001", "id-002", "id-003", "id-004" }));
 
             Add(new LinqTestCase("skip-1", m => m.Skip(100), "$skip=100", Movies.Count - 100, new string[] { "id-100", "id-101", "id-102", "id-103", "id-104" }));
@@ -187,12 +195,12 @@ namespace Datasync.Common.Test
             Add(new LinqTestCase("where-090", m => m.Where(x => x.Title.EndsWith("er")), "$filter=endswith(title,'er')", 12, new string[] { "id-001", "id-052", "id-121", "id-130", "id-164" }));
             Add(new LinqTestCase("where-091", m => m.Where(x => x.Title.ToLower().EndsWith("er")), "$filter=endswith(tolower(title),'er')", 12, new string[] { "id-001", "id-052", "id-121", "id-130", "id-164" }));
             Add(new LinqTestCase("where-092", m => m.Where(x => x.Title.ToUpper().EndsWith("ER")), "$filter=endswith(toupper(title),'ER')", 12, new string[] { "id-001", "id-052", "id-121", "id-130", "id-164" }));
-            Add(new LinqTestCase("where-093", m => m.Where(x => x.Rating.StartsWith("PG")), "$filter=startswith(rating,'PG')", 64, new string[] { "id-006", "id-008", "id-010", "id-012", "id-013" }));
-            Add(new LinqTestCase("where-094", m => m.Where(x => x.Rating.ToLower().StartsWith("pg")), "$filter=startswith(tolower(rating),'pg')", 64, new string[] { "id-006", "id-008", "id-010", "id-012", "id-013" }));
-            Add(new LinqTestCase("where-095", m => m.Where(x => x.Rating.ToUpper().StartsWith("PG")), "$filter=startswith(toupper(rating),'PG')", 64, new string[] { "id-006", "id-008", "id-010", "id-012", "id-013" }));
-            Add(new LinqTestCase("where-096", m => m.Where(x => x.Rating.IndexOf('-') > 0), "$filter=(indexof(rating,'-') gt 0)", 35, new string[] { "id-006", "id-008", "id-012", "id-013", "id-018" }));
-            Add(new LinqTestCase("where-097", m => m.Where(x => x.Rating.Contains("PG")), "$filter=contains(rating,'PG')", 65, new string[] { "id-006", "id-008", "id-010", "id-012", "id-013" }));
-            Add(new LinqTestCase("where-098", m => m.Where(x => x.Rating.Substring(0, 2) == "PG"), "$filter=(substring(rating,0,2) eq 'PG')", 64, new string[] { "id-006", "id-008", "id-010", "id-012", "id-013" }));
+            Add(new LinqTestCase("where-093", m => m.Where(x => x.Rating.StartsWith("PG")), "$filter=startswith(rating,'PG')", 68, new string[] { "id-006", "id-008", "id-010", "id-012", "id-013" }));
+            Add(new LinqTestCase("where-094", m => m.Where(x => x.Rating.ToLower().StartsWith("pg")), "$filter=startswith(tolower(rating),'pg')", 68, new string[] { "id-006", "id-008", "id-010", "id-012", "id-013" }));
+            Add(new LinqTestCase("where-095", m => m.Where(x => x.Rating.ToUpper().StartsWith("PG")), "$filter=startswith(toupper(rating),'PG')", 68, new string[] { "id-006", "id-008", "id-010", "id-012", "id-013" }));
+            Add(new LinqTestCase("where-096", m => m.Where(x => x.Rating.IndexOf('-') > 0), "$filter=(indexof(rating,'-') gt 0)", 29, new string[] { "id-006", "id-008", "id-012", "id-013", "id-018" }));
+            Add(new LinqTestCase("where-097", m => m.Where(x => x.Rating.Contains("PG")), "$filter=contains(rating,'PG')", 68, new string[] { "id-006", "id-008", "id-010", "id-012", "id-013" }));
+            Add(new LinqTestCase("where-098", m => m.Where(x => x.Rating.Substring(0, 2) == "PG"), "$filter=(substring(rating,0,2) eq 'PG')", 68, new string[] { "id-006", "id-008", "id-010", "id-012", "id-013" }));
             Add(new LinqTestCase("where-099", m => m.Where(x => x.Title.Trim().Length > 10), "$filter=(length(trim(title)) gt 10)", 178, new string[] { "id-000", "id-001", "id-002", "id-003", "id-004" }));
             Add(new LinqTestCase("where-100", m => m.Where(x => (x.Title + x.Rating) == "Fight ClubR"), "$filter=(concat(title,rating) eq 'Fight ClubR')", 1, new string[] { "id-009" }));
 
