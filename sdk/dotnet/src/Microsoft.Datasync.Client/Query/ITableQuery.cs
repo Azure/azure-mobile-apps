@@ -15,28 +15,8 @@ namespace Microsoft.Datasync.Client.Query
     public interface ITableQuery<T> : ILinqMethods<T>
     {
         /// <summary>
-        /// The <see cref="IQueryable{T}"/> representing the underlying LINQ query.
-        /// </summary>
-        IQueryable<T> Query { get; }
-
-        /// <summary>
-        /// The additional query parameters to be sent.
-        /// </summary>
-        IDictionary<string, string> QueryParameters { get; }
-
-        /// <summary>
-        /// The $skip component of the query.
-        /// </summary>
-        int SkipCount { get; }
-
-        /// <summary>
         /// The table that is associated with this query.
         /// </summary>
         IRemoteTable<T> Table { get; }
-
-        /// <summary>
-        /// The $top component of the query.
-        /// </summary>
-        int TakeCount { get; }
     }
 }

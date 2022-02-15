@@ -11,7 +11,6 @@ namespace Microsoft.Datasync.Client
     /// <summary>
     /// Exception that provides additional details of an invalid operation specific to a datasync service.
     /// </summary>
-    [SuppressMessage("Design", "RCS1194:Implement exception constructors.", Justification = "Specialized Exception")]
     public class DatasyncOperationException : Exception
     {
         /// <summary>

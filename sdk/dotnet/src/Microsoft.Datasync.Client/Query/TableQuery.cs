@@ -69,17 +69,17 @@ namespace Microsoft.Datasync.Client.Query
         /// <summary>
         /// The <see cref="IQueryable{T}"/> representing the underlying LINQ query.
         /// </summary>
-        public IQueryable<T> Query { get; internal set; }
+        internal IQueryable<T> Query { get; set; }
 
         /// <summary>
         /// The additional query parameters to be sent.
         /// </summary>
-        public IDictionary<string, string> QueryParameters { get; }
+        internal IDictionary<string, string> QueryParameters { get; }
 
         /// <summary>
         /// The $skip component of the query.
         /// </summary>
-        public int SkipCount { get; internal set; } = 0;
+        internal int SkipCount { get; set; } = 0;
 
         /// <summary>
         /// The table that is associated with this query.
@@ -89,7 +89,7 @@ namespace Microsoft.Datasync.Client.Query
         /// <summary>
         /// The $top component of the query.
         /// </summary>
-        public int TakeCount { get; internal set; } = 0;
+        internal int TakeCount { get; set; } = 0;
 
         #region ILinqMethods<T>
         /// <summary>
@@ -207,9 +207,10 @@ namespace Microsoft.Datasync.Client.Query
         /// <summary>
         /// Execute the query, returning an <see cref="AsyncPageable{T}"/>
         /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>An <see cref="AsyncPageable{T}"/> to iterate over the items</returns>
-        public AsyncPageable<T> ToAsyncPageable(CancellationToken token = default)
-            => Table.GetAsyncItems<T>(ToQueryString(), token);
+        public AsyncPageable<T> ToAsyncPageable(CancellationToken cancellationToken = default)
+            => Table.GetAsyncItems<T>(ToQueryString(), cancellationToken);
 
         /// <summary>
         /// Applies the specified filter predicate to the source query.
