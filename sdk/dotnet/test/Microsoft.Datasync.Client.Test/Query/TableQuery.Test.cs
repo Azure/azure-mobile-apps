@@ -16,7 +16,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Table
+namespace Microsoft.Datasync.Client.Test.Query
 {
     [ExcludeFromCodeCoverage]
     public class TableQuery_Tests : BaseTest

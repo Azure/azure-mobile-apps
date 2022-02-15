@@ -67,191 +67,7 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.Throws<ArgumentNullException>(() => new RemoteTable<IdEntity>("tables/movies", client.HttpClient, null));
         }
 
-        [Fact]
-        [Trait("Method", "InsertItemAsync")]
-        public async Task InsertItemAsync_ThrowsOnNull()
-        {
-            var client = GetMockClient();
-            var table = client.GetRemoteTable<ClientMovie>("movies");
-            await Assert.ThrowsAsync<ArgumentNullException>(() => table.InsertItemAsync(null)).ConfigureAwait(false);
-        }
-
-        [Theory]
-        [InlineData(HttpStatusCode.OK)]
-        [InlineData(HttpStatusCode.Created)]
-        [Trait("Method", "InsertItemAsync")]
-        public async Task InsertItemAsync_Success_FormulatesCorrectRequest(HttpStatusCode statusCode)
-        {
-            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
-            MockHandler.AddResponse(statusCode, payload);
-            var client = GetMockClient();
-            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
-
-            var response = await sut.InsertItemAsync(payload).ConfigureAwait(false);
-
-            // Check Request
-            Assert.Single(MockHandler.Requests);
-            var request = MockHandler.Requests[0];
-            Assert.Equal(HttpMethod.Post, request.Method);
-            Assert.Equal(sEndpoint, request.RequestUri.ToString());
-            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            Assert.Equal(sJsonPayload, await request.Content.ReadAsStringAsync().ConfigureAwait(false));
-            Assert.Equal("application/json", request.Content.Headers.ContentType.MediaType);
-
-            // Check Response
-            Assert.Equal((int)statusCode, response.StatusCode);
-            Assert.True(response.IsSuccessStatusCode);
-            Assert.False(response.IsConflictStatusCode);
-            Assert.True(response.HasContent);
-            Assert.True(response.HasValue);
-            Assert.Equal("test", response.Value.StringValue);
-        }
-
-        [Theory]
-        [InlineData(HttpStatusCode.OK)]
-        [InlineData(HttpStatusCode.Created)]
-        [Trait("Method", "InsertItemAsync")]
-        public async Task InsertItemAsync_Success_FormulatesCorrectRequest_WithAuth(HttpStatusCode statusCode)
-        {
-            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
-            MockHandler.AddResponse(statusCode, payload);
-            var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
-
-            var response = await sut.InsertItemAsync(payload).ConfigureAwait(false);
-
-            // Check Request
-            Assert.Single(MockHandler.Requests);
-            var request = MockHandler.Requests[0];
-            Assert.Equal(HttpMethod.Post, request.Method);
-            Assert.Equal(sEndpoint, request.RequestUri.ToString());
-            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
-            Assert.Equal(sJsonPayload, await request.Content.ReadAsStringAsync().ConfigureAwait(false));
-            Assert.Equal("application/json", request.Content.Headers.ContentType.MediaType);
-
-            // Check Response
-            Assert.Equal((int)statusCode, response.StatusCode);
-            Assert.True(response.IsSuccessStatusCode);
-            Assert.False(response.IsConflictStatusCode);
-            Assert.True(response.HasContent);
-            Assert.True(response.HasValue);
-            Assert.Equal("test", response.Value.StringValue);
-        }
-
-        [Theory]
-        [InlineData(HttpStatusCode.OK)]
-        [InlineData(HttpStatusCode.Created)]
-        [Trait("Method", "InsertItemAsync")]
-        public async Task InsertItemAsync_SuccessNoContent(HttpStatusCode statusCode)
-        {
-            MockHandler.AddResponse(statusCode);
-            var client = GetMockClient();
-            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
-
-            var response = await sut.InsertItemAsync(payload).ConfigureAwait(false);
-            Assert.Equal((int)statusCode, response.StatusCode);
-            Assert.False(response.HasContent);
-            Assert.Empty(response.Content);
-            Assert.False(response.HasValue);
-            Assert.Null(response.Value);
-        }
-
-        [Theory]
-        [InlineData(HttpStatusCode.OK)]
-        [InlineData(HttpStatusCode.Created)]
-        [Trait("Method", "InsertItemAsync")]
-        public async Task InsertItemAsync_SuccessWithBadJson_Throws(HttpStatusCode statusCode)
-        {
-            var payload = new IdEntity() { Id = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f", StringValue = "test" };
-
-            var response = new HttpResponseMessage(statusCode)
-            {
-                Content = new StringContent(sBadJson, Encoding.UTF8, "application/json")
-            };
-            MockHandler.Responses.Add(response);
-            var client = GetMockClient();
-            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
-
-            await Assert.ThrowsAsync<JsonException>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
-        }
-
-        [Theory]
-        [InlineData(HttpStatusCode.Conflict)]
-        [InlineData(HttpStatusCode.PreconditionFailed)]
-        [Trait("Method", "InsertItemAsync")]
-        public async Task InsertItemAsync_Conflict_FormulatesCorrectResponse(HttpStatusCode statusCode)
-        {
-            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
-            MockHandler.AddResponse(statusCode, payload);
-            var client = GetMockClient();
-            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
-
-            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
-
-            // Check Request
-            Assert.Single(MockHandler.Requests);
-            var request = MockHandler.Requests[0];
-            Assert.Equal(HttpMethod.Post, request.Method);
-            Assert.Equal(sEndpoint, request.RequestUri.ToString());
-            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
-            Assert.Equal(sJsonPayload, request.Content.ReadAsStringAsync().Result);
-            AssertEx.Equals("application/json", request.Content.Headers.ContentType.MediaType);
-
-            // Check Response
-            Assert.Equal((int)statusCode, ex.StatusCode);
-            Assert.False(ex.Response.IsSuccessStatusCode);
-            Assert.Equal("test", ex.ServerItem.StringValue);
-        }
-
-        [Theory]
-        [InlineData(HttpStatusCode.Conflict)]
-        [InlineData(HttpStatusCode.PreconditionFailed)]
-        [Trait("Method", "InsertItemAsync")]
-        public async Task InsertItemAsync_ConflictNoContent_Throws(HttpStatusCode statusCode)
-        {
-            MockHandler.AddResponse(statusCode);
-            var client = GetMockClient();
-            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
-            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
-            Assert.Equal((int)statusCode, ex.StatusCode);
-            Assert.Empty(ex.Content);
-            Assert.Null(ex.ServerItem);
-        }
-
-        [Theory]
-        [InlineData(HttpStatusCode.Conflict)]
-        [InlineData(HttpStatusCode.PreconditionFailed)]
-        [Trait("Method", "InsertItemAsync")]
-        public async Task InsertItemAsync_ConflictWithBadJson_Throws(HttpStatusCode statusCode)
-        {
-            var response = new HttpResponseMessage(statusCode)
-            {
-                Content = new StringContent(sBadJson, Encoding.UTF8, "application/json")
-            };
-            MockHandler.Responses.Add(response);
-            var client = GetMockClient();
-            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
-
-            await Assert.ThrowsAsync<JsonException>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
-        }
-
-        [Theory]
-        [InlineData(HttpStatusCode.BadRequest)]
-        [InlineData(HttpStatusCode.MethodNotAllowed)]
-        [InlineData(HttpStatusCode.Unauthorized)]
-        [InlineData(HttpStatusCode.InternalServerError)]
-        [Trait("Method", "InsertItemAsync")]
-        public async Task InsertItemAsync_RequestFailed_Throws(HttpStatusCode statusCode)
-        {
-            MockHandler.AddResponse(statusCode);
-            var client = GetMockClient();
-            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
-
-            var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
-            Assert.Equal((int)statusCode, ex.StatusCode);
-        }
-
+        #region DeleteItemAsync
         [Fact]
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_ThrowsOnNull()
@@ -275,8 +91,8 @@ namespace Microsoft.Datasync.Client.Test.Table
         public async Task DeleteItemAsync_ThrowsOnInvalidId(string id)
         {
             var client = GetMockClient();
-            var table = client.GetRemoteTable<ClientMovie>("movies");
-            var item = new ClientMovie { Id = id };
+            var table = client.GetRemoteTable<IdEntity>("movies");
+            var item = new IdEntity { Id = id };
             await Assert.ThrowsAsync<ArgumentException>(() => table.DeleteItemAsync(item)).ConfigureAwait(false);
         }
 
@@ -288,8 +104,8 @@ namespace Microsoft.Datasync.Client.Test.Table
             var expectedEndpoint = new Uri(Endpoint, $"/tables/movies/{sId}").ToString();
             MockHandler.AddResponse(HttpStatusCode.NoContent);
             var client = GetMockClient();
-            var table = new RemoteTable<ClientMovie>("tables/movies", client.HttpClient, client.ClientOptions);
-            var item = new ClientMovie { Id = sId, Version = hasPrecondition ? "etag" : null };
+            var table = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var item = new IdEntity { Id = sId, Version = hasPrecondition ? "etag" : null };
 
             var response = await table.DeleteItemAsync(item).ConfigureAwait(false);
 
@@ -323,8 +139,8 @@ namespace Microsoft.Datasync.Client.Test.Table
             var expectedEndpoint = new Uri(Endpoint, $"/tables/movies/{sId}").ToString();
             MockHandler.AddResponse(HttpStatusCode.NoContent);
             var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
-            var table = new RemoteTable<ClientMovie>("tables/movies", client.HttpClient, client.ClientOptions);
-            var item = new ClientMovie { Id = sId, Version = hasPrecondition ? "etag" : null };
+            var table = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var item = new IdEntity { Id = sId, Version = hasPrecondition ? "etag" : null };
 
             var response = await table.DeleteItemAsync(item).ConfigureAwait(false);
 
@@ -360,10 +176,10 @@ namespace Microsoft.Datasync.Client.Test.Table
             var sId = Guid.NewGuid().ToString("N");
             MockHandler.AddResponse(statusCode, payload);
             var client = GetMockClient();
-            var table = new RemoteTable<ClientMovie>("tables/movies", client.HttpClient, client.ClientOptions);
-            var item = new ClientMovie { Id = sId };
+            var table = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var item = new IdEntity { Id = sId };
 
-            var ex = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.DeleteItemAsync(item)).ConfigureAwait(false);
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.DeleteItemAsync(item)).ConfigureAwait(false);
 
             // Check Response
             Assert.Equal((int)statusCode, ex.StatusCode);
@@ -429,7 +245,9 @@ namespace Microsoft.Datasync.Client.Test.Table
             var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.DeleteItemAsync(item)).ConfigureAwait(false);
             Assert.Equal((int)statusCode, ex.StatusCode);
         }
+        #endregion
 
+        #region GetAsyncItems
         [Theory]
         [InlineData(HttpStatusCode.BadRequest)]
         [InlineData(HttpStatusCode.InternalServerError)]
@@ -793,7 +611,9 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.True(pageable.CurrentResponse.HasContent);
             Assert.NotEmpty(pageable.CurrentResponse.Content);
         }
+        #endregion
 
+        #region GetItemAsync
         [Fact]
         [Trait("Method", "GetItemAsync")]
         public async Task GetItemAsync_ThrowsOnNull()
@@ -949,7 +769,9 @@ namespace Microsoft.Datasync.Client.Test.Table
             var ex = await Assert.ThrowsAsync<EntityNotModifiedException>(() => table.GetItemAsync(sId)).ConfigureAwait(false);
             Assert.Equal(304, ex.StatusCode);
         }
+        #endregion
 
+        #region GetNextPageAsync
         [Theory]
         [InlineData(null)]
         [InlineData("")]
@@ -1274,7 +1096,196 @@ namespace Microsoft.Datasync.Client.Test.Table
             // Assert
             Assert.Equal((int)statusCode, exception.StatusCode);
         }
+        #endregion
 
+        #region InsertItemAsync
+        [Fact]
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_ThrowsOnNull()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable<IdEntity>("movies");
+            await Assert.ThrowsAsync<ArgumentNullException>(() => table.InsertItemAsync(null)).ConfigureAwait(false);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.OK)]
+        [InlineData(HttpStatusCode.Created)]
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_Success_FormulatesCorrectRequest(HttpStatusCode statusCode)
+        {
+            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
+            MockHandler.AddResponse(statusCode, payload);
+            var client = GetMockClient();
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+
+            var response = await sut.InsertItemAsync(payload).ConfigureAwait(false);
+
+            // Check Request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Post, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            Assert.Equal(sJsonPayload, await request.Content.ReadAsStringAsync().ConfigureAwait(false));
+            Assert.Equal("application/json", request.Content.Headers.ContentType.MediaType);
+
+            // Check Response
+            Assert.Equal((int)statusCode, response.StatusCode);
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.False(response.IsConflictStatusCode);
+            Assert.True(response.HasContent);
+            Assert.True(response.HasValue);
+            Assert.Equal("test", response.Value.StringValue);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.OK)]
+        [InlineData(HttpStatusCode.Created)]
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_Success_FormulatesCorrectRequest_WithAuth(HttpStatusCode statusCode)
+        {
+            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
+            MockHandler.AddResponse(statusCode, payload);
+            var client = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken));
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+
+            var response = await sut.InsertItemAsync(payload).ConfigureAwait(false);
+
+            // Check Request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Post, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
+            Assert.Equal(sJsonPayload, await request.Content.ReadAsStringAsync().ConfigureAwait(false));
+            Assert.Equal("application/json", request.Content.Headers.ContentType.MediaType);
+
+            // Check Response
+            Assert.Equal((int)statusCode, response.StatusCode);
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.False(response.IsConflictStatusCode);
+            Assert.True(response.HasContent);
+            Assert.True(response.HasValue);
+            Assert.Equal("test", response.Value.StringValue);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.OK)]
+        [InlineData(HttpStatusCode.Created)]
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_SuccessNoContent(HttpStatusCode statusCode)
+        {
+            MockHandler.AddResponse(statusCode);
+            var client = GetMockClient();
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+
+            var response = await sut.InsertItemAsync(payload).ConfigureAwait(false);
+            Assert.Equal((int)statusCode, response.StatusCode);
+            Assert.False(response.HasContent);
+            Assert.Empty(response.Content);
+            Assert.False(response.HasValue);
+            Assert.Null(response.Value);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.OK)]
+        [InlineData(HttpStatusCode.Created)]
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_SuccessWithBadJson_Throws(HttpStatusCode statusCode)
+        {
+            var payload = new IdEntity() { Id = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f", StringValue = "test" };
+
+            var response = new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(sBadJson, Encoding.UTF8, "application/json")
+            };
+            MockHandler.Responses.Add(response);
+            var client = GetMockClient();
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+
+            await Assert.ThrowsAsync<JsonException>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.PreconditionFailed)]
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_Conflict_FormulatesCorrectResponse(HttpStatusCode statusCode)
+        {
+            var sEndpoint = new Uri(Endpoint, "/tables/movies/").ToString();
+            MockHandler.AddResponse(statusCode, payload);
+            var client = GetMockClient();
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
+
+            // Check Request
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Post, request.Method);
+            Assert.Equal(sEndpoint, request.RequestUri.ToString());
+            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            Assert.Equal(sJsonPayload, request.Content.ReadAsStringAsync().Result);
+            AssertEx.Equals("application/json", request.Content.Headers.ContentType.MediaType);
+
+            // Check Response
+            Assert.Equal((int)statusCode, ex.StatusCode);
+            Assert.False(ex.Response.IsSuccessStatusCode);
+            Assert.Equal("test", ex.ServerItem.StringValue);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.PreconditionFailed)]
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_ConflictNoContent_Throws(HttpStatusCode statusCode)
+        {
+            MockHandler.AddResponse(statusCode);
+            var client = GetMockClient();
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
+            Assert.Equal((int)statusCode, ex.StatusCode);
+            Assert.Empty(ex.Content);
+            Assert.Null(ex.ServerItem);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.PreconditionFailed)]
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_ConflictWithBadJson_Throws(HttpStatusCode statusCode)
+        {
+            var response = new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(sBadJson, Encoding.UTF8, "application/json")
+            };
+            MockHandler.Responses.Add(response);
+            var client = GetMockClient();
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+
+            await Assert.ThrowsAsync<JsonException>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.BadRequest)]
+        [InlineData(HttpStatusCode.MethodNotAllowed)]
+        [InlineData(HttpStatusCode.Unauthorized)]
+        [InlineData(HttpStatusCode.InternalServerError)]
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_RequestFailed_Throws(HttpStatusCode statusCode)
+        {
+            MockHandler.AddResponse(statusCode);
+            var client = GetMockClient();
+            var sut = new RemoteTable<IdEntity>("tables/movies", client.HttpClient, client.ClientOptions);
+
+            var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => sut.InsertItemAsync(payload)).ConfigureAwait(false);
+            Assert.Equal((int)statusCode, ex.StatusCode);
+        }
+        #endregion
+
+        #region ReplaceItemAsync
         [Fact]
         [Trait("Method", "ReplaceItemAsync")]
         public async Task ReplaceItemAsync_ThrowsOnNull()
@@ -1482,7 +1493,9 @@ namespace Microsoft.Datasync.Client.Test.Table
             var ex = await Assert.ThrowsAsync<DatasyncOperationException>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
             Assert.Equal((int)statusCode, ex.StatusCode);
         }
+        #endregion
 
+        #region UpdateItemAsync
         [Fact]
         [Trait("Method", "UpdateItemAsync")]
         public async Task UpdateItemAsync_ThrowsOnNullId()
@@ -1718,7 +1731,9 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.False(response.HasValue);
             Assert.Null(response.Value);
         }
+        #endregion
 
+        #region LinqMethods
         [Fact]
         [Trait("Method", "IncludeDeletedItems")]
         public void IncludeDeletedItems_Enabled_AddsKey()
@@ -2323,5 +2338,6 @@ namespace Microsoft.Datasync.Client.Test.Table
             var odata = query.ToQueryString();
             Assert.Equal("key1=value1&key2=value%202", odata);
         }
+        #endregion
     }
 }

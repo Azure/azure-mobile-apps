@@ -133,7 +133,7 @@ namespace Microsoft.Datasync.Client.Query
             if (expression.IsValidLambdaExpression(out LambdaExpression lambda))
             {
                 QueryNode filter = FilterBuildingExpressionVisitor.Compile(lambda!.Body, ClientOptions);
-                if (QueryDescription != null)
+                if (QueryDescription.Filter != null)
                 {
                     QueryDescription.Filter = new BinaryOperatorNode(BinaryOperatorKind.And, QueryDescription.Filter, filter);
                 }
@@ -209,9 +209,6 @@ namespace Microsoft.Datasync.Client.Query
                             QueryDescription.Selection.Add(memberName);
                         }
                     }
-
-                    // TODO: Add all members that would be required for deserialization, i.e. marked as Required in ProjectionArgumentType
-                    // See https://github.com/Azure/azure-mobile-apps-net-client/blob/master/src/Microsoft.Azure.Mobile.Client/Table/Query/Linq/MobileServiceTableQueryTranslator.cs#L249
                 }
 
                 return;

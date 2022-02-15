@@ -238,7 +238,6 @@ namespace Microsoft.Datasync.Client.Query
             QueryParameters[key] = value;
             return this;
         }
-            
 
         /// <summary>
         /// Applies to the source query the specified string key-value

@@ -3,13 +3,13 @@
 
 using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Query;
+using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,7 +38,7 @@ namespace Microsoft.Datasync.Client.Table
         /// used to create a table with the same settings but a subset of fields.
         /// </summary>
         /// <param name="source">The source table</param>
-        internal RemoteTable(RemoteTable source) 
+        internal RemoteTable(RemoteTable source)
             : base(source.RelativeUri, source.HttpClient, source.ClientOptions)
         {
             Features = DatasyncFeatures.TypedTable;
@@ -67,19 +67,20 @@ namespace Microsoft.Datasync.Client.Table
         {
             Validate.IsNotNull(item, nameof(item));
 
-            if (!GetSystemProperties(item, out string id, out string version))
+            ObjectReader.GetSystemProperties(item, out DatasyncClientData systemProperties);
+            if (string.IsNullOrEmpty(systemProperties.Id))
             {
                 throw new ArgumentException("Item does not have an ID field", nameof(item));
             }
-            var precondition = version == null ? null : IfMatch.Version(version);
-            var request = new HttpRequestMessage(HttpMethod.Delete, new Uri(Endpoint, id))
+            var precondition = systemProperties.Version == null ? null : IfMatch.Version(systemProperties.Version);
+            var request = new HttpRequestMessage(HttpMethod.Delete, new Uri(Endpoint, systemProperties.Id))
                 .WithFeatureHeader(Features)
                 .WithHeader(precondition?.HeaderName, precondition?.HeaderValue);
             var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
             if (response.IsSuccessStatusCode)
             {
                 var result = await ServiceResponse.FromResponseAsync(response, cancellationToken).ConfigureAwait(false);
-                OnItemDeleted(id);
+                OnItemDeleted(systemProperties.Id);
                 request.Dispose();
                 response.Dispose();
                 return result;
@@ -178,12 +179,13 @@ namespace Microsoft.Datasync.Client.Table
         {
             Validate.IsNotNull(item, nameof(item));
 
-            if (!GetSystemProperties(item, out string id, out string version))
+            ObjectReader.GetSystemProperties(item, out DatasyncClientData systemProperties);
+            if (string.IsNullOrEmpty(systemProperties.Id))
             {
                 throw new ArgumentException("Item does not have an ID field", nameof(item));
             }
-            var precondition = version == null ? null : IfMatch.Version(version);
-            var request = new HttpRequestMessage(HttpMethod.Get, new Uri(Endpoint, id))
+            var precondition = systemProperties.Version == null ? null : IfMatch.Version(systemProperties.Version);
+            var request = new HttpRequestMessage(HttpMethod.Get, new Uri(Endpoint, systemProperties.Id))
                 .WithFeatureHeader(Features)
                 .WithHeader(precondition?.HeaderName, precondition?.HeaderValue);
             var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -216,12 +218,13 @@ namespace Microsoft.Datasync.Client.Table
         {
             Validate.IsNotNull(item, nameof(item));
 
-            if (!GetSystemProperties(item, out string id, out string version))
+            ObjectReader.GetSystemProperties(item, out DatasyncClientData systemProperties);
+            if (string.IsNullOrEmpty(systemProperties.Id))
             {
                 throw new ArgumentException("Item does not have an ID field", nameof(item));
             }
-            var precondition = version == null ? null : IfMatch.Version(version);
-            var request = new HttpRequestMessage(HttpMethod.Put, new Uri(Endpoint, id))
+            var precondition = systemProperties.Version == null ? null : IfMatch.Version(systemProperties.Version);
+            var request = new HttpRequestMessage(HttpMethod.Put, new Uri(Endpoint, systemProperties.Id))
                 .WithFeatureHeader(Features)
                 .WithHeader(precondition?.HeaderName, precondition?.HeaderValue)
                 .WithContent(item, ClientOptions.SerializerOptions);
@@ -388,21 +391,6 @@ namespace Microsoft.Datasync.Client.Table
         #endregion
 
         /// <summary>
-        /// Returns the ID of the item, given the item itself.
-        /// </summary>
-        /// <param name="item">The item</param>
-        /// <returns>The ID of the item</returns>
-        /// <exception cref="NotImplementedException"></exception>
-        private string GetItemId(T item)
-        {
-            if (!GetSystemProperties(item, out string id, out _))
-            {
-                throw new InvalidOperationException("Item does not have an ID");
-            }
-            return id;
-        }
-
-        /// <summary>
         /// Gets a single page of items produced as a result of a query against the server.
         /// </summary>
         /// <param name="query">The query string to send to the service.</param>
@@ -428,18 +416,6 @@ namespace Microsoft.Datasync.Client.Table
         }
 
         /// <summary>
-        /// Gets the system properties for the provided item.
-        /// </summary>
-        /// <param name="item">The item to process.</param>
-        /// <param name="id">When finished, the ID of the item, or <c>null</c>.</param>
-        /// <param name="version">When finsihed, the version of the item, or <c>null</c>.</param>
-        /// <returns>True if the item has a valid ID.</returns>
-        private bool GetSystemProperties(T item, out string id, out string version)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
         /// Post an "item deleted" event to the <see cref="TableModified"/> event handler.
         /// </summary>
         /// <param name="id">The ID of the item that was deleted.</param>
@@ -459,11 +435,12 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="item">The item that was inserted.</param>
         private void OnItemInserted(T item)
         {
+            ObjectReader.GetSystemProperties(item, out DatasyncClientData systemProperties);
             TableModified?.Invoke(this, new TableModifiedEventArgs
             {
                 TableEndpoint = Endpoint,
                 Operation = TableModifiedEventArgs.TableOperation.Create,
-                Id = GetItemId(item),
+                Id = systemProperties.Id,
                 Entity = item
             });
         }
@@ -474,11 +451,12 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="item">The replacement item.</param>
         private void OnItemReplaced(T item)
         {
+            ObjectReader.GetSystemProperties(item, out DatasyncClientData systemProperties);
             TableModified?.Invoke(this, new TableModifiedEventArgs
             {
                 TableEndpoint = Endpoint,
                 Operation = TableModifiedEventArgs.TableOperation.Replace,
-                Id = GetItemId(item),
+                Id = systemProperties.Id,
                 Entity = item
             });
         }
