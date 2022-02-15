@@ -6,7 +6,8 @@ pr:
   - main
 
 pool:
-  vmImage: 'windows-2022'
+  name: 'AzurePipelines-EO'
+  vmImage: 'AzurePipelinesWindows2022compliant'
 
 variables:
   buildConfiguration: 'Release'
