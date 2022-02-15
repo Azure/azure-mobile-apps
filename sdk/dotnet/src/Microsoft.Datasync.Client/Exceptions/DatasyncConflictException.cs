@@ -38,8 +38,10 @@ namespace Microsoft.Datasync.Client
                 ServerItem = content.Length > 0 ? JsonSerializer.Deserialize<T>(content, deserializerOptions) : default
             };
         }
-
-        public byte[] Content { get; private set; }
+        /// <summary>
+        /// The content from the response.
+        /// </summary>
+        public new byte[] Content { get; private set; }
 
         /// <summary>
         /// The deserialized content of the payload.

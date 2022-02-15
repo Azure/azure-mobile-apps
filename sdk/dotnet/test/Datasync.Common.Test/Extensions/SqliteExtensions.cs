@@ -4,6 +4,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -12,6 +13,7 @@ namespace Datasync.Common.Test.Extensions
     /// <summary>
     /// A set of extension methods for enabling model support for SQLite.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     internal static class SqliteExtensions
     {
         /// <summary>
@@ -61,6 +63,7 @@ namespace Datasync.Common.Test.Extensions
         }
     }
 
+    [ExcludeFromCodeCoverage]
     internal class SqliteTimestampConverter : ValueConverter<byte[], string>
     {
         public SqliteTimestampConverter() : base(v => ToDb(v), v => FromDb(v))

@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
         public void AsQueryable_CanRetrieveFilteredLists()
         {
             var ratedMovies = repository.AsQueryable().Where(m => m.Rating == "R").ToList();
-            Assert.Equal(94, ratedMovies.Count);
+            Assert.Equal(95, ratedMovies.Count);
         }
 
         [Fact]

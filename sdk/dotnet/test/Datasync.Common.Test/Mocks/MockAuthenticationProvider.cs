@@ -3,6 +3,7 @@
 
 using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Authentication;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ namespace Datasync.Common.Test.Mocks
     /// A test authentication provider that just takes an AuthenticationToken and
     /// adds it to the request.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class MockAuthenticationProvider : AuthenticationProvider
     {
         public MockAuthenticationProvider(AuthenticationToken token)

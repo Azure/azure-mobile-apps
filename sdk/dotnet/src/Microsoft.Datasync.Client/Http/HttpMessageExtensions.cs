@@ -25,6 +25,25 @@ namespace Microsoft.Datasync.Client.Http
         private static readonly List<Tuple<DatasyncFeatures, string>> AllTelemetryFeatures
             = ((DatasyncFeatures[])Enum.GetValues(typeof(DatasyncFeatures))).Select(v => new Tuple<DatasyncFeatures, string>(v, EnumValueAttribute.GetValue(v))).ToList();
 
+
+        /// <summary>
+        /// Serialize the content for a request.
+        /// </summary>
+        /// <typeparam name="T">The type of the content</typeparam>
+        /// <param name="request">The request to modify</param>
+        /// <param name="content">The content</param>
+        /// <param name="serializerOptions">The serializer options</param>
+        /// <param name="mediaType">The media type</param>
+        /// <returns>The modified request</returns>
+        internal static HttpRequestMessage WithContent<T>(this HttpRequestMessage request, T content, JsonSerializerOptions serializerOptions, string mediaType = "application/json")
+        {
+            Validate.IsNotNull(content, nameof(content));
+            Validate.IsNotNull(serializerOptions, nameof(serializerOptions));
+
+            request.Content = new StringContent(JsonSerializer.Serialize(content, serializerOptions), Encoding.UTF8, mediaType);
+            return request;
+        }
+
         /// <summary>
         /// Adds a set of headers to the request.
         /// </summary>
@@ -79,28 +98,11 @@ namespace Microsoft.Datasync.Client.Http
             if (features != DatasyncFeatures.None)
             {
                 var featureHeader = string.Join(",", AllTelemetryFeatures.Where(t => (features & t.Item1) == t.Item1).Select(t => t.Item2)).Trim(',');
-                return request.WithHeader(InternalHttpHeaders.Features, featureHeader);
+                return request.WithHeader(ServiceHeaders.Features, featureHeader);
             }
             return request;
         }
 
-        /// <summary>
-        /// Serialize the content for a request.
-        /// </summary>
-        /// <typeparam name="T">The type of the content</typeparam>
-        /// <param name="request">The request to modify</param>
-        /// <param name="content">The content</param>
-        /// <param name="serializerOptions">The serializer options</param>
-        /// <param name="mediaType">The media type</param>
-        /// <returns>The modified request</returns>
-        internal static HttpRequestMessage WithContent<T>(this HttpRequestMessage request, T content, JsonSerializerOptions serializerOptions, string mediaType = "application/json")
-        {
-            Validate.IsNotNull(content, nameof(content));
-            Validate.IsNotNull(serializerOptions, nameof(serializerOptions));
-
-            request.Content = new StringContent(JsonSerializer.Serialize(content, serializerOptions), Encoding.UTF8, mediaType);
-            return request;
-        }
 
         /// <summary>
         /// Returns true if the status code is a conflict.

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +11,8 @@ namespace Microsoft.Datasync.Client.Test.Authentication
 {
     /// <summary>
     /// Wrap of the <see cref="GenericAuthenticationProvider"/> that provides public access to `SendAsync()`
-    /// </summary>
+    /// </summary
+    [ExcludeFromCodeCoverage]
     public class WrappedAuthenticationProvider : GenericAuthenticationProvider
     {
         public WrappedAuthenticationProvider(Func<Task<AuthenticationToken>> requestor, string header = "Authorization", string authType = null)
