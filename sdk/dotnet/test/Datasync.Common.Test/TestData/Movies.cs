@@ -44,7 +44,7 @@ namespace Datasync.Common.Test.TestData
         /// <returns>A random ID</returns>
         public static string GetRandomId()
         {
-            List<string> Ids = Movies.OfType<EFMovie>().Where(m => m.Rating != null).Select(m => m.Id).ToList();
+            List<string> Ids = Movies.OfType<EFMovie>().Where(m => m.Rating != null && m.Title.Length < 60).Select(m => m.Id).ToList();
             var random = new Random();
             return Ids[random.Next(Ids.Count)];
         }
