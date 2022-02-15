@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -110,6 +111,26 @@ namespace Datasync.Common.Test
         }
 
         /// <summary>
+        /// Creates a paging response with JsonDocuments.
+        /// </summary>
+        /// <param name="count">The count of elements to return</param>
+        /// <param name="totalCount">The total count</param>
+        /// <param name="nextLink">The next link</param>
+        /// <returns></returns>
+        protected Page<JsonDocument> CreatePageOfJsonItems(int count, long? totalCount = null, Uri nextLink = null)
+        {
+            List<JsonDocument> items = new();
+
+            for (int i = 0; i < count; i++)
+            {
+                items.Add(CreateJsonDocument(new IdEntity { Id = Guid.NewGuid().ToString("N") }));
+            }
+            var page = new Page<JsonDocument> { Items = items, Count = totalCount, NextLink = nextLink };
+            MockHandler.AddResponse(HttpStatusCode.OK, page);
+            return page;
+        }
+
+        /// <summary>
         /// Get a datasync client that is completely mocked and doesn't require a service
         /// </summary>
         /// <param name="authProvider">... with the provided authentication provider</param>
@@ -159,6 +180,12 @@ namespace Datasync.Common.Test
                 Title = "Black Panther",
                 Year = 2018
             };
+        }
+
+        protected static JsonDocument CreateJsonDocument<T>(T obj)
+        {
+            var serializerSettings = new DatasyncClientOptions().SerializerOptions;
+            return JsonSerializer.SerializeToDocument<T>(obj, serializerSettings);
         }
 
         /// <summary>

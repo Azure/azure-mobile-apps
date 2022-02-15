@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace Datasync.Common.Test.TestData
 {
+    [ExcludeFromCodeCoverage]
     public class EndpointTestCase
     {
         internal EndpointTestCase(string baseEndpoint, string normalizedEndpoint)
@@ -20,6 +22,7 @@ namespace Datasync.Common.Test.TestData
     /// <summary>
     /// A set of test cases for the valid endpoints that the client supports
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class EndpointTestCases : TheoryData<EndpointTestCase>
     {
         public EndpointTestCases()

@@ -2,14 +2,14 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Commands;
+using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Utils;
 using System.Collections.Generic;
 
 namespace Microsoft.Datasync.Client
 {
     /// <summary>
-    /// A set of extension methods covering both <see cref="IDatasyncTable{T}"/> and
-    /// <see cref="ITableQuery{T}"/>.
+    /// A set of extension methods covering both <see cref="IRemoteTable{T}"/> and <see cref="ITableQuery{T}"/>.
     /// </summary>
     public static class TableExtensions
     {
@@ -19,7 +19,7 @@ namespace Microsoft.Datasync.Client
         /// <typeparam name="T">The type of entity being returned</typeparam>
         /// <param name="table">The table to query</param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> representing all the items in the table.</returns>
-        public static IAsyncEnumerable<T> ToAsyncEnumerable<T>(this IDatasyncTable<T> table)
+        public static IAsyncEnumerable<T> ToAsyncEnumerable<T>(this IRemoteTable<T> table)
             => table.ToAsyncPageable();
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="pageCount">The number of items per page to return</param>
         /// <param name="errorHandler">An <see cref="IAsyncExceptionHandler"/> for reporting errors.</param>
         /// <returns>A <see cref="LazyObservableCollection{T}"/> representing all the items in the table.</returns>
-        public static LazyObservableCollection<T> ToLazyObservableCollection<T>(this IDatasyncTable<T> table, int pageCount, IAsyncExceptionHandler errorHandler = null)
+        public static LazyObservableCollection<T> ToLazyObservableCollection<T>(this IRemoteTable<T> table, int pageCount, IAsyncExceptionHandler errorHandler = null)
             => new InternalLazyObservableCollection<T>(table.ToAsyncEnumerable(), pageCount, errorHandler);
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="errorHandler">An <see cref="IAsyncExceptionHandler"/> for reporting errors.</param>
         /// <returns>A <see cref="LazyObservableCollection{T}"/> representing all the items in the table.</returns>
 
-        public static LazyObservableCollection<T> ToLazyObservableCollection<T>(this IDatasyncTable<T> table, IAsyncExceptionHandler errorHandler = null)
+        public static LazyObservableCollection<T> ToLazyObservableCollection<T>(this IRemoteTable<T> table, IAsyncExceptionHandler errorHandler = null)
             => new InternalLazyObservableCollection<T>(table.ToAsyncEnumerable(), errorHandler);
 
         /// <summary>
@@ -71,7 +71,6 @@ namespace Microsoft.Datasync.Client
         /// <param name="query">The query to execute</param>
         /// <param name="errorHandler">An <see cref="IAsyncExceptionHandler"/> for reporting errors.</param>
         /// <returns>A <see cref="LazyObservableCollection{T}"/> representing all the items in the table.</returns>
-
         public static LazyObservableCollection<T> ToLazyObservableCollection<T>(this ITableQuery<T> query, IAsyncExceptionHandler errorHandler = null)
             => new InternalLazyObservableCollection<T>(query.ToAsyncEnumerable(), errorHandler);
     }

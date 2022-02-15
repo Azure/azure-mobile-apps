@@ -221,8 +221,8 @@ namespace Microsoft.Datasync.Client.Test
         public void GetTable_ProducesTable_WithNormalOptions()
         {
             var client = new DatasyncClient(Endpoint);
-            var table = client.GetTable<ClientMovie>();
-            Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
+            var table = client.GetRemoteTable<ClientMovie>();
+            Assert.IsAssignableFrom<IRemoteTable<ClientMovie>>(table);
             var expectedUri = new Uri(Endpoint, "tables/clientmovie/");
             Assert.Equal(expectedUri, table.Endpoint);
             Assert.Same(client.ClientOptions, table.ClientOptions);
@@ -234,8 +234,8 @@ namespace Microsoft.Datasync.Client.Test
         {
             var options = new DatasyncClientOptions { TablesPrefix = "/api" };
             var client = new DatasyncClient(Endpoint, options);
-            var table = client.GetTable<ClientMovie>();
-            Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
+            var table = client.GetRemoteTable<ClientMovie>();
+            Assert.IsAssignableFrom<IRemoteTable<ClientMovie>>(table);
             var expectedUri = new Uri(Endpoint, "api/clientmovie/");
             Assert.Equal(expectedUri, table.Endpoint);
             Assert.Same(options, table.ClientOptions);
@@ -246,8 +246,8 @@ namespace Microsoft.Datasync.Client.Test
         public void GetTable_stringTable_ProducesTable()
         {
             var client = new DatasyncClient(Endpoint);
-            var table = client.GetTable<ClientMovie>("movies");
-            Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
+            var table = client.GetRemoteTable<ClientMovie>("movies");
+            Assert.IsAssignableFrom<IRemoteTable<ClientMovie>>(table);
             var expectedUri = new Uri(Endpoint, "tables/movies/");
             Assert.Equal(expectedUri, table.Endpoint);
             Assert.Same(client.ClientOptions, table.ClientOptions);
@@ -259,8 +259,8 @@ namespace Microsoft.Datasync.Client.Test
         {
             var options = new DatasyncClientOptions { TablesPrefix = "/api" };
             var client = new DatasyncClient(Endpoint, options);
-            var table = client.GetTable<ClientMovie>("movies");
-            Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
+            var table = client.GetRemoteTable<ClientMovie>("movies");
+            Assert.IsAssignableFrom<IRemoteTable<ClientMovie>>(table);
             var expectedUri = new Uri(Endpoint, "api/movies/");
             Assert.Equal(expectedUri, table.Endpoint);
             Assert.Same(options, table.ClientOptions);
@@ -271,8 +271,8 @@ namespace Microsoft.Datasync.Client.Test
         public void GetTable_stringRelativeUri_ProducesTable()
         {
             var client = new DatasyncClient(Endpoint);
-            var table = client.GetTable<ClientMovie>("/api/movies");
-            Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
+            var table = client.GetRemoteTable<ClientMovie>("/api/movies");
+            Assert.IsAssignableFrom<IRemoteTable<ClientMovie>>(table);
             var expectedUri = new Uri(Endpoint, "api/movies/");
             Assert.Equal(expectedUri, table.Endpoint);
             Assert.Same(client.ClientOptions, table.ClientOptions);
@@ -284,8 +284,8 @@ namespace Microsoft.Datasync.Client.Test
         {
             var options = new DatasyncClientOptions { TablesPrefix = "/api" };
             var client = new DatasyncClient(Endpoint, options);
-            var table = client.GetTable<ClientMovie>("/foo/movies");
-            Assert.IsAssignableFrom<IDatasyncTable<ClientMovie>>(table);
+            var table = client.GetRemoteTable<ClientMovie>("/foo/movies");
+            Assert.IsAssignableFrom<IRemoteTable<ClientMovie>>(table);
             var expectedUri = new Uri(Endpoint, "foo/movies/");
             Assert.Equal(expectedUri, table.Endpoint);
             Assert.Same(options, table.ClientOptions);

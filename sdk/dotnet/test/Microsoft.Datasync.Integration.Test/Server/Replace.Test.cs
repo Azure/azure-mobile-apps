@@ -222,8 +222,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
         [Theory]
         [InlineData("tables/movies/not-found", HttpStatusCode.NotFound)]
         [InlineData("tables/movies_pagesize/not-found", HttpStatusCode.NotFound)]
-        [InlineData("tables/movies_rated/id-107", HttpStatusCode.NotFound, "X-Auth", "success")]
-        [InlineData("tables/movies_legal/id-107", HttpStatusCode.NotFound, "X-Auth", "success")]
+        [InlineData("tables/movies_rated/id-113", HttpStatusCode.NotFound, "X-Auth", "success")] // Any movie that is not R-rated in the DB will do here.
+        [InlineData("tables/movies_legal/id-113", HttpStatusCode.NotFound, "X-Auth", "success")] // Any movie that is not R-rated in the DB will do here.
         public async Task FailedReplaceTests(string relativeUri, HttpStatusCode expectedStatusCode, string? headerName = null, string? headerValue = null)
         {
             var id = relativeUri.Split('/').Last();

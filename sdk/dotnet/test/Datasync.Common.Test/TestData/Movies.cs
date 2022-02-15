@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Datasync;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Datasync.Common.Test.TestData
 {
@@ -43,8 +44,9 @@ namespace Datasync.Common.Test.TestData
         /// <returns>A random ID</returns>
         public static string GetRandomId()
         {
+            List<string> Ids = Movies.OfType<EFMovie>().Where(m => m.Rating != null && m.Title.Length < 60).Select(m => m.Id).ToList();
             var random = new Random();
-            return Utils.GetMovieId(random.Next(Count));
+            return Ids[random.Next(Ids.Count)];
         }
 
         /// <summary>
@@ -308,7 +310,7 @@ namespace Datasync.Common.Test.TestData
             {
                 BestPictureWinner = false,
                 Duration = 109,
-                Rating = "TV-14",
+                Rating = "PG",
                 ReleaseDate = new DateTimeOffset(1960, 9, 8, 0, 0, 0, TimeSpan.Zero),
                 Title = "Psycho",
                 Year = 1960
@@ -407,7 +409,7 @@ namespace Datasync.Common.Test.TestData
             {
                 BestPictureWinner = false,
                 Duration = 117,
-                Rating = "TV-14",
+                Rating = "PG",
                 ReleaseDate = new DateTimeOffset(1979, 05, 25, 0, 0, 0, TimeSpan.Zero),
                 Title = "Alien",
                 Year = 1979
@@ -1019,7 +1021,7 @@ namespace Datasync.Common.Test.TestData
             {
                 BestPictureWinner = false,
                 Duration = 75,
-                Rating = "TV-MA",
+                Rating = "R",
                 ReleaseDate = new DateTimeOffset(1961, 09, 13, 0, 0, 0, TimeSpan.Zero),
                 Title = "Yojimbo",
                 Year = 1961
@@ -1091,7 +1093,7 @@ namespace Datasync.Common.Test.TestData
             {
                 BestPictureWinner = false,
                 Duration = 81,
-                Rating = "TV-G",
+                Rating = "G",
                 ReleaseDate = new DateTimeOffset(1995, 11, 22, 0, 0, 0, TimeSpan.Zero),
                 Title = "Toy Story",
                 Year = 1995
@@ -1388,7 +1390,7 @@ namespace Datasync.Common.Test.TestData
             {
                 BestPictureWinner = false,
                 Duration = 111,
-                Rating = "TV-14",
+                Rating = "PG",
                 ReleaseDate = new DateTimeOffset(2003, 10, 10, 0, 0, 0, TimeSpan.Zero),
                 Title = "Kill Bill: Vol. 1",
                 Year = 2003
@@ -1829,7 +1831,7 @@ namespace Datasync.Common.Test.TestData
             {
                 BestPictureWinner = false,
                 Duration = 160,
-                Rating = "TV-PG",
+                Rating = "PG",
                 ReleaseDate = new DateTimeOffset(1959, 9, 1, 0, 0, 0, TimeSpan.Zero),
                 Title = "Anatomy of a Murder",
                 Year = 1959

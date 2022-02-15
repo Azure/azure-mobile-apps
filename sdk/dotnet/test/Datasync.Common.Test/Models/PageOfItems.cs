@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Datasync.Common.Test.Models
 {
@@ -9,6 +10,7 @@ namespace Datasync.Common.Test.Models
     /// The deserialized content from a paging operation.
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    [ExcludeFromCodeCoverage]
     public class PageOfItems<T> where T : class
     {
         public T[] Items { get; set; }
@@ -20,6 +22,7 @@ namespace Datasync.Common.Test.Models
     /// The same thing as above, but with a string NextLink instead of a Uri
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    [ExcludeFromCodeCoverage]
     public class StringNextLinkPage<T> where T : class
     {
         public T[] Items { get; set; }
@@ -31,6 +34,7 @@ namespace Datasync.Common.Test.Models
     /// The V2 version of the page of items.
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    [ExcludeFromCodeCoverage]
     public class V2PageOfItems<T> where T : class
     {
         public T[] Results { get; set; }

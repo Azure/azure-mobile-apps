@@ -3,6 +3,7 @@
 
 using Microsoft.Datasync.Client.Commands;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace Microsoft.Datasync.Client.Test.Commands
@@ -11,6 +12,7 @@ namespace Microsoft.Datasync.Client.Test.Commands
     /// A wrapped version of <see cref="AsyncCommand"/> that provides access
     /// to the underlying (normally protected) methods.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     internal class WrappedAsyncCommand : AsyncCommand
     {
         public WrappedAsyncCommand(Func<Task> execute, Func<bool> canExecute = null, IAsyncExceptionHandler handler = null)
