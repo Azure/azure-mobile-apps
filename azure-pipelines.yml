@@ -32,6 +32,10 @@ stages:
         displayName: Build .NET SDK
         steps:
           - template: .ci/prebuild.yml
+          
+          - pwsh: |
+              Get-ChildItem "C:\Program Files (x86)\Android\android-sdk\platforms"
+            displayName: Show the Android API levels available on the build machine
 
           - task: MSBuild@1
             displayName: 'Build SDK'
