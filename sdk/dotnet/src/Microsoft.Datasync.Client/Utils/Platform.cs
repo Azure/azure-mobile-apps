@@ -17,6 +17,11 @@ namespace Microsoft.Datasync.Client.Utils
         private static readonly Lazy<IPlatform> _currentPlatform = new(() => new CurrentPlatform());
 
         /// <summary>
+        /// Internal lazy initializer for the applications Installation Id
+        /// </summary>
+        private static readonly Lazy<string> _installationId = new(() => GetApplicationInstallationId());
+
+        /// <summary>
         /// The key for the installation ID within the application storage handler.
         /// </summary>
         private const string InstallationIdKey = "installationId";
@@ -43,22 +48,24 @@ namespace Microsoft.Datasync.Client.Utils
         internal static string AssemblyVersion => Instance.GetType().Assembly.GetName().Version.ToString();
 
         /// <summary>
-        /// Returns the internal static application installation ID.
+        /// The internal static application installation ID.
         /// </summary>
-        internal static string InstallationId
-        {
-            get
-            {
-                IApplicationStorage storage = Instance.ApplicationStorage;
-                if (storage.TryGetValue(InstallationIdKey, out string installationId))
-                {
-                    return installationId;
-                }
+        internal static string InstallationId { get => _installationId.Value; }
 
-                string newId = Guid.NewGuid().ToString();
-                storage.SetValue(InstallationIdKey, newId);
-                return newId;
+        /// <summary>
+        /// Retrieve the application installation ID, creating one if it doesn't exist.
+        /// </summary>
+        internal static string GetApplicationInstallationId()
+        {
+            IApplicationStorage storage = Instance.ApplicationStorage;
+            if (storage.TryGetValue(InstallationIdKey, out string installationId))
+            {
+                return installationId;
             }
+
+            string newId = Guid.NewGuid().ToString();
+            storage.SetValue(InstallationIdKey, newId);
+            return newId;
         }
 
         /// <summary>

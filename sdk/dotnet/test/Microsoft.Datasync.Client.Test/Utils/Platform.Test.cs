@@ -49,10 +49,6 @@ namespace Microsoft.Datasync.Client.Test.Utils
         [Trait("Method", "InstallationId")]
         public void InstallationId_IsNotNull()
         {
-            Platform.ApplicationStorage.RemoveValue("installationId");
-
-            // This may seem silly, but it's intended to ensure that the installation ID
-            // doesn't change over successive calls
             var installationId = Platform.InstallationId;
             Assert.NotNull(installationId);
             Assert.Equal(installationId, Platform.InstallationId);
