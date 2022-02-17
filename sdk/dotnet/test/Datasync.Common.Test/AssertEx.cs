@@ -135,7 +135,7 @@ namespace Datasync.Common.Test
         public static void SystemPropertiesChanged(ITableData original, ITableData replacement)
         {
             Assert.NotEqual(original.UpdatedAt, replacement.UpdatedAt);
-            Assert.NotEqual(original.Version, replacement.Version);
+            Assert.NotEqual(Convert.ToBase64String(original.Version), Convert.ToBase64String(replacement.Version));
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace Datasync.Common.Test
         /// <param name="actual">The actual JsonDocument</param>
         public static void JsonEqual(List<JsonDocument> expected, List<JsonDocument> actual)
         {
-            Assert.Equal(expected.Count, actual.Count);           
+            Assert.Equal(expected.Count, actual.Count);
             for (int index = 0; index < expected.Count; index++)
             {
                 JsonEqual(expected[index], actual[index]);
