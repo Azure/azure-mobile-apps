@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using FluentAssertions;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.Datasync.Client;
@@ -169,54 +168,6 @@ namespace Datasync.Common.Test
             var lastModified = expected.UpdatedAt.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern);
             ResponseHasHeader(response, HeaderNames.ETag, expected.GetETag());
             ResponseHasHeader(response, HeaderNames.LastModified, lastModified);
-        }
-
-        /// <summary>
-        /// Compares a JsonDocument.
-        /// </summary>
-        /// <param name="expected">The expected JsonDocument</param>
-        /// <param name="actual">The actual JsonDocument</param>
-        public static void JsonEqual(JsonDocument expected, JsonDocument actual)
-        {
-            actual.RootElement.Should().BeEquivalentTo(expected.RootElement, opt => opt.ComparingByMembers<JsonElement>());
-        }
-
-        /// <summary>
-        /// Compares a list of JsonDocuments.
-        /// </summary>
-        /// <param name="expected">The expected JsonDocument</param>
-        /// <param name="actual">The actual JsonDocument</param>
-        public static void JsonEqual(List<JsonDocument> expected, List<JsonDocument> actual)
-        {
-            Assert.Equal(expected.Count, actual.Count);
-            for (int index = 0; index < expected.Count; index++)
-            {
-                JsonEqual(expected[index], actual[index]);
-            }
-        }
-
-        /// <summary>
-        /// Compares a JSON string to the byte representation.
-        /// </summary>
-        /// <param name="expected"></param>
-        /// <param name="actual"></param>
-        public static void JsonEqual(string expected, byte[] actual)
-        {
-            var actualAsString = Encoding.UTF8.GetString(actual);
-            Assert.Equal(expected, actualAsString);
-        }
-
-        /// <summary>
-        /// Compares an entity to a JsonDocument returned from the server.
-        /// </summary>
-        /// <typeparam name="T">The type of the entity.</typeparam>
-        /// <param name="expected">The expected entity.</param>
-        /// <param name="actual">The <see cref="JsonDocument"/> that was returned from the service.</param>
-        public static void JsonDocumentMatches<T>(T expected, JsonDocument actual)
-        {
-            var serializerSettings = new DatasyncClientOptions().SerializerOptions;
-            JsonDocument expectedDocument = JsonSerializer.SerializeToDocument<T>(expected, serializerSettings);
-            JsonEqual(expectedDocument, actual);
         }
     }
 }

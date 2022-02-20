@@ -110,24 +110,14 @@ namespace Datasync.Common.Test
             return page;
         }
 
-        /// <summary>
-        /// Creates a paging response with JsonDocuments.
-        /// </summary>
-        /// <param name="count">The count of elements to return</param>
-        /// <param name="totalCount">The total count</param>
-        /// <param name="nextLink">The next link</param>
-        /// <returns></returns>
-        protected Page<JsonDocument> CreatePageOfJsonItems(int count, long? totalCount = null, Uri nextLink = null)
+        private static List<HttpMessageHandler> BuildHandlers(AuthenticationProvider authProvider, HttpMessageHandler clientHandler)
         {
-            List<JsonDocument> items = new();
-
-            for (int i = 0; i < count; i++)
+            List<HttpMessageHandler> handlers = new(new[] { clientHandler });
+            if (authProvider != null)
             {
-                items.Add(CreateJsonDocument(new IdEntity { Id = Guid.NewGuid().ToString("N") }));
+                handlers.Insert(0, authProvider);
             }
-            var page = new Page<JsonDocument> { Items = items, Count = totalCount, NextLink = nextLink };
-            MockHandler.AddResponse(HttpStatusCode.OK, page);
-            return page;
+            return handlers;
         }
 
         /// <summary>
@@ -139,9 +129,9 @@ namespace Datasync.Common.Test
         {
             var options = new DatasyncClientOptions
             {
-                HttpPipeline = new HttpMessageHandler[] { MockHandler }
+                HttpPipeline = BuildHandlers(authProvider, MockHandler)
             };
-            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, authProvider, options);
+            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, options);
         }
 
         /// <summary>
@@ -153,9 +143,9 @@ namespace Datasync.Common.Test
         {
             var options = new DatasyncClientOptions
             {
-                HttpPipeline = new HttpMessageHandler[] { MovieServer.CreateHandler() }
+                HttpPipeline = BuildHandlers(authProvider, MovieServer.CreateHandler())
             };
-            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, authProvider, options);
+            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, options);
         }
 
         /// <summary>
@@ -180,12 +170,6 @@ namespace Datasync.Common.Test
                 Title = "Black Panther",
                 Year = 2018
             };
-        }
-
-        protected static JsonDocument CreateJsonDocument<T>(T obj)
-        {
-            var serializerSettings = new DatasyncClientOptions().SerializerOptions;
-            return JsonSerializer.SerializeToDocument<T>(obj, serializerSettings);
         }
 
         /// <summary>

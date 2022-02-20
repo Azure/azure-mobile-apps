@@ -55,6 +55,16 @@ namespace Microsoft.Datasync.Client.Test.Utils
         }
 
         [Fact]
+        [Trait("Method", "InstallationId")]
+        public void InstallationId_IsNotNull_AfterClean()
+        {
+            Platform.ApplicationStorage.ClearValues();
+            var installationId = Platform.InstallationId;
+            Assert.NotNull(installationId);
+            Assert.Equal(installationId, Platform.InstallationId);
+        }
+
+        [Fact]
         [Trait("Method", "AssemblyVersion")]
         public void AssemblyVersion_IsNotNull()
         {

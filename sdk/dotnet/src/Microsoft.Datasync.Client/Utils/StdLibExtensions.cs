@@ -2,15 +2,35 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Text.Json;
+using System.Linq;
+using System.Reflection;
 
 namespace Microsoft.Datasync.Client.Utils
 {
     /// <summary>
-    /// Extensions to the standard library
+    /// A set of extensions to the standard library methods.
     /// </summary>
     internal static class StdLibExtensions
     {
+        /// <summary>
+        /// Determines if the type has an attribute on it.  If it does, then return
+        /// the first attribute.
+        /// </summary>
+        /// <typeparam name="T">The type of the attribute to check for.</typeparam>
+        /// <param name="type">The subject type.</param>
+        /// <param name="attr">On return, the first attribute that is set on the subject type.</param>
+        /// <returns><c>true</c> if the subject type has an attribute of type <typeparamref name="T"/>, <c>false</c> otherwise.</returns>
+        internal static bool HasAttribute<T>(this Type type, out T attr)
+        {
+            if (type.GetTypeInfo().GetCustomAttributes(typeof(T), true).FirstOrDefault() is T requiredAttr)
+            {
+                attr = requiredAttr;
+                return true;
+            }
+            attr = default;
+            return false;
+        }
+
         /// <summary>
         /// Normalize an endpoint by removing any query and fragment, then ensuring that the
         /// path has a trailing slash.
@@ -19,64 +39,11 @@ namespace Microsoft.Datasync.Client.Utils
         /// <returns>The normalized endpoint.</returns>
         internal static Uri NormalizeEndpoint(this Uri endpoint)
         {
-            Validate.IsValidEndpoint(endpoint, nameof(endpoint));
+            Arguments.IsValidEndpoint(endpoint, nameof(endpoint));
 
             var builder = new UriBuilder(endpoint) { Query = string.Empty, Fragment = string.Empty };
             builder.Path = builder.Path.TrimEnd('/') + "/";
             return builder.Uri;
-        }
-
-        /// <summary>
-        /// Sets the query parameters of a Uri.
-        /// </summary>
-        /// <param name="builder">The <see cref="UriBuilder"/> to modify</param>
-        /// <param name="queryString">the query to set</param>
-        /// <returns>The updated <see cref="UriBuilder"/></returns>
-        internal static UriBuilder WithQuery(this UriBuilder builder, string queryString)
-        {
-            builder.Query = string.IsNullOrWhiteSpace(queryString) ? string.Empty : queryString.Trim();
-            return builder;
-        }
-
-        /// <summary>
-        /// Gets the ID for a given <see cref="JsonDocument"/> entity.
-        /// </summary>
-        /// <param name="document">The document to process.</param>
-        /// <returns>The ID of the document.</returns>
-        internal static string GetId(this JsonDocument document)
-        {
-            if (document?.RootElement.ValueKind == JsonValueKind.Object)
-            {
-                if (document.RootElement.TryGetProperty("id", out JsonElement idElement))
-                {
-                    if (idElement.ValueKind == JsonValueKind.String)
-                    {
-                        return idElement.GetString();
-                    }
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Gets the version for a given <see cref="JsonDocument"/> entity.
-        /// </summary>
-        /// <param name="document">The document to process.</param>
-        /// <returns>The version of the document.</returns>
-        internal static string GetVersion(this JsonDocument document)
-        {
-            if (document?.RootElement.ValueKind == JsonValueKind.Object)
-            {
-                if (document.RootElement.TryGetProperty("version", out JsonElement versionElement))
-                {
-                    if (versionElement.ValueKind == JsonValueKind.String)
-                    {
-                        return versionElement.GetString();
-                    }
-                }
-            }
-
-            return null;
         }
     }
 }

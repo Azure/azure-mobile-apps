@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All Rights Reserved.
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.Datasync.Client.Test
 {
-    [ExcludeFromCodeCoverage(Justification = "Test suite")]
+    [ExcludeFromCodeCoverage]
     public class DatasyncClient_Tests : BaseTest
     {
         [Fact]
@@ -217,78 +217,152 @@ namespace Microsoft.Datasync.Client.Test
         }
 
         [Fact]
-        [Trait("Method", "GetTable")]
-        public void GetTable_ProducesTable_WithNormalOptions()
+        [Trait("Method", "InstallationId")]
+        public void InstallationId_IsValid()
+        {
+            var client = new DatasyncClient(Endpoint);
+            Assert.NotEmpty(client.InstallationId);
+        }
+
+        [Fact]
+        [Trait("Method", "InstallationId")]
+        public void InstallationId_CanBeOverridden()
+        {
+            var options = new DatasyncClientOptions { InstallationId = "hijack" };
+            var client = new DatasyncClient(Endpoint, options);
+            Assert.Equal("hijack", client.InstallationId);
+        }
+
+        [Fact]
+        [Trait("Method", "GetRemoteTable(string)")]
+        public void GetRemoteTable_ProducesTable()
+        {
+            var client = new DatasyncClient(Endpoint);
+            var table = client.GetRemoteTable("movies");
+            Assert.IsAssignableFrom<IRemoteTable>(table);
+            Assert.Same(client, table.ServiceClient);
+            Assert.Equal("movies", table.TableName);
+        }
+
+        [Fact]
+        [Trait("Method", "GetRemoteTable(string)")]
+        public void GetRemoteTable_Throws_OnNullTableName()
+        {
+            var client = new DatasyncClient(Endpoint);
+            Assert.Throws<ArgumentNullException>(() => client.GetRemoteTable(null));
+        }
+
+        [Fact]
+        [Trait("Method", "GetRemoteTable(string)")]
+        public void GetRemoteTable_Throws_OnInvalidTableName()
+        {
+            var client = new DatasyncClient(Endpoint);
+            Assert.Throws<ArgumentException>(() => client.GetRemoteTable("    "));
+        }
+
+        [Fact]
+        [Trait("Method", "GetRemoteTable<T>()")]
+        public void GetRemoteTableOfT_ProducesTable()
         {
             var client = new DatasyncClient(Endpoint);
             var table = client.GetRemoteTable<ClientMovie>();
             Assert.IsAssignableFrom<IRemoteTable<ClientMovie>>(table);
-            var expectedUri = new Uri(Endpoint, "tables/clientmovie/");
-            Assert.Equal(expectedUri, table.Endpoint);
-            Assert.Same(client.ClientOptions, table.ClientOptions);
+            Assert.Same(client, table.ServiceClient);
+            Assert.Equal("clientmovie", table.TableName);
         }
 
         [Fact]
-        [Trait("Method", "GetTable")]
-        public void GetTable_ProducesTable_WithTablesPrefix()
-        {
-            var options = new DatasyncClientOptions { TablesPrefix = "/api" };
-            var client = new DatasyncClient(Endpoint, options);
-            var table = client.GetRemoteTable<ClientMovie>();
-            Assert.IsAssignableFrom<IRemoteTable<ClientMovie>>(table);
-            var expectedUri = new Uri(Endpoint, "api/clientmovie/");
-            Assert.Equal(expectedUri, table.Endpoint);
-            Assert.Same(options, table.ClientOptions);
-        }
-
-        [Fact]
-        [Trait("Method", "GetTable")]
-        public void GetTable_stringTable_ProducesTable()
+        [Trait("Method", "GetRemoteTable<T>(string)")]
+        public void GetRemoteTableOfT_String_ProducesTable()
         {
             var client = new DatasyncClient(Endpoint);
             var table = client.GetRemoteTable<ClientMovie>("movies");
             Assert.IsAssignableFrom<IRemoteTable<ClientMovie>>(table);
-            var expectedUri = new Uri(Endpoint, "tables/movies/");
-            Assert.Equal(expectedUri, table.Endpoint);
-            Assert.Same(client.ClientOptions, table.ClientOptions);
+            Assert.Same(client, table.ServiceClient);
+            Assert.Equal("movies", table.TableName);
         }
 
-        [Fact]
-        [Trait("Method", "GetTable")]
-        public void GetTable_stringTable_ProducesTable_WithTablesPrefix()
-        {
-            var options = new DatasyncClientOptions { TablesPrefix = "/api" };
-            var client = new DatasyncClient(Endpoint, options);
-            var table = client.GetRemoteTable<ClientMovie>("movies");
-            Assert.IsAssignableFrom<IRemoteTable<ClientMovie>>(table);
-            var expectedUri = new Uri(Endpoint, "api/movies/");
-            Assert.Equal(expectedUri, table.Endpoint);
-            Assert.Same(options, table.ClientOptions);
-        }
 
         [Fact]
-        [Trait("Method", "GetTable")]
-        public void GetTable_stringRelativeUri_ProducesTable()
+        [Trait("Method", "GetRemoteTable<T>(string)")]
+        public void GetRemoteTableOfT_Throws_OnNullTableName()
         {
             var client = new DatasyncClient(Endpoint);
-            var table = client.GetRemoteTable<ClientMovie>("/api/movies");
-            Assert.IsAssignableFrom<IRemoteTable<ClientMovie>>(table);
-            var expectedUri = new Uri(Endpoint, "api/movies/");
-            Assert.Equal(expectedUri, table.Endpoint);
-            Assert.Same(client.ClientOptions, table.ClientOptions);
+            Assert.Throws<ArgumentNullException>(() => client.GetRemoteTable<ClientMovie>(null));
         }
 
         [Fact]
-        [Trait("Method", "GetTable")]
-        public void GetTable_stringRelativeUri_ProducesTable_WithTablesPrefix()
+        [Trait("Method", "GetRemoteTable<T>(string)")]
+        public void GetRemoteTableOfT_Throws_OnInvalidTableName()
         {
-            var options = new DatasyncClientOptions { TablesPrefix = "/api" };
-            var client = new DatasyncClient(Endpoint, options);
-            var table = client.GetRemoteTable<ClientMovie>("/foo/movies");
-            Assert.IsAssignableFrom<IRemoteTable<ClientMovie>>(table);
-            var expectedUri = new Uri(Endpoint, "foo/movies/");
-            Assert.Equal(expectedUri, table.Endpoint);
-            Assert.Same(options, table.ClientOptions);
+            var client = new DatasyncClient(Endpoint);
+            Assert.Throws<ArgumentException>(() => client.GetRemoteTable<ClientMovie>("    "));
+        }
+
+        [Fact]
+        [Trait("Method", "GetOfflineTable(string)")]
+        public void GetOfflineTable_ProducesTable()
+        {
+            var client = new DatasyncClient(Endpoint);
+            var table = client.GetOfflineTable("movies");
+            Assert.IsAssignableFrom<IOfflineTable>(table);
+            Assert.Same(client, table.ServiceClient);
+            Assert.Equal("movies", table.TableName);
+        }
+
+        [Fact]
+        [Trait("Method", "GetOfflineTable(string)")]
+        public void GetOfflineTable_Throws_OnNullTableName()
+        {
+            var client = new DatasyncClient(Endpoint);
+            Assert.Throws<ArgumentNullException>(() => client.GetOfflineTable(null));
+        }
+
+        [Fact]
+        [Trait("Method", "GetOfflineTable(string)")]
+        public void GetOfflineTable_Throws_OnInvalidTableName()
+        {
+            var client = new DatasyncClient(Endpoint);
+            Assert.Throws<ArgumentException>(() => client.GetOfflineTable("    "));
+        }
+
+        [Fact]
+        [Trait("Method", "GetOfflineTable<T>()")]
+        public void GetOfflineTableOfT_ProducesTable()
+        {
+            var client = new DatasyncClient(Endpoint);
+            var table = client.GetOfflineTable<ClientMovie>();
+            Assert.IsAssignableFrom<IOfflineTable<ClientMovie>>(table);
+            Assert.Same(client, table.ServiceClient);
+            Assert.Equal("clientmovie", table.TableName);
+        }
+
+        [Fact]
+        [Trait("Method", "GetOfflineTable<T>(string)")]
+        public void GetOfflineTableOfT_String_ProducesTable()
+        {
+            var client = new DatasyncClient(Endpoint);
+            var table = client.GetOfflineTable<ClientMovie>("movies");
+            Assert.IsAssignableFrom<IOfflineTable<ClientMovie>>(table);
+            Assert.Same(client, table.ServiceClient);
+            Assert.Equal("movies", table.TableName);
+        }
+
+
+        [Fact]
+        [Trait("Method", "GetOfflineTable<T>(string)")]
+        public void GetOfflineTableOfT_Throws_OnNullTableName()
+        {
+            var client = new DatasyncClient(Endpoint);
+            Assert.Throws<ArgumentNullException>(() => client.GetOfflineTable<ClientMovie>(null));
+        }
+
+        [Fact]
+        [Trait("Method", "GetOfflineTable<T>(string)")]
+        public void GetOfflineTableOfT_Throws_OnInvalidTableName()
+        {
+            var client = new DatasyncClient(Endpoint);
+            Assert.Throws<ArgumentException>(() => client.GetOfflineTable<ClientMovie>("    "));
         }
     }
 }

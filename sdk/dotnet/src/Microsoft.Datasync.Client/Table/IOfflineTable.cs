@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Query;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace Microsoft.Datasync.Client
     /// Definition of the operations that can be done against a remote table 
     /// with untyped (JSON) object.
     /// </summary>
-    public interface IRemoteTable
+    public interface IOfflineTable
     {
         /// <summary>
         /// The service client being used for communication.
@@ -49,6 +50,7 @@ namespace Microsoft.Datasync.Client
         /// <returns>A task that returns the item when complete.</returns>
         Task<JToken> GetItemAsync(string id, CancellationToken cancellationToken = default);
 
+
         /// <summary>
         /// Inserts an item into the remote table.
         /// </summary>
@@ -58,26 +60,37 @@ namespace Microsoft.Datasync.Client
         Task<JToken> InsertItemAsync(JObject instance, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Pulls the items matching the provided query from the remote table.
+        /// </summary>
+        /// <param name="query">The OData query that determines which items to pull from the remote table.</param>
+        /// <param name="options">The options used to configure the pull operation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the pull operation has finished.</returns>
+        Task PullItemsAsync(string query, PullOptions options, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Deletes all the items in the offline table that match the query.
+        /// </summary>
+        /// <param name="query">An OData query that determines which items to delete.</param>
+        /// <param name="options">The options used to configure the purge operation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the purge operation has finished.</returns>
+        Task PurgeItemsAsync(string query, PurgeOptions options, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Replaces an item into the remote table.
         /// </summary>
         /// <param name="instance">The instance to replace into the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the replaced data when complete.</returns>
         Task<JToken> ReplaceItemAsync(JObject instance, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Undeletes an item in the remote table.
-        /// </summary>
-        /// <remarks>
-        /// This requires that the table supports soft-delete.
-        /// </remarks>
-        /// <param name="instance">The instance to undelete in the table.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that returns the response when complete.</returns>
-        Task<JToken> UndeleteItemAsync(JObject instance, CancellationToken cancellationToken = default);
     }
 
-    public interface IRemoteTable<T> : IRemoteTable, ILinqMethods<T>
+    /// <summary>
+    /// Definition of the operations that can be done against a remote table 
+    /// with strongly typed objects.
+    /// </summary>
+    public interface IOfflineTable<T> : IOfflineTable, ILinqMethods<T>
     {
         /// <summary>
         /// Creates a blank query for the current table.
@@ -100,15 +113,7 @@ namespace Microsoft.Datasync.Client
         IAsyncEnumerable<T> GetAsyncItems();
 
         /// <summary>
-        /// Executes a query against the remote table.
-        /// </summary>
-        /// <typeparam name="U">The type of the items being returned by the query.</typeparam>
-        /// <param name="query">The query.</param>
-        /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/>.</returns>
-        IAsyncEnumerable<U> GetAsyncItems<U>(string query);
-
-        /// <summary>
-        /// Executes a query against the remote table.
+        /// Executes a query against the offline table.
         /// </summary>
         /// <typeparam name="U">The type of the items being returned by the query.</typeparam>
         /// <param name="query">The query.</param>
@@ -132,6 +137,26 @@ namespace Microsoft.Datasync.Client
         Task InsertItemAsync(T instance, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Pulls the items matching the provided query from the remote table.
+        /// </summary>
+        /// <typeparam name="U">The type of the data transfer object (DTO) or model that is returned by the query.</typeparam>
+        /// <param name="query">The OData query that determines which items to pull from the remote table.</param>
+        /// <param name="options">The options used to configure the pull operation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the pull operation has finished.</returns>
+        Task PullItemsAsync<U>(ITableQuery<U> query, PullOptions options, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Deletes all the items in the offline table that match the query.
+        /// </summary>
+        /// <typeparam name="U">The type of the data transfer object (DTO) or model that is returned by the query.</typeparam>
+        /// <param name="query">An OData query that determines which items to delete.</param>
+        /// <param name="options">The options used to configure the purge operation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the purge operation has finished.</returns>
+        Task PurgeItemsAsync<U>(ITableQuery<U> query, PurgeOptions options, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Refreshes the current instance with the latest values from the table.
         /// </summary>
         /// <param name="instance">The instance to refresh.</param>
@@ -146,16 +171,5 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns when the operation is complete.</returns>
         Task ReplaceItemAsync(T instance, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Undeletes an item in the remote table.
-        /// </summary>
-        /// <remarks>
-        /// This requires that the table supports soft-delete.
-        /// </remarks>
-        /// <param name="instance">The instance to undelete in the table.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that returns when the operation complete.</returns>
-        Task UndeleteItemsync(T instance, CancellationToken cancellationToken = default);
     }
 }

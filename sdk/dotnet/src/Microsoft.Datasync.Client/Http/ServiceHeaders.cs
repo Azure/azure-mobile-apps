@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+﻿
+// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
 namespace Microsoft.Datasync.Client.Http
@@ -8,11 +9,6 @@ namespace Microsoft.Datasync.Client.Http
     /// </summary>
     internal static class ServiceHeaders
     {
-        /// <summary>
-        /// The features being used in the request library.
-        /// </summary>
-        internal const string Features = "X-ZUMO-FEATURES";
-
         /// <summary>
         /// The unique ID of the installation.
         /// </summary>

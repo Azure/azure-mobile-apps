@@ -27,9 +27,9 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         internal string WrappedEndpoint { get => Endpoint.ToString(); }
 
-        internal HttpMessageHandler HttpHandler { get => httpHandler; }
+        internal HttpMessageHandler HttpHandler { get => roothandler; }
 
-        internal HttpClient HttpClient { get => httpClient; }
+        internal HttpClient HttpClient { get => client; }
 
         internal void WrappedDispose(bool dispose)
             => base.Dispose(dispose);

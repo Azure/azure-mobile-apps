@@ -1,4 +1,4 @@
-<Project Sdk="MSBuild.Sdk.Extras/3.0.23">
+﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.23">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;monoandroid12.0;xamarin.ios10</TargetFrameworks>
@@ -55,11 +55,11 @@
   <!-- .NET Standard 2.1 Platform Support -->
   <ItemGroup Condition="$(TargetFramework.StartsWith('netstandard'))">
     <Compile Include="Platforms\netstandard\*.cs" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
   </ItemGroup>
 
   <!-- Common package requirements -->
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 </Project>

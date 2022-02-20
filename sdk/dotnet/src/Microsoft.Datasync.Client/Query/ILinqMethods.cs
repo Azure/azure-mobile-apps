@@ -1,19 +1,17 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Table;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Threading;
 
 namespace Microsoft.Datasync.Client.Query
 {
     /// <summary>
-    /// A description of all the LINQ and LINQ-like methods that you can
-    /// perform on a table or existing query.
+    /// An interface describing the LINQ methods that a remote
+    /// Datasync service supports.
     /// </summary>
-    /// <typeparam name="T">The type of the model being used for querying.</typeparam>
+    /// <typeparam name="T">The type of the Data Transfer Object (DTO) or model that is being used for the query.</typeparam>
     public interface ILinqMethods<T>
     {
         /// <summary>
@@ -86,10 +84,10 @@ namespace Microsoft.Datasync.Client.Query
         ITableQuery<T> ThenByDescending<TKey>(Expression<Func<T, TKey>> keySelector);
 
         /// <summary>
-        /// Execute the query, returning an <see cref="AsyncPageable{T}"/>
+        /// Returns the result of the query as an <see cref="IAsyncEnumerable{T}"/>.
         /// </summary>
-        /// <returns>An <see cref="AsyncPageable{T}"/> to iterate over the items</returns>
-        AsyncPageable<T> ToAsyncPageable(CancellationToken token = default);
+        /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/></returns>
+        IAsyncEnumerable<T> ToAsyncEnumerable();
 
         /// <summary>
         /// Applies the specified filter predicate to the source query.

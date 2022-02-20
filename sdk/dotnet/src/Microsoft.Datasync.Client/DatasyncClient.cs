@@ -3,6 +3,7 @@
 
 using Microsoft.Datasync.Client.Authentication;
 using Microsoft.Datasync.Client.Http;
+using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using System;
@@ -16,7 +17,7 @@ namespace Microsoft.Datasync.Client
     public class DatasyncClient : IDisposable
     {
         /// <summary>
-        /// Constructor, used for unit-testing
+        ///  This is for unit testing only
         /// </summary>
         [ExcludeFromCodeCoverage]
         protected DatasyncClient()
@@ -112,7 +113,7 @@ namespace Microsoft.Datasync.Client
         /// <exception cref="UriFormatException">if the endpoint is malformed</exception>
         public DatasyncClient(Uri endpoint, AuthenticationProvider authenticationProvider, DatasyncClientOptions clientOptions)
         {
-            Validate.IsValidEndpoint(endpoint, nameof(endpoint));
+            Arguments.IsValidEndpoint(endpoint, nameof(endpoint));
 
             Endpoint = endpoint.NormalizeEndpoint();
             ClientOptions = clientOptions ?? new DatasyncClientOptions();
@@ -120,91 +121,112 @@ namespace Microsoft.Datasync.Client
         }
 
         /// <summary>
-        /// The base <see cref="Uri"/> for the datasync service this client is communicating with.
-        /// </summary>
-        public Uri Endpoint { get; }
-
-        /// <summary>
-        /// The client options used to communicate with the remote datasync service.
+        /// The client options for the service.
         /// </summary>
         public DatasyncClientOptions ClientOptions { get; }
 
         /// <summary>
-        /// The <see cref="ServiceHttpClient"/> used to communicate with the remote datasync service.
+        /// Absolute URI of the Microsoft Azure Mobile App.
         /// </summary>
-        internal ServiceHttpClient HttpClient { get; private set; }
+        public Uri Endpoint { get; }
 
         /// <summary>
-        /// Obtains a reference to a remote table, which provides untyped data operations for the
-        /// specified table.
+        /// Gets the <see cref="MobileServiceHttpClient"/> associated with the Azure Mobile App.
         /// </summary>
-        /// <param name="tableName">The name of the table, or relative URI to the table endpoint.</param>
-        /// <returns>A reference to the remote table.</returns>
-        public IRemoteTable GetRemoteTable(string tableName)
-        {
-            string relativeUri = tableName.StartsWith("/") ? tableName : ToRelativeUri(tableName);
-            Validate.IsRelativeUri(relativeUri, nameof(relativeUri));
-            return new RemoteTable(relativeUri, HttpClient, ClientOptions);
-        }
+        internal ServiceHttpClient HttpClient { get; }
 
         /// <summary>
-        /// Obtain an <see cref="IDatasyncTable{T}"/> instance, which provides typed data operations for the specified type.
-        /// The table is converted to lower case and then combined with the <see cref="DatasyncClientOptions.TablesPrefix"/>
-        /// to generate the relative URI.
+        /// The id used to identify this installation of the application to
+        /// provide telemetry data.
         /// </summary>
-        /// <typeparam name="T">The strongly-typed model type</typeparam>
-        /// <returns>A generic typed table reference.</returns>
-        public IRemoteTable<T> GetRemoteTable<T>()
-            => GetRemoteTable<T>(ToRelativeUri(typeof(T).Name.ToLowerInvariant()));
+        public string InstallationId { get; }
 
         /// <summary>
-        /// Obtain an <see cref="IDatasyncTable{T}"/> instance, which provides typed data operations for the specified table.
+        /// The serializer to use for serializing and deserializing content.
+        /// </summary>
+        internal ServiceSerializer Serializer { get; } = new();
+
+        /// <summary>
+        /// Returns a reference to an offline table, providing untyped (JSON) data
+        /// operations for that table.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <returns>A reference to the table.</returns>
+        public virtual IOfflineTable GetOfflineTable(string tableName)
+            => new OfflineTable(tableName, this);
+
+        /// <summary>
+        /// Returns a reference to an offline table, providing typed data
+        /// operations for that table.
         /// </summary>
         /// <remarks>
-        /// If the <paramref name="tableName"/> starts with a <c>/</c>, then it is assumed to be a relative URI
-        /// instead of a table name, and used directly.
+        /// If <paramref name="tableName"/> is not specified, the name of the 
+        /// type is used as the table name.
         /// </remarks>
-        /// <typeparam name="T">The strongly-typed model type.</typeparam>
-        /// <param name="tableName">The name of the table, or relative URI to the table.</param>
-        /// <returns>A generic typed table reference.</returns>
-        public IRemoteTable<T> GetRemoteTable<T>(string tableName)
-        {
-            string relativeUri = tableName.StartsWith("/") ? tableName : ToRelativeUri(tableName);
-            Validate.IsRelativeUri(relativeUri, nameof(relativeUri));
-            return new RemoteTable<T>(relativeUri, HttpClient, ClientOptions);
-        }
+        /// <typeparam name="T">The type of the data transfer object (model) being used.</typeparam>
+        /// <param name="tableName">The (optional) name of the table.</param>
+        /// <returns>A reference to the table.</returns>
+        public virtual IOfflineTable<T> GetOfflineTable<T>(string tableName = null)
+            => new OfflineTable<T>(tableName ?? ResolveTableName(typeof(T)), this);
 
         /// <summary>
-        /// Converts the provided <paramref name="tableName"/> into a relative URI.
+        /// Returns a reference to a remote table, providing untyped (JSON) data
+        /// operations for that table.
         /// </summary>
-        /// <param name="tableName">The table name to convert</param>
-        /// <returns>The relative URI to the table</returns>
-        private string ToRelativeUri(string tableName) => $"/{ClientOptions.TablesPrefix.Trim('/')}/{tableName}";
+        /// <param name="tableName">The name of the table.</param>
+        /// <returns>A reference to the table.</returns>
+        public virtual IRemoteTable GetRemoteTable(string tableName)
+            => new RemoteTable(tableName, this);
+
+        /// <summary>
+        /// Returns a reference to a remote table, providing typed data
+        /// operations for that table.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="tableName"/> is not specified, the name of the type is used as
+        /// the table name.
+        /// </remarks>
+        /// <typeparam name="T">The type of the data transfer object (model) being used.</typeparam>
+        /// <param name="tableName">The (optional) name of the table.</param>
+        /// <returns>A reference to the table.</returns>
+        public virtual IRemoteTable<T> GetRemoteTable<T>(string tableName = null)
+            => new RemoteTable<T>(tableName ?? ResolveTableName(typeof(T)), this);
+
+        /// <summary>
+        /// Resolves a type into a table name.
+        /// </summary>
+        /// <param name="type">The type of the data transfer object (model).</param>
+        /// <returns>The name of the table to use.</returns>
+        private string ResolveTableName(Type type)
+            => Serializer.SerializerSettings.ContractResolver.ResolveTableName(type);
 
         #region IDisposable
         /// <summary>
-        /// Implementation of the <see cref="IDisposable"/> pattern for derived classes to use.
+        /// Implemenation of <see cref="IDisposable"/>
         /// </summary>
-        /// <param name="disposing">Indicates if being called from the <see cref="Dispose"/> method or the finalizer.</param>
+        [ExcludeFromCodeCoverage]
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Implemenation of <see cref="IDisposable"/> for
+        /// derived classes to use.
+        /// </summary>
+        /// <param name="disposing">
+        /// Indicates if being called from the Dispose() method
+        /// or the finalizer.
+        /// </param>
+        [ExcludeFromCodeCoverage]
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
             {
-                if (HttpClient != null)
-                {
-                    HttpClient.Dispose();
-                    HttpClient = null;
-                }
+                // TODO: Dispose of synchronization context.
+                HttpClient.Dispose();
             }
-        }
-
-        /// <summary>
-        /// Implementation of the <see cref="IDisposable"/> pattern.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
         #endregion
     }
