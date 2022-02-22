@@ -41,7 +41,7 @@ namespace Microsoft.Datasync.Client.Http
         /// <param name="message">The source message.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>The equivalent <see cref="ServiceResponse"/></returns>
-        internal static async Task<ServiceResponse> CreateResponseAsync(HttpResponseMessage message, CancellationToken cancellationToken)
+        internal static async Task<ServiceResponse> CreateResponseAsync(HttpResponseMessage message, CancellationToken cancellationToken = default)
         {
             var response = new ServiceResponse(message);
             if (message.Content != null)

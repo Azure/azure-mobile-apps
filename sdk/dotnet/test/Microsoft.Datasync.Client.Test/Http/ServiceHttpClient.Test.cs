@@ -4,12 +4,14 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Mocks;
 using Datasync.Common.Test.TestData;
+using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -385,16 +387,17 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
-        [Trait("Method", "SendAsync")]
-        public async Task SendAsync_NullRequest_Throws()
+        [Trait("Method", "SendAsync(HttpRequestMessage)")]
+        public async Task SendHttpAsync_NullRequest_Throws()
         {
+            HttpRequestMessage sut = null;
             var client = new WrappedHttpClient(Endpoint, new DatasyncClientOptions());
-            await Assert.ThrowsAsync<ArgumentNullException>(() => client.WrappedSendAsync(null)).ConfigureAwait(false);
+            await Assert.ThrowsAsync<ArgumentNullException>(() => client.WrappedSendAsync(sut)).ConfigureAwait(false);
         }
 
         [Fact]
-        [Trait("Method", "SendAsync")]
-        public async Task SendAsync_OnBadRequest()
+        [Trait("Method", "SendAsync(HttpRequestMessage)")]
+        public async Task SendHttpAsync_OnBadRequest()
         {
             var handler = new MockDelegatingHandler();
             var options = new DatasyncClientOptions 
@@ -423,8 +426,8 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
-        [Trait("Method", "SendAsync")]
-        public async Task SendAsync_OnSuccessfulRequest()
+        [Trait("Method", "SendAsync(HttpRequestMessage)")]
+        public async Task SendHttpAsync_OnSuccessfulRequest()
         {
             var handler = new MockDelegatingHandler();
             var options = new DatasyncClientOptions
@@ -453,8 +456,8 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
-        [Trait("Method", "SendAsync")]
-        public async Task SendAsync_ThrowsTimeout_WhenOperationCanceled()
+        [Trait("Method", "SendAsync(HttpRequestMessage)")]
+        public async Task SendHttpAsync_ThrowsTimeout_WhenOperationCanceled()
         {
             var handler = new TimeoutDelegatingHandler();
             var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { handler } };
@@ -465,8 +468,8 @@ namespace Microsoft.Datasync.Client.Test.Http
         }
 
         [Fact]
-        [Trait("Method", "SendAsync")]
-        public async Task SendAsync_OnSuccessfulRequest_WithAuth()
+        [Trait("Method", "SendAsync(HttpRequestMessage)")]
+        public async Task SendHttpAsync_OnSuccessfulRequest_WithAuth()
         {
             var handler = new MockDelegatingHandler();
             var options = new DatasyncClientOptions
@@ -484,6 +487,122 @@ namespace Microsoft.Datasync.Client.Test.Http
             var actualResponse = await client.WrappedSendAsync(request).ConfigureAwait(false);
 
             Assert.Same(response, actualResponse);      // We get the provided response back.
+
+            // Check that the right headers were applied to the request
+            Assert.Single(handler.Requests);
+            var actual = handler.Requests[0];
+
+            Assert.Equal(options.UserAgent, actual.Headers.UserAgent.ToString());
+            AssertEx.HasHeader(actual.Headers, "X-ZUMO-VERSION", options.UserAgent);
+            AssertEx.HasHeader(actual.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(actual.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
+            AssertEx.HasHeader(actual.Headers, "X-ZUMO-INSTALLATION-ID", options.InstallationId);
+        }
+
+        [Fact]
+        [Trait("Method", "SendAsync(ServiceMessage)")]
+        public async Task SendServiceAsync_NullRequest_Throws()
+        {
+            ServiceRequest sut = null;
+            var client = new WrappedHttpClient(Endpoint, new DatasyncClientOptions());
+            await Assert.ThrowsAsync<ArgumentNullException>(() => client.WrappedSendAsync(sut)).ConfigureAwait(false);
+        }
+
+        [Fact]
+        [Trait("Method", "SendAsync(ServiceMessage)")]
+        public async Task SendServiceAsync_OnBadRequest()
+        {
+            var handler = new MockDelegatingHandler();
+            var response = new HttpResponseMessage(HttpStatusCode.BadRequest);
+            handler.Responses.Add(response);
+
+            var options = new DatasyncClientOptions
+            {
+                HttpPipeline = new HttpMessageHandler[] { handler },
+                InstallationId = "hijack",
+                UserAgent = "hijack"
+            };
+            var client = new WrappedHttpClient(Endpoint, options);
+            var request = new ServiceRequest { Method = HttpMethod.Get, UriPathAndQuery = "/tables/movies/" };
+            var exception = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => client.WrappedSendAsync(request));
+            Assert.Same(response, exception.Response);
+
+            // Check that the right headers were applied to the request
+            Assert.Single(handler.Requests);
+            var actual = handler.Requests[0];
+
+            Assert.Equal(options.UserAgent, actual.Headers.UserAgent.ToString());
+            AssertEx.HasHeader(actual.Headers, "X-ZUMO-VERSION", options.UserAgent);
+            AssertEx.HasHeader(actual.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(actual.Headers, "X-ZUMO-INSTALLATION-ID", options.InstallationId);
+        }
+
+        [Fact]
+        [Trait("Method", "SendAsync(ServiceMessage)")]
+        public async Task SendServiceAsync_OnSuccessfulRequest()
+        {
+            var handler = new MockDelegatingHandler();
+            var response = new HttpResponseMessage(HttpStatusCode.OK);
+            handler.Responses.Add(response);
+
+            var options = new DatasyncClientOptions
+            {
+                HttpPipeline = new HttpMessageHandler[] { handler },
+                InstallationId = "hijack",
+                UserAgent = "hijack"
+            };
+            var client = new WrappedHttpClient(Endpoint, options);
+
+            var request = new ServiceRequest { Method = HttpMethod.Get, UriPathAndQuery = "/tables/movies/", EnsureResponseContent = false };
+            var actualResponse = await client.WrappedSendAsync(request).ConfigureAwait(false);
+            Assert.Equal(200, actualResponse.StatusCode);
+
+            // Check that the right headers were applied to the request
+            Assert.Single(handler.Requests);
+            var actual = handler.Requests[0];
+
+            Assert.Equal(options.UserAgent, actual.Headers.UserAgent.ToString());
+            AssertEx.HasHeader(actual.Headers, "X-ZUMO-VERSION", options.UserAgent);
+            AssertEx.HasHeader(actual.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(actual.Headers, "X-ZUMO-INSTALLATION-ID", options.InstallationId);
+        }
+
+        [Fact]
+        [Trait("Method", "SendAsync(ServiceMessage)")]
+        public async Task SendServiceAsync_ThrowsTimeout_WhenOperationCanceled()
+        {
+            var handler = new TimeoutDelegatingHandler();
+            var options = new DatasyncClientOptions { HttpPipeline = new HttpMessageHandler[] { handler } };
+            var client = new WrappedHttpClient(Endpoint, options);
+            var request = new ServiceRequest { Method = HttpMethod.Get, UriPathAndQuery = "/tables/movies/" };
+            await Assert.ThrowsAsync<TimeoutException>(() => client.WrappedSendAsync(request)).ConfigureAwait(false);
+        }
+
+        [Fact]
+        [Trait("Method", "SendAsync(ServiceMessage)")]
+        public async Task SendServiceAsync_OnSuccessfulRequest_WithAuth()
+        {
+            var handler = new MockDelegatingHandler();
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("{}", Encoding.UTF8, "application/json")
+            };
+            handler.Responses.Add(response);
+
+            var options = new DatasyncClientOptions
+            {
+                HttpPipeline = new HttpMessageHandler[] { handler },
+                InstallationId = "hijack",
+                UserAgent = "hijack"
+            };
+            var requestor = () => Task.FromResult(ValidAuthenticationToken);
+            var client = new WrappedHttpClient(Endpoint, new GenericAuthenticationProvider(requestor, "X-ZUMO-AUTH"), options);
+            var request = new ServiceRequest { Method = HttpMethod.Get, UriPathAndQuery = "/tables/movies/" };
+
+            var actualResponse = await client.WrappedSendAsync(request).ConfigureAwait(false);
+            Assert.Equal(200, actualResponse.StatusCode);
+            Assert.Equal("{}", actualResponse.Content);
+            Assert.True(actualResponse.HasContent);
 
             // Check that the right headers were applied to the request
             Assert.Single(handler.Requests);

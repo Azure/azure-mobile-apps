@@ -39,5 +39,8 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         internal Task<HttpResponseMessage> WrappedSendAsync(HttpRequestMessage request, CancellationToken token = default)
             => base.SendAsync(request, token);
+
+        internal Task<ServiceResponse> WrappedSendAsync(ServiceRequest request, CancellationToken token = default)
+            => base.SendAsync(request, token);
     }
 }

@@ -47,7 +47,7 @@ namespace Datasync.Common.Test
         /// <param name="key">the header name</param>
         /// <param name="expected">the header value</param>
         /// <param name="headers">The headers</param>
-        public static void Contains(string key, string expected, IReadOnlyDictionary<string, IEnumerable<string>> headers)
+        public static void Contains(string key, string expected, IDictionary<string, IEnumerable<string>> headers)
         {
             Assert.True(headers.TryGetValue(key, out IEnumerable<string> values), $"Dictionary does not contain key {key}");
             Assert.True(values.Count() == 1, $"Dictionary contains multiple values for {key}");

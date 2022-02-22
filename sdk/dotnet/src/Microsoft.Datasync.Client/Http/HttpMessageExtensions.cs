@@ -21,21 +21,18 @@ namespace Microsoft.Datasync.Client.Http
         /// <returns><c>true</c> if the response headers indicates the response is compressed.</returns>
         internal static bool IsCompressed(this HttpResponseMessage response)
         {
-            response.Headers.TryGetValues("Content-Encoding", out IEnumerable<string> encodingList);
-            if (encodingList == null)
+            if (response.Content?.Headers.ContentEncoding?.Count > 0)
             {
-                response.Headers.TryGetValues("Vary", out IEnumerable<string> varyList);
-                if (varyList == null)
-                {
-                    return false;
-                }
-                string allVaryValues = varyList.Aggregate((allValues, next) => allValues = allValues + ";" + next);
+                string allAcceptValues = response.Content?.Headers.ContentEncoding.Aggregate((allValues, next) => allValues = allValues + ";" + next);
+                return !string.IsNullOrEmpty(allAcceptValues) && (allAcceptValues.Contains("gzip") || allAcceptValues.Contains("deflate")
+                    || allAcceptValues.Contains("br") || allAcceptValues.Contains("compress"));
+            }
+            else if (response.Headers.Vary?.Count > 0)
+            {
+                string allVaryValues = response.Headers.Vary?.Aggregate((allValues, next) => allValues = allValues + ";" + next);
                 return !string.IsNullOrEmpty(allVaryValues) && allVaryValues.Contains("Accept-Encoding");
             }
-
-            string allAcceptValues = encodingList.Aggregate((allValues, next) => allValues = allValues + ";" + next);
-            return !string.IsNullOrEmpty(allAcceptValues) && (allAcceptValues.Contains("gzip") || allAcceptValues.Contains("deflate")
-                || allAcceptValues.Contains("br") || allAcceptValues.Contains("compress"));
+            return false;
         }
 
         /// <summary>
