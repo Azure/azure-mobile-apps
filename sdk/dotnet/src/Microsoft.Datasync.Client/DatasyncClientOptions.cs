@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -26,6 +27,11 @@ namespace Microsoft.Datasync.Client
         /// header.
         /// </summary>
         public string InstallationId { get; set; }
+
+        /// <summary>
+        /// The serializer settings to use for this connection.
+        /// </summary>
+        public DatasyncSerializerSettings SerializerSettings { get; set; }
 
         /// <summary>
         /// The value used for the <c>User-Agent</c> header.  By default, this includes enough information

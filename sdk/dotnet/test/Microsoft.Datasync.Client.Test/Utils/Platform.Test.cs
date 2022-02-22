@@ -14,8 +14,8 @@ namespace Microsoft.Datasync.Client.Test.Utils
         [Trait("Method", "ApplicationStorage")]
         public void ApplicationStorage_IsNotNull()
         {
-            Assert.NotNull(Platform.ApplicationStorage);
-            Assert.IsAssignableFrom<IApplicationStorage>(Platform.ApplicationStorage);
+            Assert.NotNull(Platform.Instance.ApplicationStorage);
+            Assert.IsAssignableFrom<IApplicationStorage>(Platform.Instance.ApplicationStorage);
         }
 
         [Fact]
@@ -30,8 +30,8 @@ namespace Microsoft.Datasync.Client.Test.Utils
         [Trait("Method", "PlaformInformation")]
         public void PlatformInformation_IsNotNull()
         {
-            Assert.NotNull(Platform.PlatformInformation);
-            Assert.IsAssignableFrom<IPlatformInformation>(Platform.PlatformInformation);
+            Assert.NotNull(Platform.Instance.PlatformInformation);
+            Assert.IsAssignableFrom<IPlatformInformation>(Platform.Instance.PlatformInformation);
         }
 
         [Fact]
@@ -58,10 +58,22 @@ namespace Microsoft.Datasync.Client.Test.Utils
         [Trait("Method", "InstallationId")]
         public void InstallationId_IsNotNull_AfterClean()
         {
-            Platform.ApplicationStorage.ClearValues();
+            Platform.Instance.ApplicationStorage.ClearValues();
             var installationId = Platform.InstallationId;
             Assert.NotNull(installationId);
             Assert.Equal(installationId, Platform.InstallationId);
+        }
+
+        [Fact]
+        [Trait("Method", "GetApplicationInstallationId")]
+        public void GetApplicationInstallationId_GeneratesSameId()
+        {
+            Platform.Instance.ApplicationStorage.ClearValues();
+            var installationId = Platform.GetApplicationInstallationId();
+            Assert.NotNull(installationId);
+
+            var copy = Platform.GetApplicationInstallationId();
+            Assert.Equal(installationId, copy);
         }
 
         [Fact]

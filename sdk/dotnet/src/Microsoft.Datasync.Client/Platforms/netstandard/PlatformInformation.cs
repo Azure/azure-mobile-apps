@@ -24,11 +24,6 @@ namespace Microsoft.Datasync.Client.Platforms
         };
 
         /// <summary>
-        /// True if this is running on an emulated device
-        /// </summary>
-        public bool IsEmulator => false;
-
-        /// <summary>
         /// Determines if the debugger is attached.
         /// </summary>
         /// <remarks>

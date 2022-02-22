@@ -35,14 +35,6 @@ namespace Microsoft.Datasync.Client.Utils
         }
 
         /// <summary>
-        /// Gets the application storage handler for the current platform.
-        /// </summary>
-        internal static IApplicationStorage ApplicationStorage
-        {
-            get => Instance.ApplicationStorage;
-        }
-
-        /// <summary>
         /// Obtains the assembly version of the current assembly.
         /// </summary>
         internal static string AssemblyVersion => Instance.GetType().Assembly.GetName().Version.ToString();
@@ -57,23 +49,14 @@ namespace Microsoft.Datasync.Client.Utils
         /// </summary>
         internal static string GetApplicationInstallationId()
         {
-            IApplicationStorage storage = Instance.ApplicationStorage;
-            if (storage.TryGetValue(InstallationIdKey, out string installationId))
+            if (Instance.ApplicationStorage.TryGetValue(InstallationIdKey, out string installationId))
             {
                 return installationId;
             }
 
             string newId = Guid.NewGuid().ToString();
-            storage.SetValue(InstallationIdKey, newId);
+            Instance.ApplicationStorage.SetValue(InstallationIdKey, newId);
             return newId;
-        }
-
-        /// <summary>
-        /// Gets the platform information for the current platform.
-        /// </summary>
-        internal static IPlatformInformation PlatformInformation
-        {
-            get => Instance.PlatformInformation;
         }
 
         /// <summary>
@@ -81,7 +64,7 @@ namespace Microsoft.Datasync.Client.Utils
         /// </summary>
         internal static string UserAgentDetails
         {
-            get => PlatformInformation.UserAgentDetails;
+            get => Instance.PlatformInformation.UserAgentDetails;
         }
     }
 }

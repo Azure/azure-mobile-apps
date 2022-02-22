@@ -118,6 +118,10 @@ namespace Microsoft.Datasync.Client
             Endpoint = endpoint.NormalizeEndpoint();
             ClientOptions = clientOptions ?? new DatasyncClientOptions();
             HttpClient = new ServiceHttpClient(Endpoint, authenticationProvider, ClientOptions);
+            if (ClientOptions.SerializerSettings != null)
+            {
+                Serializer.SerializerSettings = ClientOptions.SerializerSettings;
+            }
         }
 
         /// <summary>
@@ -139,7 +143,7 @@ namespace Microsoft.Datasync.Client
         /// The id used to identify this installation of the application to
         /// provide telemetry data.
         /// </summary>
-        public string InstallationId { get; }
+        public string InstallationId { get => HttpClient.InstallationId; }
 
         /// <summary>
         /// The serializer to use for serializing and deserializing content.

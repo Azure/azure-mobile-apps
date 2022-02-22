@@ -35,11 +35,6 @@ namespace Microsoft.Datasync.Client.Utils
         IOSInformation OS { get; }
 
         /// <summary>
-        /// If true, running on an emulator.
-        /// </summary>
-        bool IsEmulator { get; }
-
-        /// <summary>
         /// The details section of the user-agent string.
         /// </summary>
         string UserAgentDetails { get; }

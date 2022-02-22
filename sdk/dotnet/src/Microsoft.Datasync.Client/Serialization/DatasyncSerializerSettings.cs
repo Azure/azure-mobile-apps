@@ -4,6 +4,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Datasync.Client.Serialization
 {
@@ -44,6 +45,7 @@ namespace Microsoft.Datasync.Client.Serialization
         /// The normal contract resolver requires that the object implement <see cref="IContractResolver"/>,
         /// but we require a <see cref="DatasyncContractResolver"/>, so we must check for this.
         /// </remarks>
+        [ExcludeFromCodeCoverage]
         public new DatasyncContractResolver ContractResolver
         {
             get

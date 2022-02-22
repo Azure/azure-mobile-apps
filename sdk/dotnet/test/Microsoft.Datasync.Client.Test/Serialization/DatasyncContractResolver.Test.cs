@@ -1,4 +1,7 @@
-﻿using Datasync.Common.Test;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Datasync.Common.Test;
 using Microsoft.Datasync.Client.Serialization;
 using Newtonsoft.Json;
 using System;
@@ -15,6 +18,17 @@ namespace Microsoft.Datasync.Client.Test.Serialization
         public DatasyncContractResolver_Tests()
         {
             contractResolver = new DatasyncContractResolver();
+        }
+
+        [Fact]
+        [Trait("Method", "CamelCasePropertyNames")]
+        public void CamelCasePropertyNames_Roundtrips()
+        {
+            contractResolver.CamelCasePropertyNames = true;
+            Assert.True(contractResolver.CamelCasePropertyNames);
+
+            contractResolver.CamelCasePropertyNames = false;
+            Assert.False(contractResolver.CamelCasePropertyNames);
         }
 
         [Theory]

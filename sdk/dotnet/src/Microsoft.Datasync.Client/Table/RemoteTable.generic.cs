@@ -24,7 +24,6 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="serviceClient">The service client that created this table.</param>
         internal RemoteTable(string tableName, DatasyncClient serviceClient) : base(tableName, serviceClient)
         {
-            throw new NotImplementedException();
         }
 
         #region IRemoteTable<T>

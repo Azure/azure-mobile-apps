@@ -4,6 +4,7 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
+using Microsoft.Datasync.Client.Serialization;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
@@ -234,6 +235,16 @@ namespace Microsoft.Datasync.Client.Test
         }
 
         [Fact]
+        [Trait("Method", "SerializerSettings")]
+        public void SerializerSettings_CopiedToSerializer()
+        {
+            var settings = new DatasyncSerializerSettings { CamelCasePropertyNames = true };
+            var options = new DatasyncClientOptions { SerializerSettings = settings };
+            var client = new DatasyncClient(Endpoint, options);
+            Assert.Same(settings, client.Serializer.SerializerSettings);
+        }
+
+        [Fact]
         [Trait("Method", "GetRemoteTable(string)")]
         public void GetRemoteTable_ProducesTable()
         {
@@ -282,13 +293,15 @@ namespace Microsoft.Datasync.Client.Test
             Assert.Equal("movies", table.TableName);
         }
 
-
         [Fact]
         [Trait("Method", "GetRemoteTable<T>(string)")]
-        public void GetRemoteTableOfT_Throws_OnNullTableName()
+        public void GetRemoteTableOfT_String_OnNullTableName()
         {
             var client = new DatasyncClient(Endpoint);
-            Assert.Throws<ArgumentNullException>(() => client.GetRemoteTable<ClientMovie>(null));
+            var table = client.GetRemoteTable<ClientMovie>(null);
+            Assert.IsAssignableFrom<IRemoteTable<ClientMovie>>(table);
+            Assert.Same(client, table.ServiceClient);
+            Assert.Equal("clientmovie", table.TableName);
         }
 
         [Fact]
@@ -348,13 +361,15 @@ namespace Microsoft.Datasync.Client.Test
             Assert.Equal("movies", table.TableName);
         }
 
-
         [Fact]
         [Trait("Method", "GetOfflineTable<T>(string)")]
-        public void GetOfflineTableOfT_Throws_OnNullTableName()
+        public void GetOfflineTableOfT_String_OnNullTableName()
         {
             var client = new DatasyncClient(Endpoint);
-            Assert.Throws<ArgumentNullException>(() => client.GetOfflineTable<ClientMovie>(null));
+            var table = client.GetOfflineTable<ClientMovie>(null);
+            Assert.IsAssignableFrom<IOfflineTable<ClientMovie>>(table);
+            Assert.Same(client, table.ServiceClient);
+            Assert.Equal("clientmovie", table.TableName);
         }
 
         [Fact]

@@ -49,7 +49,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="instance">The instance to delete from the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the response when complete.</returns>
-        public Task<JToken> DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default)
+        public async Task<JToken> DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(instance, nameof(instance));
             ObjectReader.GetSystemProperties(instance, out SystemProperties systemProperties);

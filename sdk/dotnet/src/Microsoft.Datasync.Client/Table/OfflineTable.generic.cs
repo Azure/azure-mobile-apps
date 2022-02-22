@@ -25,8 +25,13 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="serviceClient">The service client that created this table.</param>
         public OfflineTable(string tableName, DatasyncClient serviceClient) : base(tableName, serviceClient)
         {
-            throw new NotImplementedException();
+            RemoteTable = ServiceClient.GetRemoteTable<T>(tableName);
         }
+
+        /// <summary>
+        /// The remote table associated with this table.
+        /// </summary>
+        internal IRemoteTable<T> RemoteTable { get; }
 
         #region IOfflineTable<T>
         /// <summary>

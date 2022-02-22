@@ -3,6 +3,7 @@
 
 using Microsoft.Datasync.Client.Authentication;
 using Microsoft.Datasync.Client.Utils;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,6 +62,7 @@ namespace Microsoft.Datasync.Client.Http
             Arguments.IsNotNull(clientOptions, nameof(clientOptions));
 
             Endpoint = endpoint;
+            InstallationId = clientOptions.InstallationId ?? Platform.InstallationId;
             
             roothandler = CreatePipeline(clientOptions.HttpPipeline ?? Array.Empty<HttpMessageHandler>());
             if (authenticationProvider != null)
@@ -77,7 +79,7 @@ namespace Microsoft.Datasync.Client.Http
             }
             if (clientOptions.InstallationId == null || !string.IsNullOrWhiteSpace(clientOptions.InstallationId))
             {
-                client.DefaultRequestHeaders.Add(ServiceHeaders.InstallationId, clientOptions.InstallationId ?? Platform.InstallationId);
+                client.DefaultRequestHeaders.Add(ServiceHeaders.InstallationId, InstallationId);
             }
         }
 
@@ -85,6 +87,8 @@ namespace Microsoft.Datasync.Client.Http
         /// The endpoint of the Datasync service.
         /// </summary>
         public Uri Endpoint { get; }
+
+        public string InstallationId { get; }
 
         /// <summary>
         /// Sends a request through the HTTP pipeline to the remote service asynchronously.
@@ -102,6 +106,115 @@ namespace Microsoft.Datasync.Client.Http
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 throw new TimeoutException();
+            }
+        }
+
+        /// <summary>
+        /// Sends a request through the HTTP pipeline to the remote service asynchronously.
+        /// </summary>
+        /// <param name="serviceRequest">The <see cref="ServiceRequest"/> to send to the service.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns a <see cref="ServiceResponse"/> when complete.</returns>
+        /// <exception cref="DatasyncInvalidOperationException">if content was expected but not received.</exception>
+        internal async Task<ServiceResponse> SendAsync(ServiceRequest serviceRequest, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(serviceRequest, nameof(serviceRequest));
+            HttpRequestMessage request = serviceRequest.ToHttpRequestMessage();
+            HttpResponseMessage response = await SendAsync(request, cancellationToken).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw await ThrowInvalidResponseAsync(request, response, cancellationToken);
+            }
+
+            if (serviceRequest.EnsureResponseContent)
+            {
+                if (!response.IsCompressed() && response.Content != null)
+                {
+                    long? contentLength = response.Content.Headers.ContentLength;
+                    if (contentLength == null || contentLength <= 0)
+                    {
+                        throw new DatasyncInvalidOperationException("The server did not provide a response with the expected content.", request, response);
+                    }
+                }
+            }
+
+            var serviceResponse = await ServiceResponse.CreateResponseAsync(response, cancellationToken).ConfigureAwait(false);
+            request.Dispose();
+            response.Dispose();
+            return serviceResponse;
+        }
+
+        /// <summary>
+        /// throws an exception for an invalid response to a request.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        /// <param name="response">The response.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>The exception to throw.</returns>
+        private static async Task<Exception> ThrowInvalidResponseAsync(HttpRequestMessage request, HttpResponseMessage response, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(request, nameof(request));
+            Arguments.IsNotNull(response, nameof(response));
+            if (response.IsSuccessStatusCode)
+            {
+                return new ArgumentException($"response should not be successful.", nameof(response));
+            }
+
+            string responseContent = response.Content == null ? null : await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            string message = GetErrorMessageFromBody(responseContent) ?? $"The request could not be completed ({response.ReasonPhrase})";
+            return new DatasyncInvalidOperationException(message, request, response);
+        }
+
+        /// <summary>
+        /// When the server returns an error, the payload may contain the error message.  This
+        /// method will convert whatever the payload is into the appropriate error message.
+        /// </summary>
+        /// <param name="content">The payload, or <c>null</c> if there is no payload.</param>
+        /// <returns>The error message to use.</returns>
+        private static string GetErrorMessageFromBody(string content)
+        {
+            if (content == null)
+            {
+                return null;
+            }
+
+            JToken body = ParseOrDefault(content);
+            if (body?.Type == JTokenType.String)
+            {
+                return body.ToString();
+            }
+            if (body?.Type == JTokenType.Object)
+            {
+                JToken error = body["error"];
+                if (error?.Type == JTokenType.String)
+                {
+                    return error.ToString();
+                }
+
+                JToken description = body["description"];
+                if (description?.Type== JTokenType.String)
+                {
+                    return description.ToString();
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Tries to parse a <see cref="JToken"/>; on failure, return <c>null</c>.
+        /// </summary>
+        /// <param name="content">The JSON content to attempt to parse.</param>
+        /// <returns>The parsed <see cref="JToken"/> or <c>null</c>.</returns>
+        private static JToken ParseOrDefault(string content)
+        {
+            try
+            {
+                return JToken.Parse(content);
+            }
+            catch
+            {
+                return null;
             }
         }
 
