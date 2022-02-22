@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -14,6 +13,8 @@ namespace Microsoft.Datasync.Client.Http
     /// </summary>
     internal static class HttpMessageExtensions
     {
+        private static readonly string[] ValidCompressionMethods = new string[] { "br", "compress", "deflate", "gzip" };
+
         /// <summary>
         /// Returns true if the response is compressed.
         /// </summary>
@@ -23,14 +24,11 @@ namespace Microsoft.Datasync.Client.Http
         {
             if (response.Content?.Headers.ContentEncoding?.Count > 0)
             {
-                string allAcceptValues = response.Content?.Headers.ContentEncoding.Aggregate((allValues, next) => allValues = allValues + ";" + next);
-                return !string.IsNullOrEmpty(allAcceptValues) && (allAcceptValues.Contains("gzip") || allAcceptValues.Contains("deflate")
-                    || allAcceptValues.Contains("br") || allAcceptValues.Contains("compress"));
+                return response.Content.Headers.ContentEncoding.Any(m => ValidCompressionMethods.Contains(m));
             }
             else if (response.Headers.Vary?.Count > 0)
             {
-                string allVaryValues = response.Headers.Vary?.Aggregate((allValues, next) => allValues = allValues + ";" + next);
-                return !string.IsNullOrEmpty(allVaryValues) && allVaryValues.Contains("Accept-Encoding");
+                return response.Headers.Vary.Contains("Accept-Encoding");
             }
             return false;
         }

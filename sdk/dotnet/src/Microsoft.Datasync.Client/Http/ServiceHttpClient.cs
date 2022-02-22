@@ -155,10 +155,6 @@ namespace Microsoft.Datasync.Client.Http
         {
             Arguments.IsNotNull(request, nameof(request));
             Arguments.IsNotNull(response, nameof(response));
-            if (response.IsSuccessStatusCode)
-            {
-                return new ArgumentException($"response should not be successful.", nameof(response));
-            }
 
             string responseContent = response.Content == null ? null : await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             string message = GetErrorMessageFromBody(responseContent) ?? $"The request could not be completed ({response.ReasonPhrase})";
