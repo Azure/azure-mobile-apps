@@ -50,6 +50,7 @@ namespace Datasync.Common.Test.Models
     public class DTOIdEntity
     {
         public string Id { get; set; }
+        public string Version { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }
         public long Number { get; set; }
     }

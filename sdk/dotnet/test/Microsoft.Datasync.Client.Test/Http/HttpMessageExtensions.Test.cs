@@ -14,6 +14,46 @@ namespace Microsoft.Datasync.Client.Test.Http
     [ExcludeFromCodeCoverage]
     public class HttpMessageExtensions_Tests : BaseTest
     {
+        [Fact]
+        [Trait("Method", "HasContent(HttpContent)")]
+        public void HasContent_NullContent_Works()
+        {
+            HttpContent content = null;
+            Assert.False(content.HasContent());
+        }
+
+        [Fact]
+        [Trait("Method", "HasContent(HttpContent)")]
+        public void HasContent_EmptyContent_Works()
+        {
+            var response = new HttpResponseMessage(HttpStatusCode.OK);
+            Assert.False(response.Content.HasContent());
+        }
+
+        [Fact]
+        [Trait("Method", "HasContent(HttpContent")]
+        public void HasContent_StringContent_Works()
+        {
+            var content = new StringContent("some content");
+            Assert.True(content.HasContent());
+        }
+
+        [Fact]
+        [Trait("Method", "HasContent(HttpResponseMessage)")]
+        public void HasContent_EmptyResponse_Works()
+        {
+            var response = new HttpResponseMessage(HttpStatusCode.OK);
+            Assert.False(response.HasContent());
+        }
+
+        [Fact]
+        [Trait("Method", "HasContent(HttpResponseMessage)")]
+        public void HasContent_StringResponse_Works()
+        {
+            var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("some content") };
+            Assert.True(response.HasContent());
+        }
+
         [Theory]
         [InlineData(null, null, false)]
         [InlineData("None", null, false)]
@@ -33,6 +73,7 @@ namespace Microsoft.Datasync.Client.Test.Http
         [InlineData("Accept-Encoding", "deflate", true)]
         [InlineData("Accept-Encoding", "br", true)]
         [InlineData("Accept-Encoding", "compress", true)]
+        [Trait("Method", "IsCompressed(HttpResponseMessage)")]
         public void IsCompressed_Works(string vary, string contentEncoding, bool expected)
         {
             var response = new HttpResponseMessage(HttpStatusCode.OK);

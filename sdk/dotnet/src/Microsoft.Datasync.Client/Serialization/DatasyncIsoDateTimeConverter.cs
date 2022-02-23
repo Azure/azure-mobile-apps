@@ -14,13 +14,15 @@ namespace Microsoft.Datasync.Client.Serialization
     /// </summary>
     public class DatasyncIsoDateTimeConverter : IsoDateTimeConverter
     {
+        internal const string IsoDateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK";
+
         /// <summary>
         /// Creates a new <see cref="DatasyncIsoDateTimeConverter"/> instance.
         /// </summary>
         public DatasyncIsoDateTimeConverter()
         {
             Culture = CultureInfo.InvariantCulture;
-            DateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK";
+            DateTimeFormat = IsoDateTimeFormat;
         }
 
         /// <summary>

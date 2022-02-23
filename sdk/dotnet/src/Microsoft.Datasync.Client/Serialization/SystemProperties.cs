@@ -11,6 +11,21 @@ namespace Microsoft.Datasync.Client.Serialization
     internal class SystemProperties
     {
         /// <summary>
+        /// The name of the "id" property in a JSON document.
+        /// </summary>
+        internal const string JsonIdProperty = "id";
+
+        /// <summary>
+        /// The name of the "version" property in a JSON document.
+        /// </summary>
+        internal const string JsonVersionProperty = "version";
+
+        /// <summary>
+        /// The name of the "updatedAt" property in a JSON document.
+        /// </summary>
+        internal const string JsonUpdatedAtProperty = "updatedAt";
+
+        /// <summary>
         /// The globally unique ID for the instance.
         /// </summary>
         public string Id { get; set; }

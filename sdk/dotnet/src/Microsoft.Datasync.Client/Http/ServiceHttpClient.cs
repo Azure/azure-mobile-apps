@@ -63,7 +63,7 @@ namespace Microsoft.Datasync.Client.Http
 
             Endpoint = endpoint;
             InstallationId = clientOptions.InstallationId ?? Platform.InstallationId;
-            
+
             roothandler = CreatePipeline(clientOptions.HttpPipeline ?? Array.Empty<HttpMessageHandler>());
             if (authenticationProvider != null)
             {
@@ -128,7 +128,7 @@ namespace Microsoft.Datasync.Client.Http
 
             if (serviceRequest.EnsureResponseContent)
             {
-                if (!response.IsCompressed() && response.Content != null)
+                if (response.HasContent() && !response.IsCompressed())
                 {
                     long? contentLength = response.Content.Headers.ContentLength;
                     if (contentLength == null || contentLength <= 0)
@@ -156,7 +156,7 @@ namespace Microsoft.Datasync.Client.Http
             Arguments.IsNotNull(request, nameof(request));
             Arguments.IsNotNull(response, nameof(response));
 
-            string responseContent = response.Content == null ? null : await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            string responseContent = !response.HasContent() ? null : await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             string message = GetErrorMessageFromBody(responseContent) ?? $"The request could not be completed ({response.ReasonPhrase})";
             return new DatasyncInvalidOperationException(message, request, response);
         }
@@ -169,16 +169,18 @@ namespace Microsoft.Datasync.Client.Http
         /// <returns>The error message to use.</returns>
         private static string GetErrorMessageFromBody(string content)
         {
-            if (content == null)
+            if (string.IsNullOrWhiteSpace(content))
             {
                 return null;
             }
 
-            JToken body = ParseOrDefault(content);
-            if (body?.Type == JTokenType.String)
+            // If it's not a JSON object, assume it's plain text
+            if (content[0] != '{')
             {
-                return body.ToString();
+                return content;
             }
+
+            JToken body = ParseOrDefault(content);
             if (body?.Type == JTokenType.Object)
             {
                 JToken error = body["error"];

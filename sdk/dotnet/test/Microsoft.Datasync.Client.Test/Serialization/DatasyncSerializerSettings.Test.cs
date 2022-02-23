@@ -11,8 +11,8 @@ namespace Microsoft.Datasync.Client.Test.Serialization
     [ExcludeFromCodeCoverage]
     public class DatasyncSerializerSettings_Tests : BaseTest
     {
-        private DatasyncSerializerSettings settings;
-        private DatasyncContractResolver contractResolver;
+        private readonly DatasyncSerializerSettings settings;
+        private readonly DatasyncContractResolver contractResolver;
 
         public DatasyncSerializerSettings_Tests()
         {
@@ -31,6 +31,14 @@ namespace Microsoft.Datasync.Client.Test.Serialization
             settings.CamelCasePropertyNames = false;
             Assert.False(settings.CamelCasePropertyNames);
             Assert.False(contractResolver.CamelCasePropertyNames);
+        }
+
+        [Fact]
+        [Trait("Method", "GetSerializerFromSettings")]
+        public void GetSerializerFromSettings_Works()
+        {
+            var serializer = settings.GetSerializerFromSettings();
+            Assert.NotNull(serializer);
         }
     }
 }

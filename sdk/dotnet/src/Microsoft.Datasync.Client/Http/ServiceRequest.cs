@@ -54,9 +54,9 @@ namespace Microsoft.Datasync.Client.Http
             Arguments.IsNotNull(Method, nameof(Method));
             Arguments.IsNotNullOrWhitespace(UriPathAndQuery, nameof(UriPathAndQuery));
 
-            var request = baseUri != null 
+            var request = baseUri != null
                 ? new HttpRequestMessage(Method, new Uri(baseUri, UriPathAndQuery))
-                : new HttpRequestMessage(Method, UriPathAndQuery);
+                : new HttpRequestMessage(Method, new Uri(UriPathAndQuery, UriKind.Relative));
             if (RequestHeaders?.Count > 0)
             {
                 foreach (var header in RequestHeaders)
@@ -64,7 +64,7 @@ namespace Microsoft.Datasync.Client.Http
                     request.Headers.Add(header.Key, header.Value);
                 }
             }
-            if (!string.IsNullOrWhiteSpace(Content)) 
+            if (!string.IsNullOrWhiteSpace(Content))
             {
                 request.Content = new StringContent(Content, Encoding.UTF8, "application/json");
             }

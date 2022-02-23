@@ -400,8 +400,8 @@ namespace Microsoft.Datasync.Client.Test.Http
         public async Task SendHttpAsync_OnBadRequest()
         {
             var handler = new MockDelegatingHandler();
-            var options = new DatasyncClientOptions 
-            { 
+            var options = new DatasyncClientOptions
+            {
                 HttpPipeline = new HttpMessageHandler[] { handler },
                 InstallationId = "hijack",
                 UserAgent = "hijack"
@@ -508,12 +508,22 @@ namespace Microsoft.Datasync.Client.Test.Http
             await Assert.ThrowsAsync<ArgumentNullException>(() => client.WrappedSendAsync(sut)).ConfigureAwait(false);
         }
 
-        [Fact]
+        [Theory]
+        [InlineData(null, "The request could not be completed")]
+        [InlineData("", "The request could not be completed")]
+        [InlineData("Bad Request", "Bad Request")]
+        [InlineData("{this-is-bad-json", "The request could not be completed")]
+        [InlineData("{\"error\":\"some error\"}", "some error")]
+        [InlineData("{\"description\":\"some other error\"}", "some other error")]
+        [InlineData("{}", "The request could not be completed")]
         [Trait("Method", "SendAsync(ServiceMessage)")]
-        public async Task SendServiceAsync_OnBadRequest()
+        public async Task SendServiceAsync_OnBadRequest(string content, string expectedMessage)
         {
             var handler = new MockDelegatingHandler();
-            var response = new HttpResponseMessage(HttpStatusCode.BadRequest);
+            var response = new HttpResponseMessage(HttpStatusCode.BadRequest)
+            {
+                Content = content == null ? null : new StringContent(content, Encoding.UTF8, "application/json")
+            };
             handler.Responses.Add(response);
 
             var options = new DatasyncClientOptions
@@ -526,6 +536,7 @@ namespace Microsoft.Datasync.Client.Test.Http
             var request = new ServiceRequest { Method = HttpMethod.Get, UriPathAndQuery = "/tables/movies/" };
             var exception = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => client.WrappedSendAsync(request));
             Assert.Same(response, exception.Response);
+            Assert.StartsWith(expectedMessage, exception.Message);
 
             // Check that the right headers were applied to the request
             Assert.Single(handler.Requests);
