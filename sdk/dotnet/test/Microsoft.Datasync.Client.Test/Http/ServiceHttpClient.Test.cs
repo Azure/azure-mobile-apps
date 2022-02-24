@@ -580,6 +580,29 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         [Fact]
         [Trait("Method", "SendAsync(ServiceMessage)")]
+        public async Task SendServiceAsync_Throws_OnFailedRequest()
+        {
+            var handler = new MockDelegatingHandler();
+            var response = new HttpResponseMessage(HttpStatusCode.BadRequest);
+            handler.Responses.Add(response);
+
+            var options = new DatasyncClientOptions
+            {
+                HttpPipeline = new HttpMessageHandler[] { handler },
+                InstallationId = "hijack",
+                UserAgent = "hijack"
+            };
+            var client = new WrappedHttpClient(Endpoint, options);
+
+            var request = new ServiceRequest { Method = HttpMethod.Get, UriPathAndQuery = "/tables/movies/", EnsureResponseContent = false };
+            var exception = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => client.WrappedSendAsync(request)).ConfigureAwait(false);
+            Assert.NotNull(exception.Request);
+            Assert.NotNull(exception.Response);
+            Assert.Equal(HttpStatusCode.BadRequest, exception.Response.StatusCode);
+        }
+
+        [Fact]
+        [Trait("Method", "SendAsync(ServiceMessage)")]
         public async Task SendServiceAsync_ThrowsTimeout_WhenOperationCanceled()
         {
             var handler = new TimeoutDelegatingHandler();

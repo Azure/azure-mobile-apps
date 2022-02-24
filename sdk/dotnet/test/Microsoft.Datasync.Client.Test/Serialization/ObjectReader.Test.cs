@@ -210,6 +210,15 @@ namespace Microsoft.Datasync.Client.Test.Serialization
 
         [Fact]
         [Trait("Method", "GetSystemProperties<T>")]
+        public void GetSystemProperties_DefaultUpdatedAt_SetsToNull()
+        {
+            JsonEntity sut = new() { JsonId = Guid.NewGuid().ToString("N"), JsonUpdatedAt = default, JsonVersion = Guid.NewGuid().ToString("N") };
+            ObjectReader.GetSystemProperties(sut, out SystemProperties props);
+            Assert.Null(props.UpdatedAt);
+        }
+
+        [Fact]
+        [Trait("Method", "GetSystemProperties<T>")]
         public void GetSystemProperties_Model_ThrowsOnInvalidIdType()
         {
             ModelIntId sut = new();
