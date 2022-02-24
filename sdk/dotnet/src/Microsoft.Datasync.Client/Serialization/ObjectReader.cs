@@ -21,12 +21,15 @@ namespace Microsoft.Datasync.Client.Serialization
         /// Gets the system properties for a given instance.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// If the <paramref name="instance"/> is a <see cref="JObject"/>, then the only
         /// acceptable values for the system properties are the serialized properties.
-        ///
+        /// </para>
+        /// <para>
         /// If the <paramref name="instance"/> is any other type, then we use the serialization
         /// first, then the plain name of the property.  This allows us to detect all sorts
         /// of configurations.
+        /// </para>
         /// </remarks>
         /// <typeparam name="T">The type of the instance.</typeparam>
         /// <param name="instance">The instance.</param>
@@ -77,6 +80,11 @@ namespace Microsoft.Datasync.Client.Serialization
                 else if (versionProperty.PropertyType == typeof(byte[]))
                 {
                     systemProperties.Version = Encoding.UTF8.GetString((byte[])versionProperty.GetValue(instance));
+                    if (string.IsNullOrEmpty(systemProperties.Version))
+                    {
+                        // Ensure that empty array corresponds to null.
+                        systemProperties.Version = null;
+                    }
                 }
                 else
                 {
@@ -90,6 +98,11 @@ namespace Microsoft.Datasync.Client.Serialization
                 if (updatedAtProperty.PropertyType == typeof(DateTimeOffset))
                 {
                     systemProperties.UpdatedAt = (DateTimeOffset)updatedAtProperty.GetValue(instance);
+                    if (systemProperties.UpdatedAt == default(DateTimeOffset))
+                    {
+                        // Ensure that if it isn't set, then it's stored as a null.
+                        systemProperties.UpdatedAt = null;
+                    }
                 }
                 else if (updatedAtProperty.PropertyType == typeof(DateTimeOffset?))
                 {
@@ -97,14 +110,17 @@ namespace Microsoft.Datasync.Client.Serialization
                 }
                 else if (updatedAtProperty.PropertyType == typeof(string))
                 {
-                    systemProperties.UpdatedAt = DateTimeOffset.Parse((string)updatedAtProperty.GetValue(instance));
+                    string value = (string)updatedAtProperty.GetValue(instance);
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        systemProperties.UpdatedAt = DateTimeOffset.Parse((string)updatedAtProperty.GetValue(instance));
+                    }
                 }
                 else
                 {
-                    throw new InvalidOperationException($"UpdatedAt property '{versionProperty.Name}' must be a string or DateTimeOffset.");
+                    throw new InvalidOperationException($"UpdatedAt property '{updatedAtProperty.Name}' must be a string or DateTimeOffset.");
                 }
             }
-            throw new NotImplementedException();
         }
 
         /// <summary>
