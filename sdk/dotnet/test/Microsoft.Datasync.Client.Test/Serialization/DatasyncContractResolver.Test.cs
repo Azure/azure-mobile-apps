@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
+using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Serialization;
 using Newtonsoft.Json;
 using System;
@@ -43,6 +44,20 @@ namespace Microsoft.Datasync.Client.Test.Serialization
             Assert.Equal(expected, actual);
         }
 
+        [Fact]
+        [Trait("Method", "ResolveTableName")]
+        public void ResolveTableName_Throws_WithoutId()
+        {
+            Assert.Throws<InvalidOperationException>(() => contractResolver.ResolveTableName(typeof(NoIdEntity)));
+        }
+
+        [Fact]
+        [Trait("Method", "ResolveTableName")]
+        public void ResolveTableName_Throws_WithMultipleIds()
+        {
+            Assert.Throws<InvalidOperationException>(() => contractResolver.ResolveTableName(typeof(MultiId)));
+        }
+
         [Theory]
         [InlineData(false, null, null)]
         [InlineData(false, "", "")]
@@ -68,24 +83,44 @@ namespace Microsoft.Datasync.Client.Test.Serialization
             Assert.Equal(expected, actual);
         }
 
+
+
         #region Test Models
         [DataTable("nameddatatabletype")]
         public class DataTableType
         {
+            public string Id { get; set; }
         }
 
         public class PocoType
         {
+            public string Id { get; set; }
+
+            [Version]
+            public string JsonVersion { get; set; }
+
+            [UpdatedAt]
+            public DateTimeOffset? JsonUpdatedAt { get; set; }
+        }
+
+        public class MultiId
+        {
+            public string Id { get; set; }
+
+            [JsonProperty("id")]
+            public string JsonId { get; set; }
         }
 
         [JsonObject(Title = "namedjsoncontainertype")]
         public class JsonContainerType
         {
+            public string Id { get; set; }
         }
 
         [JsonObject]
         public class UnnamedJsonContainerType
         {
+            public string Id { get; set; }
         }
 
         public class WrappedDatasyncContractResolver : DatasyncContractResolver
