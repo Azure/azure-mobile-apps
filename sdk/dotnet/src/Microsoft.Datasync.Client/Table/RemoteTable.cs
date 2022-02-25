@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,7 +53,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="instance">The instance to delete from the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the response when complete.</returns>
-        public async Task<JToken> DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default)
+        public Task<JToken> DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(instance, nameof(instance));
             ObjectReader.GetSystemProperties(instance, out SystemProperties systemProperties);
@@ -65,8 +66,7 @@ namespace Microsoft.Datasync.Client.Table
                 EnsureResponseContent = false
             };
             AddIfMatchVersionHeader(request, systemProperties.Version);
-            var response = await ServiceClient.HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            return GetJTokenFromResponse(response);
+            return SendRequestAsync(request, cancellationToken);
         }
 
         /// <summary>
@@ -106,8 +106,14 @@ namespace Microsoft.Datasync.Client.Table
                 // If the Id is set, then it must be valid.
                 Arguments.IsValidId(systemProperties.Id, nameof(instance));
             }
-
-            throw new NotImplementedException();
+            ServiceRequest request = new()
+            {
+                Method = HttpMethod.Post,
+                UriPathAndQuery = CreateUriPath(TableName),
+                EnsureResponseContent = true,
+                Content = instance.ToString(Formatting.None)
+            };
+            return SendRequestAsync(request, cancellationToken);
         }
 
         /// <summary>
@@ -122,10 +128,15 @@ namespace Microsoft.Datasync.Client.Table
             ObjectReader.GetSystemProperties(instance, out SystemProperties systemProperties);
             Arguments.IsValidId(systemProperties.Id, nameof(instance));
 
-            // systemProperties.Id is the ID to be replaced.
-            // systemProperties.Version (if set) is the version of the item to be deleted (send in If-Match header)
-
-            throw new NotImplementedException();
+            ServiceRequest request = new()
+            {
+                Method = HttpMethod.Put,
+                UriPathAndQuery = CreateUriPath(TableName, systemProperties.Id),
+                EnsureResponseContent = true,
+                Content = instance.ToString(Formatting.None)
+            };
+            AddIfMatchVersionHeader(request, systemProperties.Version);
+            return SendRequestAsync(request, cancellationToken);
         }
 
         /// <summary>
@@ -143,10 +154,15 @@ namespace Microsoft.Datasync.Client.Table
             ObjectReader.GetSystemProperties(instance, out SystemProperties systemProperties);
             Arguments.IsValidId(systemProperties.Id, nameof(instance));
 
-            // systemProperties.Id is the ID to be undeleted.
-            // systemProperties.Version (if set) is the version of the item to be deleted (send in If-Match header)
-
-            throw new NotImplementedException();
+            ServiceRequest request = new()
+            {
+                Method = ServiceRequest.PATCH,
+                UriPathAndQuery = CreateUriPath(TableName, systemProperties.Id),
+                EnsureResponseContent = true,
+                Content = "{\"deleted\":false}"
+            };
+            AddIfMatchVersionHeader(request, systemProperties.Version);
+            return SendRequestAsync(request, cancellationToken);
         }
         #endregion
 
@@ -174,7 +190,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="segments">The list of segments comprising the path</param>
         /// <returns>The URI Path.</returns>
         protected static string CreateUriPath(params string[] segments)
-            => "/tables/" + string.Join("/", segments);
+            => "/tables/" + string.Join("/", segments.Select(segment => Uri.EscapeDataString(segment)).ToArray());
 
         /// <summary>
         /// Parses the response content into a <see cref="JToken"/> and adds the version system property
@@ -195,5 +211,40 @@ namespace Microsoft.Datasync.Client.Table
             }
             return null;
         }
+
+        protected async Task<JToken> SendRequestAsync(ServiceRequest request, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var response = await ServiceClient.HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                return GetJTokenFromResponse(response);
+            }
+            catch (DatasyncInvalidOperationException ex)
+            {
+                if (ex.Response == null || !ex.Response.IsConflictStatusCode())
+                {
+                    throw;
+                }
+
+                string content = await ex.Response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                JToken token = string.IsNullOrEmpty(content) ? null : JsonConvert.DeserializeObject<JToken>(content, ServiceClient.Serializer.SerializerSettings);
+                JObject value = ValidItemOrNull(token);
+                if (value != null)
+                {
+                    throw new DatasyncConflictException(ex, ValidItemOrNull(token));
+                }
+
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Determines if the specified <see cref="JToken"/> is valid; if it is, then return the
+        /// associated <see cref="JObject"/>; otherwise return <c>null</c>.
+        /// </summary>
+        /// <param name="item">The item.</param>
+        /// <returns>The <see cref="JObject"/>, or <c>null</c>.</returns>
+        protected static JObject ValidItemOrNull(JToken item)
+            => item is JObject obj && obj.Value<string>(SystemProperties.JsonIdProperty) != null ? (JObject)item : null;
     }
 }

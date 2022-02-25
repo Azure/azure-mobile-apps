@@ -139,11 +139,13 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         {
             var json = CreateJsonDocument(idEntity);
             MockHandler.AddResponse(statusCode, payload);
-            var ex = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.DeleteItemAsync(json)).ConfigureAwait(false);
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException>(() => table.DeleteItemAsync(json)).ConfigureAwait(false);
 
             // Check Response
             Assert.Equal(statusCode, ex.Response.StatusCode);
             Assert.False(ex.Response.IsSuccessStatusCode);
+            Assert.NotNull(ex.Value);
+            Assert.Equal(payload.Id, ex.Value.Value<string>("id"));
         }
 
         [Theory]
@@ -173,7 +175,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
                 Content = new StringContent(sBadJson, Encoding.UTF8, "application/json")
             };
             MockHandler.Responses.Add(response);
-            await Assert.ThrowsAsync<JsonException>(() => table.DeleteItemAsync(json)).ConfigureAwait(false);
+            await Assert.ThrowsAnyAsync<JsonException>(() => table.DeleteItemAsync(json)).ConfigureAwait(false);
         }
 
         [Theory]

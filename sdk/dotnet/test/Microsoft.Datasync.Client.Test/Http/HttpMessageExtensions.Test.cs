@@ -31,8 +31,10 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Theory]
         [InlineData(null, null)]
         [InlineData("", null)]
+        [InlineData("\"", "\"\\\"\"")]
         [InlineData("abcd", "\"abcd\"")]
         [InlineData("foo\"bar", "\"foo\\\"bar\"")]
+        [InlineData("foo\\\"bar", "\"foo\\\"bar\"")]
         [Trait("Method", "ToETagValue(string)")]
         public void ToETagValue(string version, string expected)
         {

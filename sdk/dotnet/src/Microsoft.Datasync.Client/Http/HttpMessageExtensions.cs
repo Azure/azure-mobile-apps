@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -68,22 +69,30 @@ namespace Microsoft.Datasync.Client.Http
             => HasContent(response.Content);
 
         /// <summary>
-        /// Returns true if the response is compressed.
+        /// Returns <c>true</c> if the response is compressed.
         /// </summary>
         /// <param name="response">The <see cref="HttpResponseMessage"/> for the response.</param>
         /// <returns><c>true</c> if the response headers indicates the response is compressed.</returns>
         internal static bool IsCompressed(this HttpResponseMessage response)
         {
-            if (response.Content.Headers.ContentEncoding?.Count > 0)
+            if (response.Content.Headers.ContentEncoding.Count > 0)
             {
                 return response.Content.Headers.ContentEncoding.Any(m => ValidCompressionMethods.Contains(m));
             }
-            else if (response.Headers.Vary?.Count > 0)
+            else if (response.Headers.Vary.Count > 0)
             {
                 return response.Headers.Vary.Contains("Accept-Encoding");
             }
             return false;
         }
+
+        /// <summary>
+        /// Returns <c>true</c> if the response indicates a conflict.
+        /// </summary>
+        /// <param name="response">The <see cref="HttpResponseMessage"/> for the response.</param>
+        /// <returns><c>true</c> if the response indicates the response is a conflict.</returns>
+        internal static bool IsConflictStatusCode(this HttpResponseMessage response)
+            => response.StatusCode == HttpStatusCode.PreconditionFailed || response.StatusCode == HttpStatusCode.Conflict;
 
         /// <summary>
         /// Reads the content of the <see cref="HttpContent"/> object as a string, with cancellation.

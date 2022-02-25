@@ -13,11 +13,11 @@ namespace Microsoft.Datasync.Client.Test.Serialization
     [ExcludeFromCodeCoverage]
     public class DatasyncContractResolver_Tests : BaseTest
     {
-        private DatasyncContractResolver contractResolver;
+        private WrappedDatasyncContractResolver contractResolver;
 
         public DatasyncContractResolver_Tests()
         {
-            contractResolver = new DatasyncContractResolver();
+            contractResolver = new WrappedDatasyncContractResolver();
         }
 
         [Fact]
@@ -43,6 +43,31 @@ namespace Microsoft.Datasync.Client.Test.Serialization
             Assert.Equal(expected, actual);
         }
 
+        [Theory]
+        [InlineData(false, null, null)]
+        [InlineData(false, "", "")]
+        [InlineData(false, "a", "a")]
+        [InlineData(false, "A", "A")]
+        [InlineData(false, "version", "version")]
+        [InlineData(false, "Version", "Version")]
+        [InlineData(false, "updatedAt", "updatedAt")]
+        [InlineData(false, "UpdatedAt", "UpdatedAt")]
+        [InlineData(true, null, null)]
+        [InlineData(true, "", "")]
+        [InlineData(true, "a", "a")]
+        [InlineData(true, "A", "a")]
+        [InlineData(true, "version", "version")]
+        [InlineData(true, "Version", "version")]
+        [InlineData(true, "updatedAt", "updatedAt")]
+        [InlineData(true, "UpdatedAt", "updatedAt")]
+        [Trait("Method", "ResolvePropertyName")]
+        public void ResolvePropertyName_Tests(bool camelCase, string sut, string expected)
+        {
+            contractResolver.CamelCasePropertyNames = camelCase;
+            string actual = contractResolver.P_ResolvePropertyName(sut);
+            Assert.Equal(expected, actual);
+        }
+
         #region Test Models
         [DataTable("nameddatatabletype")]
         public class DataTableType
@@ -61,6 +86,11 @@ namespace Microsoft.Datasync.Client.Test.Serialization
         [JsonObject]
         public class UnnamedJsonContainerType
         {
+        }
+
+        public class WrappedDatasyncContractResolver : DatasyncContractResolver
+        {
+            internal string P_ResolvePropertyName(string propertyName) => base.ResolvePropertyName(propertyName);
         }
         #endregion
     }

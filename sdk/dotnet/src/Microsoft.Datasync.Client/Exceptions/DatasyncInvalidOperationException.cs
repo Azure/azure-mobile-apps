@@ -3,7 +3,6 @@
 
 using Newtonsoft.Json.Linq;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 
 namespace Microsoft.Datasync.Client
@@ -12,7 +11,6 @@ namespace Microsoft.Datasync.Client
     /// An exception to provide additional details of an invalid operation
     /// specific to a Datasync service.
     /// </summary>
-    [SuppressMessage("Roslynator", "RCS1194:Implement exception constructors.", Justification = "Specialized exception for Datasync service.")]
     public class DatasyncInvalidOperationException : InvalidOperationException
     {
         /// <summary>

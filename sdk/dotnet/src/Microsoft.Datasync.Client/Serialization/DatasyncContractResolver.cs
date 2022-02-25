@@ -21,7 +21,21 @@ namespace Microsoft.Datasync.Client.Serialization
         /// Indicates if the property names should be camel-cased when serialized
         /// out of JSON.
         /// </summary>
-        internal bool CamelCasePropertyNames { get; set; }
+        internal bool CamelCasePropertyNames { get; set; } = true;
+
+        /// <summary>
+        /// Returns the serialized property name.
+        /// </summary>
+        /// <param name="propertyName">The property name to serialize.</param>
+        /// <returns>The property name in JSON form.</returns>
+        protected override string ResolvePropertyName(string propertyName)
+        {
+            if (CamelCasePropertyNames && !string.IsNullOrWhiteSpace(propertyName))
+            {
+                return propertyName.Length > 1 ? char.ToLower(propertyName[0]) + propertyName.Substring(1) : propertyName.ToLower();
+            }
+            return propertyName;
+        }
 
         /// <summary>
         /// Returns a table name for a type, accounting for table renaming via the
