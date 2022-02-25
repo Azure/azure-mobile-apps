@@ -7,7 +7,10 @@ using Datasync.Common.Test.Service;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Authentication;
+using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Table;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -170,6 +173,18 @@ namespace Datasync.Common.Test
                 Title = "Black Panther",
                 Year = 2018
             };
+        }
+
+        /// <summary>
+        /// Converts an object into a <see cref="JObject"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of the object.</typeparam>
+        /// <param name="obj">The object.</param>
+        /// <returns>The equivalent <see cref="JObject"/></returns>
+        protected static JObject CreateJsonDocument<T>(T obj)
+        {
+            var settings = new DatasyncSerializerSettings();
+            return JObject.FromObject(obj, settings.GetSerializerFromSettings());
         }
 
         /// <summary>

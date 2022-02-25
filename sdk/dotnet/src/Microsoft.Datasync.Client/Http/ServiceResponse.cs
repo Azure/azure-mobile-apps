@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,6 +31,7 @@ namespace Microsoft.Datasync.Client.Http
             Content = string.Empty;
             Headers = headers;
             ReasonPhrase = response.ReasonPhrase;
+            ETag = response.Headers.ETag;
             StatusCode = (int)response.StatusCode;
             Version = new Version(response.Version.ToString());
         }
@@ -56,6 +58,11 @@ namespace Microsoft.Datasync.Client.Http
         /// If not <c>null</c>, the payload of the response.
         /// </summary>
         public string Content { get; protected set; }
+
+        /// <summary>
+        /// The value of the <c>ETag</c> header (quoted)
+        /// </summary>
+        public EntityTagHeaderValue ETag { get; }
 
         /// <summary>
         /// <c>true</c> if a payload was sent from the service.

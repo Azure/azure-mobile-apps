@@ -10,6 +10,11 @@ namespace Microsoft.Datasync.Client.Http
     internal static class ServiceHeaders
     {
         /// <summary>
+        /// The conditional "If-Match" header.
+        /// </summary>
+        internal const string IfMatch = "If-Match";
+
+        /// <summary>
         /// The unique ID of the installation.
         /// </summary>
         internal const string InstallationId = "X-ZUMO-INSTALLATION-ID";

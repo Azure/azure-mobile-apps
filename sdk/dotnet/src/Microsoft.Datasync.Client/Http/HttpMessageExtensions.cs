@@ -3,6 +3,7 @@
 
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,6 +15,41 @@ namespace Microsoft.Datasync.Client.Http
     internal static class HttpMessageExtensions
     {
         private static readonly string[] ValidCompressionMethods = new string[] { "br", "compress", "deflate", "gzip" };
+
+        /// <summary>
+        /// Gets the version string from the provided <c>ETag</c> header value.
+        /// </summary>
+        /// <param name="value">The <c>ETag</c> value.</param>
+        /// <returns>The version string.</returns>
+        internal static string GetVersion(this EntityTagHeaderValue value)
+        {
+            if (string.IsNullOrEmpty(value?.Tag))
+            {
+                return null;
+            }
+            return value.Tag.Substring(1, value.Tag.Length - 2).Replace("\\\"", "\"");
+        }
+
+        /// <summary>
+        /// Converts a string to a quoted ETag value.
+        /// </summary>
+        /// <param name="value">The version string to convert.</param>
+        /// <returns>The converted value.</returns>
+        internal static string ToETagValue(this string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return null;
+            }
+            for (int i = 0; i < value.Length; i++)
+            {
+                if (value[i] == '"' && (i == 0 || value[i - 1] != '\\'))
+                {
+                    value = value.Insert(i, "\\");
+                }
+            }
+            return $"\"{value}\"";
+        }
 
         /// <summary>
         /// Returns true if the content is filled.
@@ -50,7 +86,7 @@ namespace Microsoft.Datasync.Client.Http
         }
 
         /// <summary>
-        /// Reads the conetnt of the <see cref="HttpContent"/> object as a string, with cancellation.
+        /// Reads the content of the <see cref="HttpContent"/> object as a string, with cancellation.
         /// </summary>
         /// <param name="content">The <see cref="HttpContent"/> object to process</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>

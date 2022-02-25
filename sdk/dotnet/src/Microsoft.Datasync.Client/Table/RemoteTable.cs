@@ -1,18 +1,21 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Datasync.Client.Table
 {
     /// <summary>
-    /// Provides the operations that can be done against a remote table 
+    /// Provides the operations that can be done against a remote table
     /// with untyped (JSON) object.
     /// </summary>
     internal class RemoteTable : IRemoteTable
@@ -55,10 +58,15 @@ namespace Microsoft.Datasync.Client.Table
             ObjectReader.GetSystemProperties(instance, out SystemProperties systemProperties);
             Arguments.IsValidId(systemProperties.Id, nameof(instance));
 
-            // systemProperties.Id is the ID to be deleted.
-            // systemProperties.Version (if set) is the version of the item to be deleted (send in If-Match header)
-
-            throw new NotImplementedException();
+            ServiceRequest request = new()
+            {
+                Method = HttpMethod.Delete,
+                UriPathAndQuery = CreateUriPath(TableName, systemProperties.Id),
+                EnsureResponseContent = false
+            };
+            AddIfMatchVersionHeader(request, systemProperties.Version);
+            var response = await ServiceClient.HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            return GetJTokenFromResponse(response);
         }
 
         /// <summary>
@@ -145,6 +153,47 @@ namespace Microsoft.Datasync.Client.Table
         protected Task<Page<JToken>> GetNextPageAsync(string query, string nextLink)
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Adds an If-Match header matching the provided version to the request.
+        /// </summary>
+        /// <param name="request">The <see cref="ServiceRequest"/> to modify.</param>
+        /// <param name="version">The version of the entity.</param>
+        protected static void AddIfMatchVersionHeader(ServiceRequest request, string version)
+        {
+            if (!string.IsNullOrWhiteSpace(version))
+            {
+                (request.RequestHeaders ??= new Dictionary<string, string>()).Add(ServiceHeaders.IfMatch, version.ToETagValue());
+            }
+        }
+
+        /// <summary>
+        /// Creates the relevant URI path from the list of segments.
+        /// </summary>
+        /// <param name="segments">The list of segments comprising the path</param>
+        /// <returns>The URI Path.</returns>
+        protected static string CreateUriPath(params string[] segments)
+            => "/tables/" + string.Join("/", segments);
+
+        /// <summary>
+        /// Parses the response content into a <see cref="JToken"/> and adds the version system property
+        /// if the <c>ETag</c> header was returned from the server.
+        /// </summary>
+        /// <param name="response">The response to parse.</param>
+        /// <returns>The parsed <see cref="JToken"/>.</returns>
+        protected JToken GetJTokenFromResponse(ServiceResponse response)
+        {
+            if (response.HasContent)
+            {
+                JToken token = JsonConvert.DeserializeObject<JToken>(response.Content, ServiceClient.Serializer.SerializerSettings);
+                if (response.ETag != null)
+                {
+                    token[SystemProperties.JsonVersionProperty] = response.ETag.GetVersion();
+                }
+                return token;
+            }
+            return null;
         }
     }
 }

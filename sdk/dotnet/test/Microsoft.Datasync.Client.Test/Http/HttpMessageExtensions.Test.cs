@@ -6,6 +6,7 @@ using Microsoft.Datasync.Client.Http;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using Xunit;
 
@@ -14,6 +15,31 @@ namespace Microsoft.Datasync.Client.Test.Http
     [ExcludeFromCodeCoverage]
     public class HttpMessageExtensions_Tests : BaseTest
     {
+        [Theory]
+        [InlineData(null, null)]
+        [InlineData("\"abcd\"", "abcd")]
+        [InlineData("\"\"", "")]
+        [InlineData("\"foo\\\"bar\"", "foo\"bar")]
+        [Trait("Method", "GetVersion(EntityTagHeaderValue)")]
+        public void GetVersion_Works(string tagValue, string expected)
+        {
+            EntityTagHeaderValue sut = tagValue == null ? null : new(tagValue, false);
+            string actual = sut.GetVersion();
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData(null, null)]
+        [InlineData("", null)]
+        [InlineData("abcd", "\"abcd\"")]
+        [InlineData("foo\"bar", "\"foo\\\"bar\"")]
+        [Trait("Method", "ToETagValue(string)")]
+        public void ToETagValue(string version, string expected)
+        {
+            string actual = version.ToETagValue();
+            Assert.Equal(expected, actual);
+        }
+
         [Fact]
         [Trait("Method", "HasContent(HttpContent)")]
         public void HasContent_NullContent_Works()
