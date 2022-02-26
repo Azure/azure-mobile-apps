@@ -2,8 +2,11 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Utils;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using System;
+using System.Linq;
 
 namespace Microsoft.Datasync.Client.Serialization
 {
@@ -16,6 +19,32 @@ namespace Microsoft.Datasync.Client.Serialization
         /// The JSON serializer settings to use with this serializer.
         /// </summary>
         public DatasyncSerializerSettings SerializerSettings { get; set; } = new();
+
+        /// <summary>
+        /// Deserializes a JSON string into an instance.
+        /// </summary>
+        /// <typeparam name="T">The type of object to deserialize into.</typeparam>
+        /// <param name="json">The parsed JSON string.</param>
+        /// <param name="serializer">The <see cref="JsonSerializer"/> to use.</param>
+        /// <returns>The deserialized content.</returns>
+        public T Deserialize<T>(JToken json, JsonSerializer serializer = null)
+        {
+            Arguments.IsNotNull(json, nameof(json));
+            return json.ToObject<T>(serializer ?? SerializerSettings.GetSerializerFromSettings());
+        }
+
+        /// <summary>
+        /// Deserializes a JSON string into an instance.
+        /// </summary>
+        /// <typeparam name="T">The type of object to deserialize into.</typeparam>
+        /// <param name="json">The parsed JSON string.</param>
+        /// <param name="instance">The instance to populate.</param>
+        public void Deserialize<T>(JToken json, T instance)
+        {
+            Arguments.IsNotNull(json, nameof(json));
+            Arguments.IsNotNull(instance, nameof(instance));
+            JsonConvert.PopulateObject(json.ToString(), instance, SerializerSettings);
+        }
 
         /// <summary>
         /// Gets the value of the ID property from a <see cref="JObject"/> instance, ensuring
@@ -61,6 +90,66 @@ namespace Microsoft.Datasync.Client.Serialization
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Removes all system properties from the instance.
+        /// </summary>
+        /// <param name="instance">The subject instance.</param>
+        /// <param name="version">When complete, set to the version system property before it is removed.</param>
+        /// <returns>The subject instance with the system properties removed.</returns>
+        public static JObject RemoveSystemProperties(JObject instance, out string version)
+        {
+            version = null;
+            bool haveCloned = false;
+            foreach (JProperty prop in instance.Properties())
+            {
+                if (SystemProperties.AllSystemProperties.Contains(prop.Name, StringComparer.OrdinalIgnoreCase))
+                {
+                    if (!haveCloned)
+                    {
+                        instance = instance.DeepClone() as JObject;
+                        haveCloned = true;
+                    }
+
+                    if (string.Equals(prop.Name, SystemProperties.JsonVersionProperty, StringComparison.OrdinalIgnoreCase))
+                    {
+                        version = (string)instance[prop.Name];
+                    }
+                    instance.Remove(prop.Name);
+                }
+            }
+            return instance;
+        }
+
+        /// <summary>
+        /// Serializes an instance into a JSON string.
+        /// </summary>
+        /// <param name="instance">The instance to serialize.</param>
+        /// <param name="serializer">The <see cref="JsonSerializer"/> to use.</param>
+        /// <returns>The serialized instance.</returns>
+        public JToken Serialize(object instance, JsonSerializer serializer = null)
+        {
+            Arguments.IsNotNull(instance, nameof(instance));
+            return JToken.FromObject(instance, serializer ?? SerializerSettings.GetSerializerFromSettings());
+        }
+
+        /// <summary>
+        /// Sets the instance's ID property value to the default ID value.
+        /// </summary>
+        /// <param name="instance">The instance on which to clear the ID property.</param>
+        public void SetIdToDefault(object instance)
+        {
+            Arguments.IsNotNull(instance, nameof(instance));
+            if (instance is JObject json)
+            {
+                json[SystemProperties.JsonIdProperty] = null;
+            }
+            else
+            {
+                JsonProperty idProperty = SerializerSettings.ContractResolver.ResolveIdProperty(instance.GetType());
+                idProperty.ValueProvider.SetValue(instance, null);
+            }
         }
 
         /// <summary>

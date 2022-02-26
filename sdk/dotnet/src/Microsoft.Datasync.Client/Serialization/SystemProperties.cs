@@ -11,6 +11,11 @@ namespace Microsoft.Datasync.Client.Serialization
     internal static class SystemProperties
     {
         /// <summary>
+        /// The name of the "deleted" property in a JSON document.
+        /// </summary>
+        internal const string JsonDeletedProperty = "deleted";
+
+        /// <summary>
         /// The name of the "id" property in a JSON document.
         /// </summary>
         internal const string JsonIdProperty = "id";
@@ -24,5 +29,15 @@ namespace Microsoft.Datasync.Client.Serialization
         /// The name of the "updatedAt" property in a JSON document.
         /// </summary>
         internal const string JsonUpdatedAtProperty = "updatedAt";
+
+        /// <summary>
+        /// The list of system properties, not including ID.
+        /// </summary>
+        internal static readonly string[] AllSystemProperties = new[]
+        {
+            JsonDeletedProperty,
+            JsonVersionProperty,
+            JsonUpdatedAtProperty
+        };
     }
 }

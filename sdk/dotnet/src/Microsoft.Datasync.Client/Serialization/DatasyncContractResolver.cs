@@ -128,6 +128,29 @@ namespace Microsoft.Datasync.Client.Serialization
         }
 
         /// <summary>
+        /// Returns the ID <see cref="JsonProperty"/> for the given type.
+        /// </summary>
+        /// <param name="type">The subject type.</param>
+        /// <param name="throwIfNotFound">If <c>true</c>, throw an exception if the ID property cannot be found.</param>
+        /// <returns>The ID <see cref="JsonProperty"/>.</returns>
+        /// <exception cref="InvalidOperationException">If the ID property is not found and <paramref name="throwIfNotFound"/> is set to <c>true</c>.</exception>
+        public virtual JsonProperty ResolveIdProperty(Type type, bool throwIfNotFound = true)
+        {
+            if (!idPropertyCache.TryGetValue(type, out JsonProperty property))
+            {
+                ResolveContract(type);
+                idPropertyCache.TryGetValue(type, out property);
+            }
+
+            if (property == null && throwIfNotFound)
+            {
+                throw new InvalidOperationException($"No '{SystemProperties.JsonIdProperty}' member found on type '{type.FullName}'.");
+            }
+
+            return property;
+        }
+
+        /// <summary>
         /// Returns the serialized property name.
         /// </summary>
         /// <param name="propertyName">The property name to serialize.</param>
