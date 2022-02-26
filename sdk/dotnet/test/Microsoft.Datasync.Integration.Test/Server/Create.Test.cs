@@ -53,7 +53,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Assert.Equal<IMovie>(movieToAdd, result!);
             Assert.Equal<IMovie>(movieToAdd, entity!);
             AssertEx.ResponseHasConditionalHeaders(entity, response);
-            AssertEx.ResponseHasHeader(response, "Location", $"https://localhost/tables/{table}/{result.Id}");
+            AssertEx.HasHeader(response, "Location", $"https://localhost/tables/{table}/{result.Id}");
         }
 
         [Theory, CombinatorialData]
@@ -84,7 +84,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Assert.Equal<IMovie>(movieToAdd, result);
             Assert.Equal<IMovie>(movieToAdd, entity!);
             AssertEx.ResponseHasConditionalHeaders(entity, response);
-            AssertEx.ResponseHasHeader(response, "Location", $"https://localhost/tables/movies/{movieToAdd.Id}");
+            AssertEx.HasHeader(response, "Location", $"https://localhost/tables/movies/{movieToAdd.Id}");
         }
 
         [Theory]
@@ -174,7 +174,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 Assert.NotNull(result);
                 Assert.True(Guid.TryParse(result!.Id, out _));
                 Assert.Equal(TestData.Movies.Count + 1, MovieServer.GetMovieCount());
-                AssertEx.ResponseHasHeader(response, "Location", $"https://localhost/tables/{table}/{result.Id}");
+                AssertEx.HasHeader(response, "Location", $"https://localhost/tables/{table}/{result.Id}");
 
                 var entity = MovieServer.GetMovieById(result.Id);
                 Assert.NotNull(entity);
@@ -244,7 +244,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Assert.Equal<IMovie>(movieToAdd, result!);
             Assert.Equal<IMovie>(movieToAdd, entity!);
             AssertEx.ResponseHasConditionalHeaders(entity, response);
-            AssertEx.ResponseHasHeader(response, "Location", $"https://localhost/tables/movies/{result.Id}");
+            AssertEx.HasHeader(response, "Location", $"https://localhost/tables/movies/{result.Id}");
         }
     }
 }

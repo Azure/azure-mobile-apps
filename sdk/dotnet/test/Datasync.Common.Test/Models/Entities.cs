@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;

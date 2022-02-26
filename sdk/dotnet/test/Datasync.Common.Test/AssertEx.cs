@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using FluentAssertions;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.Datasync.Client;
+using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Net.Http.Headers;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -28,6 +31,19 @@ namespace Datasync.Common.Test
         /// the format for time comparisons - ms accuracy
         /// </summary>
         private const string format = "yyyy-MM-dd'T'HH:mm:ss.fffK";
+
+        /// <summary>
+        /// Asserts if the two dates are "close" to one another (enough so to be valid in terms of test speed)
+        /// timings)
+        /// </summary>
+        /// <param name="expected"></param>
+        /// <param name="actual"></param>
+        /// <param name="interval"></param>
+        public static void CloseTo(DateTimeOffset expected, DateTimeOffset actual, int interval = 2000)
+        {
+            var ms = Math.Abs((expected.Subtract(actual)).TotalMilliseconds);
+            Assert.True(ms < interval, $"Date {expected} and {actual} are {ms}ms apart");
+        }
 
         /// <summary>
         /// Asserts if the dictionary contains the provided value.
@@ -55,16 +71,38 @@ namespace Datasync.Common.Test
         }
 
         /// <summary>
-        /// Asserts if the two dates are "close" to one another (enough so to be valid in terms of test speed)
-        /// timings)
+        /// Asserts if the headers contains the specific header provided
         /// </summary>
+        /// <param name="headers"></param>
+        /// <param name="headerName"></param>
         /// <param name="expected"></param>
-        /// <param name="actual"></param>
-        /// <param name="interval"></param>
-        public static void CloseTo(DateTimeOffset expected, DateTimeOffset actual, int interval = 2000)
+        public static void HasHeader(HttpHeaders headers, string headerName, string expected)
         {
-            var ms = Math.Abs((expected.Subtract(actual)).TotalMilliseconds);
-            Assert.True(ms < interval, $"Date {expected} and {actual} are {ms}ms apart");
+            string allHeaders = Enumerable.Empty<(String name, String value)>().Concat(
+                headers.SelectMany(kvp => kvp.Value.Select(v => (name: kvp.Key, value: v)))
+            ).Aggregate(seed: new StringBuilder(), func: (sb, pair) => sb.Append(pair.name).Append(": ").AppendLine(pair.value), resultSelector: sb => sb.ToString());
+
+            Assert.True(headers.TryGetValues(headerName, out IEnumerable<string> values), $"The request/response does not contain header {headerName} (Headers = {allHeaders})");
+            Assert.True(values.Count() == 1, $"There are {values.Count()} values for header {headerName} (values = {string.Join(';', values)})");
+            Assert.True(values.First().Equals(expected), $"Value of header {headerName} does not match (expected: {expected}, got: {values.First()})");
+        }
+
+        /// <summary>
+        /// Asserts if the headers contains the specific header provided
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="headerName"></param>
+        /// <param name="expected"></param>
+        public static void HasHeader(HttpResponseMessage response, string headerName, string expected)
+        {
+            if (headerName.Equals("Last-Modified", StringComparison.InvariantCultureIgnoreCase) || headerName.StartsWith("Content-", StringComparison.InvariantCultureIgnoreCase))
+            {
+                HasHeader(response.Content.Headers, headerName, expected);
+            }
+            else
+            {
+                HasHeader(response.Headers, headerName, expected);
+            }
         }
 
         /// <summary>
@@ -80,38 +118,37 @@ namespace Datasync.Common.Test
         }
 
         /// <summary>
-        /// Asserts if the headers contains the specific header provided
+        /// Ensures that the response has the required headers for conditional HTTP usage.
         /// </summary>
-        /// <param name="response"></param>
-        /// <param name="headerName"></param>
-        /// <param name="expected"></param>
-        public static void ResponseHasHeader(HttpResponseMessage response, string headerName, string expected)
+        /// <param name="expected">The <see cref="ITableData"/> representing the entity returned.</param>
+        /// <param name="response">The response to check.</param>
+        public static void ResponseHasConditionalHeaders(ITableData expected, HttpResponseMessage response)
         {
-            if (headerName.Equals("Last-Modified", StringComparison.InvariantCultureIgnoreCase) || headerName.StartsWith("Content-", StringComparison.InvariantCultureIgnoreCase))
-            {
-                HasHeader(response.Content.Headers, headerName, expected);
-            }
-            else
-            {
-                HasHeader(response.Headers, headerName, expected);
-            }
+            var lastModified = expected.UpdatedAt.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern);
+            HasHeader(response, HeaderNames.ETag, expected.GetETag());
+            HasHeader(response, HeaderNames.LastModified, lastModified);
         }
 
         /// <summary>
-        /// Asserts if the headers contains the specific header provided
+        /// Ensures that the two JObject lists are identical.
         /// </summary>
-        /// <param name="headers"></param>
-        /// <param name="headerName"></param>
         /// <param name="expected"></param>
-        public static void HasHeader(HttpHeaders headers, string headerName, string expected)
+        /// <param name="actual"></param>
+        public static void SequenceEqual(List<JObject> expected, List<JObject> actual)
         {
-            string allHeaders = Enumerable.Empty<(String name, String value)>().Concat(
-                headers.SelectMany(kvp => kvp.Value.Select(v => (name: kvp.Key, value: v)))
-            ).Aggregate(seed: new StringBuilder(), func: (sb, pair) => sb.Append(pair.name).Append(": ").AppendLine(pair.value), resultSelector: sb => sb.ToString());
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                var expectedItem = expected[i];
+                var actualItem = actual[i];
 
-            Assert.True(headers.TryGetValues(headerName, out IEnumerable<string> values), $"The request/response does not contain header {headerName} (Headers = {allHeaders})");
-            Assert.True(values.Count() == 1, $"There are {values.Count()} values for header {headerName} (values = {string.Join(';', values)})");
-            Assert.True(values.First().Equals(expected), $"Value of header {headerName} does not match (expected: {expected}, got: {values.First()})");
+                // Each property in the expectedItem should be present in the actualItem unless the value is null.
+                foreach (JProperty expectedProp in expectedItem.Properties().Where(prop => prop.Value.Type != JTokenType.Null))
+                {
+                    JProperty actualProp = actualItem.Properties().SingleOrDefault(ap => ap.Name == expectedProp.Name);
+                    Assert.Equal(expectedProp.Value, actualProp.Value);
+                }
+            }
         }
 
         /// <summary>
@@ -161,13 +198,6 @@ namespace Datasync.Common.Test
             Assert.Equal(expected.UpdatedAt.ToUniversalTime().ToString(format), actual.RootElement.GetProperty("updatedAt").GetString());
             Assert.Equal(expected.Deleted, actual.RootElement.GetProperty("deleted").GetBoolean());
             Assert.Equal(Convert.ToBase64String(expected.Version), actual.RootElement.GetProperty("version").GetString());
-        }
-
-        public static void ResponseHasConditionalHeaders(ITableData expected, HttpResponseMessage response)
-        {
-            var lastModified = expected.UpdatedAt.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern);
-            ResponseHasHeader(response, HeaderNames.ETag, expected.GetETag());
-            ResponseHasHeader(response, HeaderNames.LastModified, lastModified);
         }
     }
 }

@@ -2,41 +2,20 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
-using Datasync.Common.Test.Mocks;
 using Datasync.Common.Test.Models;
 using Newtonsoft.Json;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Table.Operations
 {
     [ExcludeFromCodeCoverage]
-    public class DeleteItemAsync_Tests : BaseTest
+    public class DeleteItemAsync_Tests : BaseOperationTest
     {
-        private readonly IdEntity payload = new() { Id = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f", StringValue = "test" };
-        private const string sBadJson = "{this-is-bad-json";
-
-        private readonly IRemoteTable table, authTable;
-        private readonly IdOnly idOnly;
-        private readonly IdEntity idEntity;
-        private readonly string sId, expectedEndpoint;
-
-        public DeleteItemAsync_Tests() : base()
-        {
-            sId = Guid.NewGuid().ToString("N");
-            idOnly = new IdOnly { Id = sId };
-            idEntity = new IdEntity { Id = sId, Version = "etag" };
-            expectedEndpoint = new Uri(Endpoint, $"/tables/movies/{sId}").ToString();
-
-            table = GetMockClient().GetRemoteTable("movies");
-            authTable = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken)).GetRemoteTable("movies");
-        }
-
         [Fact]
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_ThrowsOnNull()
@@ -45,15 +24,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(" ")]
-        [InlineData("\t")]
-        [InlineData("abcdef gh")]
-        [InlineData("!!!")]
-        [InlineData("?")]
-        [InlineData(";")]
-        [InlineData("{EA235ADF-9F38-44EA-8DA4-EF3D24755767}")]
-        [InlineData("###")]
+        [MemberData(nameof(BaseOperationTest.GetInvalidIds), MemberType = typeof(BaseOperationTest))]
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_ThrowsOnInvalidId(string id)
         {
@@ -65,16 +36,14 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_FormsCorrectResponse_NoPrecondition()
         {
-            var json = CreateJsonDocument(idOnly);
+            // Arrange
             MockHandler.AddResponse(HttpStatusCode.NoContent);
-            _ = await table.DeleteItemAsync(json).ConfigureAwait(false);
 
-            // Check Request
-            Assert.Single(MockHandler.Requests);
-            var request = MockHandler.Requests[0];
-            Assert.Equal(HttpMethod.Delete, request.Method);
-            Assert.Equal(expectedEndpoint, request.RequestUri.ToString());
-            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            // Act
+            _ = await table.DeleteItemAsync(jIdOnly).ConfigureAwait(false);
+
+            // Assert
+            var request = AssertSingleRequest(HttpMethod.Delete, expectedEndpoint);
             Assert.False(request.Headers.Contains("If-Match"));
         }
 
@@ -82,16 +51,14 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_FormsCorrectResponse_WithPrecondition()
         {
-            var json = CreateJsonDocument(idEntity);
+            // Arrange
             MockHandler.AddResponse(HttpStatusCode.NoContent);
-            _ = await table.DeleteItemAsync(json).ConfigureAwait(false);
+
+            // Act
+            _ = await table.DeleteItemAsync(jIdEntity).ConfigureAwait(false);
 
             // Check Request
-            Assert.Single(MockHandler.Requests);
-            var request = MockHandler.Requests[0];
-            Assert.Equal(HttpMethod.Delete, request.Method);
-            Assert.Equal(expectedEndpoint, request.RequestUri.ToString());
-            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            var request = AssertSingleRequest(HttpMethod.Delete, expectedEndpoint);
             AssertEx.HasHeader(request.Headers, "If-Match", "\"etag\"");
         }
 
@@ -99,16 +66,14 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_Auth_NoPrecondition()
         {
-            var json = CreateJsonDocument(idOnly);
+            // Arrange
             MockHandler.AddResponse(HttpStatusCode.NoContent);
-            _ = await authTable.DeleteItemAsync(json).ConfigureAwait(false);
 
-            // Check Request
-            Assert.Single(MockHandler.Requests);
-            var request = MockHandler.Requests[0];
-            Assert.Equal(HttpMethod.Delete, request.Method);
-            Assert.Equal(expectedEndpoint, request.RequestUri.ToString());
-            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            // Act
+            _ = await authTable.DeleteItemAsync(jIdOnly).ConfigureAwait(false);
+
+            // Assert
+            var request = AssertSingleRequest(HttpMethod.Delete, expectedEndpoint);
             AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
             Assert.False(request.Headers.Contains("If-Match"));
         }
@@ -117,16 +82,14 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_Auth_WithPrecondition()
         {
-            var json = CreateJsonDocument(idEntity);
+            // Arrange
             MockHandler.AddResponse(HttpStatusCode.NoContent);
-            _ = await authTable.DeleteItemAsync(json).ConfigureAwait(false);
 
-            // Check Request
-            Assert.Single(MockHandler.Requests);
-            var request = MockHandler.Requests[0];
-            Assert.Equal(HttpMethod.Delete, request.Method);
-            Assert.Equal(expectedEndpoint, request.RequestUri.ToString());
-            AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
+            // Act
+            _ = await authTable.DeleteItemAsync(jIdEntity).ConfigureAwait(false);
+
+            // Assert
+            var request = AssertSingleRequest(HttpMethod.Delete, expectedEndpoint);
             AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
             AssertEx.HasHeader(request.Headers, "If-Match", "\"etag\"");
         }
@@ -137,15 +100,15 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_Conflict_FormulatesCorrectResponse(HttpStatusCode statusCode)
         {
-            var json = CreateJsonDocument(idEntity);
+            // Arrange
             MockHandler.AddResponse(statusCode, payload);
-            var ex = await Assert.ThrowsAsync<DatasyncConflictException>(() => table.DeleteItemAsync(json)).ConfigureAwait(false);
 
-            // Check Response
+            // Act
+            var ex = await Assert.ThrowsAsync<DatasyncConflictException>(() => table.DeleteItemAsync(jIdEntity)).ConfigureAwait(false);
+
+            // Assert
             Assert.Equal(statusCode, ex.Response.StatusCode);
-            Assert.False(ex.Response.IsSuccessStatusCode);
-            Assert.NotNull(ex.Value);
-            Assert.Equal(payload.Id, ex.Value.Value<string>("id"));
+            AssertJsonMatches(ex.Value);
         }
 
         [Theory]
@@ -154,13 +117,14 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_ConflictNoContent_FormulatesCorrectResponse(HttpStatusCode statusCode)
         {
-            var json = CreateJsonDocument(idEntity);
+            // Arrange
             MockHandler.AddResponse(statusCode);
-            var ex = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.DeleteItemAsync(json)).ConfigureAwait(false);
 
-            // Check Response
+            // Act
+            var ex = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.DeleteItemAsync(jIdEntity)).ConfigureAwait(false);
+
+            // Assert
             Assert.Equal(statusCode, ex.Response.StatusCode);
-            Assert.False(ex.Response.IsSuccessStatusCode);
         }
 
         [Theory]
@@ -169,13 +133,11 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_ConflictWithBadJson_Throws(HttpStatusCode statusCode)
         {
-            var json = CreateJsonDocument(idOnly);
-            var response = new HttpResponseMessage(statusCode)
-            {
-                Content = new StringContent(sBadJson, Encoding.UTF8, "application/json")
-            };
-            MockHandler.Responses.Add(response);
-            await Assert.ThrowsAnyAsync<JsonException>(() => table.DeleteItemAsync(json)).ConfigureAwait(false);
+            // Arrange
+            ReturnBadJson(statusCode);
+
+            // Act
+            await Assert.ThrowsAnyAsync<JsonException>(() => table.DeleteItemAsync(jIdEntity)).ConfigureAwait(false);
         }
 
         [Theory]
@@ -186,9 +148,13 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_RequestFailed_Throws(HttpStatusCode statusCode)
         {
-            var json = CreateJsonDocument(idOnly);
+            // Arrange
             MockHandler.AddResponse(statusCode);
-            var ex = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.DeleteItemAsync(json)).ConfigureAwait(false);
+
+            // Act
+            var ex = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.DeleteItemAsync(jIdEntity)).ConfigureAwait(false);
+
+            // Assert
             Assert.Equal(statusCode, ex.Response.StatusCode);
         }
     }

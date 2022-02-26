@@ -55,17 +55,14 @@ namespace Microsoft.Datasync.Client.Table
         /// <returns>A task that returns the response when complete.</returns>
         public Task<JToken> DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default)
         {
-            Arguments.IsNotNull(instance, nameof(instance));
-            ObjectReader.GetSystemProperties(instance, out SystemProperties systemProperties);
-            Arguments.IsValidId(systemProperties.Id, nameof(instance));
-
+            string id = ServiceSerializer.GetId(instance);
             ServiceRequest request = new()
             {
                 Method = HttpMethod.Delete,
-                UriPathAndQuery = CreateUriPath(TableName, systemProperties.Id),
-                EnsureResponseContent = false
+                UriPathAndQuery = CreateUriPath(TableName, id),
+                EnsureResponseContent = false,
+                RequestHeaders = GetConditionalHeaders(instance)
             };
-            AddIfMatchVersionHeader(request, systemProperties.Version);
             return SendRequestAsync(request, cancellationToken);
         }
 
@@ -73,7 +70,6 @@ namespace Microsoft.Datasync.Client.Table
         /// Execute a query against a remote table.
         /// </summary>
         /// <param name="query">An OData query to execute.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the results when the query finishes.</returns>
         public IAsyncEnumerable<JToken> GetAsyncItems(string query)
             => new FuncAsyncPageable<JToken>(nextLink => GetNextPageAsync(query, nextLink));
@@ -87,8 +83,13 @@ namespace Microsoft.Datasync.Client.Table
         public Task<JToken> GetItemAsync(string id, CancellationToken cancellationToken = default)
         {
             Arguments.IsValidId(id, nameof(id));
-
-            throw new NotImplementedException();
+            ServiceRequest request = new()
+            {
+                Method = HttpMethod.Get,
+                UriPathAndQuery = CreateUriPath(TableName, id),
+                EnsureResponseContent = true
+            };
+            return SendRequestAsync(request, cancellationToken);
         }
 
         /// <summary>
@@ -99,13 +100,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <returns>A task that returns the inserted data when complete.</returns>
         public Task<JToken> InsertItemAsync(JObject instance, CancellationToken cancellationToken = default)
         {
-            Arguments.IsNotNull(instance, nameof(instance));
-            ObjectReader.GetSystemProperties(instance, out SystemProperties systemProperties);
-            if (systemProperties.Id != null)
-            {
-                // If the Id is set, then it must be valid.
-                Arguments.IsValidId(systemProperties.Id, nameof(instance));
-            }
+            _ = ServiceSerializer.GetId(instance, allowDefault: true);
             ServiceRequest request = new()
             {
                 Method = HttpMethod.Post,
@@ -124,18 +119,15 @@ namespace Microsoft.Datasync.Client.Table
         /// <returns>A task that returns the replaced data when complete.</returns>
         public Task<JToken> ReplaceItemAsync(JObject instance, CancellationToken cancellationToken = default)
         {
-            Arguments.IsNotNull(instance, nameof(instance));
-            ObjectReader.GetSystemProperties(instance, out SystemProperties systemProperties);
-            Arguments.IsValidId(systemProperties.Id, nameof(instance));
-
+            string id = ServiceSerializer.GetId(instance);
             ServiceRequest request = new()
             {
                 Method = HttpMethod.Put,
-                UriPathAndQuery = CreateUriPath(TableName, systemProperties.Id),
+                UriPathAndQuery = CreateUriPath(TableName, id),
                 EnsureResponseContent = true,
-                Content = instance.ToString(Formatting.None)
+                Content = instance.ToString(Formatting.None),
+                RequestHeaders = GetConditionalHeaders(instance)
             };
-            AddIfMatchVersionHeader(request, systemProperties.Version);
             return SendRequestAsync(request, cancellationToken);
         }
 
@@ -150,38 +142,53 @@ namespace Microsoft.Datasync.Client.Table
         /// <returns>A task that returns the response when complete.</returns>
         public Task<JToken> UndeleteItemAsync(JObject instance, CancellationToken cancellationToken = default)
         {
-            Arguments.IsNotNull(instance, nameof(instance));
-            ObjectReader.GetSystemProperties(instance, out SystemProperties systemProperties);
-            Arguments.IsValidId(systemProperties.Id, nameof(instance));
-
+            string id = ServiceSerializer.GetId(instance);
             ServiceRequest request = new()
             {
                 Method = ServiceRequest.PATCH,
-                UriPathAndQuery = CreateUriPath(TableName, systemProperties.Id),
+                UriPathAndQuery = CreateUriPath(TableName, id),
                 EnsureResponseContent = true,
-                Content = "{\"deleted\":false}"
+                Content = "{\"deleted\":false}",
+                RequestHeaders = GetConditionalHeaders(instance)
             };
-            AddIfMatchVersionHeader(request, systemProperties.Version);
             return SendRequestAsync(request, cancellationToken);
         }
         #endregion
 
-        protected Task<Page<JToken>> GetNextPageAsync(string query, string nextLink)
-        {
-            throw new NotImplementedException();
-        }
-
         /// <summary>
-        /// Adds an If-Match header matching the provided version to the request.
+        /// Gets a single page of items produced as a result of a query against the server.
         /// </summary>
-        /// <param name="request">The <see cref="ServiceRequest"/> to modify.</param>
-        /// <param name="version">The version of the entity.</param>
-        protected static void AddIfMatchVersionHeader(ServiceRequest request, string version)
+        /// <param name="query">The query string to send to the service.</param>
+        /// <param name="requestUri">The request URI to send (if we're on the second or future pages)</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A <see cref="Page{JToken}"/> containing the page of items.</returns>
+        protected async Task<Page<JToken>> GetNextPageAsync(string query = "", string requestUri = null, CancellationToken cancellationToken = default)
         {
-            if (!string.IsNullOrWhiteSpace(version))
+            string queryString = string.IsNullOrEmpty(query) ? string.Empty : $"?{query.TrimStart('?').TrimEnd()}";
+            ServiceRequest request = new()
             {
-                (request.RequestHeaders ??= new Dictionary<string, string>()).Add(ServiceHeaders.IfMatch, version.ToETagValue());
+                Method = HttpMethod.Get,
+                UriPathAndQuery = requestUri ?? CreateUriPath(TableName) + queryString,
+                EnsureResponseContent = true
+            };
+            var response = await SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+            var result = new Page<JToken>();
+            if (response is JObject)
+            {
+                if (response[Page.JsonItemsProperty]?.Type == JTokenType.Array)
+                {
+                    result.Items = ((JArray)response[Page.JsonItemsProperty] as JArray).ToList();
+                }
+                if (response[Page.JsonCountProperty]?.Type == JTokenType.Integer)
+                {
+                    result.Count = response.Value<long>(Page.JsonCountProperty);
+                }
+                if (response[Page.JsonNextLinkProperty]?.Type == JTokenType.String)
+                {
+                    result.NextLink = new Uri(response.Value<string>(Page.JsonNextLinkProperty));
+                }
             }
+            return result;
         }
 
         /// <summary>
@@ -191,6 +198,17 @@ namespace Microsoft.Datasync.Client.Table
         /// <returns>The URI Path.</returns>
         protected static string CreateUriPath(params string[] segments)
             => "/tables/" + string.Join("/", segments.Select(segment => Uri.EscapeDataString(segment)).ToArray());
+
+        /// <summary>
+        /// Gets the conditional headers for the request to the remote service.
+        /// </summary>
+        /// <param name="instance">The instance being sent.</param>
+        /// <returns>The conditional headers, or <c>null</c> if there are no conditional headers.</returns>
+        protected static Dictionary<string, string> GetConditionalHeaders(JObject instance)
+        {
+            string version = ServiceSerializer.GetVersionOrDefault(instance);
+            return string.IsNullOrEmpty(version) ? null : new Dictionary<string, string> { [ServiceHeaders.IfMatch] = version.ToETagValue() };
+        }
 
         /// <summary>
         /// Parses the response content into a <see cref="JToken"/> and adds the version system property

@@ -14,7 +14,7 @@ namespace Microsoft.Datasync.Client.Test.Serialization
     [ExcludeFromCodeCoverage]
     public class DatasyncContractResolver_Tests : BaseTest
     {
-        private WrappedDatasyncContractResolver contractResolver;
+        private readonly WrappedDatasyncContractResolver contractResolver;
 
         public DatasyncContractResolver_Tests()
         {
@@ -53,9 +53,9 @@ namespace Microsoft.Datasync.Client.Test.Serialization
 
         [Fact]
         [Trait("Method", "ResolveTableName")]
-        public void ResolveTableName_Throws_WithMultipleIds()
+        public void ResolveTableName_Throws_MultiId()
         {
-            Assert.Throws<InvalidOperationException>(() => contractResolver.ResolveTableName(typeof(MultiId)));
+            Assert.Throws<InvalidOperationException>(() => contractResolver.ResolveTableName(typeof(MultiIdType)));
         }
 
         [Theory]
@@ -82,8 +82,6 @@ namespace Microsoft.Datasync.Client.Test.Serialization
             string actual = contractResolver.P_ResolvePropertyName(sut);
             Assert.Equal(expected, actual);
         }
-
-
 
         #region Test Models
         [DataTable("nameddatatabletype")]
@@ -120,6 +118,12 @@ namespace Microsoft.Datasync.Client.Test.Serialization
         [JsonObject]
         public class UnnamedJsonContainerType
         {
+            public string Id { get; set; }
+        }
+
+        public class MultiIdType
+        {
+            public string ID { get; set; }
             public string Id { get; set; }
         }
 

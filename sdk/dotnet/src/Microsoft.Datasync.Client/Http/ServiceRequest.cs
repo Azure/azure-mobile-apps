@@ -54,9 +54,9 @@ namespace Microsoft.Datasync.Client.Http
             Arguments.IsNotNull(Method, nameof(Method));
             Arguments.IsNotNullOrWhitespace(UriPathAndQuery, nameof(UriPathAndQuery));
 
-            var request = baseUri != null
-                ? new HttpRequestMessage(Method, new Uri(baseUri, UriPathAndQuery))
-                : new HttpRequestMessage(Method, new Uri(UriPathAndQuery, UriKind.Relative));
+            var uri = Uri.IsWellFormedUriString(UriPathAndQuery, UriKind.Absolute) ? new Uri(UriPathAndQuery)
+                : baseUri != null ? new Uri(baseUri, UriPathAndQuery) : new Uri(UriPathAndQuery, UriKind.Relative);
+            var request = new HttpRequestMessage(Method, uri);
             if (RequestHeaders?.Count > 0)
             {
                 foreach (var header in RequestHeaders)
