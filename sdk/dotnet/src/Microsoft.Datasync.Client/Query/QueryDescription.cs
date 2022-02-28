@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Query.Linq.Nodes;
-using Microsoft.Datasync.Client.Query.OData;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;

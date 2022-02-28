@@ -259,8 +259,9 @@ namespace Microsoft.Datasync.Client.Query
         /// Converts the current query into an OData query string for use by the
         /// other <c>To*</c> methods.
         /// </summary>
+        /// <param name="includeParameters">If <c>true</c>, include the optional parameters.</param>
         /// <returns>The OData query string representing this query</returns>
-        internal string ToODataString()
-            => new QueryTranslator<T>(this).Translate().ToODataString();
+        internal string ToODataString(bool includeParameters = true)
+            => new QueryTranslator<T>(this).Translate().ToODataString(includeParameters ? Parameters : null);
     }
 }

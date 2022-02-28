@@ -16,8 +16,10 @@ namespace Microsoft.Datasync.Client.Query.OData
         /// <summary>
         /// Converts the query structure into a standard OData URI protocol for queries.
         /// </summary>
+        /// <param name="value">The <see cref="QueryDescription"/> to convert to OData.</param>
+        /// <param name="parameters">A list of optional parameters to include in the query string.</param>
         /// <returns>A URI query string representing the query.</returns>
-        public static string ToODataString(this QueryDescription value)
+        public static string ToODataString(this QueryDescription value, IDictionary<string, string> parameters = null)
         {
             List<string> queryFragments = new();
 
@@ -51,6 +53,14 @@ namespace Microsoft.Datasync.Client.Query.OData
             if (value.IncludeTotalCount)
             {
                 queryFragments.Add($"{ODataOptions.InlineCount}=true");
+            }
+
+            if (parameters?.Count > 0)
+            {
+                foreach (var kv in parameters)
+                {
+                    queryFragments.Add($"{Uri.EscapeUriString(kv.Key)}={Uri.EscapeUriString(kv.Value)}");
+                }
             }
 
             return string.Join("&", queryFragments);

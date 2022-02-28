@@ -72,6 +72,18 @@ namespace Microsoft.Datasync.Client.Test.Query
         }
 
         [Fact]
+        [Trait("Method", "ToODataString")]
+        [Trait("Method", "IncludeDeletedItems")]
+        public void ToODataString_IncludeDeletedItems_IsWellFormed()
+        {
+            var client = GetMockClient();
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).IncludeDeletedItems() as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("__includedeleted=true", odata);
+        }
+
+        [Fact]
         [Trait("Method", "IncludeTotalCount")]
         public void IncludeTotalCount_Enabled_AddsKey()
         {
@@ -470,6 +482,34 @@ namespace Microsoft.Datasync.Client.Test.Query
             var query = new TableQuery<IdEntity>(table).WithParameter("testkey", "testvalue");
             var actual = query.WithParameter("testkey", "replacement") as TableQuery<IdEntity>;
             AssertEx.Contains("testkey", "replacement", actual.Parameters);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataString")]
+        [Trait("Method", "WithParameter")]
+        public void ToODataString_WithParameter_isWellFormed()
+        {
+            var client = GetMockClient();
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).WithParameter("testkey", "testvalue") as TableQuery<IdEntity>;
+
+            var odata = query.ToODataString();
+
+            Assert.Equal("testkey=testvalue", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataString")]
+        [Trait("Method", "WithParameter")]
+        public void ToODataString_WithParameter_EncodesValue()
+        {
+            var client = GetMockClient();
+            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
+            var query = new TableQuery<IdEntity>(table).WithParameter("testkey", "test value") as TableQuery<IdEntity>;
+
+            var odata = query.ToODataString();
+
+            Assert.Equal("testkey=test%20value", odata);
         }
 
         [Fact]
