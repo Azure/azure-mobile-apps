@@ -111,7 +111,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="instance">The instance to refresh.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns when the operation is complete.</returns>
-        public async Task RefreshItemAsync(T instance, CancellationToken cancellationToken = default)
+        public Task RefreshItemAsync(T instance, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(instance, nameof(instance));
             throw new NotImplementedException();

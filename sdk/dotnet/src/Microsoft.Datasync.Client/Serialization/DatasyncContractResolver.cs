@@ -151,6 +151,30 @@ namespace Microsoft.Datasync.Client.Serialization
         }
 
         /// <summary>
+        /// Returns the <see cref="JsonProperty"/> for the given <see cref="MemberInfo"/> instance. The <see cref="JsonProperty"/> 
+        /// can be used to get information about how the <see cref="MemberInfo"/> should be serialized.
+        /// </summary>
+        /// <param name="member">The <see cref="MemberInfo"/> for which to get the <see cref="JsonProperty"/>.</param>
+        /// <returns>The <see cref="JsonProperty"/> for the given <see cref="MemberInfo"/> instance.</returns>
+        public virtual JsonProperty ResolveProperty(MemberInfo member)
+        {
+            try
+            {
+                jsonPropertyCacheLock.EnterUpgradeableReadLock();
+                if (!jsonPropertyCache.TryGetValue(member, out JsonProperty property))
+                {
+                    ResolveContract(member.DeclaringType);
+                    jsonPropertyCache.TryGetValue(member, out property);
+                }
+                return property;
+            }
+            finally
+            {
+                jsonPropertyCacheLock.ExitUpgradeableReadLock();
+            }
+        }
+
+        /// <summary>
         /// Returns the serialized property name.
         /// </summary>
         /// <param name="propertyName">The property name to serialize.</param>

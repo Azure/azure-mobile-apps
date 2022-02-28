@@ -18,6 +18,11 @@ namespace Microsoft.Datasync.Client.Query
     public interface ITableQuery<T> : ILinqMethods<T>
     {
         /// <summary>
+        /// The table being queried.
+        /// </summary>
+        IRemoteTable<T> RemoteTable { get; }
+
+        /// <summary>
         /// The user-defined query string parameters to include with the query when
         /// sent to the remote service.
         /// </summary>
@@ -29,9 +34,8 @@ namespace Microsoft.Datasync.Client.Query
         IQueryable<T> Query { get; set; }
 
         /// <summary>
-        /// If <c>true</c>, request the total count for all the items that would have
-        /// been returned ignoring any page/limit clause specified by the client or 
-        /// server.
+        /// If <c>true</c>, include the total count of items that will be returned with this query
+        /// (without considering paging).
         /// </summary>
         bool RequestTotalCount { get; }
     }

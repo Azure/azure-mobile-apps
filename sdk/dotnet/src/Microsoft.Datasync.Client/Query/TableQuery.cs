@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Query.Linq;
+using Microsoft.Datasync.Client.Query.OData;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using System;
@@ -22,17 +24,12 @@ namespace Microsoft.Datasync.Client.Query
     internal class TableQuery<T> : ITableQuery<T>
     {
         /// <summary>
-        /// The query parameter used to include deleted items.
-        /// </summary>
-        private const string IncludeDeletedQueryParameter = "__includedeleted";
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="TableQuery{T}"/> class.
         /// </summary>
         /// <param name="table">The table being queried.</param>
         /// <param name="queryProvider">The <see cref="TableQueryProvider"/> associated with the table.</param>
         internal TableQuery(IRemoteTable<T> table)
-            : this(table, null, null, false)
+            : this(table, null, null)
         {
         }
 
@@ -43,21 +40,14 @@ namespace Microsoft.Datasync.Client.Query
         /// <param name="queryProvider">The <see cref="TableQueryProvider"/> associated with the table.</param>
         /// <param name="query"> The encapsulated <see cref="IQueryable{T}"/>.</param>
         /// <param name="parameters"> The optional user-defined query string parameters to include with the query.</param>
-        /// <param name="includeTotalCount">If <c>true</c>, request a total count of items to be returned.</param>
-        internal TableQuery(IRemoteTable<T> table, IQueryable<T> query, IDictionary<string, string> parameters, bool includeTotalCount)
+        internal TableQuery(IRemoteTable<T> table, IQueryable<T> query, IDictionary<string, string> parameters)
         {
             Arguments.IsNotNull(table, nameof(table));
 
             Parameters = parameters ?? new Dictionary<string, string>();
             Query = query ?? Array.Empty<T>().AsQueryable();
-            RequestTotalCount = includeTotalCount;
-            Table = table;
+            RemoteTable = table;
         }
-
-        /// <summary>
-        /// The <see cref="IRemoteTable{T}"/> being queried.
-        /// </summary>
-        public IRemoteTable<T> Table { get; }
 
         #region ITableQuery<T>
         /// <summary>
@@ -72,9 +62,13 @@ namespace Microsoft.Datasync.Client.Query
         public IQueryable<T> Query { get; set; }
 
         /// <summary>
-        /// If <c>true</c>, request the total count for all the items that would have
-        /// been returned ignoring any page/limit clause specified by the client or 
-        /// server.
+        /// The <see cref="IRemoteTable{T}"/> being queried.
+        /// </summary>
+        public IRemoteTable<T> RemoteTable { get; }
+
+        /// <summary>
+        /// If <c>true</c>, include the total count of items that will be returned with this query
+        /// (without considering paging).
         /// </summary>
         public bool RequestTotalCount { get; private set; }
         #endregion
@@ -89,11 +83,11 @@ namespace Microsoft.Datasync.Client.Query
         {
             if (enabled)
             {
-                Parameters[IncludeDeletedQueryParameter] = "true";
+                Parameters[ODataOptions.IncludeDeleted] = "true";
             }
             else
             {
-                Parameters.Remove(IncludeDeletedQueryParameter);
+                Parameters.Remove(ODataOptions.IncludeDeleted);
             }
             return this;
         }
@@ -142,8 +136,8 @@ namespace Microsoft.Datasync.Client.Query
         /// <returns>The composed query object.</returns>
         public ITableQuery<U> Select<U>(Expression<Func<T, U>> selector)
         {
-            IRemoteTable<U> remoteTable = new RemoteTable<U>(Table.TableName, Table.ServiceClient);
-            return new TableQuery<U>(remoteTable, Query.Select(selector), Parameters, RequestTotalCount);
+            IRemoteTable<U> remoteTable = new RemoteTable<U>(RemoteTable.TableName, RemoteTable.ServiceClient);
+            return new TableQuery<U>(remoteTable, Query.Select(selector), Parameters);
         }
 
         /// <summary>
@@ -241,5 +235,13 @@ namespace Microsoft.Datasync.Client.Query
             return this;
         }
         #endregion
+
+        /// <summary>
+        /// Converts the current query into an OData query string for use by the
+        /// other <c>To*</c> methods.
+        /// </summary>
+        /// <returns>The OData query string representing this query</returns>
+        internal string ToODataString() 
+            => new QueryTranslator<T>(this).Translate().ToODataString();
     }
 }
