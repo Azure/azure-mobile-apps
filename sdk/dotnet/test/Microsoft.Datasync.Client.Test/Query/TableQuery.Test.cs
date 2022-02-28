@@ -45,9 +45,7 @@ namespace Microsoft.Datasync.Client.Test.Query
             RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
             var query = new TableQuery<IdEntity>(table);
             query.Parameters.Add("__includedeleted", "test");
-
             var actual = query.IncludeDeletedItems() as TableQuery<IdEntity>;
-
             AssertEx.Contains("__includedeleted", "true", actual.Parameters);
         }
 
@@ -59,9 +57,7 @@ namespace Microsoft.Datasync.Client.Test.Query
             RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
             var query = new TableQuery<IdEntity>(table);
             query.Parameters.Add("__includedeleted", "true");
-
             var actual = query.IncludeDeletedItems(false) as TableQuery<IdEntity>;
-
             Assert.False(actual.Parameters.ContainsKey("__includedeleted"));
         }
 
@@ -72,23 +68,8 @@ namespace Microsoft.Datasync.Client.Test.Query
             var client = GetMockClient();
             RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
             var query = new TableQuery<IdEntity>(table);
-
             var actual = query.IncludeDeletedItems(false) as TableQuery<IdEntity>;
-
             Assert.False(actual.Parameters.ContainsKey("__includedeleted"));
-        }
-
-        [Fact]
-        [Trait("Method", "ToODataString")]
-        [Trait("Method", "IncludeDeletedItems")]
-        public void ToODataString_IncludeDeletedItems_IsWellFormed()
-        {
-            var client = GetMockClient();
-            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
-            var query = new TableQuery<IdEntity>(table).IncludeDeletedItems() as TableQuery<IdEntity>;
-
-            var odata = query.ToODataString();
-            Assert.Equal("__includedeleted=true", odata);
         }
 
         [Fact]
@@ -424,7 +405,7 @@ namespace Microsoft.Datasync.Client.Test.Query
             RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
             var query = new TableQuery<IdEntity>(table).Where(m => m.Id == "foo") as TableQuery<IdEntity>;
             var odata = query.ToODataString();
-            Assert.Equal("$filter=(id%20eq%20'foo')", odata);
+            Assert.Equal("$filter=(id eq 'foo')", odata);
         }
 
         [Fact]
@@ -493,30 +474,6 @@ namespace Microsoft.Datasync.Client.Test.Query
         }
 
         [Fact]
-        [Trait("Method", "ToODataString")]
-        [Trait("Method", "WithParameter")]
-        public void ToODataString_WithParameter_isWellFormed()
-        {
-            var client = GetMockClient();
-            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
-            var query = new TableQuery<IdEntity>(table).WithParameter("testkey", "testvalue") as TableQuery<IdEntity>;
-            var odata = query.ToODataString();
-            Assert.Equal("testkey=testvalue", odata);
-        }
-
-        [Fact]
-        [Trait("Method", "ToODataString")]
-        [Trait("Method", "WithParameter")]
-        public void ToODataString_WithParameter_EncodesValue()
-        {
-            var client = GetMockClient();
-            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
-            var query = new TableQuery<IdEntity>(table).WithParameter("testkey", "test value") as TableQuery<IdEntity>;
-            var odata = query.ToODataString();
-            Assert.Equal("testkey=test%20value", odata);
-        }
-
-        [Fact]
         [Trait("Method", "WithParameters")]
         public void WithParameters_Null_Throws()
         {
@@ -524,17 +481,6 @@ namespace Microsoft.Datasync.Client.Test.Query
             RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
             var query = new TableQuery<IdEntity>(table);
             Assert.Throws<ArgumentNullException>(() => query.WithParameters(null));
-        }
-
-        [Fact]
-        [Trait("Method", "WithParameters")]
-        public void WithParameters_Empty_Throws()
-        {
-            var client = GetMockClient();
-            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
-            var query = new TableQuery<IdEntity>(table);
-            var sut = new Dictionary<string, string>();
-            Assert.Throws<ArgumentException>(() => query.WithParameters(sut));
         }
 
         [Fact]
@@ -589,46 +535,6 @@ namespace Microsoft.Datasync.Client.Test.Query
             };
 
             Assert.Throws<ArgumentException>(() => query.WithParameters(sut));
-        }
-
-        [Fact]
-        [Trait("Method", "ToODataString")]
-        [Trait("Method", "WithParameters")]
-        public void ToODataString_WithParameters_isWellFormed()
-        {
-            var client = GetMockClient();
-            RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
-            var pairs = new Dictionary<string, string>()
-            {
-                {  "key1", "value1" },
-                {  "key2", "value 2" }
-            };
-            var query = new TableQuery<IdEntity>(table).WithParameters(pairs) as TableQuery<IdEntity>;
-            var odata = query.ToODataString();
-            Assert.Equal("key1=value1&key2=value%202", odata);
-        }
-
-        [Theory]
-        [ClassData(typeof(LinqTestCases))]
-        [Trait("Method", "ToODataString")]
-        internal void LinqODataConversions(LinqTestCase testcase)
-        {
-            // Arrange
-            var client = GetMockClient();
-            var table = new RemoteTable<ClientMovie>("movies", client);
-            var query = new TableQuery<ClientMovie>(table);
-
-            // Act
-            var actual = (testcase.LinqExpression.Invoke(query) as TableQuery<ClientMovie>)?.ToODataString();
-            var tester = Uri.UnescapeDataString(actual);
-
-            // Assert
-            Assert.NotNull(actual);
-
-            var expectedParams = testcase.ODataString.Split('&').ToList();
-            var actualParams = tester.Split('&').ToList();
-            // actualParams and expectedParams need to be the same, but can be in different order
-            actualParams.Should().BeEquivalentTo(expectedParams, $"Test Case {testcase.Name} OData String");
         }
 
         [Theory]

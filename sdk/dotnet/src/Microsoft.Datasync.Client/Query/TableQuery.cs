@@ -147,6 +147,10 @@ namespace Microsoft.Datasync.Client.Query
         /// <returns>The composed query object.</returns>
         public ITableQuery<T> Skip(int count)
         {
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count), $"{nameof(count)} must be positive");
+            }
             Query = Query.Skip(count);
             return this;
         }
@@ -158,6 +162,10 @@ namespace Microsoft.Datasync.Client.Query
         /// <returns>The composed query object.</returns>
         public ITableQuery<T> Take(int count)
         {
+            if (count <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count), $"{nameof(count)} must be positive");
+            }
             Query = Query.Take(count);
             return this;
         }
@@ -215,6 +223,12 @@ namespace Microsoft.Datasync.Client.Query
         /// <returns>The composed query object.</returns>
         public ITableQuery<T> WithParameter(string key, string value)
         {
+            Arguments.IsNotNullOrWhitespace(key, nameof(key));
+            Arguments.IsNotNullOrWhitespace(value, nameof(value));
+            if (key.StartsWith("$") || key.StartsWith("__"))
+            {
+                throw new ArgumentException($"Parameter '{key}' is invalid", nameof(key));
+            }
             Parameters[key] = value;
             return this;
         }
@@ -228,10 +242,15 @@ namespace Microsoft.Datasync.Client.Query
         /// <returns>The composed query object.</returns>
         public ITableQuery<T> WithParameters(IEnumerable<KeyValuePair<string, string>> parameters)
         {
-            foreach(var param in parameters)
+            Arguments.IsNotNull(parameters, nameof(parameters));
+            parameters.ToList().ForEach(param =>
             {
-                Parameters[param.Key] = param.Value;
-            }
+                if (param.Key.StartsWith("$") || param.Key.StartsWith("__"))
+                {
+                    throw new ArgumentException($"Parameter '{param.Key}' is invalid", nameof(parameters));
+                }
+               Parameters[param.Key] = param.Value;
+            });
             return this;
         }
         #endregion

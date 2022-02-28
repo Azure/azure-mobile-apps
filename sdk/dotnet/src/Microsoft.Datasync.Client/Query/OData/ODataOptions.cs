@@ -13,7 +13,7 @@ namespace Microsoft.Datasync.Client.Query.OData
         public const string Skip = "$skip";
         public const string Top = "$top";
         public const string Select = "$select";
-        public const string InlineCount = "count";
+        public const string InlineCount = "$count";
 
         /// <summary>
         /// The query parameter used to include deleted items.  This is an OData
