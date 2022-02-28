@@ -108,7 +108,7 @@ namespace Microsoft.Datasync.Client.Test.Query
             var client = GetMockClient();
             RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
             var query = new TableQuery<IdEntity>(table).IncludeTotalCount(false) as TableQuery<IdEntity>;
-            Assert.True(query.RequestTotalCount);
+            Assert.False(query.RequestTotalCount);
         }
 
         [Fact]
@@ -615,7 +615,7 @@ namespace Microsoft.Datasync.Client.Test.Query
         {
             // Arrange
             var client = GetMockClient();
-            var table = new RemoteTable<ClientMovie>("tables/movies", client);
+            var table = new RemoteTable<ClientMovie>("movies", client);
             var query = new TableQuery<ClientMovie>(table);
 
             // Act
@@ -638,7 +638,7 @@ namespace Microsoft.Datasync.Client.Test.Query
         {
             // Arrange
             var client = GetMockClient();
-            var table = new RemoteTable<ClientMovie>("tables/movies/", client);
+            var table = new RemoteTable<ClientMovie>("movies", client);
             var query = new TableQuery<ClientMovie>(table);
 
             // Need to make sure the $select statement is added in the right spot.
@@ -661,7 +661,7 @@ namespace Microsoft.Datasync.Client.Test.Query
         {
             // Arrange
             var client = GetMockClient();
-            var table = new RemoteTable<ClientMovie>("tables/movies/", client);
+            var table = new RemoteTable<ClientMovie>("movies", client);
             var query = new TableQuery<ClientMovie>(table);
 
             // Act
@@ -674,7 +674,7 @@ namespace Microsoft.Datasync.Client.Test.Query
         {
             // Arrange
             var client = GetMockClient();
-            var table = new RemoteTable<ClientMovie>("tables/movies/", client);
+            var table = new RemoteTable<ClientMovie>("movies", client);
             var query = new TableQuery<ClientMovie>(table);
 
             // Act
@@ -687,7 +687,7 @@ namespace Microsoft.Datasync.Client.Test.Query
         {
             // Arrange
             var client = GetMockClient();
-            var table = new RemoteTable<ClientMovie>("tables/movies/", client);
+            var table = new RemoteTable<ClientMovie>("movies", client);
             var query = new TableQuery<ClientMovie>(table);
 
             // Act
@@ -700,7 +700,7 @@ namespace Microsoft.Datasync.Client.Test.Query
         {
             // Arrange
             var client = GetMockClient();
-            var table = new RemoteTable<ClientMovie>("tables/movies/", client);
+            var table = new RemoteTable<ClientMovie>("movies", client);
             var query = new TableQuery<ClientMovie>(table);
 
             // Act
@@ -713,7 +713,7 @@ namespace Microsoft.Datasync.Client.Test.Query
         {
             // Arrange
             var client = GetMockClient();
-            var table = new RemoteTable<ClientMovie>("tables/movies/", client);
+            var table = new RemoteTable<ClientMovie>("movies", client);
             var query = new TableQuery<ClientMovie>(table);
 
             // Act - really - you should NOT be doing this!
@@ -728,7 +728,7 @@ namespace Microsoft.Datasync.Client.Test.Query
         {
             // Arrange
             var client = GetMockClient();
-            var table = new RemoteTable<ClientMovie>("tables/movies/", client);
+            var table = new RemoteTable<ClientMovie>("movies", client);
             var query = new TableQuery<ClientMovie>(table).Where(m => (-m.Year) <= -2000) as TableQuery<ClientMovie>;
 
             Assert.Throws<NotSupportedException>(() => query.ToODataString());
@@ -739,7 +739,7 @@ namespace Microsoft.Datasync.Client.Test.Query
         {
             // Arrange
             var client = GetMockClient();
-            var table = new RemoteTable<ClientMovie>("tables/movies/", client);
+            var table = new RemoteTable<ClientMovie>("movies", client);
             var query = new TableQuery<ClientMovie>(table).OrderBy(m => m.Id == "foo" ? "yes" : "no") as TableQuery<ClientMovie>;
 
             Assert.Throws<NotSupportedException>(() => query.ToODataString());
@@ -750,7 +750,7 @@ namespace Microsoft.Datasync.Client.Test.Query
         {
             // Arrange
             var client = GetMockClient();
-            var table = new RemoteTable<ClientMovie>("tables/movies/", client);
+            var table = new RemoteTable<ClientMovie>("movies", client);
             var query = new TableQuery<ClientMovie>(table).OrderBy(m => m.GetHashCode()) as TableQuery<ClientMovie>;
 
             Assert.Throws<NotSupportedException>(() => query.ToODataString());
@@ -761,7 +761,7 @@ namespace Microsoft.Datasync.Client.Test.Query
         {
             // Arrange
             var client = GetMockClient();
-            var table = new RemoteTable<ClientMovie>("tables/movies/", client);
+            var table = new RemoteTable<ClientMovie>("movies", client);
             var query = new TableQuery<ClientMovie>(table).OrderBy(m => m.ReleaseDate.ToString("o")) as TableQuery<ClientMovie>;
 
             Assert.Throws<NotSupportedException>(() => query.ToODataString());
