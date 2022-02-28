@@ -14,6 +14,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -185,6 +186,16 @@ namespace Datasync.Common.Test
         {
             var settings = new DatasyncSerializerSettings();
             return JObject.FromObject(obj, settings.GetSerializerFromSettings());
+        }
+
+        /// <summary>
+        /// Split, sort, and re-join a query string so that it can be compared easily
+        /// </summary>
+        protected static string NormalizeQueryString(string queryString)
+        {
+            var splitArgs = queryString.Split('&').ToList();
+            splitArgs.Sort();
+            return string.Join('&', splitArgs).TrimStart('&');
         }
 
         /// <summary>

@@ -27,9 +27,8 @@ namespace Microsoft.Datasync.Client.Query
         /// Initializes a new instance of the <see cref="TableQuery{T}"/> class.
         /// </summary>
         /// <param name="table">The table being queried.</param>
-        /// <param name="queryProvider">The <see cref="TableQueryProvider"/> associated with the table.</param>
         internal TableQuery(IRemoteTable<T> table)
-            : this(table, null, null)
+            : this(table, null, null, false)
         {
         }
 
@@ -37,16 +36,17 @@ namespace Microsoft.Datasync.Client.Query
         /// Initializes a new instance of the <see cref="TableQuery{T}"/> class.
         /// </summary>
         /// <param name="table">The table being queried.</param>
-        /// <param name="queryProvider">The <see cref="TableQueryProvider"/> associated with the table.</param>
         /// <param name="query"> The encapsulated <see cref="IQueryable{T}"/>.</param>
         /// <param name="parameters"> The optional user-defined query string parameters to include with the query.</param>
-        internal TableQuery(IRemoteTable<T> table, IQueryable<T> query, IDictionary<string, string> parameters)
+        /// <param name="requestTotalCount">If <c>true</c>, include the total count of items that will be returned with this query (without considering paging).</param>
+        internal TableQuery(IRemoteTable<T> table, IQueryable<T> query, IDictionary<string, string> parameters, bool requestTotalCount)
         {
             Arguments.IsNotNull(table, nameof(table));
 
             Parameters = parameters ?? new Dictionary<string, string>();
             Query = query ?? Array.Empty<T>().AsQueryable();
             RemoteTable = table;
+            RequestTotalCount = requestTotalCount;
         }
 
         #region ITableQuery<T>
@@ -137,7 +137,7 @@ namespace Microsoft.Datasync.Client.Query
         public ITableQuery<U> Select<U>(Expression<Func<T, U>> selector)
         {
             IRemoteTable<U> remoteTable = new RemoteTable<U>(RemoteTable.TableName, RemoteTable.ServiceClient);
-            return new TableQuery<U>(remoteTable, Query.Select(selector), Parameters);
+            return new TableQuery<U>(remoteTable, Query.Select(selector), Parameters, RequestTotalCount);
         }
 
         /// <summary>
@@ -181,7 +181,7 @@ namespace Microsoft.Datasync.Client.Query
             Query = ((IOrderedQueryable<T>)Query).ThenBy(keySelector);
             return this;
         }
-        
+
         /// <summary>
         /// Applies the specified descending order clause to the source query.
         /// </summary>
@@ -260,7 +260,7 @@ namespace Microsoft.Datasync.Client.Query
         /// other <c>To*</c> methods.
         /// </summary>
         /// <returns>The OData query string representing this query</returns>
-        internal string ToODataString() 
+        internal string ToODataString()
             => new QueryTranslator<T>(this).Translate().ToODataString();
     }
 }

@@ -3,7 +3,6 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
-using FluentAssertions;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
 using System;
@@ -548,18 +547,14 @@ namespace Microsoft.Datasync.Client.Test.Query
             var query = new TableQuery<ClientMovie>(table);
 
             // Need to make sure the $select statement is added in the right spot.
-            var splitArgs = testcase.ODataString.Split('&').ToList();
-            splitArgs.Add("$select=id,title");
-            splitArgs.Sort();
-            var expectedWithSelect = string.Join('&', splitArgs).TrimStart('&');
+            var expected = NormalizeQueryString(testcase.ODataString + "&$select=id,title");
 
             // Act
-            var actual = (testcase.LinqExpression.Invoke(query).Select(m => new SelectResult { Id = m.Id, Title = m.Title }) as TableQuery<SelectResult>)?.ToODataString();
-            var tester = Uri.UnescapeDataString(actual);
+            var actualODataString = (testcase.LinqExpression.Invoke(query).Select(m => new SelectResult { Id = m.Id, Title = m.Title }) as TableQuery<SelectResult>)?.ToODataString();
+            var actual = NormalizeQueryString(Uri.UnescapeDataString(actualODataString));
 
             // Assert
-            Assert.NotNull(actual);
-            Assert.True(tester.Equals(expectedWithSelect), $"Test '{testcase.Name}' did not match (with select)\nExpected: {expectedWithSelect}\nActual  : {tester}");
+            Assert.Equal(expected, actual);
         }
 
         [Fact]
