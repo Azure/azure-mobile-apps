@@ -15,7 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Table.Operations
+namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
 {
     [ExcludeFromCodeCoverage]
     public class GetAsyncItems_Tests : BaseOperationTest
@@ -308,11 +308,11 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
             Assert.Null(page.NextLink);
         }
 
-        private class WrappedRemoteTable : RemoteTable
+        private class WrappedRemoteTable : Client.Table.RemoteTable
         {
             public WrappedRemoteTable(string path, DatasyncClient client) : base(path, client) { }
-            public Task<Page<JToken>> P_GetNextPage(string query = "", string nextLink = null) 
-                => base.GetNextPageAsync(query, nextLink); 
+            public Task<Page<JToken>> P_GetNextPage(string query = "", string nextLink = null)
+                => base.GetNextPageAsync(query, nextLink);
         }
     }
 }

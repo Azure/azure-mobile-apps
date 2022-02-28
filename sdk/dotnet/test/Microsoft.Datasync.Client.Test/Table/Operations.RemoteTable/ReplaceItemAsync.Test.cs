@@ -11,7 +11,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Table.Operations
+namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
 {
     [ExcludeFromCodeCoverage]
     public class ReplaceItemAsync_Tests : BaseOperationTest
@@ -96,7 +96,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         {
             // Arrange
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
-            
+
             // Act
             var response = await authTable.ReplaceItemAsync(jIdOnly).ConfigureAwait(false);
 
@@ -130,7 +130,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         {
             // Arrange
             MockHandler.AddResponse(HttpStatusCode.OK);
-            
+
             // Act
             var response = await table.ReplaceItemAsync(jIdEntity).ConfigureAwait(false);
 
@@ -147,7 +147,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         {
             // Arrange
             MockHandler.AddResponse(statusCode, payload);
-            
+
             // Act
             var ex = await Assert.ThrowsAsync<DatasyncConflictException>(() => table.ReplaceItemAsync(jIdEntity)).ConfigureAwait(false);
 

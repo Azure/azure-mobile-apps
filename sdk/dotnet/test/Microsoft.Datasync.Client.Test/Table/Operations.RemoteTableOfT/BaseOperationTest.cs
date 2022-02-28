@@ -4,9 +4,6 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Mocks;
 using Datasync.Common.Test.Models;
-using Microsoft.Datasync.Client.Serialization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -15,20 +12,17 @@ using System.Net.Http;
 using System.Text;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Table.Operations
+namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
 {
     [ExcludeFromCodeCoverage]
     public class BaseOperationTest : BaseTest
     {
         protected readonly IdEntity payload = new() { Id = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f", StringValue = "test" };
-        protected const string sPayload = "{\"id\":\"db0ec08d-46a9-465d-9f5e-0066a3ee5b5f\",\"stringValue\":\"test\"}";
+        protected const string sJsonPayload = "{\"id\":\"db0ec08d-46a9-465d-9f5e-0066a3ee5b5f\",\"stringValue\":\"test\"}";
         protected const string sBadJson = "{this-is-bad-json";
 
-        protected readonly IRemoteTable table, authTable;
-        protected readonly IdOnly idOnly;
-        protected readonly IdEntity idEntity;
-        protected readonly JObject jIdEntity, jIdOnly;
-        protected readonly string sId, sIdEntity, sIdOnly, expectedEndpoint, tableEndpoint;
+        protected IRemoteTable<IdEntity> table, authTable;
+        protected readonly string sId, expectedEndpoint, tableEndpoint;
 
         public BaseOperationTest() : base()
         {
@@ -36,34 +30,10 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
             expectedEndpoint = new Uri(Endpoint, $"/tables/movies/{sId}").ToString();
             tableEndpoint = new Uri(Endpoint, "/tables/movies").ToString();
 
-            // The entity, JObject, and JSON string for an IdOnly object.
-            idOnly = new IdOnly { Id = sId };
-            jIdOnly = CreateJsonDocument(idOnly);
-            sIdOnly = jIdOnly.ToString(Formatting.None);
-
-            // The entity, JObject, and JSON string for an IdEntity object.
-            idEntity = new IdEntity { Id = sId, Version = "etag" };
-            jIdEntity = CreateJsonDocument(idEntity);
-            sIdEntity = jIdEntity.ToString(Formatting.None);
-
-            table = GetMockClient().GetRemoteTable("movies");
-            authTable = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken)).GetRemoteTable("movies");
+            table = GetMockClient().GetRemoteTable<IdEntity>("movies");
+            authTable = GetMockClient(new MockAuthenticationProvider(ValidAuthenticationToken)).GetRemoteTable<IdEntity>("movies");
         }
 
-        /// <summary>
-        /// Checks that the provided result matches the payload.
-        /// </summary>
-        /// <param name="response">The result received.</param>
-        protected void AssertJsonMatches(JToken response)
-        {
-            Assert.NotNull(response);
-            Assert.IsAssignableFrom<JObject>(response);
-            var result = (JObject)response;
-
-            Assert.Equal(payload.Id, result.Value<string>("id"));
-            Assert.Equal(payload.StringValue, result.Value<string>("stringValue"));
-        }
-        
         /// <summary>
         /// Check that the request is the correct method and path.
         /// </summary>
@@ -72,7 +42,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         protected HttpRequestMessage AssertSingleRequest(HttpMethod method, string endpoint)
         {
             Assert.Single(MockHandler.Requests);
-           return AssertRequest(MockHandler.Requests[0], method, endpoint);
+            return AssertRequest(MockHandler.Requests[0], method, endpoint);
         }
 
         /// <summary>
@@ -82,9 +52,8 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         /// <param name="method"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        protected HttpRequestMessage AssertRequest(HttpRequestMessage request, HttpMethod method, string endpoint)
+        protected static HttpRequestMessage AssertRequest(HttpRequestMessage request, HttpMethod method, string endpoint)
         {
-
             Assert.Equal(method, request.Method);
             Assert.Equal(endpoint, request.RequestUri.ToString());
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");

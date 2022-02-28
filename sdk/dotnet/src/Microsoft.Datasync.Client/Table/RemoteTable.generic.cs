@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
@@ -14,7 +15,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Datasync.Client.Table
 {
     /// <summary>
-    /// Provides the operations that can be done against a remote table 
+    /// Provides the operations that can be done against a remote table
     /// with strongly type models.
     /// </summary>
     internal class RemoteTable<T> : RemoteTable, IRemoteTable<T>
@@ -47,7 +48,7 @@ namespace Microsoft.Datasync.Client.Table
         {
             Arguments.IsNotNull(instance, nameof(instance));
             JObject value = ServiceClient.Serializer.Serialize(instance) as JObject;
-            await DeleteItemAsync(value, cancellationToken).ConfigureAwait(false);
+            await TransformHttpExceptionAsync(() => DeleteItemAsync(value, cancellationToken)).ConfigureAwait(false);
             ServiceClient.Serializer.SetIdToDefault(instance);
         }
 
@@ -265,5 +266,32 @@ namespace Microsoft.Datasync.Client.Table
         public ITableQuery<T> WithParameters(IEnumerable<KeyValuePair<string, string>> parameters)
             => CreateQuery().WithParameters(parameters);
         #endregion
+
+        /// <summary>
+        /// Executes a request and transfoms a conflict exception.
+        /// </summary>
+        /// <param name="action">The asynchronous request to execute.</param>
+        /// <returns>The result of the execution.</returns>
+        /// <exception cref="DatasyncConflictException{T}">if the response indicates a conflict.</exception>
+        private async Task<JToken> TransformHttpExceptionAsync(Func<Task<JToken>> action)
+        {
+            try
+            {
+                return await action();
+            }
+            catch (DatasyncInvalidOperationException ex) when (ex.Response?.IsConflictStatusCode() == true)
+            {
+                try
+                {
+                    T item = ServiceClient.Serializer.Deserialize<T>(ex.Value);
+                    throw new DatasyncConflictException<T>(ex, item);
+                }
+                catch
+                {
+                    // Deliberately empty to fall-through to throwing the original exception.
+                }
+                throw;
+            }
+        }
     }
 }

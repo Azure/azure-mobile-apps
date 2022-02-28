@@ -11,7 +11,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Table.Operations
+namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
 {
     [ExcludeFromCodeCoverage]
     public class GetItemAsync_Tests : BaseOperationTest
@@ -104,7 +104,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
         {
             // Arrange
             ReturnBadJson(HttpStatusCode.OK);
-            
+
             // Act
             await Assert.ThrowsAnyAsync<JsonException>(() => table.GetItemAsync(sId)).ConfigureAwait(false);
         }

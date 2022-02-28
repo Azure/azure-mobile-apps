@@ -11,7 +11,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Table.Operations
+namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
 {
     [ExcludeFromCodeCoverage]
     public class UndeleteItemAsync_Tests : BaseOperationTest

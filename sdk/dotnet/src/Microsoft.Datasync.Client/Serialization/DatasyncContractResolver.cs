@@ -151,7 +151,7 @@ namespace Microsoft.Datasync.Client.Serialization
         }
 
         /// <summary>
-        /// Returns the <see cref="JsonProperty"/> for the given <see cref="MemberInfo"/> instance. The <see cref="JsonProperty"/> 
+        /// Returns the <see cref="JsonProperty"/> for the given <see cref="MemberInfo"/> instance. The <see cref="JsonProperty"/>
         /// can be used to get information about how the <see cref="MemberInfo"/> should be serialized.
         /// </summary>
         /// <param name="member">The <see cref="MemberInfo"/> for which to get the <see cref="JsonProperty"/>.</param>
@@ -247,7 +247,7 @@ namespace Microsoft.Datasync.Client.Serialization
                     property.PropertyName = systemProperty.PropertyName;
                     if (systemProperties.Contains(property.PropertyName))
                     {
-                        throw new InvalidOperationException($"A type can only have one system property attribute for each system property.");
+                        throw new InvalidOperationException("A type can only have one system property attribute for each system property.");
                     }
                     else
                     {

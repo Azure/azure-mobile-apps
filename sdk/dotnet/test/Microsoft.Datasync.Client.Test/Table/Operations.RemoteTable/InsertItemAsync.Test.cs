@@ -10,7 +10,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Table.Operations
+namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
 {
     [ExcludeFromCodeCoverage]
     public class InsertItemAsync_Tests : BaseOperationTest
@@ -40,7 +40,6 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations
             Assert.Equal("application/json", request.Content.Headers.ContentType.MediaType);
             AssertJsonMatches(response);
         }
-
 
         [Theory]
         [InlineData(HttpStatusCode.OK)]
