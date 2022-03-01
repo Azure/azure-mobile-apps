@@ -72,7 +72,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
             var item = new IdEntity { Id = sId, Version = hasPrecondition ? "etag" : null };
 
             // Act
-            await table.DeleteItemAsync(item).ConfigureAwait(false);
+            await authTable.DeleteItemAsync(item).ConfigureAwait(false);
 
             // Check Request
             var request = AssertSingleRequest(HttpMethod.Delete, expectedEndpoint);

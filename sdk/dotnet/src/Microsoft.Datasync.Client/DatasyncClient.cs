@@ -164,14 +164,14 @@ namespace Microsoft.Datasync.Client
         /// operations for that table.
         /// </summary>
         /// <remarks>
-        /// If <paramref name="tableName"/> is not specified, the name of the 
+        /// If <paramref name="tableName"/> is not specified, the name of the
         /// type is used as the table name.
         /// </remarks>
         /// <typeparam name="T">The type of the data transfer object (model) being used.</typeparam>
         /// <param name="tableName">The (optional) name of the table.</param>
         /// <returns>A reference to the table.</returns>
         public virtual IOfflineTable<T> GetOfflineTable<T>(string tableName = null)
-            => new OfflineTable<T>(tableName ?? ResolveTableName(typeof(T)), this);
+            => new OfflineTable<T>(tableName ?? Serializer.ResolveTableName<T>(), this);
 
         /// <summary>
         /// Returns a reference to a remote table, providing untyped (JSON) data
@@ -194,15 +194,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="tableName">The (optional) name of the table.</param>
         /// <returns>A reference to the table.</returns>
         public virtual IRemoteTable<T> GetRemoteTable<T>(string tableName = null)
-            => new RemoteTable<T>(tableName ?? ResolveTableName(typeof(T)), this);
-
-        /// <summary>
-        /// Resolves a type into a table name.
-        /// </summary>
-        /// <param name="type">The type of the data transfer object (model).</param>
-        /// <returns>The name of the table to use.</returns>
-        private string ResolveTableName(Type type)
-            => Serializer.SerializerSettings.ContractResolver.ResolveTableName(type);
+            => new RemoteTable<T>(tableName ?? Serializer.ResolveTableName<T>(), this);
 
         #region IDisposable
         /// <summary>

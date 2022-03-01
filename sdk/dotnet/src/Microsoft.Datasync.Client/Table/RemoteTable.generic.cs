@@ -28,6 +28,9 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="serviceClient">The service client that created this table.</param>
         internal RemoteTable(string tableName, DatasyncClient serviceClient) : base(tableName, serviceClient)
         {
+            // ResolveTableName has a side effect of initializing the contract in the contract resolver,
+            // so call it here to ensure initialization.
+            serviceClient.Serializer.ResolveTableName<T>();
         }
 
         #region IRemoteTable<T>
@@ -284,13 +287,13 @@ namespace Microsoft.Datasync.Client.Table
                 try
                 {
                     T item = ServiceClient.Serializer.Deserialize<T>(ex.Value);
-                    throw new DatasyncConflictException<T>(ex, item);
+                    ex = new DatasyncConflictException<T>(ex, item);
                 }
                 catch
                 {
                     // Deliberately empty to fall-through to throwing the original exception.
                 }
-                throw;
+                throw ex;
             }
         }
     }
