@@ -128,6 +128,11 @@ namespace Microsoft.Datasync.Client.Http
 
             if (serviceRequest.EnsureResponseContent)
             {
+                if (!response.HasContent())
+                {
+                    throw new DatasyncInvalidOperationException("The server did not provide a response with the expected content.", request, response);
+                }
+
                 if (response.HasContent() && !response.IsCompressed())
                 {
                     long? contentLength = response.Content.Headers.ContentLength;

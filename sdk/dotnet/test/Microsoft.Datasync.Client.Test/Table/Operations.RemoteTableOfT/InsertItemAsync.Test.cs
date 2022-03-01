@@ -16,11 +16,12 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
     [ExcludeFromCodeCoverage]
     public class InsertItemAsync_Tests : BaseOperationTest
     {
-        private readonly IdEntity sut;
+        private readonly IdEntity original, sut;
 
         public InsertItemAsync_Tests() : base()
         {
             sut = new() { Id = sId };
+            original = new() { Id = sId };
         }
 
         [Fact]
@@ -56,8 +57,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
 
             // Assert
             var request = AssertSingleRequest(HttpMethod.Post, tableEndpoint);
-            Assert.Equal(sJsonPayload, await request.Content.ReadAsStringAsync().ConfigureAwait(false));
-            Assert.Equal("application/json", request.Content.Headers.ContentType.MediaType);
+            await AssertRequestContentMatchesAsync(request, original);
             Assert.Equal(payload, sut);
         }
 
@@ -75,8 +75,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
 
             // Assert
             var request = AssertSingleRequest(HttpMethod.Post, tableEndpoint);
-            Assert.Equal(sJsonPayload, await request.Content.ReadAsStringAsync().ConfigureAwait(false));
-            Assert.Equal("application/json", request.Content.Headers.ContentType.MediaType);
+            await AssertRequestContentMatchesAsync(request, original);
             AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
             Assert.Equal(payload, sut);
         }
@@ -91,11 +90,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
             MockHandler.AddResponse(statusCode);
 
             // Act
-            await table.InsertItemAsync(sut).ConfigureAwait(false);
-
-            // Assert
-            Assert.Null(sut.Id);
-            Assert.Null(sut.StringValue);
+            await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.InsertItemAsync(sut)).ConfigureAwait(false);
         }
 
         [Theory]
@@ -125,8 +120,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
 
             // Assert
             var request = AssertSingleRequest(HttpMethod.Post, tableEndpoint);
-            Assert.Equal(sJsonPayload, request.Content.ReadAsStringAsync().Result);
-            AssertEx.Equals("application/json", request.Content.Headers.ContentType.MediaType);
+            await AssertRequestContentMatchesAsync(request, original);
             Assert.Equal(payload, ex.Item);
         }
 
@@ -140,10 +134,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
             MockHandler.AddResponse(statusCode);
 
             // Act
-            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.InsertItemAsync(sut)).ConfigureAwait(false);
-
-            // Assert
-            Assert.Null(ex.Item);
+            var ex = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.InsertItemAsync(sut)).ConfigureAwait(false);
         }
 
         [Theory]

@@ -80,7 +80,9 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="query">The query.</param>
         /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/>.</returns>
         public IAsyncEnumerable<U> GetAsyncItems<U>(ITableQuery<U> query)
-            => query.ToAsyncEnumerable();
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Retrieve an item from the remote table.
@@ -105,7 +107,7 @@ namespace Microsoft.Datasync.Client.Table
             Arguments.IsNotNull(instance, nameof(instance));
             JObject value = ServiceClient.Serializer.Serialize(instance) as JObject;
             value = ServiceSerializer.RemoveSystemProperties(value, out _);
-            JToken insertedValue = await InsertItemAsync(value, cancellationToken).ConfigureAwait(false);
+            JToken insertedValue = await TransformHttpExceptionAsync(() => InsertItemAsync(value, cancellationToken)).ConfigureAwait(false);
             ServiceClient.Serializer.Deserialize(insertedValue, instance);
         }
 
@@ -131,7 +133,7 @@ namespace Microsoft.Datasync.Client.Table
         {
             Arguments.IsNotNull(instance, nameof(instance));
             JObject value = ServiceClient.Serializer.Serialize(instance) as JObject;
-            JToken updatedValue = await ReplaceItemAsync(value, cancellationToken).ConfigureAwait(false);
+            JToken updatedValue = await TransformHttpExceptionAsync(() => ReplaceItemAsync(value, cancellationToken)).ConfigureAwait(false);
             ServiceClient.Serializer.Deserialize(updatedValue, instance);
         }
 
@@ -148,7 +150,7 @@ namespace Microsoft.Datasync.Client.Table
         {
             Arguments.IsNotNull(instance, nameof(instance));
             JObject value = ServiceClient.Serializer.Serialize(instance) as JObject;
-            JToken updatedValue = await UndeleteItemAsync(value, cancellationToken).ConfigureAwait(false);
+            JToken updatedValue = await TransformHttpExceptionAsync(() => UndeleteItemAsync(value, cancellationToken)).ConfigureAwait(false);
             ServiceClient.Serializer.Deserialize(updatedValue, instance);
         }
         #endregion

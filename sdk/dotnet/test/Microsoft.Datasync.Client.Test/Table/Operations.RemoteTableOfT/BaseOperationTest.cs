@@ -10,6 +10,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
@@ -59,6 +61,21 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
             AssertEx.HasHeader(request.Headers, "ZUMO-API-VERSION", "3.0.0");
             return request;
         }
+
+        /// <summary>
+        /// Compares the request content to the required entity.
+        /// </summary>
+        /// <param name="request">The request holding the content</param>
+        /// <param name="expected">The expected entity.</param>
+        /// <returns></returns>
+        protected static async Task AssertRequestContentMatchesAsync(HttpRequestMessage request, IdEntity expected)
+        {
+            Assert.Equal("application/json", request.Content.Headers.ContentType.MediaType);
+            var content = await request.Content.ReadAsStringAsync();
+            var idEntity = JsonSerializer.Deserialize<IdEntity>(content, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            Assert.Equal(expected, idEntity);
+        }
+
 
         /// <summary>
         /// Returns bad JSON response.
