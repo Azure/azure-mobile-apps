@@ -24,15 +24,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(" ")]
-        [InlineData("\t")]
-        [InlineData("abcdef gh")]
-        [InlineData("!!!")]
-        [InlineData("?")]
-        [InlineData(";")]
-        [InlineData("{EA235ADF-9F38-44EA-8DA4-EF3D24755767}")]
-        [InlineData("###")]
+        [MemberData(nameof(BaseOperationTest.GetInvalidIds), MemberType = typeof(BaseOperationTest))]
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_ThrowsOnInvalidId(string id)
         {
