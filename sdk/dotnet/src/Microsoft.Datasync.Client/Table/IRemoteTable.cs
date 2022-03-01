@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Datasync.Client
 {
     /// <summary>
-    /// Definition of the operations that can be done against a remote table 
+    /// Definition of the operations that can be done against a remote table
     /// with untyped (JSON) object.
     /// </summary>
     public interface IRemoteTable
@@ -156,6 +156,6 @@ namespace Microsoft.Datasync.Client
         /// <param name="instance">The instance to undelete in the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns when the operation complete.</returns>
-        Task UndeleteItemsync(T instance, CancellationToken cancellationToken = default);
+        Task UndeleteItemAsync(T instance, CancellationToken cancellationToken = default);
     }
 }

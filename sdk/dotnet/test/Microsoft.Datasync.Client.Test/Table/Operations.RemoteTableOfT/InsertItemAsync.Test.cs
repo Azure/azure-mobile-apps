@@ -16,13 +16,30 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
     [ExcludeFromCodeCoverage]
     public class InsertItemAsync_Tests : BaseOperationTest
     {
-        private readonly IdEntity sut = new() { Id = Guid.NewGuid().ToString("N") };
+        private readonly IdEntity sut;
+
+        public InsertItemAsync_Tests() : base()
+        {
+            sut = new() { Id = sId };
+        }
 
         [Fact]
         [Trait("Method", "InsertItemAsync")]
         public async Task InsertItemAsync_ThrowsOnNull()
         {
             await Assert.ThrowsAsync<ArgumentNullException>(() => table.InsertItemAsync(null)).ConfigureAwait(false);
+        }
+
+        [Theory]
+        [MemberData(nameof(BaseOperationTest.GetInvalidIds), MemberType = typeof(BaseOperationTest))]
+        [Trait("Method", "InsertItemAsync")]
+        public async Task InsertItemAsync_ThrowsOnInvalidId(string id)
+        {
+            // Arrange
+            var obj = new IdEntity { Id = id };
+
+            // Act
+            await Assert.ThrowsAsync<ArgumentException>(() => table.InsertItemAsync(obj)).ConfigureAwait(false);
         }
 
         [Theory]

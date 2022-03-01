@@ -23,7 +23,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
 
         [Theory]
         [MemberData(nameof(BaseOperationTest.GetInvalidIds), MemberType = typeof(BaseOperationTest))]
-        [Trait("Method", "DeleteItemAsync")]
+        [Trait("Method", "GetItemAsync")]
         public async Task GetItemAsync_ThrowsOnInvalidId(string id)
         {
             await Assert.ThrowsAsync<ArgumentException>(() => table.GetItemAsync(id)).ConfigureAwait(false);

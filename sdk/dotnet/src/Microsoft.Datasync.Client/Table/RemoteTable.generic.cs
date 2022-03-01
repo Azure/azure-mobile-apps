@@ -144,7 +144,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="instance">The instance to undelete in the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns when the operation complete.</returns>
-        public async Task UndeleteItemsync(T instance, CancellationToken cancellationToken = default)
+        public async Task UndeleteItemAsync(T instance, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(instance, nameof(instance));
             JObject value = ServiceClient.Serializer.Serialize(instance) as JObject;
