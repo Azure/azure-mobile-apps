@@ -11,7 +11,9 @@ using System.Threading.Tasks;
 namespace Microsoft.Datasync.Client.Offline
 {
     /// <summary>
-    /// Allows saving and reading data in the local offline tables.
+    /// Allows saving and reading data in the local offline tables.  Implementors of
+    /// new offline stores should implement based on <see cref="AbstractOfflineStore"/>, and not
+    /// this interface.
     /// </summary>
     public interface IOfflineStore : IDisposable
     {
