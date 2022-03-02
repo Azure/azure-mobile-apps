@@ -3,6 +3,7 @@
 
 using Microsoft.Datasync.Client.Authentication;
 using Microsoft.Datasync.Client.Http;
+using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
@@ -122,6 +123,10 @@ namespace Microsoft.Datasync.Client
             {
                 Serializer.SerializerSettings = ClientOptions.SerializerSettings;
             }
+            if (ClientOptions.OfflineStore != null)
+            {
+                SyncContext.OfflineStore = ClientOptions.OfflineStore;
+            }
         }
 
         /// <summary>
@@ -149,6 +154,11 @@ namespace Microsoft.Datasync.Client
         /// The serializer to use for serializing and deserializing content.
         /// </summary>
         internal ServiceSerializer Serializer { get; } = new();
+
+        /// <summary>
+        /// The synchronization context.
+        /// </summary>
+        internal SyncContext SyncContext { get; } = new();
 
         /// <summary>
         /// Returns a reference to an offline table, providing untyped (JSON) data
@@ -220,7 +230,7 @@ namespace Microsoft.Datasync.Client
         {
             if (disposing)
             {
-                // TODO: Dispose of synchronization context.
+                SyncContext.Dispose();
                 HttpClient.Dispose();
             }
         }

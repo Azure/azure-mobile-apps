@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Datasync.Client.Table
 {
     /// <summary>
-    /// Provides the operations that can be done against an offline table 
+    /// Provides the operations that can be done against an offline table
     /// with strongly type models.
     /// </summary>
     internal class OfflineTable<T> : OfflineTable, IOfflineTable<T>

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Datasync.Client.Table
 {
     /// <summary>
-    /// Provides the operations that can be done against an offline table 
+    /// Provides the operations that can be done against an offline table
     /// with untyped (JSON) object.
     /// </summary>
     internal class OfflineTable : IOfflineTable
@@ -27,6 +27,11 @@ namespace Microsoft.Datasync.Client.Table
         {
             Arguments.IsValidTableName(tableName, nameof(tableName));
             Arguments.IsNotNull(serviceClient, nameof(serviceClient));
+
+            if (serviceClient.SyncContext.OfflineStore == null)
+            {
+                throw new InvalidOperationException("An offline store must be defined before offline operations can be used.");
+            }
 
             ServiceClient = serviceClient;
             TableName = tableName;

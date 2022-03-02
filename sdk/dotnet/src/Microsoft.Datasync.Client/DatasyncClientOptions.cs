@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
 using System.Collections.Generic;
@@ -27,6 +28,11 @@ namespace Microsoft.Datasync.Client
         /// header.
         /// </summary>
         public string InstallationId { get; set; }
+
+        /// <summary>
+        /// If set, use this as the offline store.  If not set, then offline operations are not available.
+        /// </summary>
+        public IOfflineStore OfflineStore { get; set; }
 
         /// <summary>
         /// The serializer settings to use for this connection.

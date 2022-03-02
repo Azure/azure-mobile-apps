@@ -4,8 +4,11 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
+using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Serialization;
+using Moq;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Xunit;
@@ -15,6 +18,45 @@ namespace Microsoft.Datasync.Client.Test
     [ExcludeFromCodeCoverage]
     public class DatasyncClient_Tests : BaseTest
     {
+        #region Test Case Helpers
+        /// <summary>
+        /// A set of invalid endpoints for testing
+        /// </summary>
+        public static IEnumerable<object[]> GetInvalidEndpoints() => new List<object[]>
+        {
+            new object[] { "" },
+            new object[] { "http://" },
+            new object[] { "file://localhost/foo" },
+            new object[] { "http://foo.azurewebsites.net" },
+            new object[] { "http://foo.azure-api.net" },
+            new object[] { "http://[2001:db8:0:b:0:0:0:1A]" },
+            new object[] { "http://[2001:db8:0:b:0:0:0:1A]:3000" },
+            new object[] { "http://[2001:db8:0:b:0:0:0:1A]:3000/myapi" },
+            new object[] { "http://10.0.0.8" },
+            new object[] { "http://10.0.0.8:3000" },
+            new object[] { "http://10.0.0.8:3000/myapi" },
+            new object[] { "foo/bar" }
+        };
+
+        public static IEnumerable<object[]> GetInvalidEndpointsWithFlag() => new List<object[]>
+        {
+            new object[] { "", false },
+            new object[] { "", true },
+            new object[] { "http://", false },
+            new object[] { "http://", true },
+            new object[] { "file://localhost/foo", false },
+            new object[] { "http://foo.azurewebsites.net", false },
+            new object[] { "http://foo.azure-api.net", false },
+            new object[] { "http://[2001:db8:0:b:0:0:0:1A]", false },
+            new object[] { "http://[2001:db8:0:b:0:0:0:1A]:3000", false },
+            new object[] { "http://[2001:db8:0:b:0:0:0:1A]:3000/myapi", false },
+            new object[] { "http://10.0.0.8", false },
+            new object[] { "http://10.0.0.8:3000", false },
+            new object[] { "http://10.0.0.8:3000/myapi", false },
+            new object[] { "foo/bar", true }
+        };
+        #endregion
+
         [Fact]
         [Trait("Method", "Ctor(string)")]
         public void CtorString_Null_Throws()
@@ -24,18 +66,7 @@ namespace Microsoft.Datasync.Client.Test
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData("http://")]
-        [InlineData("file://localhost/foo")]
-        [InlineData("http://foo.azurewebsites.net")]
-        [InlineData("http://foo.azure-api.net")]
-        [InlineData("http://[2001:db8:0:b:0:0:0:1A]")]
-        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000")]
-        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000/myapi")]
-        [InlineData("http://10.0.0.8")]
-        [InlineData("http://10.0.0.8:3000")]
-        [InlineData("http://10.0.0.8:3000/myapi")]
-        [InlineData("foo/bar")]
+        [MemberData(nameof(GetInvalidEndpoints))]
         [Trait("Method", "Ctor(string)")]
         public void CtorString_Invalid_Throws(string endpoint)
         {
@@ -72,20 +103,7 @@ namespace Microsoft.Datasync.Client.Test
         }
 
         [Theory]
-        [InlineData("", false)]
-        [InlineData("", true)]
-        [InlineData("http://", false)]
-        [InlineData("http://", true)]
-        [InlineData("file://localhost/foo", false)]
-        [InlineData("http://foo.azurewebsites.net", false)]
-        [InlineData("http://foo.azure-api.net", false)]
-        [InlineData("http://[2001:db8:0:b:0:0:0:1A]", false)]
-        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000", false)]
-        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000/myapi", false)]
-        [InlineData("http://10.0.0.8", false)]
-        [InlineData("http://10.0.0.8:3000", false)]
-        [InlineData("http://10.0.0.8:3000/myapi", false)]
-        [InlineData("foo/bar", true)]
+        [MemberData(nameof(GetInvalidEndpointsWithFlag))]
         [Trait("Method", "Ctor(Uri)")]
         public void CtorUri_Invalid_Throws(string endpoint, bool isRelative)
         {
@@ -123,18 +141,7 @@ namespace Microsoft.Datasync.Client.Test
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData("http://")]
-        [InlineData("file://localhost/foo")]
-        [InlineData("http://foo.azurewebsites.net")]
-        [InlineData("http://foo.azure-api.net")]
-        [InlineData("http://[2001:db8:0:b:0:0:0:1A]")]
-        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000")]
-        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000/myapi")]
-        [InlineData("http://10.0.0.8")]
-        [InlineData("http://10.0.0.8:3000")]
-        [InlineData("http://10.0.0.8:3000/myapi")]
-        [InlineData("foo/bar")]
+        [MemberData(nameof(GetInvalidEndpoints))]
         [Trait("Method", "Ctor(string,DatasyncClientOptions)")]
         public void CtorStringOptions_Invalid_Throws(string endpoint)
         {
@@ -174,20 +181,7 @@ namespace Microsoft.Datasync.Client.Test
         }
 
         [Theory]
-        [InlineData("", false)]
-        [InlineData("", true)]
-        [InlineData("http://", false)]
-        [InlineData("http://", true)]
-        [InlineData("file://localhost/foo", false)]
-        [InlineData("http://foo.azurewebsites.net", false)]
-        [InlineData("http://foo.azure-api.net", false)]
-        [InlineData("http://[2001:db8:0:b:0:0:0:1A]", false)]
-        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000", false)]
-        [InlineData("http://[2001:db8:0:b:0:0:0:1A]:3000/myapi", false)]
-        [InlineData("http://10.0.0.8", false)]
-        [InlineData("http://10.0.0.8:3000", false)]
-        [InlineData("http://10.0.0.8:3000/myapi", false)]
-        [InlineData("foo/bar", true)]
+        [MemberData(nameof(GetInvalidEndpointsWithFlag))]
         [Trait("Method", "Ctor(Uri,DatasyncClientOptions)")]
         public void CtorUriOptions_Invalid_Throws(string endpoint, bool isRelative)
         {
@@ -316,7 +310,8 @@ namespace Microsoft.Datasync.Client.Test
         [Trait("Method", "GetOfflineTable(string)")]
         public void GetOfflineTable_ProducesTable()
         {
-            var client = new DatasyncClient(Endpoint);
+            var store = new Mock<IOfflineStore>();
+            var client = new DatasyncClient(Endpoint, new DatasyncClientOptions { OfflineStore = store.Object });
             var table = client.GetOfflineTable("movies");
             Assert.IsAssignableFrom<IOfflineTable>(table);
             Assert.Same(client, table.ServiceClient);
@@ -340,10 +335,19 @@ namespace Microsoft.Datasync.Client.Test
         }
 
         [Fact]
+        [Trait("Method", "GetOfflineTable(string)")]
+        public void GetOfflineTable_Throws_WhenNoStore()
+        {
+            var client = new DatasyncClient(Endpoint);
+            Assert.Throws<InvalidOperationException>(() => client.GetOfflineTable("movies"));
+        }
+
+        [Fact]
         [Trait("Method", "GetOfflineTable<T>()")]
         public void GetOfflineTableOfT_ProducesTable()
         {
-            var client = new DatasyncClient(Endpoint);
+            var store = new Mock<IOfflineStore>();
+            var client = new DatasyncClient(Endpoint, new DatasyncClientOptions { OfflineStore = store.Object });
             var table = client.GetOfflineTable<ClientMovie>();
             Assert.IsAssignableFrom<IOfflineTable<ClientMovie>>(table);
             Assert.Same(client, table.ServiceClient);
@@ -354,7 +358,8 @@ namespace Microsoft.Datasync.Client.Test
         [Trait("Method", "GetOfflineTable<T>(string)")]
         public void GetOfflineTableOfT_String_ProducesTable()
         {
-            var client = new DatasyncClient(Endpoint);
+            var store = new Mock<IOfflineStore>();
+            var client = new DatasyncClient(Endpoint, new DatasyncClientOptions { OfflineStore = store.Object });
             var table = client.GetOfflineTable<ClientMovie>("movies");
             Assert.IsAssignableFrom<IOfflineTable<ClientMovie>>(table);
             Assert.Same(client, table.ServiceClient);
@@ -365,7 +370,8 @@ namespace Microsoft.Datasync.Client.Test
         [Trait("Method", "GetOfflineTable<T>(string)")]
         public void GetOfflineTableOfT_String_OnNullTableName()
         {
-            var client = new DatasyncClient(Endpoint);
+            var store = new Mock<IOfflineStore>();
+            var client = new DatasyncClient(Endpoint, new DatasyncClientOptions { OfflineStore = store.Object });
             var table = client.GetOfflineTable<ClientMovie>(null);
             Assert.IsAssignableFrom<IOfflineTable<ClientMovie>>(table);
             Assert.Same(client, table.ServiceClient);
@@ -378,6 +384,14 @@ namespace Microsoft.Datasync.Client.Test
         {
             var client = new DatasyncClient(Endpoint);
             Assert.Throws<ArgumentException>(() => client.GetOfflineTable<ClientMovie>("    "));
+        }
+
+        [Fact]
+        [Trait("Method", "GetOfflineTable<T>(string)")]
+        public void GetOfflineTableOfT_Throws_WhenNoStore()
+        {
+            var client = new DatasyncClient(Endpoint);
+            Assert.Throws<InvalidOperationException>(() => client.GetOfflineTable<ClientMovie>("movies"));
         }
     }
 }
