@@ -53,12 +53,14 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
             // Arrange
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
             var obj = new IdEntity { Id = sId, Version = hasPrecondition ? "etag" : null };
+            var original = new IdEntity { Id = sId, Version = hasPrecondition ? "etag" : null };
 
             // Act
             await table.ReplaceItemAsync(obj).ConfigureAwait(false);
 
             // Assert
             var request = AssertSingleRequest(HttpMethod.Put, expectedEndpoint);
+            await AssertRequestContentMatchesAsync(request, original);
             if (hasPrecondition)
             {
                 AssertEx.HasHeader(request.Headers, "If-Match", "\"etag\"");
@@ -77,12 +79,14 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
             // Arrange
             MockHandler.AddResponse(HttpStatusCode.OK, payload);
             var obj = new IdEntity { Id = sId, Version = hasPrecondition ? "etag" : null };
+            var original = new IdEntity { Id = sId, Version = hasPrecondition ? "etag" : null };
 
             // Act
             await authTable.ReplaceItemAsync(obj).ConfigureAwait(false);
 
             // Assert
             var request = AssertSingleRequest(HttpMethod.Put, expectedEndpoint);
+            await AssertRequestContentMatchesAsync(request, original);
             AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
             if (hasPrecondition)
             {
@@ -134,10 +138,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
             MockHandler.AddResponse(statusCode);
 
             // Act
-            var ex = await Assert.ThrowsAsync<DatasyncConflictException<IdEntity>>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
-
-            // Assert
-            Assert.Null(ex.Item);
+            var ex = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.ReplaceItemAsync(payload)).ConfigureAwait(false);
         }
 
         [Theory]

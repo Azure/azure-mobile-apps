@@ -132,11 +132,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
             MockHandler.AddResponse(HttpStatusCode.OK);
 
             // Act
-            var response = await table.ReplaceItemAsync(jIdEntity).ConfigureAwait(false);
-
-            // Assert
-            _ = AssertSingleRequest(HttpMethod.Put, expectedEndpoint);
-            Assert.Null(response);
+           await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.ReplaceItemAsync(jIdEntity)).ConfigureAwait(false);
         }
 
         [Theory]

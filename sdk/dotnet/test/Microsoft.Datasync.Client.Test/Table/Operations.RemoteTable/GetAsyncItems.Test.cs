@@ -135,12 +135,9 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
             // Act
             var pageable = table.GetAsyncItems("") as AsyncPageable<JToken>;
             var enumerator = pageable.AsPages().GetAsyncEnumerator();
-            _ = await enumerator.MoveNextAsync().ConfigureAwait(false);
 
             // Assert
-            Assert.Null(enumerator.Current.Items);
-            Assert.Null(enumerator.Current.Count);
-            Assert.Null(enumerator.Current.NextLink);
+            await Assert.ThrowsAsync<DatasyncInvalidOperationException>(async () => await enumerator.MoveNextAsync());
         }
 
         [Fact]

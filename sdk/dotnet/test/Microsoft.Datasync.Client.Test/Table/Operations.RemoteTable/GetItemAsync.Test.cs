@@ -72,12 +72,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
             MockHandler.AddResponse(HttpStatusCode.OK);
 
             // Act
-            var response = await table.GetItemAsync(sId).ConfigureAwait(false);
-            Assert.Null(response);
-
-            // Assert
-            var request = AssertSingleRequest(HttpMethod.Get, expectedEndpoint);
-            Assert.False(request.Headers.Contains("If-None-Match"));
+            await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.GetItemAsync(sId)).ConfigureAwait(false);
         }
 
         [Theory]

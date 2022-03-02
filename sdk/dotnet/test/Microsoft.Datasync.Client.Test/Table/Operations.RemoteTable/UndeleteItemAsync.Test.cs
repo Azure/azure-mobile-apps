@@ -118,12 +118,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
             MockHandler.AddResponse(HttpStatusCode.OK);
 
             // Act
-            var response = await table.UndeleteItemAsync(jIdEntity).ConfigureAwait(false);
-
-            // Assert
-            var request = AssertSingleRequest(ServiceRequest.PATCH, expectedEndpoint);
-            Assert.Equal("{\"deleted\":false}", await request.Content.ReadAsStringAsync());
-            Assert.Null(response);
+            await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.UndeleteItemAsync(jIdEntity)).ConfigureAwait(false);
         }
 
         [Theory]
