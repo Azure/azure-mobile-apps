@@ -49,6 +49,15 @@ namespace Microsoft.Datasync.Client.Query
             RequestTotalCount = requestTotalCount;
         }
 
+        /// <summary>
+        /// Converts the current query into an OData query string for use by the
+        /// other <c>To*</c> methods.
+        /// </summary>
+        /// <param name="includeParameters">If <c>true</c>, include the optional parameters.</param>
+        /// <returns>The OData query string representing this query</returns>
+        internal string ToODataString(bool includeParameters = true)
+            => new QueryTranslator<T>(this).Translate().ToODataString(includeParameters ? Parameters : null);
+
         #region ITableQuery<T>
         /// <summary>
         /// The user-defined query string parameters to include with the query when
@@ -200,7 +209,8 @@ namespace Microsoft.Datasync.Client.Query
         /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/></returns>
         public IAsyncEnumerable<T> ToAsyncEnumerable()
         {
-            throw new NotImplementedException();
+            var odataQuery = ToODataString(true);
+            return RemoteTable.GetAsyncItems<T>(odataQuery);
         }
 
         /// <summary>
@@ -254,14 +264,5 @@ namespace Microsoft.Datasync.Client.Query
             return this;
         }
         #endregion
-
-        /// <summary>
-        /// Converts the current query into an OData query string for use by the
-        /// other <c>To*</c> methods.
-        /// </summary>
-        /// <param name="includeParameters">If <c>true</c>, include the optional parameters.</param>
-        /// <returns>The OData query string representing this query</returns>
-        internal string ToODataString(bool includeParameters = true)
-            => new QueryTranslator<T>(this).Translate().ToODataString(includeParameters ? Parameters : null);
     }
 }

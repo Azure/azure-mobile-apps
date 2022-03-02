@@ -8,6 +8,7 @@ using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,9 +70,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="query">The query.</param>
         /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/>.</returns>
         public IAsyncEnumerable<U> GetAsyncItems<U>(string query)
-        {
-            throw new NotImplementedException();
-        }
+            => new FuncAsyncPageable<U>(nextLink => GetNextPageAsync<U>(query, nextLink));
 
         /// <summary>
         /// Executes a query against the remote table.
@@ -80,9 +79,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="query">The query.</param>
         /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/>.</returns>
         public IAsyncEnumerable<U> GetAsyncItems<U>(ITableQuery<U> query)
-        {
-            throw new NotImplementedException();
-        }
+            => query.ToAsyncEnumerable();
 
         /// <summary>
         /// Retrieve an item from the remote table.
@@ -271,6 +268,21 @@ namespace Microsoft.Datasync.Client.Table
         public ITableQuery<T> WithParameters(IEnumerable<KeyValuePair<string, string>> parameters)
             => CreateQuery().WithParameters(parameters);
         #endregion
+
+        /// <summary>
+        /// Gets a single page of items produced as a result of a query against the server.
+        /// </summary>
+        /// <param name="query">The query string to send with the first request to the service.</param>
+        /// <param name="nextLink">The link to the next page of items (for subsequent requests).</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns a page of items when complete.</returns>
+        internal async Task<Page<U>> GetNextPageAsync<U>(string query, string nextLink, CancellationToken cancellationToken = default)
+        {
+            Page<JToken> json = await base.GetNextPageAsync(query, nextLink, cancellationToken).ConfigureAwait(false);
+            Page<U> result = new() { Count = json.Count, NextLink = json.NextLink };
+            result.Items = json.Items?.Select(item => ServiceClient.Serializer.Deserialize<U>(item));
+            return result;
+        }
 
         /// <summary>
         /// Executes a request and transfoms a conflict exception.
