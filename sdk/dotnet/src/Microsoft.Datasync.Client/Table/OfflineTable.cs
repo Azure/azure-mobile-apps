@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Offline;
+using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
 using System;
@@ -17,6 +18,11 @@ namespace Microsoft.Datasync.Client.Table
     /// </summary>
     internal class OfflineTable : IOfflineTable
     {
+        /// <summary>
+        /// The sync context to use for processing an offline table request.
+        /// </summary>
+        private readonly SyncContext _context;
+
         /// <summary>
         /// Creates a new <see cref="RemoteTable"/> instance to perform
         /// untyped (JSON) requests to an offline table.
@@ -35,6 +41,7 @@ namespace Microsoft.Datasync.Client.Table
 
             ServiceClient = serviceClient;
             TableName = tableName;
+            _context = serviceClient.SyncContext;
         }
 
         #region IOfflineTable
@@ -54,9 +61,10 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="instance">The instance to delete from the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the response when complete.</returns>
-        public Task<JToken> DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default)
+        public async Task DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            string id = ServiceSerializer.GetId(instance);
+            await _context.DeleteAsync(TableName, id, instance, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

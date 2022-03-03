@@ -9,6 +9,8 @@ using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Datasync.Client
 {
@@ -123,10 +125,7 @@ namespace Microsoft.Datasync.Client
             {
                 Serializer.SerializerSettings = ClientOptions.SerializerSettings;
             }
-            if (ClientOptions.OfflineStore != null)
-            {
-                SyncContext.OfflineStore = ClientOptions.OfflineStore;
-            }
+            SyncContext = new SyncContext(this);
         }
 
         /// <summary>
@@ -158,7 +157,7 @@ namespace Microsoft.Datasync.Client
         /// <summary>
         /// The synchronization context.
         /// </summary>
-        internal SyncContext SyncContext { get; } = new();
+        internal SyncContext SyncContext { get; }
 
         /// <summary>
         /// Returns a reference to an offline table, providing untyped (JSON) data
@@ -205,6 +204,14 @@ namespace Microsoft.Datasync.Client
         /// <returns>A reference to the table.</returns>
         public virtual IRemoteTable<T> GetRemoteTable<T>(string tableName = null)
             => new RemoteTable<T>(tableName ?? Serializer.ResolveTableName<T>(), this);
+
+        /// <summary>
+        /// Initialize the offline store.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the sync context is initialized.</returns>
+        public virtual Task InitializeOfflineStoreAsync(CancellationToken cancellationToken = default)
+            => SyncContext.InitializeAsync(ClientOptions.OfflineStore, cancellationToken);
 
         #region IDisposable
         /// <summary>

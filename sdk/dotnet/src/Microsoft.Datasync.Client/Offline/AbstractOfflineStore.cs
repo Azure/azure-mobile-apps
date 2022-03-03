@@ -72,7 +72,7 @@ namespace Microsoft.Datasync.Client.Offline
                 await initializationLock.WaitAsync(cancellationToken);
                 try
                 {
-                    // TODO : Define system tables.
+                    OfflineSystemTables.DefineAllSystemTableTables(this);
                     await InitializeStoreAsync(cancellationToken).ConfigureAwait(false);
                     Initialized = true;
                 }
@@ -99,7 +99,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// </summary>
         /// <param name="tableName">The name of the table.</param>
         /// <param name="tableDefinition">The definition of the table as a sample JSON object.</param>
-        protected abstract void DefineTable(string tableName, JObject tableDefinition);
+        internal abstract void DefineTable(string tableName, JObject tableDefinition);
 
         /// <summary>
         /// Ensures that the store has been initialized.

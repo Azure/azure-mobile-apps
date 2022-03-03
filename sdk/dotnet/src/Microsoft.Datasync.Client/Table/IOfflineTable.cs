@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Datasync.Client
 {
     /// <summary>
-    /// Definition of the operations that can be done against a remote table 
+    /// Definition of the operations that can be done against a remote table
     /// with untyped (JSON) object.
     /// </summary>
     public interface IOfflineTable
@@ -32,7 +32,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="instance">The instance to delete from the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the response when complete.</returns>
-        Task<JToken> DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default);
+        Task DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Execute a query against a remote table.
@@ -49,7 +49,6 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the item when complete.</returns>
         Task<JToken> GetItemAsync(string id, CancellationToken cancellationToken = default);
-
 
         /// <summary>
         /// Inserts an item into the remote table.
@@ -87,7 +86,7 @@ namespace Microsoft.Datasync.Client
     }
 
     /// <summary>
-    /// Definition of the operations that can be done against a remote table 
+    /// Definition of the operations that can be done against a remote table
     /// with strongly typed objects.
     /// </summary>
     public interface IOfflineTable<T> : IOfflineTable, ILinqMethods<T>
