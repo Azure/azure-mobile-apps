@@ -14,6 +14,33 @@ namespace Microsoft.Datasync.Client
     public class DatasyncInvalidOperationException : InvalidOperationException
     {
         /// <summary>
+        /// Creates an empty <see cref="DatasyncInvalidOperationException"/>.
+        /// </summary>
+        public DatasyncInvalidOperationException() : base()
+        {
+            Request = null;
+            Response = null;
+            Value = null;
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="DatasyncInvalidOperationException"/> that is not associated with a HTTP request.
+        /// </summary>
+        /// <param name="message">The exception message.</param>
+        public DatasyncInvalidOperationException(string message) : this(message, null, null)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="DatasyncInvalidOperationException"/> that is not associated with a HTTP request.
+        /// </summary>
+        /// <param name="message">The exception message.</param>
+        /// <param name="innerException">The inner exception.</param>
+        public DatasyncInvalidOperationException(string message, Exception innerException) : this(message, innerException, null, null)
+        {
+        }
+
+        /// <summary>
         /// Creates a new <see cref="DatasyncInvalidOperationException"/>.
         /// </summary>
         /// <param name="message">The exception message.</param>

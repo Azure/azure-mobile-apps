@@ -2,7 +2,9 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Offline.Operations;
+using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
+using Microsoft.Datasync.Client.Utils.Threading;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Threading;
@@ -16,7 +18,7 @@ namespace Microsoft.Datasync.Client.Offline
     internal class SyncContext : IDisposable
     {
         private readonly DatasyncClient _client;
-        private readonly SemaphoreSlim _initializationLock = new(1);
+        private readonly AsyncLock _initializationLock = new();
         private IOfflineStore _store;
 
         /// <summary>
@@ -49,6 +51,11 @@ namespace Microsoft.Datasync.Client.Offline
                 }
             }
         }
+
+        /// <summary>
+        /// The configuration store for the query delta tokens and other table configuration.
+        /// </summary>
+        private SyncSettingsManager SyncSettingsManager { get; set; }
 
         /// <summary>
         /// The synchronization handler.
@@ -90,7 +97,7 @@ namespace Microsoft.Datasync.Client.Offline
         {
             var operation = new DeleteOperation(tableName, id)
             {
-                Table = _client.GetRemoteTable(tableName),
+                Table = _client.GetRemoteTable(tableName) as RemoteTable,
                 Item = instance
             };
             await ExecuteOperationAsync(operation, instance, cancellationToken).ConfigureAwait(false);
@@ -116,9 +123,8 @@ namespace Microsoft.Datasync.Client.Offline
         {
             Arguments.IsNotNull(store, nameof(store));
 
-            try
+            using (await _initializationLock.Acquire(cancellationToken).ConfigureAwait(false))
             {
-                await _initializationLock.WaitAsync(cancellationToken).ConfigureAwait(false);
                 if (IsInitialized)
                 {
                     return;
@@ -128,14 +134,11 @@ namespace Microsoft.Datasync.Client.Offline
                 OfflineStore = store;
 
                 await OfflineStore.InitializeAsync(cancellationToken).ConfigureAwait(false);
+
                 OperationsQueue = await OperationsQueue.LoadFromOfflineStoreAsync(OfflineStore, cancellationToken).ConfigureAwait(false);
                 SyncSettingsManager = new SyncSettingsManager(OfflineStore);
 
                 IsInitialized = true;
-            }
-            finally
-            {
-                _initializationLock.Release();
             }
         }
 
