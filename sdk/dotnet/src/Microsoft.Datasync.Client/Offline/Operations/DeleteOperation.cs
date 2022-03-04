@@ -62,7 +62,7 @@ namespace Microsoft.Datasync.Client.Offline.Operations
         /// <param name="item">The item to use for the store operation.</param>
         /// <returns>A task that completes when the store operation is completed.</returns>
         public override Task ExecuteOperationOnOfflineStoreAsync(IOfflineStore store, JObject item, CancellationToken cancellationToken = default)
-            => store.DeleteAsync(TableName, new[] { ItemId }, cancellationToken);
+            => store.DeleteAsync(TableName, ItemId, cancellationToken);
 
         /// <summary>
         /// Validates that the operation can collapse with a new operation.

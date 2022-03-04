@@ -84,10 +84,8 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="id">The ID of the item to retrieve.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the item when complete.</returns>
-        public Task<JToken> GetItemAsync(string id, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+        public Task<JObject> GetItemAsync(string id, CancellationToken cancellationToken = default)
+            => _context.GetAsync(TableName, id, cancellationToken);
 
         /// <summary>
         /// Inserts an item into the remote table.
@@ -95,9 +93,18 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="instance">The instance to insert into the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the inserted data when complete.</returns>
-        public Task<JToken> InsertItemAsync(JObject instance, CancellationToken cancellationToken = default)
+        public async Task<JObject> InsertItemAsync(JObject instance, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            string id = ServiceSerializer.GetId(instance, allowDefault: true);
+            if (id == null)
+            {
+                id = Guid.NewGuid().ToString("N");
+                instance = (JObject)instance.DeepClone();
+                instance[SystemProperties.JsonIdProperty] = id;
+            }
+
+            await _context.InsertAsync(TableName, id, instance, cancellationToken).ConfigureAwait(false);
+            return instance;
         }
 
         /// <summary>
@@ -130,9 +137,15 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="instance">The instance to replace into the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the replaced data when complete.</returns>
-        public Task<JToken> ReplaceItemAsync(JObject instance, CancellationToken cancellationToken = default)
+        public async Task ReplaceItemAsync(JObject instance, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            string id = ServiceSerializer.GetId(instance);
+            instance = ServiceSerializer.RemoveSystemProperties(instance, out string version);
+            if (version != null)
+            {
+                instance[SystemProperties.JsonVersionProperty] = version;
+            }
+            await _context.UpdateAsync(TableName, id, instance, cancellationToken).ConfigureAwait(false);
         }
         #endregion
     }

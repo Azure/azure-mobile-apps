@@ -22,7 +22,7 @@ namespace Microsoft.Datasync.Client.Utils
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns>A task that returns an <see cref="IDisposable"/> to release the lock when the lock is acquired.</returns>
-        public async Task<IDisposable> Acquire(CancellationToken cancellationToken)
+        public async Task<IDisposable> AcquireAsync(CancellationToken cancellationToken)
         {
             await semaphore.WaitAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
             return new DisposeAction(() => semaphore.Release());

@@ -93,10 +93,10 @@ namespace Microsoft.Datasync.Client.Offline
         public virtual async Task ResetDeltaTokenAsync(string tableName, string queryId, CancellationToken cancellationToken = default)
         {
             string key = GetDeltaTokenKey(tableName, queryId);
-            using (await cacheLock.Acquire(key, cancellationToken).ConfigureAwait(false))
+            using (await cacheLock.AcquireAsync(key, cancellationToken).ConfigureAwait(false))
             {
                 cache.Remove(key);
-                await OfflineStore.DeleteAsync(OfflineSystemTables.Configuration, new[] { key }, cancellationToken).ConfigureAwait(false);
+                await OfflineStore.DeleteAsync(OfflineSystemTables.Configuration, key, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -137,7 +137,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that returns the value of the setting when complete.</returns>
         private async Task<string> GetFromStoreAsync(string key, string defaultValue, CancellationToken cancellationToken = default)
         {
-            using (await cacheLock.Acquire(key, cancellationToken).ConfigureAwait(false))
+            using (await cacheLock.AcquireAsync(key, cancellationToken).ConfigureAwait(false))
             {
                 if (!cache.TryGetValue(key, out string value))
                 {
@@ -158,7 +158,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that returns when the operation is complete.</returns>
         private async Task SetInStoreAsync(string key, string value, CancellationToken cancellationToken = default)
         {
-            using (await cacheLock.Acquire(key, cancellationToken).ConfigureAwait(false))
+            using (await cacheLock.AcquireAsync(key, cancellationToken).ConfigureAwait(false))
             {
                 cache[key] = value;
 
@@ -167,7 +167,7 @@ namespace Microsoft.Datasync.Client.Offline
                     { SystemProperties.JsonIdProperty, key },
                     { "value", value }
                 };
-                await OfflineStore.UpsertAsync(OfflineSystemTables.Configuration, new[] { obj }, false, cancellationToken).ConfigureAwait(false);
+                await OfflineStore.UpsertAsync(OfflineSystemTables.Configuration, obj, false, cancellationToken).ConfigureAwait(false);
             }
         }
 

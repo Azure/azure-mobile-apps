@@ -38,7 +38,7 @@ namespace Microsoft.Datasync.Client.Utils
         /// <param name="key">The key for the lock.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>An <see cref="IDisposable"/> to release the lock when done.</returns>
-        public async Task<IDisposable> Acquire(string key, CancellationToken cancellationToken)
+        public async Task<IDisposable> AcquireAsync(string key, CancellationToken cancellationToken)
         {
             LockEntry entry;
 
@@ -51,7 +51,7 @@ namespace Microsoft.Datasync.Client.Utils
                 entry.Count++;
             }
 
-            IDisposable releaser = await entry.Lock.Acquire(cancellationToken);
+            IDisposable releaser = await entry.Lock.AcquireAsync(cancellationToken).ConfigureAwait(false);
 
             return new DisposeAction(() =>
             {

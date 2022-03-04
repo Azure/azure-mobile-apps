@@ -67,7 +67,7 @@ namespace Microsoft.Datasync.Client.Offline.Operations
                 // This **should** never happen due to the collapsing rules.
                 throw new OfflineStoreException("An insert operation on the item is already in the queue.");
             }
-            await store.UpsertAsync(TableName, new[] { item }, false, cancellationToken).ConfigureAwait(false);
+            await store.UpsertAsync(TableName, item, false, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

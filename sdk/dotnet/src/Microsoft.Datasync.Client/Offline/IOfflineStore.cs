@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Query;
+using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -66,5 +67,64 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the item has been updated or inserted into the table.</returns>
         Task UpsertAsync(string tableName, IEnumerable<JObject> items, bool ignoreMissingColumns, CancellationToken cancellationToken = default);
+    }
+
+    /// <summary>
+    /// A set of offline store extension methods.
+    /// </summary>
+    internal static class IOfflineStoreExtensions
+    {
+        /// <summary>
+        /// Deletes an item with the specified id in the local table.
+        /// </summary>
+        /// <param name="store">Instance of <see cref="IOfflineStore"/></param>
+        /// <param name="tableName">Name of the local table.</param>
+        /// <param name="id">Id for the object to be deleted.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that compltes when delete has been executed on local table.</returns>
+        public static Task DeleteAsync(this IOfflineStore store, string tableName, string id, CancellationToken cancellationToken = default)
+            => store.DeleteAsync(tableName, new[] { id }, cancellationToken);
+
+        /// <summary>
+        /// Updates or inserts data in local table.
+        /// </summary>
+        /// <param name="store">Instance of <see cref="IOfflineStore"/></param>
+        /// <param name="tableName">Name of the local table.</param>
+        /// <param name="item">Item to be inserted.</param>
+        /// <param name="fromServer">
+        /// <c>true</c> if the call is made based on data coming from the server e.g. in a pull operation;
+        /// <c>false</c> if the call is made by the client, such as insert or update calls on an <see cref="IOfflineTable"/>.
+        /// </param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when item has been upserted in local table.</returns>
+        public static Task UpsertAsync(this IOfflineStore store, string tableName, JObject item, bool fromServer, CancellationToken cancellationToken = default)
+            => store.UpsertAsync(tableName, new[] { item }, fromServer, cancellationToken);
+
+        /// <summary>
+        /// Gets the first value (if available) from the <see cref="IAsyncEnumerable{T}"/> value.
+        /// </summary>
+        /// <typeparam name="T">The type of the model in the enumerable.</typeparam>
+        /// <param name="source">The enumerable.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>The first item returned, or <c>default</c></returns>
+        public static async Task<T> FirstOrDefaultAsync<T>(this IAsyncEnumerable<T> source, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(source, nameof(source));
+
+            var enumerator = source.GetAsyncEnumerator(cancellationToken);
+            try
+            {
+                while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+                {
+                    return enumerator.Current;
+                }
+            }
+            finally
+            {
+                await enumerator.DisposeAsync().ConfigureAwait(false);
+            }
+
+            return default;
+        }
     }
 }

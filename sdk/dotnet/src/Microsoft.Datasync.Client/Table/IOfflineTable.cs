@@ -48,7 +48,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="id">The ID of the item to retrieve.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the item when complete.</returns>
-        Task<JToken> GetItemAsync(string id, CancellationToken cancellationToken = default);
+        Task<JObject> GetItemAsync(string id, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Inserts an item into the remote table.
@@ -56,7 +56,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="instance">The instance to insert into the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the inserted data when complete.</returns>
-        Task<JToken> InsertItemAsync(JObject instance, CancellationToken cancellationToken = default);
+        Task<JObject> InsertItemAsync(JObject instance, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Pulls the items matching the provided query from the remote table.
@@ -82,7 +82,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="instance">The instance to replace into the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the replaced data when complete.</returns>
-        Task<JToken> ReplaceItemAsync(JObject instance, CancellationToken cancellationToken = default);
+        Task ReplaceItemAsync(JObject instance, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
