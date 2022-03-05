@@ -230,6 +230,13 @@ namespace Microsoft.Datasync.Client.Table
             return null;
         }
 
+        /// <summary>
+        /// Sends a request to the service.
+        /// </summary>
+        /// <param name="request">The service request.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>The response from the service.</returns>
+        /// <exception cref="DatasyncConflictException"></exception>
         protected async Task<JToken> SendRequestAsync(ServiceRequest request, CancellationToken cancellationToken = default)
         {
             try
