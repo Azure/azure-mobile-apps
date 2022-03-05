@@ -311,7 +311,8 @@ namespace Microsoft.Datasync.Client.Test
         public void GetOfflineTable_ProducesTable()
         {
             var store = new Mock<IOfflineStore>();
-            var client = new DatasyncClient(Endpoint, new DatasyncClientOptions { OfflineStore = store.Object });
+            var client = new DatasyncClient(Endpoint);
+            client.SyncContext.OfflineStore = store.Object;
             var table = client.GetOfflineTable("movies");
             Assert.IsAssignableFrom<IOfflineTable>(table);
             Assert.Same(client, table.ServiceClient);
@@ -347,7 +348,8 @@ namespace Microsoft.Datasync.Client.Test
         public void GetOfflineTableOfT_ProducesTable()
         {
             var store = new Mock<IOfflineStore>();
-            var client = new DatasyncClient(Endpoint, new DatasyncClientOptions { OfflineStore = store.Object });
+            var client = new DatasyncClient(Endpoint);
+            client.SyncContext.OfflineStore = store.Object;
             var table = client.GetOfflineTable<ClientMovie>();
             Assert.IsAssignableFrom<IOfflineTable<ClientMovie>>(table);
             Assert.Same(client, table.ServiceClient);
@@ -359,7 +361,8 @@ namespace Microsoft.Datasync.Client.Test
         public void GetOfflineTableOfT_String_ProducesTable()
         {
             var store = new Mock<IOfflineStore>();
-            var client = new DatasyncClient(Endpoint, new DatasyncClientOptions { OfflineStore = store.Object });
+            var client = new DatasyncClient(Endpoint);
+            client.SyncContext.OfflineStore = store.Object;
             var table = client.GetOfflineTable<ClientMovie>("movies");
             Assert.IsAssignableFrom<IOfflineTable<ClientMovie>>(table);
             Assert.Same(client, table.ServiceClient);
@@ -371,7 +374,8 @@ namespace Microsoft.Datasync.Client.Test
         public void GetOfflineTableOfT_String_OnNullTableName()
         {
             var store = new Mock<IOfflineStore>();
-            var client = new DatasyncClient(Endpoint, new DatasyncClientOptions { OfflineStore = store.Object });
+            var client = new DatasyncClient(Endpoint);
+            client.SyncContext.OfflineStore = store.Object;
             var table = client.GetOfflineTable<ClientMovie>(null);
             Assert.IsAssignableFrom<IOfflineTable<ClientMovie>>(table);
             Assert.Same(client, table.ServiceClient);

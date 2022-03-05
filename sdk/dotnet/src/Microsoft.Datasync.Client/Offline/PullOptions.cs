@@ -10,19 +10,6 @@ namespace Microsoft.Datasync.Client.Offline
     /// </summary>
     public class PullOptions
     {
-        private int maxpagesize = 50;
-
-        /// <summary>
-        /// The maximum number of items to pull in a single page. Setting this
-        /// too large will result in large memory usage and the potential for
-        /// long delays and large retries.
-        /// </summary>
-        public int MaxPageSize
-        {
-            get => maxpagesize;
-            set => maxpagesize = Arguments.IsPositiveInteger(value, nameof(value));
-        }
-
         /// <summary>
         /// If <c>true</c>, other tables will be pushed prior to pulling this table
         /// if this table is dirty.  If <c>false</c>, only this table will be pushed

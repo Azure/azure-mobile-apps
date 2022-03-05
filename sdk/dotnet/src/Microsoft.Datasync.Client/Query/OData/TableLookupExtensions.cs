@@ -117,10 +117,10 @@ namespace Microsoft.Datasync.Client.Query.OData
                     return $"'{ch}'";
                 case ConstantType.DateTime:
                     string dt = new DateTimeOffset(((DateTime)value).ToUniversalTime()).ToString(DateTimeFormat);
-                    return $"cast({dt},Edm.DateTimeOffset)";
+                    return $"datetimeoffset'{dt}'";
                 case ConstantType.DateTimeOffset:
                     string dto = ((DateTimeOffset)value).ToUniversalTime().ToString(DateTimeFormat);
-                    return $"cast({dto},Edm.DateTimeOffset)";
+                    return $"datetimeoffset'{dto}'";
                 case ConstantType.Decimal:
                     return $"{value}M";
                 case ConstantType.Double:
@@ -128,7 +128,7 @@ namespace Microsoft.Datasync.Client.Query.OData
                     return (d.Contains("E") || d.Contains(".")) ? d : $"{d}.0";
                 case ConstantType.Guid:
                     Guid guid = (Guid)value;
-                    return $"cast({guid:D},Edm.Guid)";
+                    return $"guid'{guid:D}'";
                 case ConstantType.Float:
                     return $"{value}f";
                 case ConstantType.Int:

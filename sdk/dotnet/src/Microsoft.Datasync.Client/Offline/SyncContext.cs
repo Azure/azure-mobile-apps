@@ -9,6 +9,8 @@ using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -228,7 +230,29 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the pull operation has finished.</returns>
         public async Task PullAsync(string tableName, string query, PullOptions options, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+            var table = ServiceClient.GetRemoteTable(tableName) as RemoteTable;
+            var queryDescription = QueryDescription.Parse(tableName, query);
+
+            // Local schema should be the same as the remote schema; otherwise push may have issues.
+            if (queryDescription.Selection.Any() || queryDescription.Projections.Any())
+            {
+                throw new ArgumentException("Pull query with select clause is not supported.", nameof(query));
+            }
+
+            // You can't pull in a specific order, and we handle paging internally,
+            // So (rather than bomb the query), just clear the query.
+            queryDescription.Ordering.Clear();
+            queryDescription.Top = null;
+            queryDescription.Skip = null;
+            queryDescription.IncludeTotalCount = false;
+
+            // We are always doing an incremental sync!
+            var queryId = options.QueryId ?? GetQueryIdFromQuery(tableName, query);
+            var relatedTables = options.PushOtherTables ? Array.Empty<string>() : null;
+
+            var action = new PullAction(this, table, queryId, queryDescription, relatedTables, cancellationToken);
+            await ExecuteSyncActionAsync(action).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -241,7 +265,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the purge operation has finished.</returns>
         public async Task PurgeAsync(string tableName, string query, PurgeOptions options, CancellationToken cancellationToken = default)
         {
-            await EnsureInitializedAsync();
+            await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
             var table = ServiceClient.GetRemoteTable(tableName) as RemoteTable;
             var queryDescription = QueryDescription.Parse(tableName, query);
             var queryId = options.QueryId ?? GetQueryIdFromQuery(tableName, query);
@@ -279,6 +303,38 @@ namespace Microsoft.Datasync.Client.Offline
         {
             _ = SyncQueue.PostAsync(action.ExecuteAsync, action.CancellationToken);
             return action.CompletionTask;
+        }
+
+        /// <summary>
+        /// Defers a pull operation until all the tables have been pushed.
+        /// </summary>
+        /// <param name="action">The pull action.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the push operations related have been completed.</returns>
+        internal async Task DeferTableActionAsync(TableAction action, CancellationToken cancellationToken)
+        {
+            IEnumerable<string> tableNames;
+            if (action.RelatedTables == null)  // No related tables.
+            {
+                tableNames = new[] { action.Table.TableName };
+            }
+            else if (action.RelatedTables.Any()) // Some tables are related
+            {
+                tableNames = new[] { action.Table.TableName }.Concat(action.RelatedTables);
+            }
+            else // All tables are related
+            {
+                tableNames = Enumerable.Empty<string>();
+            }
+
+            try
+            {
+                await PushAsync(tableNames.ToArray(), cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                _ = SyncQueue.PostAsync(action.ExecuteAsync, action.CancellationToken);
+            }
         }
         #endregion
 

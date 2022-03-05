@@ -76,6 +76,23 @@ namespace Microsoft.Datasync.Client.Serialization
         }
 
         /// <summary>
+        /// Gets the <c>updatedAt</c> field as a parsed DateTimeOffset, returns
+        /// null if the <c>updatedAt</c> field is missing.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public static DateTimeOffset? GetUpdatedAt(JObject item)
+        {
+            string updatedAt = item.Value<string>(SystemProperties.JsonUpdatedAtProperty);
+            if (updatedAt == null)
+            {
+                return null;
+            }
+            // Throw an error if the service returned a bad date format.
+            return DateTimeOffset.Parse(updatedAt);
+        }
+
+        /// <summary>
         /// Returns the version of the instance.  If one is not present, returns null.
         /// </summary>
         /// <param name="instance">The subject instance.</param>
@@ -91,6 +108,14 @@ namespace Microsoft.Datasync.Client.Serialization
             }
             return null;
         }
+
+        /// <summary>
+        /// Returns true if the instance is deleted, and false otherwise.
+        /// </summary>
+        /// <param name="instance">The instance to check.</param>
+        /// <returns><c>true</c> if the instance is marked as deleted.</returns>
+        public static bool IsDeleted(JObject instance)
+            => instance.Value<bool>(SystemProperties.JsonDeletedProperty);
 
         /// <summary>
         /// Parses a JSON string to a JToken.

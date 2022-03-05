@@ -52,7 +52,7 @@ namespace Microsoft.Datasync.Client.Offline.Actions
         /// <summary>
         /// The reference to the remote table.
         /// </summary>
-        protected RemoteTable Table { get; }
+        internal RemoteTable Table { get; }
 
         /// <summary>
         /// The task to execute.
