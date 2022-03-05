@@ -3,7 +3,6 @@
 
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
-using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Query;
 using System;
 using System.Diagnostics.CodeAnalysis;
