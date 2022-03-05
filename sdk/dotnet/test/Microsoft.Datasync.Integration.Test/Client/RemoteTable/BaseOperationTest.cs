@@ -6,6 +6,7 @@ using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Serialization;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
@@ -24,12 +25,18 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTable
             soft = client.GetRemoteTable("soft");
         }
 
-        protected void AssertJsonDocumentMatches(EFMovie entity, JToken actual)
+        protected static void AssertJsonDocumentMatches(EFMovie entity, JToken actual)
         {
             var serializer = new ServiceSerializer();
             var expected = (JObject)serializer.Serialize(entity);
             Assert.IsAssignableFrom<JObject>(actual);
             Assert.Equal(expected, (JObject)actual);
+        }
+
+        protected static void AssertVersionMatches(byte[] expected, string actual)
+        {
+            string expstr = Convert.ToBase64String(expected);
+            Assert.Equal(expstr, actual);
         }
     }
 }
