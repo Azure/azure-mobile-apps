@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -44,6 +45,24 @@ namespace Microsoft.Datasync.Client.Utils
             var builder = new UriBuilder(endpoint) { Query = string.Empty, Fragment = string.Empty };
             builder.Path = builder.Path.TrimEnd('/') + "/";
             return builder.Uri;
+        }
+
+        /// <summary>
+        /// Adds a list of items to the existing list.
+        /// </summary>
+        /// <typeparam name="T">The type of the list.</typeparam>
+        /// <param name="list">The list to add to.</param>
+        /// <param name="additions">The list of additions.</param>
+        internal static void AddRange<T>(this IList<T> list, IEnumerable<T> additions)
+        {
+            if (additions == null)
+            {
+                return;
+            }
+            foreach (var addition in additions)
+            {
+                list.Add(addition);
+            }
         }
     }
 }

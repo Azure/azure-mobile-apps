@@ -157,7 +157,7 @@ namespace Microsoft.Datasync.Client
         /// <summary>
         /// The synchronization context.
         /// </summary>
-        internal SyncContext SyncContext { get; }
+        public SyncContext SyncContext { get; }
 
         /// <summary>
         /// Returns a reference to an offline table, providing untyped (JSON) data
@@ -204,14 +204,6 @@ namespace Microsoft.Datasync.Client
         /// <returns>A reference to the table.</returns>
         public virtual IRemoteTable<T> GetRemoteTable<T>(string tableName = null)
             => new RemoteTable<T>(tableName ?? Serializer.ResolveTableName<T>(), this);
-
-        /// <summary>
-        /// Initialize the offline store.
-        /// </summary>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that completes when the sync context is initialized.</returns>
-        public virtual Task InitializeOfflineStoreAsync(CancellationToken cancellationToken = default)
-            => SyncContext.InitializeAsync(ClientOptions.OfflineStore, cancellationToken);
 
         #region IDisposable
         /// <summary>

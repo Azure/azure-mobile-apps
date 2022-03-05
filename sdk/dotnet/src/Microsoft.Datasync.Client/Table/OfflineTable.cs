@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Offline;
+using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
@@ -74,9 +75,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the results when the query finishes.</returns>
         public IAsyncEnumerable<JToken> GetAsyncItems(string query)
-        {
-            throw new NotImplementedException();
-        }
+            => new FuncAsyncPageable<JToken>(nextLink => GetNextPageAsync(query, nextLink));
 
         /// <summary>
         /// Retrieve an item from the remote table.
@@ -115,9 +114,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the pull operation has finished.</returns>
         public Task PullItemsAsync(string query, PullOptions options, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+            => _context.PullAsync(TableName, query, options, cancellationToken);
 
         /// <summary>
         /// Deletes all the items in the offline table that match the query.
@@ -127,9 +124,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the purge operation has finished.</returns>
         public Task PurgeItemsAsync(string query, PurgeOptions options, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+            => _context.PurgeAsync(TableName, query, options, cancellationToken);
 
         /// <summary>
         /// Replaces an item into the remote table.
@@ -148,5 +143,23 @@ namespace Microsoft.Datasync.Client.Table
             await _context.UpdateAsync(TableName, id, instance, cancellationToken).ConfigureAwait(false);
         }
         #endregion
+
+        /// <summary>
+        /// Gets the next page of items from the list.  If the <c>nextLink</c> is set, use that for
+        /// the query; otherwise use the <c>query</c>
+        /// </summary>
+        /// <param name="query">The initial query.</param>
+        /// <param name="nextLink">The next link.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns a page of items when complete.</returns>
+        private async Task<Page<JToken>> GetNextPageAsync(string query, string nextLink, CancellationToken cancellationToken = default)
+        {
+            if (nextLink != null)
+            {
+                var requestUri = new Uri(nextLink);
+                query = requestUri.Query.TrimStart('?');
+            }
+            return await _context.GetPageAsync(TableName, query, cancellationToken).ConfigureAwait(false);
+        }
     }
 }

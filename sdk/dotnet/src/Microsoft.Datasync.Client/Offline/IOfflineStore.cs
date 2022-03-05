@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Query;
+using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
 using System;
@@ -23,7 +24,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// </summary>
         /// <param name="query">A query description that identifies the items to be deleted.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task the completes when the items have been deleted from the table.</returns>
+        /// <returns>A task that completes when the items have been deleted from the table.</returns>
         Task DeleteAsync(QueryDescription query, CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -32,15 +33,16 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="tableName">The name of the table where the items are located.</param>
         /// <param name="ids">A list of IDs to delete.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task the completes when the items have been deleted from the table.</returns>
+        /// <returns>A task that completes when the items have been deleted from the table.</returns>
         Task DeleteAsync(string tableName, IEnumerable<string> ids, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns items from the table.
         /// </summary>
         /// <param name="query">A query describing the items to be returned.</param>
-        /// <returns>An <see cref="IAsyncEnumerable{T}"/> of the items returned.</returns>
-        IAsyncEnumerable<JToken> GetAsyncItems(QueryDescription query);
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns a page of items when complete.</returns>
+        Task<Page<JToken>> GetPageAsync(QueryDescription query, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns a single item by the ID of the item.

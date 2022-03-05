@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Query.Linq.Nodes;
+using Microsoft.Datasync.Client.Query.OData;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
@@ -82,5 +83,79 @@ namespace Microsoft.Datasync.Client.Query
             Skip = Skip,
             Top = Top
         };
+
+        /// <summary>
+        /// Parses an OData query and creates a <see cref="QueryDescription"/> instance.
+        /// </summary>
+        /// <param name="tableName">The name of the table for the query.</param>
+        /// <param name="query">The OData query string.</param>
+        /// <returns>The <see cref="QueryDescription"/> for the query.</returns>
+        public static QueryDescription Parse(string tableName, string query)
+            => Parse(tableName, query ?? string.Empty, null);
+
+        /// <summary>
+        /// Parses an OData query and creates a <see cref="QueryDescription"/> instance.
+        /// </summary>
+        /// <param name="tableName">The name of the table for the query.</param>
+        /// <param name="query">The OData query string.</param>
+        /// <param name="uriPath">The path within the URI.</param>
+        /// <returns>The <see cref="QueryDescription"/> for the query.</returns>
+        private static QueryDescription Parse(string tableName, string query, string uriPath)
+        {
+            bool includeTotalCount = false;
+            int? top = null, skip = null;
+            string[] selection = null;
+            QueryNode filter = null;
+            IList<OrderByNode> orderings = null;
+
+            IDictionary<string, string> parameters = query.Split('&')
+                .Select(part => part.Split(new[] { '=' }, 2))
+                .ToDictionary(x => Uri.UnescapeDataString(x[0]), x => x.Length > 1 ? Uri.UnescapeDataString(x[1]) : string.Empty);
+            foreach (var parameter in parameters)
+            {
+                if (string.IsNullOrEmpty(parameter.Key))
+                {
+                    continue;
+                }
+
+                switch (parameter.Key)
+                {
+                    case ODataOptions.Filter:
+                        filter = ODataExpressionParser.ParseFilter(parameter.Value);
+                        break;
+                    case ODataOptions.OrderBy:
+                        orderings = ODataExpressionParser.ParseOrderBy(parameter.Value);
+                        break;
+                    case ODataOptions.Skip:
+                        skip = Int32.Parse(parameter.Value);
+                        break;
+                    case ODataOptions.Top:
+                        top = Int32.Parse(parameter.Value);
+                        break;
+                    case ODataOptions.Select:
+                        selection = parameter.Value.Split(',');
+                        break;
+                    case ODataOptions.InlineCount:
+                        includeTotalCount = parameter.Value.Equals("true");
+                        break;
+                    default:
+                        // Skip this argument - it isn't important.
+                        break;
+                }
+            }
+
+            var description = new QueryDescription(tableName)
+            {
+                Filter = filter,
+                IncludeTotalCount = includeTotalCount,
+                Skip = skip,
+                Top = top
+            };
+
+            description.Selection.AddRange(selection);
+            description.Ordering.AddRange(orderings);
+
+            return description;
+        }
     }
 }

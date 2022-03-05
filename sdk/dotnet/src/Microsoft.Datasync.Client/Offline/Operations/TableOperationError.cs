@@ -53,6 +53,21 @@ namespace Microsoft.Datasync.Client.Offline.Operations
             Result = result;
         }
 
+
+        /// <summary>
+        /// Initializes an instance of <see cref="TableOperationError"/>
+        /// </summary>
+        /// <param name="operation">The operation causing the error</param>
+        /// <param name="context">The <see cref="SyncContext"/> processing the operation.</param>
+        /// <param name="status">The HTTP status code returned by server.</param>
+        /// <param name="rawResult">Raw response of the table operation.</param>
+        /// <param name="result">Response of the table operation.</param>
+        public TableOperationError(TableOperation operation, SyncContext context, HttpStatusCode? status, string rawResult, JObject result)
+            : this(operation.Id, operation.Version, operation.Kind, status, operation.TableName, operation.Item, rawResult, result)
+        {
+            Context = context;
+        }
+
         /// <summary>
         /// A unique identifier for the error. The Value matches value of the <see cref="TableOperation"/> Id property.
         /// </summary>

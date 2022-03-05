@@ -30,11 +30,6 @@ namespace Microsoft.Datasync.Client
         public string InstallationId { get; set; }
 
         /// <summary>
-        /// If set, use this as the offline store.  If not set, then offline operations are not available.
-        /// </summary>
-        public IOfflineStore OfflineStore { get; set; }
-
-        /// <summary>
         /// The serializer settings to use for this connection.
         /// </summary>
         public DatasyncSerializerSettings SerializerSettings { get; set; }

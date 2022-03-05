@@ -8,6 +8,7 @@ using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,16 +73,29 @@ namespace Microsoft.Datasync.Client.Offline
             query.Ordering.Add(new OrderByNode(new MemberAccessNode(null, "sequence"), OrderByDirection.Descending));
 
             // Execute the query to find the number of pending operations and the last sequence ID.
-            var pagedEnumerator = (store.GetAsyncItems(query) as AsyncPageable<JToken>)!.AsPages().GetAsyncEnumerator(cancellationToken);
-            var hasPage = await pagedEnumerator.MoveNextAsync().ConfigureAwait(false);
-            if (hasPage)
-            {
-                var page = pagedEnumerator.Current;
-                operationsQueue.pendingOperations = page.Count ?? 0;
-                operationsQueue.sequenceId = page.Items?.Select(v => v.Value<long>("sequence")).FirstOrDefault() ?? 0;
-            }
+            Page<JToken> page = await store.GetPageAsync(query, cancellationToken).ConfigureAwait(false);
+            operationsQueue.pendingOperations = page.Count ?? 0;
+            operationsQueue.sequenceId = page.Items?.Select(v => v.Value<long>("sequence")).FirstOrDefault() ?? 0;
 
             return operationsQueue;
+        }
+
+        /// <summary>
+        /// Counts the number of operations in the queue for a specific table.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>The numbe rof operations in the queue for the table.</returns>
+        public virtual async Task<long> CountPendingOperationsAsync(string tableName, CancellationToken cancellationToken = default)
+        {
+            QueryDescription query = new(OfflineSystemTables.OperationsQueue)
+            {
+                Filter = Compare(BinaryOperatorKind.Equal, "tableName", tableName),
+                IncludeTotalCount = true,
+                Top = 0
+            };
+            var page = await OfflineStore.GetPageAsync(query, cancellationToken).ConfigureAwait(false);
+            return page.Count ?? 0;
         }
 
         /// <summary>
@@ -148,8 +162,36 @@ namespace Microsoft.Datasync.Client.Offline
         {
             QueryDescription query = new(OfflineSystemTables.OperationsQueue);
             query.Filter = new BinaryOperatorNode(BinaryOperatorKind.And, Compare(BinaryOperatorKind.Equal, "tableName", tableName), Compare(BinaryOperatorKind.Equal, "itemId", itemId));
-            var result = await OfflineStore.GetAsyncItems(query).FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
-            return result is JObject operation ? TableOperation.Deserialize(operation) : null;
+            var page = await OfflineStore.GetPageAsync(query, cancellationToken).ConfigureAwait(false);
+            return page.Items?.FirstOrDefault() is JObject operation ? TableOperation.Deserialize(operation) : null;
+        }
+
+        /// <summary>
+        /// Peeks inside the operations queue for the next operation (after the given sequence ID
+        /// </summary>
+        /// <param name="previousSequenceId">The previous sequence ID read.</param>
+        /// <param name="tableNames">The list of tables to consider.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the table operation when finished.</returns>
+        public virtual async Task<TableOperation> PeekAsync(long previousSequenceId, IEnumerable<string> tableNames, CancellationToken cancellationToken = default)
+        {
+            QueryDescription query = new(OfflineSystemTables.OperationsQueue)
+            {
+                Filter = Compare(BinaryOperatorKind.GreaterThan, "sequence", previousSequenceId),
+                Top = 1
+            };
+            query.Ordering.Add(new OrderByNode(new MemberAccessNode(null, "sequence"), OrderByDirection.Ascending));
+
+            if (tableNames != null && tableNames.Any())
+            {
+                BinaryOperatorNode nameInList = tableNames
+                    .Select(t => Compare(BinaryOperatorKind.Or, "tableName", t))
+                    .Aggregate((first, second) => new BinaryOperatorNode(BinaryOperatorKind.Or, first, second));
+                query.Filter = new BinaryOperatorNode(BinaryOperatorKind.And, query.Filter, nameInList);
+            }
+            var page = await OfflineStore.GetPageAsync(query, cancellationToken).ConfigureAwait(false);
+            JToken result = page.Items?.FirstOrDefault();
+            return (result != null && result is JObject op) ? TableOperation.Deserialize(op) : null;
         }
 
         /// <summary>
@@ -216,6 +258,22 @@ namespace Microsoft.Datasync.Client.Offline
             {
                 throw new LocalStoreException("Failed to update operation in the local store", ex);
             }
+        }
+
+        /// <summary>
+        /// Updates the pending operations count to match reality when we are doing operation
+        /// modifications directly.
+        /// </summary>
+        /// <param name="delta">The delta of the items in the queue.</param>
+        internal void UpdateOperationsCount(long delta)
+        {
+            long current, updated;
+            do
+            {
+                current = pendingOperations;
+                updated = current + delta;
+            }
+            while (current != Interlocked.CompareExchange(ref pendingOperations, updated, current));
         }
 
         /// <summary>
