@@ -236,9 +236,7 @@ namespace Microsoft.Datasync.Client.Table
         /// </summary>
         /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/></returns>
         public IAsyncEnumerable<T> ToAsyncEnumerable()
-        {
-            throw new NotImplementedException();
-        }
+            => CreateQuery().ToAsyncEnumerable();
 
         /// <summary>
         /// Applies the specified filter predicate to the source query.

@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
 {
     [ExcludeFromCodeCoverage]
-    public class DeleteItemAsync : BaseOperationTest
+    public class DeleteItemAsync_Tests : BaseOperationTest
     {
         [Fact]
         [Trait("Method", "DeleteItemAsync")]
