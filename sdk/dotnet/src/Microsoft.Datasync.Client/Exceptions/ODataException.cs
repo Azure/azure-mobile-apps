@@ -24,6 +24,20 @@ namespace Microsoft.Datasync.Client
         }
 
         /// <summary>
+        /// Creates a new <see cref="ODataException"/>.
+        /// </summary>
+        /// <param name="message">The error message.</param>
+        /// <param name="inner">The inner exception.</param>
+        /// <param name="expression">The expression being parsed.</param>
+        /// <param name="errorPosition">The position of the error.</param>
+        public ODataException(string message, Exception inner, string expression, int errorPosition)
+            : base(message, inner)
+        {
+            Expression = expression;
+            ErrorPosition = errorPosition;
+        }
+
+        /// <summary>
         /// The position of the error.
         /// </summary>
         public int ErrorPosition { get; }

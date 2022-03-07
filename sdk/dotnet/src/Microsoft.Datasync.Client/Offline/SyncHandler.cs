@@ -19,7 +19,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="operation">The operation to execute.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the server version of the item.</returns>
-        public Task<JObject> ExecuteTableOperationAsync(TableOperation operation, CancellationToken cancellationToken = default)
+        public virtual Task<JObject> ExecuteTableOperationAsync(TableOperation operation, CancellationToken cancellationToken = default)
             => operation.ExecuteAsync(cancellationToken);
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="result">The result of the push operation.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the result has been handled.</returns>
-        public Task OnPushCompleteAsync(PushCompletionResult result, CancellationToken cancellationToken = default)
+        public virtual Task OnPushCompleteAsync(PushCompletionResult result, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
     }
 }

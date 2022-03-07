@@ -18,11 +18,8 @@ namespace Microsoft.Datasync.Client.Query.OData
         Boolean,
         Byte,
         Character,
-        DateTime,
-        DateTimeOffset,
         Decimal,
         Double,
-        Guid,
         Float,
         Int,
         Long,
@@ -35,18 +32,14 @@ namespace Microsoft.Datasync.Client.Query.OData
 
     internal static class TableLookupExtensions
     {
-        private const string DateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffZ";
 
         private static readonly Dictionary<long, ConstantType> ConstantTypeLookupTable = new()
         {
             { (long)typeof(bool).TypeHandle.Value, ConstantType.Boolean },
             { (long)typeof(byte).TypeHandle.Value, ConstantType.Byte },
             { (long)typeof(char).TypeHandle.Value, ConstantType.Character },
-            { (long)typeof(DateTime).TypeHandle.Value, ConstantType.DateTime },
-            { (long)typeof(DateTimeOffset).TypeHandle.Value, ConstantType.DateTimeOffset },
             { (long)typeof(decimal).TypeHandle.Value, ConstantType.Decimal },
             { (long)typeof(double).TypeHandle.Value, ConstantType.Double },
-            { (long)typeof(Guid).TypeHandle.Value, ConstantType.Guid },
             { (long)typeof(float).TypeHandle.Value, ConstantType.Float },
             { (long)typeof(int).TypeHandle.Value, ConstantType.Int },
             { (long)typeof(long).TypeHandle.Value, ConstantType.Long },
@@ -104,6 +97,7 @@ namespace Microsoft.Datasync.Client.Query.OData
         internal static string ToODataString(this ConstantNode node)
         {
             object value = node.Value;
+            ConstantType type = GetConstantType(value);
             switch (GetConstantType(value))
             {
                 case ConstantType.Null:
@@ -115,20 +109,12 @@ namespace Microsoft.Datasync.Client.Query.OData
                 case ConstantType.Character:
                     string ch = (char)value == '\'' ? "''" : ((char)value).ToString();
                     return $"'{ch}'";
-                case ConstantType.DateTime:
-                    string dt = new DateTimeOffset(((DateTime)value).ToUniversalTime()).ToString(DateTimeFormat);
-                    return $"datetimeoffset'{dt}'";
-                case ConstantType.DateTimeOffset:
-                    string dto = ((DateTimeOffset)value).ToUniversalTime().ToString(DateTimeFormat);
-                    return $"datetimeoffset'{dto}'";
+
                 case ConstantType.Decimal:
                     return $"{value}M";
                 case ConstantType.Double:
                     string d = string.Format(CultureInfo.InvariantCulture, "{0}", value);
                     return (d.Contains("E") || d.Contains(".")) ? d : $"{d}.0";
-                case ConstantType.Guid:
-                    Guid guid = (Guid)value;
-                    return $"guid'{guid:D}'";
                 case ConstantType.Float:
                     return $"{value}f";
                 case ConstantType.Int:
@@ -141,8 +127,7 @@ namespace Microsoft.Datasync.Client.Query.OData
                 case ConstantType.UnsignedLong:
                     return $"{value}L";
                 default:
-                    string text = value.ToString().Replace("'", "''");
-                    return $"'{text}'";
+                    return  EdmTypeSupport.ToODataString(value) ?? $"'{value.ToString().Replace("'", "''")}'";
             }
         }
     }

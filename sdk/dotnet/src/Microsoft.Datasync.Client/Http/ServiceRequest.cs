@@ -54,7 +54,9 @@ namespace Microsoft.Datasync.Client.Http
             Arguments.IsNotNull(Method, nameof(Method));
             Arguments.IsNotNullOrWhitespace(UriPathAndQuery, nameof(UriPathAndQuery));
 
-            var uri = Uri.IsWellFormedUriString(UriPathAndQuery, UriKind.Absolute) ? new Uri(UriPathAndQuery)
+            // If UriPathAndQuery starts with http:// or https://, then assume it is absolute,
+            // and just use it.  Otherwise construct a new one.
+            var uri = UriPathAndQuery.StartsWith("http://") || UriPathAndQuery.StartsWith("https://") ? new Uri(UriPathAndQuery)
                 : baseUri != null ? new Uri(baseUri, UriPathAndQuery) : new Uri(UriPathAndQuery, UriKind.Relative);
             var request = new HttpRequestMessage(Method, uri);
             if (RequestHeaders?.Count > 0)

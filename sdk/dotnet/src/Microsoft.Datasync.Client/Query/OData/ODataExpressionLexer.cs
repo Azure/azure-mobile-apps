@@ -133,6 +133,22 @@ namespace Microsoft.Datasync.Client.Query.OData
         }
 
         /// <summary>
+        /// Reads the stream until the supplied character
+        /// </summary>
+        /// <param name="ch">The character to read up to.</param>
+        /// <returns>The <see cref="QueryToken"/> with the contents read</returns>
+        public QueryToken ReadUntilCharacter(char ch)
+        {
+            int startPosition = TextPosition;
+            AdvanceToNextOccuranceOf(ch);
+
+            Token.Kind = QueryTokenKind.Unknown;
+            Token.Text = Text.Substring(startPosition, TextPosition - startPosition);
+            Token.Position = startPosition;
+            return Token;
+        }
+
+        /// <summary>
         /// Given the start of an identifier, progress until the end of the identifier.
         /// </summary>
         private void CompleteIdentifier()

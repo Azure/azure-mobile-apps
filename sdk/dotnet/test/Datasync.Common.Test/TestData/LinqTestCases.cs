@@ -150,16 +150,16 @@ namespace Datasync.Common.Test
             Add(new LinqTestCase("where-022", m => m.Where(x => !(x.Duration != 100)), "$filter=not((duration ne 100))", 3, new string[] { "id-116", "id-159", "id-186" }));
 
             // Date compares
-            Add(new LinqTestCase("where-031", m => m.Where(x => x.ReleaseDate == dt1), $"$filter=(releaseDate eq datetimeoffset'{dts1}')", 2, new string[] { "id-000", "id-003" }));
-            Add(new LinqTestCase("where-032", m => m.Where(x => x.ReleaseDate > dt2), $"$filter=(releaseDate gt datetimeoffset'{dts2}')", 69, new string[] { "id-006", "id-008", "id-012", "id-013", "id-019" }));
-            Add(new LinqTestCase("where-033", m => m.Where(x => x.ReleaseDate >= dt2), $"$filter=(releaseDate ge datetimeoffset'{dts2}')", 69, new string[] { "id-006", "id-008", "id-012", "id-013", "id-019" }));
-            Add(new LinqTestCase("where-034", m => m.Where(x => x.ReleaseDate < dt3), $"$filter=(releaseDate lt datetimeoffset'{dts3}')", 179, new string[] { "id-000", "id-001", "id-002", "id-003", "id-004" }));
-            Add(new LinqTestCase("where-035", m => m.Where(x => x.ReleaseDate <= dt3), $"$filter=(releaseDate le datetimeoffset'{dts3}')", 179, new string[] { "id-000", "id-001", "id-002", "id-003", "id-004" }));
-            Add(new LinqTestCase("where-036", m => m.Where(x => x.ReleaseDate == dto1), $"$filter=(releaseDate eq datetimeoffset'{dts1}')", 2, new string[] { "id-000", "id-003" }));
-            Add(new LinqTestCase("where-037", m => m.Where(x => x.ReleaseDate > dto2), $"$filter=(releaseDate gt datetimeoffset'{dts2}')", 69, new string[] { "id-006", "id-008", "id-012", "id-013", "id-019" }));
-            Add(new LinqTestCase("where-038", m => m.Where(x => x.ReleaseDate >= dto2), $"$filter=(releaseDate ge datetimeoffset'{dts2}')", 69, new string[] { "id-006", "id-008", "id-012", "id-013", "id-019" }));
-            Add(new LinqTestCase("where-039", m => m.Where(x => x.ReleaseDate < dto3), $"$filter=(releaseDate lt datetimeoffset'{dts3}')", 179, new string[] { "id-000", "id-001", "id-002", "id-003", "id-004" }));
-            Add(new LinqTestCase("where-040", m => m.Where(x => x.ReleaseDate <= dto3), $"$filter=(releaseDate le datetimeoffset'{dts3}')", 179, new string[] { "id-000", "id-001", "id-002", "id-003", "id-004" }));
+            Add(new LinqTestCase("where-031", m => m.Where(x => x.ReleaseDate == dt1), $"$filter=(releaseDate eq cast({dts1},Edm.DateTimeOffset))", 2, new string[] { "id-000", "id-003" }));
+            Add(new LinqTestCase("where-032", m => m.Where(x => x.ReleaseDate > dt2), $"$filter=(releaseDate gt cast({dts2},Edm.DateTimeOffset))", 69, new string[] { "id-006", "id-008", "id-012", "id-013", "id-019" }));
+            Add(new LinqTestCase("where-033", m => m.Where(x => x.ReleaseDate >= dt2), $"$filter=(releaseDate ge cast({dts2},Edm.DateTimeOffset))", 69, new string[] { "id-006", "id-008", "id-012", "id-013", "id-019" }));
+            Add(new LinqTestCase("where-034", m => m.Where(x => x.ReleaseDate < dt3), $"$filter=(releaseDate lt cast({dts3},Edm.DateTimeOffset))", 179, new string[] { "id-000", "id-001", "id-002", "id-003", "id-004" }));
+            Add(new LinqTestCase("where-035", m => m.Where(x => x.ReleaseDate <= dt3), $"$filter=(releaseDate le cast({dts3},Edm.DateTimeOffset))", 179, new string[] { "id-000", "id-001", "id-002", "id-003", "id-004" }));
+            Add(new LinqTestCase("where-036", m => m.Where(x => x.ReleaseDate == dto1), $"$filter=(releaseDate eq cast({dts1},Edm.DateTimeOffset))", 2, new string[] { "id-000", "id-003" }));
+            Add(new LinqTestCase("where-037", m => m.Where(x => x.ReleaseDate > dto2), $"$filter=(releaseDate gt cast({dts2},Edm.DateTimeOffset))", 69, new string[] { "id-006", "id-008", "id-012", "id-013", "id-019" }));
+            Add(new LinqTestCase("where-038", m => m.Where(x => x.ReleaseDate >= dto2), $"$filter=(releaseDate ge cast({dts2},Edm.DateTimeOffset))", 69, new string[] { "id-006", "id-008", "id-012", "id-013", "id-019" }));
+            Add(new LinqTestCase("where-039", m => m.Where(x => x.ReleaseDate < dto3), $"$filter=(releaseDate lt cast({dts3},Edm.DateTimeOffset))", 179, new string[] { "id-000", "id-001", "id-002", "id-003", "id-004" }));
+            Add(new LinqTestCase("where-040", m => m.Where(x => x.ReleaseDate <= dto3), $"$filter=(releaseDate le cast({dts3},Edm.DateTimeOffset))", 179, new string[] { "id-000", "id-001", "id-002", "id-003", "id-004" }));
 
             // String compares
             Add(new LinqTestCase("where-050", m => m.Where(x => x.Title == "The Godfather"), "$filter=(title eq 'The Godfather')", 1, new string[] { "id-001" }));
@@ -216,7 +216,7 @@ namespace Datasync.Common.Test
             Add(new LinqTestCase("where-161", m => m.Where(x => (float)x.Year < 1990.5f), "$filter=(year lt 1990.5f)", 141, new string[] { "id-001", "id-002", "id-004", "id-005", "id-010" }));
 
             // Your basic sync operations
-            Add(new LinqTestCase("sync-1", m => m.Where(x => x.UpdatedAt > dto1).IncludeDeletedItems().OrderBy(x => x.UpdatedAt).IncludeTotalCount().Skip(25), $"__includedeleted=true&$count=true&$filter=(updatedAt gt datetimeoffset'{dts1}')&$orderby=updatedAt&$skip=25", 223, new string[] { "id-025", "id-026", "id-027", "id-028", "id-029" }));
+            Add(new LinqTestCase("sync-1", m => m.Where(x => x.UpdatedAt > dto1).IncludeDeletedItems().OrderBy(x => x.UpdatedAt).IncludeTotalCount().Skip(25), $"__includedeleted=true&$count=true&$filter=(updatedAt gt cast({dts1},Edm.DateTimeOffset))&$orderby=updatedAt&$skip=25", 223, new string[] { "id-025", "id-026", "id-027", "id-028", "id-029" }));
         }
     }
 }

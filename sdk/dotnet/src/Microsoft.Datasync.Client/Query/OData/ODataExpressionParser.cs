@@ -5,6 +5,7 @@ using Microsoft.Datasync.Client.Query.Linq.Nodes;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace Microsoft.Datasync.Client.Query.OData
 {
@@ -281,61 +282,7 @@ namespace Microsoft.Datasync.Client.Query.OData
                 lexer.NextToken();
                 return new ConstantNode(null);
             }
-            else if (IsTypeConstruction(lexer.Token.Text) && lexer.CurrentChar == '\'')
-            {
-                return ParseTypeConstruction();
-
-            }
             return ParseMemberAccess(null);
-        }
-
-        /// <summary>
-        /// Parses a type construction value, which has a value type'value'
-        /// </summary>
-        /// <returns>A <see cref="QueryNode"/> for the type construction expression.</returns>
-        private ConstantNode ParseTypeConstruction()
-        {
-            var typeIdentifier = lexer.Token.Text;
-            var errorPos = lexer.Token.Position;
-            lexer.NextToken();
-            ConstantNode typeExpression = null;
-
-            if (lexer.Token.Kind == QueryTokenKind.StringLiteral)
-            {
-                errorPos = lexer.Token.Position;
-                ConstantNode stringExpr = ParseStringLiteral();
-                string literalValue = stringExpr.Value.ToString();
-
-                try
-                {
-                    if (typeIdentifier == "datetime")
-                    {
-                        var date = DateTime.Parse(literalValue);
-                        typeExpression = new ConstantNode(date);
-                    }
-                    else if (typeIdentifier == "datetimeoffset")
-                    {
-                        var date = DateTimeOffset.Parse(literalValue);
-                        typeExpression = new ConstantNode(date);
-                    }
-                    else if (typeIdentifier == "guid")
-                    {
-                        var guid = Guid.Parse(literalValue);
-                        typeExpression = new ConstantNode(guid);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new ODataException(ex.Message, lexer.Text, errorPos);
-                }
-            }
-
-            if (typeExpression == null)
-            {
-                throw new ODataException($"The specified OData query has an invalid '{typeIdentifier}' expression.", lexer.Text, errorPos);
-            }
-
-            return typeExpression;
         }
 
         /// <summary>
@@ -465,14 +412,56 @@ namespace Microsoft.Datasync.Client.Query.OData
         {
             if (lexer.Token.Kind == QueryTokenKind.OpenParen)
             {
-                var args = ParseArgumentList();
-                ValidateFunction(functionName, args, errorPos);
-                return new FunctionCallNode(functionName, args);
+                if (functionName == "cast")
+                {
+                    return ParseTypeCoercion(errorPos);
+                }
+                else
+                {
+                    var args = ParseArgumentList();
+                    ValidateFunction(functionName, args, errorPos);
+                    return new FunctionCallNode(functionName, args);
+                }
             }
             else
             {
                 throw new ODataException("'(' expected.", lexer.Text, errorPos);
             }
+        }
+
+        /// <summary>
+        /// Parses a type coercion statement.
+        /// </summary>
+        /// <param name="errorPos">The start of the function call.</param>
+        /// <returns>A <see cref="QueryNode"/> that represents the statement</returns>
+        private QueryNode ParseTypeCoercion(int errorPos)
+        {
+            ValidateTokenIsType(QueryTokenKind.OpenParen, "'(' expected.");
+
+            // Construct the call, crudely.
+            QueryToken token = lexer.ReadUntilCharacter(')');
+            string[] arguments = token.Text.Split(',').Select(arg => arg.Trim()).ToArray();
+            if (arguments.Length != 2)
+            {
+                throw new ODataException("Invalid cast (args != 2)", lexer.Text, errorPos);
+            }
+
+            QueryNode node;
+            try
+            {
+                node = EdmTypeSupport.ToQueryNode(arguments[0], arguments[1]);
+            }
+            catch (Exception ex)
+            {
+                throw new ODataException("Invalid cast", ex, lexer.Text, errorPos);
+            }
+
+            // This should be the close parens.
+            lexer.NextToken();
+            ValidateTokenIsType(QueryTokenKind.CloseParen, "')' expected.");
+            lexer.NextToken();
+
+            return node;
         }
 
         /// <summary>
@@ -520,14 +509,6 @@ namespace Microsoft.Datasync.Client.Query.OData
             ValidateTokenIsType(QueryTokenKind.Identifier, "Expected identifier");
             return lexer.Token.Text;
         }
-
-        /// <summary>
-        /// Determine if the identifier provided is for type construction.
-        /// </summary>
-        /// <param name="text">The keyword text</param>
-        /// <returns><c>true</c> if the keyword is for type construction.</returns>
-        private static bool IsTypeConstruction(string text)
-            => text == "datetime" || text == "datetimeoffset" || text == "guid";
 
         /// <summary>
         /// Returns <c>true</c> if the current token is the specified identifier.
