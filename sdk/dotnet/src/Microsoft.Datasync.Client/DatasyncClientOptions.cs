@@ -30,6 +30,11 @@ namespace Microsoft.Datasync.Client
         public string InstallationId { get; set; }
 
         /// <summary>
+        /// The offline store to use for offline table storage.
+        /// </summary>
+        public IOfflineStore OfflineStore { get; set; }
+
+        /// <summary>
         /// The serializer settings to use for this connection.
         /// </summary>
         public DatasyncSerializerSettings SerializerSettings { get; set; }

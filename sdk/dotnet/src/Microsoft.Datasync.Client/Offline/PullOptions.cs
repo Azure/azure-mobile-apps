@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Utils;
-
-namespace Microsoft.Datasync.Client.Offline
+namespace Microsoft.Datasync.Client
 {
     /// <summary>
     /// The options used to configure a pull operation.
@@ -11,11 +9,11 @@ namespace Microsoft.Datasync.Client.Offline
     public class PullOptions
     {
         /// <summary>
-        /// If <c>true</c>, other tables will be pushed prior to pulling this table
-        /// if this table is dirty.  If <c>false</c>, only this table will be pushed
-        /// if this table is dirty.
+        /// When a pull operation happens, the related push operation for this
+        /// table is automatically done.  If you would like to push the entire
+        /// operations queue, then set this to <c>true</c>.
         /// </summary>
-        public bool PushOtherTables { get; set; } = true;
+        public bool PushOtherTables { get; set; } = false;
 
         /// <summary>
         /// If set, this is used as a query ID.  The query ID is a key to store

@@ -13,7 +13,7 @@ namespace Microsoft.Datasync.Client.Test.Serialization
     [ExcludeFromCodeCoverage]
     public class ServiceSerializer_Tests : BaseTest
     {
-        private ServiceSerializer serializer;
+        private readonly ServiceSerializer serializer;
 
         public ServiceSerializer_Tests()
         {

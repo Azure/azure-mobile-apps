@@ -6,7 +6,7 @@ using System;
 namespace Microsoft.Datasync.Client.Offline
 {
     /// <summary>
-    /// Provides additional details of a failed offlien store operation.
+    /// Provides additional details of a failed offline store operation.
     /// </summary>
     public class OfflineStoreException : Exception
     {

@@ -125,7 +125,10 @@ namespace Microsoft.Datasync.Client
             {
                 Serializer.SerializerSettings = ClientOptions.SerializerSettings;
             }
-            SyncContext = new SyncContext(this);
+            if (ClientOptions.OfflineStore != null)
+            {
+                SyncContext = new SyncContext(this, ClientOptions.OfflineStore);
+            }
         }
 
         /// <summary>
@@ -157,7 +160,7 @@ namespace Microsoft.Datasync.Client
         /// <summary>
         /// The synchronization context.
         /// </summary>
-        public SyncContext SyncContext { get; }
+        internal SyncContext SyncContext { get; }
 
         /// <summary>
         /// Returns a reference to an offline table, providing untyped (JSON) data
@@ -166,7 +169,14 @@ namespace Microsoft.Datasync.Client
         /// <param name="tableName">The name of the table.</param>
         /// <returns>A reference to the table.</returns>
         public virtual IOfflineTable GetOfflineTable(string tableName)
-            => new OfflineTable(tableName, this);
+        {
+            Arguments.IsValidTableName(tableName, nameof(tableName));
+            if (SyncContext == null)
+            {
+                throw new InvalidOperationException("An offline store must be specified before using offline tables.");
+            }
+            return new OfflineTable(tableName, this);
+        }
 
         /// <summary>
         /// Returns a reference to an offline table, providing typed data
@@ -180,7 +190,15 @@ namespace Microsoft.Datasync.Client
         /// <param name="tableName">The (optional) name of the table.</param>
         /// <returns>A reference to the table.</returns>
         public virtual IOfflineTable<T> GetOfflineTable<T>(string tableName = null)
-            => new OfflineTable<T>(tableName ?? Serializer.ResolveTableName<T>(), this);
+        {
+            tableName ??= Serializer.ResolveTableName<T>();
+            Arguments.IsValidTableName(tableName, nameof(tableName));
+            if (SyncContext == null)
+            {
+                throw new InvalidOperationException("An offline store must be specified before using offline tables.");
+            }
+            return new OfflineTable<T>(tableName, this);
+        }
 
         /// <summary>
         /// Returns a reference to a remote table, providing untyped (JSON) data
@@ -204,6 +222,21 @@ namespace Microsoft.Datasync.Client
         /// <returns>A reference to the table.</returns>
         public virtual IRemoteTable<T> GetRemoteTable<T>(string tableName = null)
             => new RemoteTable<T>(tableName ?? Serializer.ResolveTableName<T>(), this);
+
+        /// <summary>
+        /// Initializes the offline store.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the offline store is initialized.</returns>
+        /// <exception cref="InvalidOperationException">if the offline store was not provided.</exception>
+        public virtual async Task InitializeOfflineStoreAsync(CancellationToken cancellationToken = default)
+        {
+            if (SyncContext == null)
+            {
+                throw new InvalidOperationException("An offline store must be specified before initialization.");
+            }
+            await SyncContext.InitializeAsync(cancellationToken).ConfigureAwait(false);
+        }
 
         #region IDisposable
         /// <summary>

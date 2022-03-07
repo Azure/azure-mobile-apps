@@ -3,45 +3,43 @@
 
 using Microsoft.Datasync.Client.Exceptions;
 using Microsoft.Datasync.Client.Serialization;
-using Microsoft.Datasync.Client.Table;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Datasync.Client.Offline.Operations
+namespace Microsoft.Datasync.Client.Offline.Queue
 {
     /// <summary>
-    /// The base type for the various table operations:
-    /// * <see cref="DeleteOperation"/>
-    /// * <see cref="InsertOperation"/>
-    /// * <see cref="UpdateOperation"/>
+    /// The table operation kind.
     /// </summary>
-    public abstract class TableOperation : ITableOperation
+    internal enum TableOperationKind
     {
-        /// <summary>
-        /// The definition of the table that can store the serialized content for this model.
-        /// </summary>
-        internal static readonly JObject TableDefinition = new()
-        {
-            { SystemProperties.JsonIdProperty, string.Empty },
-            { "kind", 0 },
-            { "state", 0 },
-            { "tableName", string.Empty },
-            { "itemId", string.Empty },
-            { "item", string.Empty },
-            { "sequence", 0 },
-            { "version", 0 }
-        };
+        Unknown,
+        Delete,
+        Insert,
+        Update
+    }
 
-        /// <summary>
-        /// Creates a new <see cref="TableOperation"/>.
-        /// </summary>
-        /// <param name="tableName">The name of the table.</param>
-        /// <param name="itemId">The ID of the item affected by the operation.</param>
-        protected TableOperation(string tableName, string itemId)
+    /// <summary>
+    /// The operational states for a table operation.
+    /// </summary>
+    internal enum TableOperationState
+    {
+        Pending,
+        Completed,
+        Failed
+    };
+
+    /// <summary>
+    /// The base type for the various table operations.
+    /// </summary>
+    internal abstract class TableOperation
+    {
+        protected TableOperation(TableOperationKind kind, string tableName, string itemId)
         {
+            Kind = kind;
             Id = Guid.NewGuid().ToString("N");
             State = TableOperationState.Pending;
             TableName = tableName;
@@ -52,79 +50,105 @@ namespace Microsoft.Datasync.Client.Offline.Operations
         /// <summary>
         /// If <c>true</c>, the operation can write the result of the operation to the store.
         /// </summary>
+        [JsonIgnore]
         public virtual bool CanWriteResultToStore => true;
 
         /// <summary>
-        /// The ID of the operation.
+        /// The kind of operation
         /// </summary>
-        public string Id { get; private set; }
+        [JsonProperty("kind")]
+        public TableOperationKind Kind { get; }
 
         /// <summary>
-        /// If <c>true</c>, the operation has been cancelled.
+        /// The unique ID of the operation.
         /// </summary>
+        [JsonProperty(SystemProperties.JsonIdProperty)]
+        public string Id { get; set; }
+
+        /// <summary>
+        /// If <c>true</c>, the operation can be cancelled.
+        /// </summary>
+        [JsonIgnore]
         public bool IsCancelled { get; private set; }
 
         /// <summary>
         /// If <c>true</c>, the operation has been updated.
         /// </summary>
+        [JsonIgnore]
         public bool IsUpdated { get; private set; }
 
         /// <summary>
         /// The ID of the item affected by the operation.
         /// </summary>
+        [JsonProperty("itemId")]
         public string ItemId { get; }
+
+        /// <summary>
+        /// The item that is affected by this operation.
+        /// </summary>
+        [JsonIgnore]
+        public JObject Item { get; set; }
+
+        /// <summary>
+        /// The <see cref="Item"/> as a string, for serialization and deserialization purposes.
+        /// You should not have to set it yourself.
+        /// </summary>
+        [JsonProperty("item")]
+        internal string JsonItem
+        {
+            get => Item != null && SerializeItemToQueue ? Item.ToString(Formatting.None) : null;
+            set => Item = string.IsNullOrEmpty(value) ? null : JObject.Parse(value);
+        }
 
         /// <summary>
         /// The sequence number of the operation in the queue.
         /// </summary>
+        [JsonProperty("sequence")]
         public long Sequence { get; set; }
 
         /// <summary>
-        /// If <c>true</c>, serialize the item to the queue to store it persistently.
+        /// If <c>true</c>, serialize the item to the quuee to store it persistently.
         /// </summary>
+        [JsonIgnore]
         public virtual bool SerializeItemToQueue => false;
 
         /// <summary>
-        /// The remote table reference for the table being affected by the operation.
+        /// The state of the operation.
         /// </summary>
-        internal RemoteTable Table { get; set; }
+        [JsonIgnore]
+        public TableOperationState State { get; internal set; }
 
         /// <summary>
         /// The name of the table being affected by the operation.
         /// </summary>
+        [JsonProperty("tableName")]
         public string TableName { get; }
 
         /// <summary>
         /// The version of the operation.
         /// </summary>
+        [JsonProperty("version")]
         public long Version { get; set; }
-
-        #region ITableOperation
-        /// <summary>
-        /// The kind of operation
-        /// </summary>
-        public abstract TableOperationKind Kind { get; }
-
-        /// <summary>
-        /// The state of the operation
-        /// </summary>
-        public TableOperationState State { get; internal set; }
-
-        /// <summary>
-        /// The table that the operation will be executed against.
-        /// </summary>
-        IRemoteTable ITableOperation.Table => Table;
-
-        /// <summary>
-        /// The item associated with the operation.
-        /// </summary>
-        public JObject Item { get; set; }
 
         /// <summary>
         /// Abort the parent push operation.
         /// </summary>
-        public void AbortPush()
-            => throw new PushAbortedException();
+        /// <exception cref="PushAbortedException"></exception>
+        public static void AbortPush() => throw new PushAbortedException();
+
+        /// <summary>
+        /// Marks this operation as cancelled.
+        /// </summary>
+        internal void Cancel()
+        {
+            IsCancelled = true;
+        }
+
+        /// <summary>
+        /// Collapse this operation with a new operation by cancellation of either operation.
+        /// </summary>
+        /// <param name="newOperation">The new operation.</param>
+        public abstract void CollapseOperation(TableOperation newOperation);
 
         /// <summary>
         /// Deserialize a record from the persistent store into a table operation.
@@ -141,7 +165,6 @@ namespace Microsoft.Datasync.Client.Offline.Operations
             var kind = (TableOperationKind)obj.Value<int>("kind");
             string tableName = obj.Value<string>("tableName");
             string itemId = obj.Value<string>("itemId");
-            string itemJson = obj.Value<string>("item");
 
             TableOperation operation = kind switch
             {
@@ -156,12 +179,20 @@ namespace Microsoft.Datasync.Client.Offline.Operations
                 operation.Id = obj.Value<string>(SystemProperties.JsonIdProperty);
                 operation.Sequence = obj.Value<long?>("sequence").GetValueOrDefault();
                 operation.Version = obj.Value<long?>("version").GetValueOrDefault();
-                operation.Item = string.IsNullOrEmpty(itemJson) ? null : JObject.Parse(itemJson);
+                operation.JsonItem = obj.Value<string>("item");
                 operation.State = (TableOperationState)obj.Value<int?>("state").GetValueOrDefault();
             }
 
             return operation;
         }
+
+        /// <summary>
+        /// Executes the operation on the offline store.
+        /// </summary>
+        /// <param name="store">The offline store.</param>
+        /// <param name="item">The item to use for the store operation.</param>
+        /// <returns>A task that completes when the store operation is completed.</returns>
+        public abstract Task ExecuteOperationOnOfflineStoreAsync(IOfflineStore store, JObject item, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes the operation against remote table.
@@ -186,52 +217,17 @@ namespace Microsoft.Datasync.Client.Offline.Operations
             }
             throw new DatasyncInvalidOperationException("Datasync table operation returned an unexpected response.");
         }
-        #endregion
 
-        /// <summary>
-        /// Marks this operation as cancelled.
-        /// </summary>
-        internal void Cancel()
+        private Task<JToken> ExecuteOperationAsync(CancellationToken cancellationToken)
         {
-            IsCancelled = true;
+            throw new NotImplementedException();
         }
 
         /// <summary>
-        /// Collapse this operation with a new operation by cancellation of either operation.
+        /// Serializes this object to a <see cref="JObject"/>.
         /// </summary>
-        /// <param name="newOperation">The new operation.</param>
-        public abstract void CollapseOperation(TableOperation newOperation);
-
-        /// <summary>
-        /// The internal version of the <see cref="ExecuteAsync"/> method.
-        /// </summary>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that returns the operation result when complete.</returns>
-        protected abstract Task<JToken> ExecuteOperationAsync(CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Executes the operation on the offline store.
-        /// </summary>
-        /// <param name="store">The offline store.</param>
-        /// <param name="item">The item to use for the store operation.</param>
-        /// <returns>A task that completes when the store operation is completed.</returns>
-        public abstract Task ExecuteOperationOnOfflineStoreAsync(IOfflineStore store, JObject item, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Serialize this table operation for storage in the persisted operations queue.
-        /// </summary>
-        /// <returns>The <see cref="JObject"/> representing this table operation.</returns>
-        internal JObject Serialize() => new()
-        {
-            { SystemProperties.JsonIdProperty, Id },
-            { "kind", (int)Kind },
-            { "state", (int)State },
-            { "tableName", TableName },
-            { "itemId", ItemId },
-            { "item", Item != null && SerializeItemToQueue ? Item.ToString(Formatting.None) : null },
-            { "sequence", Sequence },
-            { "version", Version }
-        };
+        /// <returns>A <see cref="JObject"/> that represents this object.</returns>
+        internal JObject Serialize() => JObject.FromObject(this);
 
         /// <summary>
         /// Marks this operation as updated.

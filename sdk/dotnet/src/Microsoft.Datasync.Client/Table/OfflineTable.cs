@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Offline;
-using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
@@ -57,37 +56,34 @@ namespace Microsoft.Datasync.Client.Table
         public string TableName { get; }
 
         /// <summary>
-        /// Deletes an item from the remote table.
+        /// Deletes an item from the offline table.
         /// </summary>
         /// <param name="instance">The instance to delete from the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the response when complete.</returns>
-        public async Task DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default)
-        {
-            string id = ServiceSerializer.GetId(instance);
-            await _context.DeleteAsync(TableName, id, instance, cancellationToken).ConfigureAwait(false);
-        }
+        public Task DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default)
+            => _context.DeleteItemAsync(TableName, instance, cancellationToken);
 
         /// <summary>
-        /// Execute a query against a remote table.
+        /// Execute a query against an offline table.
         /// </summary>
         /// <param name="query">The query to execute.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the results when the query finishes.</returns>
-        public IAsyncEnumerable<JToken> GetAsyncItems(string query)
-            => new FuncAsyncPageable<JToken>(nextLink => GetNextPageAsync(query, nextLink));
+        public IAsyncEnumerable<JObject> GetAsyncItems(string query)
+            => new FuncAsyncPageable<JObject>(nextLink => GetNextPageAsync(query, nextLink));
 
         /// <summary>
-        /// Retrieve an item from the remote table.
+        /// Retrieve an item from the offline table.
         /// </summary>
         /// <param name="id">The ID of the item to retrieve.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the item when complete.</returns>
         public Task<JObject> GetItemAsync(string id, CancellationToken cancellationToken = default)
-            => _context.GetAsync(TableName, id, cancellationToken);
+            => _context.GetItemAsync(TableName, id, cancellationToken);
 
         /// <summary>
-        /// Inserts an item into the remote table.
+        /// Inserts an item into the offline table.
         /// </summary>
         /// <param name="instance">The instance to insert into the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
@@ -101,8 +97,7 @@ namespace Microsoft.Datasync.Client.Table
                 instance = (JObject)instance.DeepClone();
                 instance[SystemProperties.JsonIdProperty] = id;
             }
-
-            await _context.InsertAsync(TableName, id, instance, cancellationToken).ConfigureAwait(false);
+            await _context.InsertItemAsync(TableName, instance, cancellationToken);
             return instance;
         }
 
@@ -114,7 +109,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the pull operation has finished.</returns>
         public Task PullItemsAsync(string query, PullOptions options, CancellationToken cancellationToken = default)
-            => _context.PullAsync(TableName, query, options, cancellationToken);
+            => _context.PullItemsAsync(TableName, query, options, cancellationToken);
 
         /// <summary>
         /// Deletes all the items in the offline table that match the query.
@@ -124,7 +119,15 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the purge operation has finished.</returns>
         public Task PurgeItemsAsync(string query, PurgeOptions options, CancellationToken cancellationToken = default)
-            => _context.PurgeAsync(TableName, query, options, cancellationToken);
+            => _context.PurgeItemsAsync(TableName, query, options, cancellationToken);
+
+        /// <summary>
+        /// Pushes items in the operations queue for this table to the remote service.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        public Task PushItemsAsync(CancellationToken cancellationToken = default)
+            => _context.PushItemsAsync(TableName, cancellationToken);
 
         /// <summary>
         /// Replaces an item into the remote table.
@@ -132,16 +135,9 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="instance">The instance to replace into the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the replaced data when complete.</returns>
-        public async Task ReplaceItemAsync(JObject instance, CancellationToken cancellationToken = default)
-        {
-            string id = ServiceSerializer.GetId(instance);
-            instance = ServiceSerializer.RemoveSystemProperties(instance, out string version);
-            if (version != null)
-            {
-                instance[SystemProperties.JsonVersionProperty] = version;
-            }
-            await _context.UpdateAsync(TableName, id, instance, cancellationToken).ConfigureAwait(false);
-        }
+        public Task ReplaceItemAsync(JObject instance, CancellationToken cancellationToken = default)
+            =>  _context.ReplaceItemAsync(TableName, instance, cancellationToken);
+
         #endregion
 
         /// <summary>
@@ -152,14 +148,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="nextLink">The next link.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns a page of items when complete.</returns>
-        private async Task<Page<JToken>> GetNextPageAsync(string query, string nextLink, CancellationToken cancellationToken = default)
-        {
-            if (nextLink != null)
-            {
-                var requestUri = new Uri(nextLink);
-                query = requestUri.Query.TrimStart('?');
-            }
-            return await _context.GetPageAsync(TableName, query, cancellationToken).ConfigureAwait(false);
-        }
+        private Task<Page<JObject>> GetNextPageAsync(string query, string nextLink, CancellationToken cancellationToken = default)
+            => _context.GetNextPageAsync(TableName, nextLink != null ? new Uri(nextLink).Query.TrimStart('?') : query, cancellationToken);
     }
 }
