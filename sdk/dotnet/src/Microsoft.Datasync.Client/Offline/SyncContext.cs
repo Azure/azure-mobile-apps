@@ -3,6 +3,7 @@
 
 using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
+using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
@@ -80,8 +81,11 @@ namespace Microsoft.Datasync.Client.Offline
         internal async Task DeleteItemAsync(string tableName, JObject instance, CancellationToken cancellationToken = default)
         {
             EnsureContextIsInitialized();
-            var operation = new DeleteOperation(this, tableName, instance);
-            await EnqueueOperationAsync(operation, cancellationToken).ConfigureAwait(false);
+            string itemId = ServiceSerializer.GetId(instance);
+            var originalInstance = await GetItemAsync(tableName, itemId, cancellationToken).ConfigureAwait(false);
+            var operation = new DeleteOperation(tableName, itemId) { Item = originalInstance };
+
+            await EnqueueOperationAsync(operation, originalInstance, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -120,8 +124,17 @@ namespace Microsoft.Datasync.Client.Offline
         internal async Task InsertItemAsync(string tableName, JObject instance, CancellationToken cancellationToken = default)
         {
             EnsureContextIsInitialized();
-            var operation = new InsertOperation(this, tableName, instance);
-            await EnqueueOperationAsync(operation, cancellationToken).ConfigureAwait(false);
+
+            // We have to pre-generate the ID when doing offline work.
+            string itemId = ServiceSerializer.GetId(instance, allowDefault: true);
+            if (itemId == null)
+            {
+                itemId = Guid.NewGuid().ToString("N");
+                instance = (JObject)instance.DeepClone();
+                instance[SystemProperties.JsonIdProperty] = itemId;
+            }
+            var operation = new InsertOperation(tableName, itemId);
+            await EnqueueOperationAsync(operation, instance, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -134,8 +147,15 @@ namespace Microsoft.Datasync.Client.Offline
         internal async Task ReplaceItemAsync(string tableName, JObject instance, CancellationToken cancellationToken = default)
         {
             EnsureContextIsInitialized();
-            var operation = new UpdateOperation(this, tableName, instance);
-            await EnqueueOperationAsync(operation, cancellationToken).ConfigureAwait(false);
+
+            string itemId = ServiceSerializer.GetId(instance);
+            instance = ServiceSerializer.RemoveSystemProperties(instance, out string version);
+            if (version != null)
+            {
+                instance[SystemProperties.JsonVersionProperty] = version;
+            }
+            var operation = new UpdateOperation(tableName, itemId);
+            await EnqueueOperationAsync(operation, instance, cancellationToken).ConfigureAwait(false);
         }
         #endregion
 
@@ -184,7 +204,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="operation">The table operation to enqueue.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the operation is enqueued on the operations queue.</returns>
-        private async Task EnqueueOperationAsync(TableOperation operation, CancellationToken cancellationToken)
+        private async Task EnqueueOperationAsync(TableOperation operation, JObject instance, CancellationToken cancellationToken)
         {
             using (await OperationsQueue.AcquireLockAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -195,7 +215,7 @@ namespace Microsoft.Datasync.Client.Offline
                 // Execute the operation on the local store.
                 try
                 {
-                    await operation.ExecuteOperationOnOfflineStoreAsync(OfflineStore, operation.Item, cancellationToken).ConfigureAwait(false);
+                    await operation.ExecuteOperationOnOfflineStoreAsync(OfflineStore, instance, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (ex is not OfflineStoreException)
                 {

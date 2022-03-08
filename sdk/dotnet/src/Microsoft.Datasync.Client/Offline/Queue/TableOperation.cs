@@ -3,9 +3,11 @@
 
 using Microsoft.Datasync.Client.Exceptions;
 using Microsoft.Datasync.Client.Serialization;
+using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,10 +37,13 @@ namespace Microsoft.Datasync.Client.Offline.Queue
     /// <summary>
     /// The base type for the various table operations.
     /// </summary>
-    internal abstract class TableOperation
+    internal abstract class TableOperation : IEquatable<TableOperation>
     {
         protected TableOperation(TableOperationKind kind, string tableName, string itemId)
         {
+            Arguments.IsValidTableName(tableName, nameof(tableName));
+            Arguments.IsValidId(itemId, nameof(itemId));
+
             Kind = kind;
             Id = Guid.NewGuid().ToString("N");
             State = TableOperationState.Pending;
@@ -134,7 +139,8 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// Abort the parent push operation.
         /// </summary>
         /// <exception cref="PushAbortedException"></exception>
-        public static void AbortPush() => throw new PushAbortedException();
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Required to be instance method for reflection.")]
+        public void AbortPush() => throw new PushAbortedException();
 
         /// <summary>
         /// Marks this operation as cancelled.
@@ -197,10 +203,12 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <summary>
         /// Executes the operation against remote table.
         /// </summary>
+        /// <param name="client">The <see cref="DatasyncClient"/> to use for communication with the backend.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the operation result when complete.</returns>
-        public async Task<JObject> ExecuteAsync(CancellationToken cancellationToken = default)
+        public async Task<JObject> ExecuteOperationOnRemoteServiceAsync(DatasyncClient client, CancellationToken cancellationToken = default)
         {
+            Arguments.IsNotNull(client, nameof(client));
             if (IsCancelled)
             {
                 return null;
@@ -210,18 +218,24 @@ namespace Microsoft.Datasync.Client.Offline.Queue
                 throw new DatasyncInvalidOperationException("A table operation must have an item associated with it.");
             }
 
-            JToken response = await ExecuteOperationAsync(cancellationToken).ConfigureAwait(false);
-            if (response is JObject result)
+            IRemoteTable table = client.GetRemoteTable(TableName);
+            JToken response = await ExecuteRemoteOperationAsync(table, cancellationToken).ConfigureAwait(false);
+            var result = response as JObject;
+            if (response != null && result == null)
             {
-                return result;
+                throw new DatasyncInvalidOperationException("Datasync table operation returned an unexpected response.");
             }
-            throw new DatasyncInvalidOperationException("Datasync table operation returned an unexpected response.");
+            return result;
         }
 
-        private Task<JToken> ExecuteOperationAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+        /// <summary>
+        /// Internal version of the <see cref="ExecuteOperationOnRemoteServiceAsync(DatasyncClient, CancellationToken)"/>, to execute
+        /// the operation against a remote table.
+        /// </summary>
+        /// <param name="table">The remote table connection.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the operation result (or <c>null</c>) when complete.</returns>
+        protected abstract Task<JToken> ExecuteRemoteOperationAsync(IRemoteTable table, CancellationToken cancellationToken);
 
         /// <summary>
         /// Serializes this object to a <see cref="JObject"/>.
@@ -244,5 +258,30 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <param name="newOperation">The new operation.</param>
         /// <exception cref="InvalidOperationException">when the operation cannot collapse with the new operation.</exception>
         public abstract void ValidateOperationCanCollapse(TableOperation newOperation);
+
+        #region IEquatable<TableOperation>
+        /// <summary>
+        /// Determines if another object is equivalent to this object.
+        /// </summary>
+        /// <param name="obj">The comparison object.</param>
+        /// <returns><c>true</c> if this object is equivalent to the provided object, <c>false</c> otherwise.</returns>
+        public bool Equals(TableOperation other)
+            => Kind == other.Kind && ItemId == other.ItemId && JsonItem == other.JsonItem && Sequence == other.Sequence && State == other.State && TableName == other.TableName && Version == other.Version;
+
+        /// <summary>
+        /// Determines if another object is equivalent to this object.
+        /// </summary>
+        /// <param name="obj">The comparison object.</param>
+        /// <returns><c>true</c> if this object is equivalent to the provided object, <c>false</c> otherwise.</returns>
+        public override bool Equals(object obj)
+            => obj is TableOperation tableOperation && Equals(tableOperation);
+
+        /// <summary>
+        /// Returns the hash code for the instance (which is a numberical value used to insert and
+        /// identify an object in a hash-based collection).
+        /// </summary>
+        /// <returns>The hash code for the item.</returns>
+        public override int GetHashCode() => ItemId.GetHashCode();
+        #endregion
     }
 }
