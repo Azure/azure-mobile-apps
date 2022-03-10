@@ -233,7 +233,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
             if (statusCode == HttpStatusCode.Conflict || statusCode == HttpStatusCode.PreconditionFailed)
             {
                 MockHandler.AddResponse(statusCode, new IdEntity { Id = "1234", StringValue = "movie" });
-            } 
+            }
             else
             {
                 MockHandler.AddResponse(statusCode);

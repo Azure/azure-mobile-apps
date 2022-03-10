@@ -207,9 +207,9 @@ namespace Microsoft.Datasync.Client.Serialization
             id = (hasId && idToken is JValue idValue && idValue.Type == JTokenType.String) ? idValue.Value<string>() : null;
             return hasId && id != null;
         }
-        
+
         /// <summary>
-        /// Determines if the specified JToken is a valid item, converting it to a JObject if it is, 
+        /// Determines if the specified JToken is a valid item, converting it to a JObject if it is,
         /// and returning <c>null</c> if not.
         /// </summary>
         /// <param name="item"></param>
