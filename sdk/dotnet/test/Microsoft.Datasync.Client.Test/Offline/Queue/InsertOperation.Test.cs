@@ -304,7 +304,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
                 MockHandler.AddResponse(statusCode);
             }
 
-            var sut = new DeleteOperation("test", "1234") { Item = testObject };
+            var sut = new InsertOperation("test", "1234") { Item = testObject };
             var exception = await Assert.ThrowsAnyAsync<DatasyncInvalidOperationException>(() => sut.ExecuteOperationOnRemoteServiceAsync(client));
 
             if (statusCode == HttpStatusCode.Conflict || statusCode == HttpStatusCode.PreconditionFailed)

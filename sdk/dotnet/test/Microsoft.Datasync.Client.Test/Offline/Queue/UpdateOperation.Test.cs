@@ -1,11 +1,21 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Exceptions;
+using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Offline.Queue;
+using Moq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Offline.Queue
@@ -137,6 +147,152 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
             var operation = TableOperation.Deserialize(serializedObject);
             Assert.IsAssignableFrom<UpdateOperation>(operation);
             Assert.Equal(expected, operation);
+        }
+
+        [Fact]
+        public void ValidateCollapse_MismatchedItemId_Throws()
+        {
+            var sut = new UpdateOperation("test", "1234");
+            var newOp = new UpdateOperation("test", "4321");
+
+            Assert.Throws<ArgumentException>(() => sut.ValidateOperationCanCollapse(newOp));
+        }
+
+        [Fact]
+        public void ValidateCollapse_InsertOperation_Throws()
+        {
+            var sut = new UpdateOperation("test", "1234");
+            var newOp = new InsertOperation("test", "1234");
+
+            Assert.Throws<InvalidOperationException>(() => sut.ValidateOperationCanCollapse(newOp));
+        }
+
+        [Fact]
+        public void ValidateCollapse_DeleteOperation_OK()
+        {
+            var sut = new UpdateOperation("test", "1234");
+            var newOp = new DeleteOperation("test", "1234");
+
+            sut.ValidateOperationCanCollapse(newOp);
+        }
+
+        [Fact]
+        public void ValidateCollapse_UpdateOperation_OK()
+        {
+            var sut = new UpdateOperation("test", "1234");
+            var newOp = new UpdateOperation("test", "1234");
+
+            sut.ValidateOperationCanCollapse(newOp);
+        }
+
+        [Fact]
+        public void Collapse_MismatchedItemId_Throws()
+        {
+            var sut = new UpdateOperation("test", "1234");
+            var newOp = new UpdateOperation("test", "4321");
+
+            Assert.Throws<ArgumentException>(() => sut.ValidateOperationCanCollapse(newOp));
+        }
+
+        [Fact]
+        public void Collapse_DeleteOperation()
+        {
+            var sut = new UpdateOperation("test", "1234");
+            var newOp = new DeleteOperation("test", "1234");
+
+            sut.CollapseOperation(newOp);
+
+            Assert.True(sut.IsCancelled);
+            Assert.False(sut.IsUpdated);
+            Assert.True(newOp.IsUpdated);
+        }
+
+        [Fact]
+        public void Collapse_UpdateOperation()
+        {
+            var sut = new UpdateOperation("test", "1234");
+            var newOp = new UpdateOperation("test", "1234");
+
+            sut.CollapseOperation(newOp);
+
+            Assert.False(sut.IsCancelled);
+            Assert.True(sut.IsUpdated);
+            Assert.True(newOp.IsCancelled);
+        }
+
+        [Fact]
+        public async Task ExecuteOnOfflineStore_CallsUpsert()
+        {
+            var store = new Mock<IOfflineStore>();
+            store.Setup(x => x.UpsertAsync("test", It.IsAny<IEnumerable<JObject>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+            var sut = new UpdateOperation("test", "1234");
+
+            await sut.ExecuteOperationOnOfflineStoreAsync(store.Object, testObject);
+
+            Assert.Equal(1, store.Invocations.Count);
+
+            var upsert = store.Invocations[0];
+            Assert.IsAssignableFrom<IEnumerable<JObject>>(upsert.Arguments[1]);
+            var items = (IEnumerable<JObject>)upsert.Arguments[1];
+            Assert.Single(items);
+            Assert.Equal(testObject, items.First());
+        }
+
+        [Fact]
+        public async Task ExecuteRemote_CallsRemoteServer_WithSuccess()
+        {
+            var client = GetMockClient();
+            MockHandler.AddResponse(HttpStatusCode.OK, new IdEntity { Id = "1234", StringValue = "foo" });
+
+            var sut = new UpdateOperation("test", "1234") { Item = testObject };
+            await sut.ExecuteOperationOnRemoteServiceAsync(client);
+
+            Assert.Single(MockHandler.Requests);
+            Assert.Equal(HttpMethod.Put, MockHandler.Requests[0].Method);
+            Assert.Equal(new Uri(Endpoint, "/tables/test/1234"), MockHandler.Requests[0].RequestUri);
+            Assert.Equal(testObject.ToString(Formatting.None), await MockHandler.Requests[0].Content.ReadAsStringAsync());
+        }
+
+        [Fact]
+        public async Task ExecuteRemote_ThrowsError_WithNoItem()
+        {
+            var client = GetMockClient();
+            MockHandler.AddResponse(HttpStatusCode.OK);
+
+            var sut = new UpdateOperation("test", "1234");
+            var exception = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => sut.ExecuteOperationOnRemoteServiceAsync(client));
+
+            Assert.Empty(MockHandler.Requests);
+            Assert.Contains("must have an item", exception.Message);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.BadRequest)]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.PreconditionFailed)]
+        public async Task ExecuteRemote_CallsRemoteServer_WithFailure(HttpStatusCode statusCode)
+        {
+            var client = GetMockClient();
+            if (statusCode == HttpStatusCode.Conflict || statusCode == HttpStatusCode.PreconditionFailed)
+            {
+                MockHandler.AddResponse(statusCode, new IdEntity { Id = "1234", StringValue = "movie" });
+            }
+            else
+            {
+                MockHandler.AddResponse(statusCode);
+            }
+
+            var sut = new UpdateOperation("test", "1234") { Item = testObject };
+            var exception = await Assert.ThrowsAnyAsync<DatasyncInvalidOperationException>(() => sut.ExecuteOperationOnRemoteServiceAsync(client));
+
+            if (statusCode == HttpStatusCode.Conflict || statusCode == HttpStatusCode.PreconditionFailed)
+            {
+                Assert.IsAssignableFrom<DatasyncConflictException>(exception);
+                Assert.NotNull(exception.Value);
+            }
+            Assert.NotNull(exception.Request);
+            Assert.NotNull(exception.Response);
+            Assert.Equal(statusCode, exception.Response?.StatusCode);
         }
     }
 }
