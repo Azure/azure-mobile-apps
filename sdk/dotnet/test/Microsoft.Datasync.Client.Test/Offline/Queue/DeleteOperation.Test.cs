@@ -1,11 +1,19 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Exceptions;
+using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Offline.Queue;
+using Moq;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Offline.Queue
@@ -139,6 +147,124 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
             var operation = TableOperation.Deserialize(serializedObject);
             Assert.IsAssignableFrom<DeleteOperation>(operation);
             Assert.Equal(expected, operation);
+        }
+
+        [Theory, CombinatorialData]
+        public void ValidateCollapse_Throws_OnMismatchedItemIds([CombinatorialRange(1,3)] int kind)
+        {
+            var sut = new DeleteOperation("test", "1234");
+            TableOperation newOperation = kind switch
+            {
+                1 => new DeleteOperation("test", "4321"),
+                2 => new InsertOperation("test", "4321"),
+                3 => new UpdateOperation("test", "4321"),
+                _ => throw new NotImplementedException()
+            };
+            Assert.Throws<ArgumentException>(() => sut.ValidateOperationCanCollapse(newOperation));
+        }
+
+        [Theory, CombinatorialData]
+        public void ValidateCollapse_Throws_OnMatchItems([CombinatorialRange(1, 3)] int kind)
+        {
+            var sut = new DeleteOperation("test", "1234");
+            TableOperation newOperation = kind switch
+            {
+                1 => new DeleteOperation("test", "1234"),
+                2 => new InsertOperation("test", "1234"),
+                3 => new UpdateOperation("test", "1234"),
+                _ => throw new NotImplementedException()
+            };
+            Assert.Throws<InvalidOperationException>(() => sut.ValidateOperationCanCollapse(newOperation));
+        }
+
+        [Theory, CombinatorialData]
+        public void Collapse_DoesntCollapse([CombinatorialRange(1, 3)] int kind)
+        {
+            var sut = new DeleteOperation("test", "1234");
+            TableOperation newOperation = kind switch
+            {
+                1 => new DeleteOperation("test", "1234"),
+                2 => new InsertOperation("test", "1234"),
+                3 => new UpdateOperation("test", "1234"),
+                _ => throw new NotImplementedException()
+            };
+            sut.CollapseOperation(newOperation);
+            Assert.False(sut.IsCancelled);
+            Assert.Equal(1, sut.Version);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.NoContent)]
+        [InlineData(HttpStatusCode.NotFound)]
+        public async Task ExecuteRemote_CallsRemoteServer_WithSuccess(HttpStatusCode statusCode)
+        {
+            var client = GetMockClient();
+            MockHandler.AddResponse(statusCode);
+
+            var sut = new DeleteOperation("test", "1234") { Item = testObject };
+            await sut.ExecuteOperationOnRemoteServiceAsync(client);
+
+            Assert.Single(MockHandler.Requests);
+            Assert.Equal(HttpMethod.Delete, MockHandler.Requests[0].Method);
+            Assert.Equal(new Uri(Endpoint, "/tables/test/1234"), MockHandler.Requests[0].RequestUri);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.NoContent)]
+        public async Task ExecuteRemote_ThrowsError_WithNoItem(HttpStatusCode statusCode)
+        {
+            var client = GetMockClient();
+            MockHandler.AddResponse(statusCode);
+
+            var sut = new DeleteOperation("test", "1234");
+            var exception = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => sut.ExecuteOperationOnRemoteServiceAsync(client));
+
+            Assert.Empty(MockHandler.Requests);
+            Assert.Contains("must have an item", exception.Message);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.BadRequest)]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.PreconditionFailed)]
+        public async Task ExecuteRemote_CallsRemoteServer_WithFailure(HttpStatusCode statusCode)
+        {
+            var client = GetMockClient();
+            if (statusCode == HttpStatusCode.Conflict || statusCode == HttpStatusCode.PreconditionFailed)
+            {
+                MockHandler.AddResponse(statusCode, new IdEntity { Id = "1234", StringValue = "movie" });
+            } 
+            else
+            {
+                MockHandler.AddResponse(statusCode);
+            }
+
+            var sut = new DeleteOperation("test", "1234") { Item = testObject };
+            var exception = await Assert.ThrowsAnyAsync<DatasyncInvalidOperationException>(() => sut.ExecuteOperationOnRemoteServiceAsync(client));
+
+            if (statusCode == HttpStatusCode.Conflict || statusCode == HttpStatusCode.PreconditionFailed)
+            {
+                Assert.IsAssignableFrom<DatasyncConflictException>(exception);
+                Assert.NotNull(exception.Value);
+            }
+            Assert.NotNull(exception.Request);
+            Assert.NotNull(exception.Response);
+            Assert.Equal(statusCode, exception.Response?.StatusCode);
+        }
+
+        [Fact]
+        public async Task ExecuteLocal_CallsLocalStore()
+        {
+            var store = new Mock<IOfflineStore>();
+            store.Setup(x => x.DeleteAsync("test", It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+            var sut = new DeleteOperation("test", "1234") { Item = testObject };
+            await sut.ExecuteOperationOnOfflineStoreAsync(store.Object, testObject);
+
+            Assert.Single(store.Invocations);
+            string[] ids = store.Invocations[0].Arguments[1] as string[];
+            Assert.Single(ids);
+            Assert.Equal("1234", ids[0]);
         }
     }
 }
