@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Offline;
+using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Query.Linq.Nodes;
 // Copyright (c) Microsoft Corporation. All Rights Reserved.
@@ -56,6 +57,11 @@ namespace Datasync.Common.Test.Mocks
         /// </summary>
         public Func<QueryDescription, IEnumerable<JObject>> ReadAsyncFunc { get; set; }
 
+        /// <summary>
+        /// Gets or sets the exception to throw.
+        /// </summary>
+        public Exception ExceptionToThrow { get; set; }
+
         #region IOfflineStore
         /// <summary>
         /// Deletes items from the table where the items are identified by a query.
@@ -65,6 +71,11 @@ namespace Datasync.Common.Test.Mocks
         /// <returns>A task that completes when the items have been deleted from the table.</returns>
         public Task DeleteAsync(QueryDescription query, CancellationToken cancellationToken = default)
         {
+            if (ExceptionToThrow != null)
+            {
+                throw ExceptionToThrow;
+            }
+
             DeleteQueries.Add(query);
             var table = GetOrCreateTable(query.TableName);
 
@@ -84,6 +95,11 @@ namespace Datasync.Common.Test.Mocks
         /// <returns>A task that completes when the items have been deleted from the table.</returns>
         public Task DeleteAsync(string tableName, IEnumerable<string> ids, CancellationToken cancellationToken = default)
         {
+            if (ExceptionToThrow != null)
+            {
+                throw ExceptionToThrow;
+            }
+
             var table = GetOrCreateTable(tableName);
             foreach (string id in ids)
             {
@@ -148,7 +164,14 @@ namespace Datasync.Common.Test.Mocks
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the store is ready to use.</returns>
         public Task InitializeAsync(CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
+        {
+            if (ExceptionToThrow != null)
+            {
+                throw ExceptionToThrow;
+            }
+
+            return Task.CompletedTask;
+        }
 
         /// <summary>
         /// Updates or inserts the item(s) provided in the table.
@@ -160,6 +183,11 @@ namespace Datasync.Common.Test.Mocks
         /// <returns>A task that completes when the item has been updated or inserted into the table.</returns>
         public Task UpsertAsync(string tableName, IEnumerable<JObject> items, bool ignoreMissingColumns, CancellationToken cancellationToken = default)
         {
+            if (ExceptionToThrow != null)
+            {
+                throw ExceptionToThrow;
+            }
+
             var table = GetOrCreateTable(tableName);
             foreach (JObject item in items)
             {
@@ -169,6 +197,21 @@ namespace Datasync.Common.Test.Mocks
             return Task.CompletedTask;
         }
         #endregion
+
+        /// <summary>
+        /// Upserts items into the specified table.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="items">The items.</param>
+        public void Upsert(string tableName, IEnumerable<JObject> items)
+        {
+            var table = GetOrCreateTable(tableName);
+            foreach (JObject item in items)
+            {
+                var id = ServiceSerializer.GetId(item);
+                table[id] = item;
+            }
+        }
 
         /// <summary>
         /// Gets the or create table.
@@ -219,6 +262,41 @@ namespace Datasync.Common.Test.Mocks
                 return items.Where(o => o.Value<string>("tableName") == ((ConstantNode)((BinaryOperatorNode)query.Filter).RightOperand).Value.ToString());
             }
             return items;
+        }
+
+        /// <summary>
+        /// Determines if the operations queue contains the specified item.
+        /// </summary>
+        /// <param name="kind">The kind.</param>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="itemId">The item identifier.</param>
+        /// <returns></returns>
+        public JObject FindInQueue(TableOperationKind kind, string tableName, string itemId)
+        {
+            int opKind = (int)kind;
+
+            if (!TableMap.ContainsKey(SystemTables.OperationsQueue))
+            {
+                throw new InvalidOperationException("Operations Queue has not been initialized.");
+            }
+            return TableMap[SystemTables.OperationsQueue].Values
+                .SingleOrDefault(v => v.Value<int>("kind") == opKind && v.Value<string>("tableName") == tableName && v.Value<string>("itemId") == itemId);
+        }
+
+        /// <summary>
+        /// Determines if the table contains the relevant item.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="item">The item.</param>
+        /// <returns><c>true</c> if the item is the same as the item in the table, <c>false</c> otherwise.</returns>
+        public bool TableContains(string tableName, JObject item)
+        {
+            string id = ServiceSerializer.GetId(item);
+            if (!TableMap.ContainsKey(tableName) || !TableMap[tableName].ContainsKey(id))
+            {
+                return false;
+            }
+            return TableMap[tableName][id].Equals(item);
         }
 
         #region IDisposable

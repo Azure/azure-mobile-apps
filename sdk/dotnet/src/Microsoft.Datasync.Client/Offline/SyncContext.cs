@@ -16,12 +16,16 @@ namespace Microsoft.Datasync.Client.Offline
     internal class SyncContext : IDisposable
     {
         private readonly AsyncLock initializationLock = new();
+        private readonly AsyncReaderWriterLock queueLock = new();
 
         /// <summary>
         /// Coordinates all the requests for offline operations.
         /// </summary>
         internal SyncContext(DatasyncClient client, IOfflineStore store)
         {
+            Arguments.IsNotNull(client, nameof(client));
+            Arguments.IsNotNull(store, nameof(store));
+
             ServiceClient = client;
             OfflineStore = store;
         }
@@ -29,22 +33,22 @@ namespace Microsoft.Datasync.Client.Offline
         /// <summary>
         /// <c>true</c> when the <see cref="SyncContext"/> can be used.
         /// </summary>
-        public bool IsInitialized { get; private set; }
+        internal bool IsInitialized { get; private set; }
 
         /// <summary>
         /// The offline store to use for persistent storage.
         /// </summary>
-        public IOfflineStore OfflineStore { get; }
+        internal IOfflineStore OfflineStore { get; }
 
         /// <summary>
         /// The persistent operations queue.
         /// </summary>
-        public OperationsQueue OperationsQueue { get; private set; }
+        internal OperationsQueue OperationsQueue { get; private set; }
 
         /// <summary>
         /// The service client to use for communicating with the back end service.
         /// </summary>
-        public DatasyncClient ServiceClient { get; }
+        internal DatasyncClient ServiceClient { get; }
 
         /// <summary>
         /// Initialize the synchronization context for this offline store.
@@ -83,6 +87,10 @@ namespace Microsoft.Datasync.Client.Offline
             EnsureContextIsInitialized();
             string itemId = ServiceSerializer.GetId(instance);
             var originalInstance = await GetItemAsync(tableName, itemId, cancellationToken).ConfigureAwait(false);
+            if (originalInstance == null)
+            {
+                throw new InvalidOperationException($"The item with ID '{itemId}' is not in the offline store.");
+            }
             var operation = new DeleteOperation(tableName, itemId) { Item = originalInstance };
 
             await EnqueueOperationAsync(operation, originalInstance, cancellationToken).ConfigureAwait(false);
@@ -206,7 +214,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the operation is enqueued on the operations queue.</returns>
         private async Task EnqueueOperationAsync(TableOperation operation, JObject instance, CancellationToken cancellationToken)
         {
-            using (await OperationsQueue.AcquireLockAsync(cancellationToken).ConfigureAwait(false))
+            using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
             {
                 // See if there is an existing operation.  If there is, then validate that it can be collapsed.
                 TableOperation existingOperation = await OperationsQueue.GetOperationByItemIdAsync(operation.TableName, operation.ItemId, cancellationToken).ConfigureAwait(false);

@@ -16,7 +16,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
     /// <summary>
     /// The table operation kind.
     /// </summary>
-    internal enum TableOperationKind
+    public enum TableOperationKind
     {
         Unknown,
         Delete,
@@ -27,7 +27,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
     /// <summary>
     /// The operational states for a table operation.
     /// </summary>
-    internal enum TableOperationState
+    public enum TableOperationState
     {
         Pending,
         Completed,
@@ -37,7 +37,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
     /// <summary>
     /// The base type for the various table operations.
     /// </summary>
-    internal abstract class TableOperation : IEquatable<TableOperation>
+    public abstract class TableOperation : IEquatable<TableOperation>
     {
         /// <summary>
         /// The definition of the table that can store the serialized content for this model.

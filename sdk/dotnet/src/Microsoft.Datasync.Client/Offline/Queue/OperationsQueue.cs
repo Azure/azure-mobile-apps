@@ -114,11 +114,9 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <returns>A task that returns the table operation when complete.</returns>
         public virtual async Task<TableOperation> GetOperationByIdAsync(string id, CancellationToken cancellationToken = default)
         {
-            using (await mutex.AcquireAsync(cancellationToken).ConfigureAwait(false))
-            {
-                JObject operation = await OfflineStore.GetItemAsync(SystemTables.OperationsQueue, id, cancellationToken).ConfigureAwait(false);
-                return operation == null ? null : TableOperation.Deserialize(operation);
-            }
+            JObject operation = await OfflineStore.GetItemAsync(SystemTables.OperationsQueue, id, cancellationToken).ConfigureAwait(false);
+            return operation == null ? null : TableOperation.Deserialize(operation);
+
         }
 
         /// <summary>
@@ -131,15 +129,12 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <exception cref="NotImplementedException"></exception>
         public async Task<TableOperation> GetOperationByItemIdAsync(string tableName, string itemId, CancellationToken cancellationToken = default)
         {
-            using (await mutex.AcquireAsync(cancellationToken).ConfigureAwait(false))
+            QueryDescription query = new(SystemTables.OperationsQueue)
             {
-                QueryDescription query = new(SystemTables.OperationsQueue)
-                {
-                    Filter = new BinaryOperatorNode(BinaryOperatorKind.And, Compare(BinaryOperatorKind.Equal, "tableName", tableName), Compare(BinaryOperatorKind.Equal, "itemId", itemId))
-                };
-                var page = await OfflineStore.GetPageAsync(query, cancellationToken).ConfigureAwait(false);
-                return page.Items?.FirstOrDefault() is JObject operation ? TableOperation.Deserialize(operation) : null;
-            }
+                Filter = new BinaryOperatorNode(BinaryOperatorKind.And, Compare(BinaryOperatorKind.Equal, "tableName", tableName), Compare(BinaryOperatorKind.Equal, "itemId", itemId))
+            };
+            var page = await OfflineStore.GetPageAsync(query, cancellationToken).ConfigureAwait(false);
+            return page.Items?.FirstOrDefault() is JObject operation ? TableOperation.Deserialize(operation) : null;
         }
 
         /// <summary>
@@ -175,16 +170,13 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <returns>A task that completes when the operation is updated.</returns>
         public async Task UpdateOperationAsync(TableOperation operation, CancellationToken cancellationToken = default)
         {
-            using (await mutex.AcquireAsync(cancellationToken).ConfigureAwait(false))
+            try
             {
-                try
-                {
-                    await OfflineStore.UpsertAsync(SystemTables.OperationsQueue, new[] { operation.Serialize() }, false, cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    throw new OfflineStoreException("Failed to update operation in the local store.", ex);
-                }
+                await OfflineStore.UpsertAsync(SystemTables.OperationsQueue, new[] { operation.Serialize() }, false, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                throw new OfflineStoreException("Failed to update operation in the local store.", ex);
             }
         }
 

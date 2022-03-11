@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Serialization;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Threading;
@@ -51,8 +52,16 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <param name="store">The offline store.</param>
         /// <param name="item">The item to use for the store operation.</param>
         /// <returns>A task that completes when the store operation is completed.</returns>
-        public override Task ExecuteOperationOnOfflineStoreAsync(IOfflineStore store, JObject item, CancellationToken cancellationToken = default)
-            => store.UpsertAsync(TableName, new[] { item }, false, cancellationToken);
+        public override async Task ExecuteOperationOnOfflineStoreAsync(IOfflineStore store, JObject item, CancellationToken cancellationToken = default)
+        {
+            var itemId = ServiceSerializer.GetId(item);
+            var originalItem = await store.GetItemAsync(TableName, itemId, cancellationToken).ConfigureAwait(false);
+            if (originalItem == null)
+            {
+                throw new OfflineStoreException($"Item with ID '{itemId}' does not exist in the offline store.");
+            }
+            await store.UpsertAsync(TableName, new[] { item }, false, cancellationToken).ConfigureAwait(false);
+        }
 
         /// <summary>
         /// Internal version of the <see cref="ExecuteOperationOnRemoteServiceAsync(DatasyncClient, CancellationToken)"/>, to execute

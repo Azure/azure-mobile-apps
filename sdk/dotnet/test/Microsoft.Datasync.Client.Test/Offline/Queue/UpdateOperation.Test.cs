@@ -256,21 +256,33 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
-        public async Task ExecuteOnOfflineStore_CallsUpsert()
+        public async Task ExecuteOnOfflineStore_Works_WithItemInStore()
         {
             var store = new Mock<IOfflineStore>();
+            store.Setup(x => x.GetItemAsync("test", "1234", It.IsAny<CancellationToken>())).Returns(Task.FromResult(testObject));
             store.Setup(x => x.UpsertAsync("test", It.IsAny<IEnumerable<JObject>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
             var sut = new UpdateOperation("test", "1234");
 
             await sut.ExecuteOperationOnOfflineStoreAsync(store.Object, testObject);
 
-            Assert.Equal(1, store.Invocations.Count);
+            Assert.Equal(2, store.Invocations.Count);
 
-            var upsert = store.Invocations[0];
+            var upsert = store.Invocations[1];
             Assert.IsAssignableFrom<IEnumerable<JObject>>(upsert.Arguments[1]);
             var items = (IEnumerable<JObject>)upsert.Arguments[1];
             Assert.Single(items);
             Assert.Equal(testObject, items.First());
+        }
+
+        [Fact]
+        public async Task ExecuteOnOfflineStore_Throws_WithItemNotInStore()
+        {
+            var store = new Mock<IOfflineStore>();
+            store.Setup(x => x.GetItemAsync("test", "1234", It.IsAny<CancellationToken>())).Returns(Task.FromResult((JObject)null));
+            store.Setup(x => x.UpsertAsync("test", It.IsAny<IEnumerable<JObject>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+            var sut = new UpdateOperation("test", "1234");
+
+            await Assert.ThrowsAsync<OfflineStoreException>(() => sut.ExecuteOperationOnOfflineStoreAsync(store.Object, testObject));
         }
 
         [Fact]

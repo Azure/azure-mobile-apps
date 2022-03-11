@@ -3,10 +3,12 @@
 
 using Datasync.Common.Test.Models;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Microsoft.AspNetCore.Datasync.EFCore.Test
 {
+    [ExcludeFromCodeCoverage]
     public class EFMovie : EntityTableData, IMovie, IEquatable<IMovie>
     {
         /// <summary>
