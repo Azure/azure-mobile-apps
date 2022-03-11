@@ -39,6 +39,27 @@ namespace Microsoft.Datasync.Client.Offline.Queue
     /// </summary>
     internal abstract class TableOperation : IEquatable<TableOperation>
     {
+        /// <summary>
+        /// The definition of the table that can store the serialized content for this model.
+        /// </summary>
+        internal static readonly JObject TableDefinition = new()
+        {
+            { SystemProperties.JsonIdProperty, string.Empty },
+            { "kind", 0 },
+            { "state", 0 },
+            { "tableName", string.Empty },
+            { "itemId", string.Empty },
+            { "item", string.Empty },
+            { "sequence", 0 },
+            { "version", 0 }
+        };
+
+        /// <summary>
+        /// Creates a new <see cref="TableOperation"/>.
+        /// </summary>
+        /// <param name="kind">The kind of operation (delete, insert, update).</param>
+        /// <param name="tableName">Name of the table holding the affected item.</param>
+        /// <param name="itemId">The ID of the affected item.</param>
         protected TableOperation(TableOperationKind kind, string tableName, string itemId)
         {
             Arguments.IsValidTableName(tableName, nameof(tableName));
@@ -177,7 +198,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
                 TableOperationKind.Delete => new DeleteOperation(tableName, itemId),
                 TableOperationKind.Insert => new InsertOperation(tableName, itemId),
                 TableOperationKind.Update => new UpdateOperation(tableName, itemId),
-                _ => null
+                _ => throw new InvalidOperationException("Invalid operation kind")
             };
 
             if (operation != null)
@@ -263,7 +284,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <summary>
         /// Determines if another object is equivalent to this object.
         /// </summary>
-        /// <param name="obj">The comparison object.</param>
+        /// <param name="other">The comparison object.</param>
         /// <returns><c>true</c> if this object is equivalent to the provided object, <c>false</c> otherwise.</returns>
         public bool Equals(TableOperation other)
             => Kind == other.Kind && ItemId == other.ItemId && JsonItem == other.JsonItem && Sequence == other.Sequence && State == other.State && TableName == other.TableName && Version == other.Version;

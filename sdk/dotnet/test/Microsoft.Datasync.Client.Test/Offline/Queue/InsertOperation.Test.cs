@@ -67,6 +67,41 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
             // Note - we check the int value for compatibility at the storage level.
             Assert.Equal(0, (int)operation.State);
             Assert.Equal(1, operation.Version);
+            Assert.True(operation.CanWriteResultToStore);
+            Assert.False(operation.SerializeItemToQueue);
+        }
+
+        [Fact]
+        public void Equals_TableOperation_Works()
+        {
+            var sut = new InsertOperation("test", "1234") { Item = testObject };
+            var other = new InsertOperation("test", "1234") { Item = testObject };
+            var notother = new DeleteOperation("test", "1234");
+
+            Assert.True(sut.Equals(other));
+            Assert.False(sut.Equals(notother));
+        }
+
+        [Fact]
+        public void Equals_Object_Works()
+        {
+            var sut = new InsertOperation("test", "1234") { Item = testObject };
+            var other = new InsertOperation("test", "1234") { Item = testObject };
+            var notother = new DeleteOperation("test", "1234");
+            object notoperation = new();
+
+            Assert.True(sut.Equals((object)other));
+            Assert.False(sut.Equals((object)notother));
+            Assert.False(sut.Equals(notoperation));
+        }
+
+        [Fact]
+        public void GetHashCode_Works()
+        {
+            var sut = new InsertOperation("test", "1234") { Item = testObject };
+            var hash = "1234".GetHashCode();
+
+            Assert.Equal(hash, sut.GetHashCode());
         }
 
         [Fact]
@@ -202,7 +237,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
             var sut = new InsertOperation("test", "1234");
             var newOp = new UpdateOperation("test", "4321");
 
-            Assert.Throws<ArgumentException>(() => sut.ValidateOperationCanCollapse(newOp));
+            Assert.Throws<ArgumentException>(() => sut.CollapseOperation(newOp));
         }
 
         [Fact]
@@ -261,6 +296,18 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        public async Task ExecuteRemote_ReturnsNull_WhenCancelled()
+        {
+            var client = GetMockClient();
+            MockHandler.AddResponse(HttpStatusCode.OK, new IdEntity { Id = "1234", StringValue = "foo" });
+
+            var sut = new InsertOperation("test", "1234") { Item = testObject };
+            sut.Cancel();
+            var actual = await sut.ExecuteOperationOnRemoteServiceAsync(client);
+            Assert.Null(actual);
+        }
+
+        [Fact]
         public async Task ExecuteRemote_CallsRemoteServer_WithSuccess()
         {
             var client = GetMockClient();
@@ -273,6 +320,16 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
             Assert.Equal(HttpMethod.Post, MockHandler.Requests[0].Method);
             Assert.Equal(new Uri(Endpoint, "/tables/test"), MockHandler.Requests[0].RequestUri);
             Assert.Equal(testObject.ToString(Formatting.None), await MockHandler.Requests[0].Content.ReadAsStringAsync());
+        }
+
+        [Fact]
+        public async Task ExecuteRemote_CallsRemoteServer_ThrowsWhenInvalidResponse()
+        {
+            var client = GetMockClient();
+            MockHandler.AddResponse(HttpStatusCode.OK, new string[] { "test" });
+
+            var sut = new InsertOperation("test", "1234") { Item = testObject };
+            await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => sut.ExecuteOperationOnRemoteServiceAsync(client));
         }
 
         [Fact]

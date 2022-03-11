@@ -36,14 +36,6 @@ namespace Microsoft.Datasync.Client.Offline
         Task DeleteAsync(string tableName, IEnumerable<string> ids, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Returns items from the table.
-        /// </summary>
-        /// <param name="query">A query describing the items to be returned.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that returns a page of items when complete.</returns>
-        Task<Page<JObject>> GetPageAsync(QueryDescription query, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Returns a single item by the ID of the item.
         /// </summary>
         /// <param name="tableName">The table name holding the item.</param>
@@ -51,6 +43,14 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the item when complete.</returns>
         Task<JObject> GetItemAsync(string tableName, string id, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns items from the table.
+        /// </summary>
+        /// <param name="query">A query describing the items to be returned.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns a page of items when complete.</returns>
+        Task<Page<JObject>> GetPageAsync(QueryDescription query, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Initializes the store for use.

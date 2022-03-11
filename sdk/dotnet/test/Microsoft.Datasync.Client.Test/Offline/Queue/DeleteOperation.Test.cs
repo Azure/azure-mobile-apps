@@ -65,6 +65,41 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
             // Note - we check the int value for compatibility at the storage level.
             Assert.Equal(0, (int)operation.State);
             Assert.Equal(1, operation.Version);
+            Assert.False(operation.CanWriteResultToStore);
+            Assert.True(operation.SerializeItemToQueue);
+        }
+
+        [Fact]
+        public void Equals_TableOperation_Works()
+        {
+            var sut = new DeleteOperation("test", "1234") { Item = testObject };
+            var other = new DeleteOperation("test", "1234") { Item = testObject };
+            var notother = new DeleteOperation("test", "1234");
+
+            Assert.True(sut.Equals(other));
+            Assert.False(sut.Equals(notother));
+        }
+
+        [Fact]
+        public void Equals_Object_Works()
+        {
+            var sut = new DeleteOperation("test", "1234") { Item = testObject };
+            var other = new DeleteOperation("test", "1234") { Item = testObject };
+            var notother = new DeleteOperation("test", "1234");
+            object notoperation = new();
+
+            Assert.True(sut.Equals((object)other));
+            Assert.False(sut.Equals((object)notother));
+            Assert.False(sut.Equals(notoperation));
+        }
+
+        [Fact]
+        public void GetHashCode_Works()
+        {
+            var sut = new DeleteOperation("test", "1234") { Item = testObject };
+            var hash = "1234".GetHashCode();
+
+            Assert.Equal(hash, sut.GetHashCode());
         }
 
         [Fact]
@@ -150,7 +185,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Theory, CombinatorialData]
-        public void ValidateCollapse_Throws_OnMismatchedItemIds([CombinatorialRange(1,3)] int kind)
+        public void ValidateCollapse_Throws_OnMismatchedItemIds([CombinatorialRange(1, 3)] int kind)
         {
             var sut = new DeleteOperation("test", "1234");
             TableOperation newOperation = kind switch
@@ -193,17 +228,32 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
             Assert.Equal(1, sut.Version);
         }
 
+
+        [Fact]
+        public async Task ExecuteRemote_ReturnsNull_WhenCancelled()
+        {
+            var client = GetMockClient();
+            MockHandler.AddResponse(HttpStatusCode.OK, new IdEntity { Id = "1234", StringValue = "foo" });
+
+            var sut = new DeleteOperation("test", "1234") { Item = testObject };
+            sut.Cancel();
+            var actual = await sut.ExecuteOperationOnRemoteServiceAsync(client);
+            Assert.Null(actual);
+        }
+
         [Theory]
         [InlineData(HttpStatusCode.NoContent)]
         [InlineData(HttpStatusCode.NotFound)]
+        [InlineData(HttpStatusCode.Gone)]
         public async Task ExecuteRemote_CallsRemoteServer_WithSuccess(HttpStatusCode statusCode)
         {
             var client = GetMockClient();
             MockHandler.AddResponse(statusCode);
 
             var sut = new DeleteOperation("test", "1234") { Item = testObject };
-            await sut.ExecuteOperationOnRemoteServiceAsync(client);
+            var result = await sut.ExecuteOperationOnRemoteServiceAsync(client);
 
+            Assert.Null(result);
             Assert.Single(MockHandler.Requests);
             Assert.Equal(HttpMethod.Delete, MockHandler.Requests[0].Method);
             Assert.Equal(new Uri(Endpoint, "/tables/test/1234"), MockHandler.Requests[0].RequestUri);

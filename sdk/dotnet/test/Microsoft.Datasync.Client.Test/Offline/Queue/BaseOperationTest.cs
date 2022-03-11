@@ -3,9 +3,11 @@
 
 using Datasync.Common.Test;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Datasync.Client.Test.Offline.Queue
 {
+    [ExcludeFromCodeCoverage]
     public abstract class BaseOperationTest : BaseTest
     {
         /// <summary>

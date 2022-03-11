@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Offline;
 using System;
 using System.Text.RegularExpressions;
 
@@ -134,8 +135,24 @@ namespace Microsoft.Datasync.Client.Utils
         /// <exception cref="ArgumentNullException">if the table name is null.</exception>
         /// <exception cref="ArgumentException">if the table name is invalid.</exception>
         internal static void IsValidTableName(string tableName, string paramName)
+            => IsValidTableName(tableName, false, paramName);
+
+        /// <summary>
+        /// Returns if the provided table name is valid.
+        /// </summary>
+        /// <param name="tableName">The name of the table to validate.</param>
+        /// <param name="allowSystemTables">If <c>true</c>, allow system tables.</param>
+        /// <param name="paramName">The parameter name.</param>
+        /// <exception cref="ArgumentNullException">if the table name is null.</exception>
+        /// <exception cref="ArgumentException">if the table name is invalid.</exception>
+        internal static void IsValidTableName(string tableName, bool allowSystemTables, string paramName)
         {
             IsNotNull(tableName, paramName);
+            if (allowSystemTables && tableName.StartsWith(SystemTables.Prefix))
+            {
+                // Skip the prefix - the rest of the system tables must still be valid
+                tableName = tableName.Substring(SystemTables.Prefix.Length);
+            }
             if (!validTableNameRegex.IsMatch(tableName))
             {
                 throw new ArgumentException($"{paramName} is an invalid table name", paramName);

@@ -18,7 +18,7 @@ namespace Microsoft.Datasync.Client.Query
     {
         public QueryDescription(string tableName)
         {
-            Arguments.IsValidTableName(tableName, nameof(tableName));
+            Arguments.IsValidTableName(tableName, true, nameof(tableName));
             TableName = tableName;
         }
 

@@ -191,7 +191,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// </summary>
         /// <param name="tableName">The name of the offline table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
-        /// <returns></returns>
+        /// <returns>A task that completes when the push operation has finished.</returns>
         internal Task PushItemsAsync(string tableName, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
@@ -228,7 +228,7 @@ namespace Microsoft.Datasync.Client.Offline
                     existingOperation.CollapseOperation(operation);
                     if (existingOperation.IsCancelled)
                     {
-                        await OperationsQueue.DeleteOperationAsync(existingOperation, cancellationToken).ConfigureAwait(false);
+                        await OperationsQueue.DeleteOperationByIdAsync(existingOperation.Id, existingOperation.Version, cancellationToken).ConfigureAwait(false);
                     }
                     else if (existingOperation.IsUpdated)
                     {
