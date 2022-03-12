@@ -4,10 +4,15 @@
 using Datasync.Common.Test.Mocks;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Offline.Queue;
+using Microsoft.Datasync.Client.Query;
+using Microsoft.Datasync.Client.Table;
+using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -16,7 +21,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
     [ExcludeFromCodeCoverage]
     public class OperationsQueue_Tests : BaseOperationTest
     {
-        private readonly IOfflineStore store = new MockOfflineStore();
+        private readonly MockOfflineStore store = new();
 
         [Fact]
         public void TableDefinition_Serializes()
@@ -53,6 +58,17 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        public async Task Queue_Initialized_Twice()
+        {
+            var sut = new OperationsQueue(store);
+            await sut.InitializeAsync();
+            await sut.InitializeAsync();
+
+            Assert.True(sut.IsInitialized);
+            Assert.Equal(0, sut.PendingOperations);
+        }
+
+        [Fact]
         public async Task Queue_Initialized_WithQueueEntries()
         {
             for (int i = 0; i < 10; i++)
@@ -66,6 +82,125 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
 
             Assert.Equal(10, sut.PendingOperations);
             Assert.Equal(109, sut.SequenceId);
+        }
+
+        [Fact]
+        public async Task DeleteByIdAsync_Works()
+        {
+            var operation = new DeleteOperation("test", Guid.NewGuid().ToString());
+            store.Upsert(SystemTables.OperationsQueue, new[] { operation.Serialize() });
+            var sut = new OperationsQueue(store);
+            await sut.InitializeAsync();
+
+            var actual = await sut.DeleteOperationByIdAsync(operation.Id, operation.Version);
+
+            Assert.True(actual);
+            Assert.Null(store.FindInQueue(TableOperationKind.Delete, "test", operation.ItemId));
+        }
+
+        [Fact]
+        public async Task DeleteByIdAsync_DoesNotExist()
+        {
+            var sut = new OperationsQueue(store);
+            await sut.InitializeAsync();
+
+            var actual = await sut.DeleteOperationByIdAsync("1234", 1);
+
+            Assert.False(actual);
+        }
+
+        [Fact]
+        public async Task DeleteByIdAsync_VersionMismatch()
+        {
+            var operation = new DeleteOperation("test", Guid.NewGuid().ToString()) { Version = 23 };
+            store.Upsert(SystemTables.OperationsQueue, new[] { operation.Serialize() });
+            var sut = new OperationsQueue(store);
+            await sut.InitializeAsync();
+
+            var actual = await sut.DeleteOperationByIdAsync(operation.Id, 24);
+
+            Assert.False(actual);
+            Assert.Single(store.TableMap[SystemTables.OperationsQueue].Values);
+        }
+
+        [Fact]
+        public async Task DeleteByIdAsync_StoreException()
+        {
+            var operation = new DeleteOperation("test", Guid.NewGuid().ToString()) { Version = 23 };
+            store.Upsert(SystemTables.OperationsQueue, new[] { operation.Serialize() });
+            var sut = new OperationsQueue(store);
+            await sut.InitializeAsync();
+
+            store.ExceptionToThrow = new ApplicationException();
+
+            await Assert.ThrowsAsync<OfflineStoreException>(() => sut.DeleteOperationByIdAsync(operation.Id, operation.Version));
+        }
+
+        [Fact]
+        public async Task GetOperationByItemIdAsync_NullItems()
+        {
+            var store = new Mock<IOfflineStore>();
+            var page = new Page<JObject> { Items = null };
+            store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(page));
+
+            var sut = new OperationsQueue(store.Object);
+            await sut.InitializeAsync();
+            var actual = await sut.GetOperationByItemIdAsync("test", "1234");
+            Assert.Null(actual);
+        }
+
+        [Fact]
+        public async Task GetOperationByItemIdAsync_EmptyItems()
+        {
+            var store = new Mock<IOfflineStore>();
+            var page = new Page<JObject> { Items = Array.Empty<JObject>() };
+            store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(page));
+
+            var sut = new OperationsQueue(store.Object);
+            await sut.InitializeAsync();
+            var actual = await sut.GetOperationByItemIdAsync("test", "1234");
+            Assert.Null(actual);
+        }
+
+        [Fact]
+        public async Task GetOperationByItemIdAsync_JObjectItem()
+        {
+            var store = new Mock<IOfflineStore>();
+            var operation = new InsertOperation("test", "1234");
+            var page = new Page<JObject> { Items = new JObject[] { operation.Serialize() } };
+            store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(page));
+
+            var sut = new OperationsQueue(store.Object);
+            await sut.InitializeAsync();
+            var actual = await sut.GetOperationByItemIdAsync("test", "1234");
+            Assert.Equal(operation, actual);
+        }
+
+        [Fact]
+        public async Task UpdateOperation_StoreOperation()
+        {
+            var operation = new DeleteOperation("test", Guid.NewGuid().ToString()) { Version = 23 };
+            store.Upsert(SystemTables.OperationsQueue, new[] { operation.Serialize() });
+            var sut = new OperationsQueue(store);
+            await sut.InitializeAsync();
+
+            operation.Sequence = 42;
+
+            await sut.UpdateOperationAsync(operation);
+
+            Assert.True(JToken.DeepEquals(operation.Serialize(), store.TableMap[SystemTables.OperationsQueue].Values.First()));
+        }
+
+        [Fact]
+        public async Task UpdateOperation_StoreException()
+        {
+            var operation = new DeleteOperation("test", Guid.NewGuid().ToString()) { Version = 23 };
+            store.Upsert(SystemTables.OperationsQueue, new[] { operation.Serialize() });
+            var sut = new OperationsQueue(store);
+            await sut.InitializeAsync();
+
+            store.ExceptionToThrow = new ApplicationException();
+            await Assert.ThrowsAsync<OfflineStoreException>(() => sut.UpdateOperationAsync(operation));
         }
     }
 }

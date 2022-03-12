@@ -707,5 +707,41 @@ namespace Microsoft.Datasync.Client.Test.Query
 
             Assert.Throws<NotSupportedException>(() => query.ToODataString());
         }
+
+        [Fact]
+        public void ToODataString_DontIncludeParameters()
+        {
+            // Arrange
+            var client = GetMockClient();
+            var table = new RemoteTable<ClientMovie>("movies", client);
+            var query = new TableQuery<ClientMovie>(table).OrderBy(m => m.ReleaseDate).WithParameter("foo", "bar") as TableQuery<ClientMovie>;
+
+            var actual = query.ToODataString(false);
+            Assert.Equal("$orderby=releaseDate", actual);
+        }
+
+        [Fact]
+        public void ToODataString_IncludeParameters()
+        {
+            // Arrange
+            var client = GetMockClient();
+            var table = new RemoteTable<ClientMovie>("movies", client);
+            var query = new TableQuery<ClientMovie>(table).OrderBy(m => m.ReleaseDate).WithParameter("foo", "bar") as TableQuery<ClientMovie>;
+
+            var actual = query.ToODataString(true);
+            Assert.Equal("$orderby=releaseDate&foo=bar", actual);
+        }
+
+        [Fact]
+        public void ToODataString_DefaultIncludeParameters()
+        {
+            // Arrange
+            var client = GetMockClient();
+            var table = new RemoteTable<ClientMovie>("movies", client);
+            var query = new TableQuery<ClientMovie>(table).OrderBy(m => m.ReleaseDate).WithParameter("foo", "bar") as TableQuery<ClientMovie>;
+
+            var actual = query.ToODataString();
+            Assert.Equal("$orderby=releaseDate&foo=bar", actual);
+        }
     }
 }

@@ -3,6 +3,7 @@
 
 using Datasync.Common.Test;
 using Microsoft.Datasync.Client.Query.Linq.Nodes;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
@@ -23,6 +24,47 @@ namespace Microsoft.Datasync.Client.Test.Query
             Assert.Equal(QueryNodeKind.FunctionCall, new FunctionCallNode("name").Kind);
             Assert.Equal(QueryNodeKind.MemberAccess, new MemberAccessNode(null, "updatedAt").Kind);
             Assert.Equal(QueryNodeKind.UnaryOperator, new UnaryOperatorNode(UnaryOperatorKind.Not, node).Kind);
+        }
+
+        [Fact]
+        [Trait("Method", "SetChildren")]
+        public void BinaryOperatorNode_NeedsTwoArguments()
+        {
+            BinaryOperatorNode node = new(BinaryOperatorKind.Add);
+            QueryNode[] children = new QueryNode[] { new ConstantNode(1), new ConstantNode(2) };
+            node.SetChildren(children);
+
+            children = new QueryNode[] { new ConstantNode(1) };
+            Assert.ThrowsAny<Exception>(() => node.SetChildren(children));
+        }
+
+        [Fact]
+        [Trait("Method", "SetChildren")]
+        public void UnaryOperatorNode_NeedsOneArgument()
+        {
+            UnaryOperatorNode node = new(UnaryOperatorKind.Not, new ConstantNode(1));
+            QueryNode[] children = new QueryNode[] { new ConstantNode(1), new ConstantNode(2) };
+            Assert.ThrowsAny<Exception>(() => node.SetChildren(children));
+
+            children = new QueryNode[] { new ConstantNode(1) };
+            node.SetChildren(children);
+        }
+
+        [Fact]
+        [Trait("Method", "get_Instance")]
+        public void MemberAccessNode_GetInstance()
+        {
+            BinaryOperatorNode instance = new(BinaryOperatorKind.Add);
+            MemberAccessNode node = new(instance, "field");
+            Assert.Same(instance, node.Instance);
+        }
+
+        [Fact]
+        [Trait("Method", "SetChildren")]
+        public void ConstantNode_SetChildren_Throws()
+        {
+            ConstantNode node = new(true);
+            Assert.ThrowsAny<Exception>(() => node.SetChildren(new QueryNode[] { node }));
         }
     }
 }

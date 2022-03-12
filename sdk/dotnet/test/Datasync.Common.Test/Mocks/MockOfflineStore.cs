@@ -5,9 +5,6 @@ using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Query.Linq.Nodes;
-// Copyright (c) Microsoft Corporation. All Rights Reserved.
-// Licensed under the MIT License.
-
 using Microsoft.Datasync.Client.Query.OData;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Table;

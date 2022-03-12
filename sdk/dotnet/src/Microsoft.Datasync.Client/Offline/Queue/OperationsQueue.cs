@@ -59,14 +59,6 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         internal long SequenceId { get => sequenceId; }
 
         /// <summary>
-        /// Acquires the queue lock, which allows the serialization of the operations queue insertions.
-        /// </summary>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>An <see cref="IDisposable"/> for releasing the lock.</returns>
-        public Task<IDisposable> AcquireLockAsync(CancellationToken cancellationToken = default)
-            => mutex.AcquireAsync(cancellationToken);
-
-        /// <summary>
         /// Deletes an operation from the operations queue.
         /// </summary>
         /// <param name="id">The ID of the operation.</param>

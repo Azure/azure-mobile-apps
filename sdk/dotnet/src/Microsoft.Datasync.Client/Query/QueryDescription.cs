@@ -90,7 +90,7 @@ namespace Microsoft.Datasync.Client.Query
         /// <param name="tableName">The name of the table for the query.</param>
         /// <param name="query">The OData query string.</param>
         /// <returns>The <see cref="QueryDescription"/> for the query.</returns>
-        public static QueryDescription Parse(string tableName, string query)
+        public static QueryDescription Parse(string tableName, string query = null)
             => Parse(tableName, query ?? string.Empty, null);
 
         /// <summary>
@@ -144,18 +144,16 @@ namespace Microsoft.Datasync.Client.Query
                 }
             }
 
-            var description = new QueryDescription(tableName)
+            return new QueryDescription(tableName)
             {
                 Filter = filter,
                 IncludeTotalCount = includeTotalCount,
+                Ordering = new List<OrderByNode>(orderings ?? Array.Empty<OrderByNode>()),
+                Projections = new(),
+                Selection = new List<string>(selection ?? Array.Empty<string>()),
                 Skip = skip,
-                Top = top
+                Top = top,
             };
-
-            description.Selection.AddRange(selection);
-            description.Ordering.AddRange(orderings);
-
-            return description;
         }
     }
 }

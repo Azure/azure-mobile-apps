@@ -303,6 +303,18 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        public async Task ExecuteRemote_WithInternalFailure()
+        {
+            var table = new Mock<IRemoteTable>();
+            table.Setup(x => x.DeleteItemAsync(It.IsAny<JObject>(), It.IsAny<CancellationToken>())).ThrowsAsync(new DatasyncInvalidOperationException());
+            var client = new Mock<DatasyncClient>();
+            client.Setup(x => x.GetRemoteTable(It.IsAny<string>())).Returns(table.Object);
+
+            var sut = new DeleteOperation("test", "1234") { Item = testObject };
+            var exception = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => sut.ExecuteOperationOnRemoteServiceAsync(client.Object));
+        }
+
+        [Fact]
         public async Task ExecuteLocal_CallsLocalStore()
         {
             var store = new Mock<IOfflineStore>();

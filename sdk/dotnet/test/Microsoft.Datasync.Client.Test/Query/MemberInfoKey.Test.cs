@@ -13,14 +13,16 @@ namespace Microsoft.Datasync.Client.Test.Query
     [ExcludeFromCodeCoverage]
     public class MemberInfoKey_Tests : BaseQueryTest
     {
+        public int testField = 0;
+
         [Fact]
         public void CorrectlyMatchesInstanceMemberInfos()
         {
-            Dictionary<MethodInfo, MemberInfoKey> instanceMethods = new() 
+            Dictionary<MethodInfo, MemberInfoKey> instanceMethods = new()
             {
                 { FindInstanceMethod(typeof(string), "ToLower"), new MemberInfoKey(typeof(string), "ToLower", true, true) },
                 { FindInstanceMethod(typeof(string), "ToLowerInvariant"), new MemberInfoKey(typeof(string), "ToLowerInvariant", true, true) },
-                { FindInstanceMethod(typeof(string), "ToUpper"),  new MemberInfoKey(typeof(string), "ToUpper", true, true) },
+                { FindInstanceMethod(typeof(string), "ToUpper"), new MemberInfoKey(typeof(string), "ToUpper", true, true) },
                 { FindInstanceMethod(typeof(string), "ToUpperInvariant"), new MemberInfoKey(typeof(string), "ToUpperInvariant", true, true) },
                 { FindInstanceMethod(typeof(string), "Trim"), new MemberInfoKey(typeof(string), "Trim", true, true) },
                 { FindInstanceMethod(typeof(string), "StartsWith", typeof(string)), new MemberInfoKey(typeof(string), "StartsWith", true, true, typeof(string)) },
@@ -76,14 +78,15 @@ namespace Microsoft.Datasync.Client.Test.Query
         [Fact]
         public void CorrectlyMatchesPropertyInfos()
         {
-            Dictionary<MemberInfo, MemberInfoKey> instanceProperties = new() {
-                 { FindInstanceProperty(typeof(string), "Length"), new MemberInfoKey(typeof(string), "Length", false, true) },
-                 { FindInstanceProperty(typeof(DateTime), "Day"), new MemberInfoKey(typeof(DateTime), "Day", false, true) },
-                 { FindInstanceProperty(typeof(DateTime), "Month"), new MemberInfoKey(typeof(DateTime), "Month", false, true) },
-                 { FindInstanceProperty(typeof(DateTime), "Year"), new MemberInfoKey(typeof(DateTime), "Year", false, true) },
-                 { FindInstanceProperty(typeof(DateTime), "Hour"), new MemberInfoKey(typeof(DateTime), "Hour", false, true) },
-                 { FindInstanceProperty(typeof(DateTime), "Minute"), new MemberInfoKey(typeof(DateTime), "Minute", false, true) },
-                 { FindInstanceProperty(typeof(DateTime), "Second"), new MemberInfoKey(typeof(DateTime), "Second", false, true) }
+            Dictionary<MemberInfo, MemberInfoKey> instanceProperties = new()
+            {
+                { FindInstanceProperty(typeof(string), "Length"), new MemberInfoKey(typeof(string), "Length", false, true) },
+                { FindInstanceProperty(typeof(DateTime), "Day"), new MemberInfoKey(typeof(DateTime), "Day", false, true) },
+                { FindInstanceProperty(typeof(DateTime), "Month"), new MemberInfoKey(typeof(DateTime), "Month", false, true) },
+                { FindInstanceProperty(typeof(DateTime), "Year"), new MemberInfoKey(typeof(DateTime), "Year", false, true) },
+                { FindInstanceProperty(typeof(DateTime), "Hour"), new MemberInfoKey(typeof(DateTime), "Hour", false, true) },
+                { FindInstanceProperty(typeof(DateTime), "Minute"), new MemberInfoKey(typeof(DateTime), "Minute", false, true) },
+                { FindInstanceProperty(typeof(DateTime), "Second"), new MemberInfoKey(typeof(DateTime), "Second", false, true) }
             };
 
             // Compare each key against all the other keys - they should only match for the same key.
@@ -95,6 +98,47 @@ namespace Microsoft.Datasync.Client.Test.Query
                     Assert.Equal(key == pair.Key, pair.Value.Equals(other));
                 }
             }
+        }
+
+        [Fact]
+        public void Equals_Object_Works()
+        {
+            Dictionary<MemberInfo, MemberInfoKey> instanceProperties = new()
+            {
+                { FindInstanceProperty(typeof(string), "Length"), new MemberInfoKey(typeof(string), "Length", false, true) },
+                { FindInstanceProperty(typeof(DateTime), "Day"), new MemberInfoKey(typeof(DateTime), "Day", false, true) },
+                { FindInstanceProperty(typeof(DateTime), "Month"), new MemberInfoKey(typeof(DateTime), "Month", false, true) },
+                { FindInstanceProperty(typeof(DateTime), "Year"), new MemberInfoKey(typeof(DateTime), "Year", false, true) },
+                { FindInstanceProperty(typeof(DateTime), "Hour"), new MemberInfoKey(typeof(DateTime), "Hour", false, true) },
+                { FindInstanceProperty(typeof(DateTime), "Minute"), new MemberInfoKey(typeof(DateTime), "Minute", false, true) },
+                { FindInstanceProperty(typeof(DateTime), "Second"), new MemberInfoKey(typeof(DateTime), "Second", false, true) }
+            };
+
+            // Compare each key against all the other keys - they should only match for the same key.
+            foreach (MemberInfo key in instanceProperties.Keys)
+            {
+                foreach (var pair in instanceProperties)
+                {
+                    MemberInfoKey other = new(key);
+                    Assert.Equal(key == pair.Key, pair.Value.Equals((object)other));
+                }
+            }
+        }
+
+        [Fact]
+        public void Equals_Object_WithOtherObject_Works()
+        {
+            var other = FindInstanceProperty(typeof(string), "Length");
+            MemberInfoKey key = new(typeof(string), "Length", false, true);
+            Assert.False(key.Equals(other));
+        }
+
+        [Fact]
+        public void Ctor_Throws_WhenNotMethodOrProperty()
+        {
+            var fieldInfo = this.GetType().GetField("testField");
+            Assert.NotNull(fieldInfo); // This will be thrown if we can't find testField
+            Assert.ThrowsAny<Exception>(() => new MemberInfoKey(fieldInfo));
         }
     }
 }
