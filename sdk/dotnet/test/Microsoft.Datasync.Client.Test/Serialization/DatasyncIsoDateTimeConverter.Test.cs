@@ -62,7 +62,6 @@ namespace Microsoft.Datasync.Client.Test.Serialization
             Assert.IsAssignableFrom<DateTimeOffset>(obj);
             var actual = (DateTimeOffset)obj;
             Assert.Equal(dtotestdate.ToUniversalTime().Ticks, actual.ToUniversalTime().Ticks);
-            Assert.Equal(DateTimeOffset.Now.Offset.TotalMinutes, actual.Offset.TotalMinutes);
         }
 
         [Fact]

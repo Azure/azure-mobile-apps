@@ -82,7 +82,6 @@ namespace Datasync.Common.Test.Mocks
             return Task.CompletedTask;
         }
 
-
         /// <summary>
         /// Deletes items from the table where the items are identified by their ID.
         /// </summary>
@@ -152,7 +151,6 @@ namespace Datasync.Common.Test.Mocks
             {
                 return Task.FromResult(new Page<JObject> { Items = items });
             }
-
         }
 
         /// <summary>
@@ -230,7 +228,7 @@ namespace Datasync.Common.Test.Mocks
         /// <param name="query">The query.</param>
         /// <param name="items">The items in the table.</param>
         /// <returns>The filtered items list.</returns>
-        private IEnumerable<JObject> FilterItemList(QueryDescription query, IEnumerable<JObject> items)
+        private static IEnumerable<JObject> FilterItemList(QueryDescription query, IEnumerable<JObject> items)
         {
             var odata = query.ToODataString();
 

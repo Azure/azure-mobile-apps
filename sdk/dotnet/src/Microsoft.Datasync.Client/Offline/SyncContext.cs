@@ -46,6 +46,11 @@ namespace Microsoft.Datasync.Client.Offline
         internal OperationsQueue OperationsQueue { get; private set; }
 
         /// <summary>
+        /// Persistent storage for delta-tokens.
+        /// </summary>
+        internal DeltaTokenStore DeltaTokenStore { get; private set; }
+
+        /// <summary>
         /// The service client to use for communicating with the back end service.
         /// </summary>
         internal DatasyncClient ServiceClient { get; }
@@ -68,7 +73,8 @@ namespace Microsoft.Datasync.Client.Offline
                 OperationsQueue = new OperationsQueue(OfflineStore);
                 await OperationsQueue.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
-                // TODO: Initialize the delta token store.
+                // Initialize the delta token store.
+                DeltaTokenStore = new DeltaTokenStore(OfflineStore);
 
                 IsInitialized = true;
             }

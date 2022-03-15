@@ -228,7 +228,6 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
             Assert.Equal(1, sut.Version);
         }
 
-
         [Fact]
         public async Task ExecuteRemote_ReturnsNull_WhenCancelled()
         {

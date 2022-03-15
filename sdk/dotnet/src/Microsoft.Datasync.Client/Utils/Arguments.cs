@@ -123,7 +123,7 @@ namespace Microsoft.Datasync.Client.Utils
             IsNotNull(param, paramName);
             if (!validIdRegex.IsMatch(param))
             {
-                throw new ArgumentException($"{paramName} is an invalid ID", paramName);
+                throw new ArgumentException($"'{param}' is an invalid ID", paramName);
             }
         }
 
@@ -155,7 +155,7 @@ namespace Microsoft.Datasync.Client.Utils
             }
             if (!validTableNameRegex.IsMatch(tableName))
             {
-                throw new ArgumentException($"{paramName} is an invalid table name", paramName);
+                throw new ArgumentException($"'{tableName}' is an invalid table name", paramName);
             }
         }
     }

@@ -48,7 +48,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="store">The offline store.</param>
         public static void DefineAllSystemTables(AbstractOfflineStore store)
         {
-            // store.DefineTable(Configuration, SyncSettingsManager.TableDefinition);
+            store.DefineTable(Configuration, DeltaTokenStore.TableDefinition);
             store.DefineTable(OperationsQueue, TableOperation.TableDefinition);
             // store.DefineTable(SyncErrors, TableOperationError.TableDefinition);
         }
