@@ -59,6 +59,32 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         internal long SequenceId { get => sequenceId; }
 
         /// <summary>
+        /// Acquires the queue lock so that write operations are not interrupted.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>An <see cref="IDisposable"/> to release the lock.</returns>
+        internal Task<IDisposable> AcquireLockAsync(CancellationToken cancellationToken)
+            => mutex.AcquireAsync(cancellationToken);
+
+        /// <summary>
+        /// Counts the number of operations in the queue for a specific table.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>The number of operations in the queue for the table.</returns>
+        public async Task<long> CountPendingOperationsAsync(string tableName, CancellationToken cancellationToken = default)
+        {
+            QueryDescription query = new(SystemTables.OperationsQueue)
+            {
+                Filter = Compare(BinaryOperatorKind.Equal, "tableName", tableName),
+                IncludeTotalCount = true,
+                Top = 0
+            };
+            var page = await OfflineStore.GetPageAsync(query, cancellationToken).ConfigureAwait(false);
+            return page.Count ?? 0;
+        }
+
+        /// <summary>
         /// Deletes an operation from the operations queue.
         /// </summary>
         /// <param name="id">The ID of the operation.</param>
@@ -67,21 +93,25 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <returns>A task that completes when the operation is removed.</returns>
         public async Task<bool> DeleteOperationByIdAsync(string id, long version, CancellationToken cancellationToken = default)
         {
-            try
+            using (await AcquireLockAsync(cancellationToken).ConfigureAwait(false))
             {
-                var operation = await GetOperationByIdAsync(id, cancellationToken).ConfigureAwait(false);
-                if (operation == null || operation.Version != version)
+                EnsureQueueIsInitialized();
+                try
                 {
-                    return false;
-                }
+                    var operation = await GetOperationByIdAsync(id, cancellationToken).ConfigureAwait(false);
+                    if (operation == null || operation.Version != version)
+                    {
+                        return false;
+                    }
 
-                await OfflineStore.DeleteAsync(SystemTables.OperationsQueue, new[] { id }, cancellationToken).ConfigureAwait(false);
-                Interlocked.Decrement(ref pendingOperations);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                throw new OfflineStoreException("Failed to delete the operation from the local store", ex);
+                    await OfflineStore.DeleteAsync(SystemTables.OperationsQueue, new[] { id }, cancellationToken).ConfigureAwait(false);
+                    Interlocked.Decrement(ref pendingOperations);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    throw new OfflineStoreException("Failed to delete the operation from the local store", ex);
+                }
             }
         }
 
@@ -93,9 +123,13 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <returns>A task that completes when the operation is enqueued.</returns>
         public async Task EnqueueOperationAsync(TableOperation operation, CancellationToken cancellationToken = default)
         {
-            operation.Sequence = Interlocked.Increment(ref sequenceId);
-            await OfflineStore.UpsertAsync(SystemTables.OperationsQueue, new[] { operation.Serialize() }, false, cancellationToken).ConfigureAwait(false);
-            Interlocked.Increment(ref pendingOperations);
+            using (await AcquireLockAsync(cancellationToken).ConfigureAwait(false))
+            {
+                EnsureQueueIsInitialized();
+                operation.Sequence = Interlocked.Increment(ref sequenceId);
+                await OfflineStore.UpsertAsync(SystemTables.OperationsQueue, new[] { operation.Serialize() }, false, cancellationToken).ConfigureAwait(false);
+                Interlocked.Increment(ref pendingOperations);
+            }
         }
 
         /// <summary>
@@ -106,9 +140,9 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <returns>A task that returns the table operation when complete.</returns>
         public virtual async Task<TableOperation> GetOperationByIdAsync(string id, CancellationToken cancellationToken = default)
         {
+            EnsureQueueIsInitialized();
             JObject operation = await OfflineStore.GetItemAsync(SystemTables.OperationsQueue, id, cancellationToken).ConfigureAwait(false);
             return operation == null ? null : TableOperation.Deserialize(operation);
-
         }
 
         /// <summary>
@@ -121,6 +155,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <exception cref="NotImplementedException"></exception>
         public async Task<TableOperation> GetOperationByItemIdAsync(string tableName, string itemId, CancellationToken cancellationToken = default)
         {
+            EnsureQueueIsInitialized();
             QueryDescription query = new(SystemTables.OperationsQueue)
             {
                 Filter = new BinaryOperatorNode(BinaryOperatorKind.And, Compare(BinaryOperatorKind.Equal, "tableName", tableName), Compare(BinaryOperatorKind.Equal, "itemId", itemId))
@@ -136,7 +171,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <returns>A task that completes when the operations queue is initialized.</returns>
         public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
-            using (await mutex.AcquireAsync(cancellationToken).ConfigureAwait(false))
+            using (await AcquireLockAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (IsInitialized)
                 {
@@ -162,13 +197,29 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <returns>A task that completes when the operation is updated.</returns>
         public async Task UpdateOperationAsync(TableOperation operation, CancellationToken cancellationToken = default)
         {
-            try
+            using (await AcquireLockAsync(cancellationToken).ConfigureAwait(false))
             {
-                await OfflineStore.UpsertAsync(SystemTables.OperationsQueue, new[] { operation.Serialize() }, false, cancellationToken).ConfigureAwait(false);
+                EnsureQueueIsInitialized();
+                try
+                {
+                    await OfflineStore.UpsertAsync(SystemTables.OperationsQueue, new[] { operation.Serialize() }, false, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    throw new OfflineStoreException("Failed to update operation in the local store.", ex);
+                }
             }
-            catch (Exception ex)
+        }
+
+        /// <summary>
+        /// Ensures the queue is initialized.
+        /// </summary>
+        /// <exception cref="System.InvalidOperationException">The operations queue is not initialized.</exception>
+        private void EnsureQueueIsInitialized()
+        {
+            if (!IsInitialized)
             {
-                throw new OfflineStoreException("Failed to update operation in the local store.", ex);
+                throw new InvalidOperationException("The operations queue is not initialized.");
             }
         }
 

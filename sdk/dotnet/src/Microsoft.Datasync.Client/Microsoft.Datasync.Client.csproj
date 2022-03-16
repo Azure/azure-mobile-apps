@@ -56,6 +56,12 @@
   <ItemGroup Condition="$(TargetFramework.StartsWith('netstandard'))">
     <Compile Include="Platforms\netstandard\*.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Offline\Actions\PurgeAction.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Offline\Actions\PurgeAction.cs" />
+  </ItemGroup>
 
   <!-- Common package requirements -->
   <ItemGroup>

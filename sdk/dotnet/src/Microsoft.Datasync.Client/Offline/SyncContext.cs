@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Offline.Actions;
 using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Serialization;
@@ -8,6 +9,8 @@ using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -195,9 +198,12 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="options">The options used to configure the purge operation.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the purge operation has finished.</returns>
-        internal Task PurgeItemsAsync(string tableName, string query, PurgeOptions options, CancellationToken cancellationToken = default)
+        internal async Task PurgeItemsAsync(string tableName, string query, PurgeOptions options, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            EnsureContextIsInitialized();
+            var queryId = options.QueryId ?? GetQueryIdFromQuery(tableName, query);
+            var action = new PurgeAction(this, tableName, query, queryId, options.DiscardPendingOperations);
+            await action.ExecuteAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -267,6 +273,22 @@ namespace Microsoft.Datasync.Client.Offline
             {
                 throw new InvalidOperationException("The synchronization context must be initialized before an offline store can be used.");
             }
+        }
+
+        /// <summary>
+        /// Obtains a query ID from a query and table name.  This is used
+        /// when the dev doesn't specify a query ID.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <param name="query">The query string.</param>
+        /// <returns>A query ID.</returns>
+        private static string GetQueryIdFromQuery(string tableName, string query)
+        {
+            string hashKey = $"q|{tableName}|{query}";
+            byte[] bytes = Encoding.UTF8.GetBytes(hashKey);
+            using MD5 md5 = MD5.Create();
+            byte[] hashBytes = md5.ComputeHash(bytes);
+            return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLower();
         }
 
         #region IDisposable
