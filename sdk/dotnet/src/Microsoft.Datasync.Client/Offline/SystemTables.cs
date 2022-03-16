@@ -28,18 +28,12 @@ namespace Microsoft.Datasync.Client.Offline
         public const string OperationsQueue = Prefix + "operations";
 
         /// <summary>
-        /// The name of the synchronization errors table.
-        /// </summary>
-        public const string SyncErrors = Prefix + "errors";
-
-        /// <summary>
         /// The list of all the system tables.
         /// </summary>
         public static IEnumerable<string> AllTables { get; } = new[]
         {
             Configuration,
-            OperationsQueue,
-            SyncErrors
+            OperationsQueue
         };
 
         /// <summary>
@@ -50,7 +44,6 @@ namespace Microsoft.Datasync.Client.Offline
         {
             store.DefineTable(Configuration, DeltaTokenStore.TableDefinition);
             store.DefineTable(OperationsQueue, TableOperation.TableDefinition);
-            // store.DefineTable(SyncErrors, TableOperationError.TableDefinition);
         }
     }
 }

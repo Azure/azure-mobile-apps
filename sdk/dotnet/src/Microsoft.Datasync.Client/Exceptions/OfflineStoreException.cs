@@ -2,12 +2,14 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Datasync.Client.Offline
 {
     /// <summary>
     /// Provides additional details of a failed offline store operation.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class OfflineStoreException : Exception
     {
         public OfflineStoreException() : base()

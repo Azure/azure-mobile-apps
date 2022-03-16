@@ -129,6 +129,18 @@ namespace Microsoft.Datasync.Client.Test.Offline
         }
 
         [Fact]
+        public async Task GetDeltaTokenAsync_Exists_ReturnsCachedData()
+        {
+            store.Upsert(SystemTables.Configuration, new[] { JObject.Parse(json) });
+            var actual = await sut.GetDeltaTokenAsync(testTBL, testQID);
+            Assert.Equal(testDTO, actual.ToUniversalTime());
+
+            // This one returns the cached data - we don't see it's cached.
+            actual = await sut.GetDeltaTokenAsync(testTBL, testQID);
+            Assert.Equal(testDTO, actual.ToUniversalTime());
+        }
+
+        [Fact]
         public async Task GetDeltaTokenAsync_BadData_Throws()
         {
             store.Upsert(SystemTables.Configuration, new[] { JObject.Parse($"{{\"id\":\"{testKEY}\",\"value\":\"some-bad-date\"}}") });
