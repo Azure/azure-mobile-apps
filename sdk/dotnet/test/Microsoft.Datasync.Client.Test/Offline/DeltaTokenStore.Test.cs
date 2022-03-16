@@ -3,6 +3,7 @@
 
 using Datasync.Common.Test.Mocks;
 using Microsoft.Datasync.Client.Offline;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -71,6 +72,14 @@ namespace Microsoft.Datasync.Client.Test.Offline
             new object[] { "\t" },
         };
         #endregion
+
+        [Fact]
+        public void TableDefinition_Serializes()
+        {
+            var actual = DeltaTokenStore.TableDefinition.ToString(Formatting.None);
+            const string expected = "{\"id\":\"\",\"value\":0}";
+            Assert.Equal(expected, actual);
+        }
 
         [Fact]
         public void Ctor_NullStore_Throws()

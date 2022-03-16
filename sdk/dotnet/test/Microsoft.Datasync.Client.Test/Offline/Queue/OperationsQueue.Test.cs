@@ -10,6 +10,7 @@ using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -24,6 +25,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         private readonly MockOfflineStore store = new();
 
         [Fact]
+        [Trait("Method", "TableDefinition")]
         public void TableDefinition_Serializes()
         {
             var actual = TableOperation.TableDefinition.ToString(Formatting.None);
@@ -33,6 +35,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "TableOperation.Deserialize")]
         public void TableOperation_Deserialize_ThrowsOnInvalidKind()
         {
             var json = JObject.Parse("{}");
@@ -40,6 +43,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "Ctor")]
         public void Queue_NotInitialized_WhenConstructed()
         {
             var sut = new OperationsQueue(store);
@@ -48,6 +52,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "InitializeAsync")]
         public async Task Queue_Initialized_WithEmptyStore()
         {
             var sut = new OperationsQueue(store);
@@ -58,6 +63,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "InitializeAsync")]
         public async Task Queue_Initialized_Twice()
         {
             var sut = new OperationsQueue(store);
@@ -69,6 +75,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "InitializeAsync")]
         public async Task Queue_Initialized_WithQueueEntries()
         {
             for (int i = 0; i < 10; i++)
@@ -85,6 +92,43 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "CountpendingOperationsAsync")]
+        public async Task CountPendingOperationsAsync_Throws_WhenNotInitialized()
+        {
+            var sut = new OperationsQueue(store);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => sut.CountPendingOperationsAsync("movies"));
+        }
+
+        [Theory, CombinatorialData]
+        [Trait("Method", "CountPendingOperationsAsync")]
+        public async Task CountPendingOperationsAsync_Returns_NumberOfItems([CombinatorialRange(0, 5)] int count)
+        {
+            if (count > 0)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    var operation = new InsertOperation("test", Guid.NewGuid().ToString());
+                    store.Upsert(SystemTables.OperationsQueue, new[] { operation.Serialize() });
+                }
+            }
+            var sut = new OperationsQueue(store);
+            await sut.InitializeAsync();
+
+            var actual = await sut.CountPendingOperationsAsync("test");
+
+            Assert.Equal(count, actual);
+        }
+
+        [Fact]
+        [Trait("Method", "DeleteOperationByIdAsync")]
+        public async Task DeleteByIdAsync_Throws_WhenNotInitialized()
+        {
+            var sut = new OperationsQueue(store);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => sut.DeleteOperationByIdAsync("1234", 1L));
+        }
+
+        [Fact]
+        [Trait("Method", "DeleteOperationByIdAsync")]
         public async Task DeleteByIdAsync_Works()
         {
             var operation = new DeleteOperation("test", Guid.NewGuid().ToString());
@@ -99,6 +143,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "DeleteOperationByIdAsync")]
         public async Task DeleteByIdAsync_DoesNotExist()
         {
             var sut = new OperationsQueue(store);
@@ -110,6 +155,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "DeleteOperationByIdAsync")]
         public async Task DeleteByIdAsync_VersionMismatch()
         {
             var operation = new DeleteOperation("test", Guid.NewGuid().ToString()) { Version = 23 };
@@ -124,6 +170,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "DeleteOperationByIdAsync")]
         public async Task DeleteByIdAsync_StoreException()
         {
             var operation = new DeleteOperation("test", Guid.NewGuid().ToString()) { Version = 23 };
@@ -137,6 +184,46 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "GetAsyncOperations")]
+        public async Task GetAsyncOperations_Returns_ZeroItems()
+        {
+            var sut = new OperationsQueue(store);
+            await sut.InitializeAsync();
+
+            var items = await sut.GetAsyncOperations("").ToListAsync();
+            Assert.Empty(items);
+        }
+
+        [Theory, CombinatorialData]
+        [Trait("Method", "GetAsyncOperations")]
+        public async Task GetAsyncOperations_Returns_Items([CombinatorialValues(5, 20, 50)] int count)
+        {
+            if (count > 0)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    var operation = new InsertOperation("test", Guid.NewGuid().ToString());
+                    store.Upsert(SystemTables.OperationsQueue, new[] { operation.Serialize() });
+                }
+            }
+
+            var sut = new OperationsQueue(store);
+            await sut.InitializeAsync();
+
+            var items = await sut.GetAsyncOperations("").ToListAsync();
+            Assert.Equal(count, items.Count);
+        }
+
+        [Fact]
+        [Trait("Method", "GetOperationByItemIdAsync")]
+        public async Task GetOperationByItemIdAsync_Throws_WhenNotInitialized()
+        {
+            var sut = new OperationsQueue(store);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => sut.GetOperationByItemIdAsync("test", "1234"));
+        }
+
+        [Fact]
+        [Trait("Method", "GetOperationByItemIdAsync")]
         public async Task GetOperationByItemIdAsync_NullItems()
         {
             var store = new Mock<IOfflineStore>();
@@ -150,6 +237,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "GetOperationByItemIdAsync")]
         public async Task GetOperationByItemIdAsync_EmptyItems()
         {
             var store = new Mock<IOfflineStore>();
@@ -163,6 +251,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "GetOperationByItemIdAsync")]
         public async Task GetOperationByItemIdAsync_JObjectItem()
         {
             var store = new Mock<IOfflineStore>();
@@ -177,6 +266,16 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "UpdateOperationAsync")]
+        public async Task UpdateOperationAsync_Throws_WhenNotInitialized()
+        {
+            var operation = new InsertOperation("test", Guid.NewGuid().ToString());
+            var sut = new OperationsQueue(store);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => sut.UpdateOperationAsync(operation));
+        }
+
+        [Fact]
+        [Trait("Method", "UpdateOperationAsync")]
         public async Task UpdateOperation_StoreOperation()
         {
             var operation = new DeleteOperation("test", Guid.NewGuid().ToString()) { Version = 23 };
@@ -192,6 +291,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "UpdateOperationAsync")]
         public async Task UpdateOperation_StoreException()
         {
             var operation = new DeleteOperation("test", Guid.NewGuid().ToString()) { Version = 23 };

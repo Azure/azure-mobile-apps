@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
+using Datasync.Common.Test.Mocks;
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
 using Microsoft.Datasync.Client.Offline;
@@ -396,6 +397,26 @@ namespace Microsoft.Datasync.Client.Test
         {
             var client = new DatasyncClient(Endpoint);
             Assert.Throws<InvalidOperationException>(() => client.GetOfflineTable<ClientMovie>("movies"));
+        }
+
+        [Fact]
+        [Trait("Method", "InitializeOfflineStoreAsync")]
+        public async Task InitializeOfflineStoreAsync_Throws_WhenNoStore()
+        {
+            var client = new DatasyncClient(Endpoint);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => client.InitializeOfflineStoreAsync());
+        }
+
+        [Fact]
+        [Trait("Method", "InitializeOfflineStoreAsync")]
+        public async Task InitializedOfflineStoreAsync_CallsInit_WhenStore()
+        {
+            var store = new MockOfflineStore();
+            var client = new DatasyncClient(Endpoint, new DatasyncClientOptions { OfflineStore = store });
+
+            await client.InitializeOfflineStoreAsync();
+
+            Assert.True(client.SyncContext.IsInitialized);
         }
     }
 }

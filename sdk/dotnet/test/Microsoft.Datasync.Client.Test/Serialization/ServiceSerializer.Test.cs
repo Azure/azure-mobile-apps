@@ -68,5 +68,50 @@ namespace Microsoft.Datasync.Client.Test.Serialization
             JObject sut = JObject.Parse("{}");
             Assert.Null(ServiceSerializer.GetId(sut, allowDefault: true));
         }
+
+        [Fact]
+        [Trait("Method", "GetUpdatedAt")]
+        public void GetUpdatedAt_ReturnsNullWhenMissing()
+        {
+            JObject sut = JObject.Parse("{\"id\":\"1234\"}");
+            Assert.Null(ServiceSerializer.GetUpdatedAt(sut));
+        }
+
+        [Fact]
+        [Trait("Method", "GetUpdatedAt")]
+        public void GetUpdatedAt_ReturnsTheDateWhenPresent()
+        {
+            JObject sut = JObject.Parse("{\"updatedAt\":\"2021-03-16T12:32:05.000+00:00\"}");
+            DateTimeOffset expected = DateTimeOffset.Parse("2021-03-16T12:32:05.000+00:00");
+            Assert.Equal(expected.ToUniversalTime(), ServiceSerializer.GetUpdatedAt(sut)?.ToUniversalTime());
+        }
+
+        [Fact]
+        [Trait("Method", "IsDeleted")]
+        public void IsDeleted_ReturnsFalseWhenMissing()
+        {
+            JObject sut = JObject.Parse("{\"id\":\"1234\"}");
+            Assert.False(ServiceSerializer.IsDeleted(sut));
+        }
+
+        [Theory]
+        [InlineData("true", true)]
+        [InlineData("false", false)]
+        [Trait("Method", "IsDeleted")]
+        public void IsDeleted_ReturnsCorrectlyWhenPresent(string value, bool expected)
+        {
+            JObject sut = JObject.Parse($"{{\"deleted\":{value}}}");
+            Assert.Equal(expected, ServiceSerializer.IsDeleted(sut));
+        }
+
+        [Fact]
+        [Trait("Method", "SetIdToDefault")]
+        public void SetIdToDefault_JObject_Works()
+        {
+            JObject sut = JObject.Parse("{\"id\":\"1234\"}");
+            var serializer = new ServiceSerializer();
+            serializer.SetIdToDefault(sut);
+            Assert.Null(sut.Value<string>("id"));
+        }
     }
 }

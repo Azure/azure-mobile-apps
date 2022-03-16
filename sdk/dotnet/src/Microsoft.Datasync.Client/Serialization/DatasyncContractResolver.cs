@@ -94,7 +94,7 @@ namespace Microsoft.Datasync.Client.Serialization
         /// <returns>A list of <see cref="JsonProperty"/> instances for the type.</returns>
         protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
         {
-            lock(createPropertiesForTypeLocks)
+            lock (createPropertiesForTypeLocks)
             {
                 if (!createPropertiesForTypeLocks.ContainsKey(type))
                 {
@@ -102,7 +102,7 @@ namespace Microsoft.Datasync.Client.Serialization
                 }
             }
 
-            lock(createPropertiesForTypeLocks[type])
+            lock (createPropertiesForTypeLocks[type])
             {
                 var properties = base.CreateProperties(type, memberSerialization);
 
@@ -240,6 +240,7 @@ namespace Microsoft.Datasync.Client.Serialization
         {
             List<string> systemProperties = new();
 
+            // TODO: Rationalize this - it has dead code in it.
             foreach (object attribute in member.GetCustomAttributes(true))
             {
                 if (attribute is ISystemPropertyAttribute systemProperty)
@@ -296,7 +297,7 @@ namespace Microsoft.Datasync.Client.Serialization
             idProperty.PropertyName = SystemProperties.JsonIdProperty;
             idProperty.NullValueHandling = NullValueHandling.Ignore;
             idProperty.DefaultValueHandling = DefaultValueHandling.Ignore;
-            lock(idPropertyCache)
+            lock (idPropertyCache)
             {
                 idPropertyCache[type] = idProperty;
             }

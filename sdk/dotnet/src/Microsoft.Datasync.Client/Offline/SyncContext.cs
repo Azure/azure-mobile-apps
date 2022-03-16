@@ -19,7 +19,7 @@ namespace Microsoft.Datasync.Client.Offline
     internal class SyncContext : IDisposable
     {
         private readonly AsyncLock initializationLock = new();
-        private readonly AsyncReaderWriterLock queueLock = new();
+        private readonly AsyncLock queueLock = new();
 
         /// <summary>
         /// Coordinates all the requests for offline operations.
@@ -226,7 +226,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the operation is enqueued on the operations queue.</returns>
         private async Task EnqueueOperationAsync(TableOperation operation, JObject instance, CancellationToken cancellationToken)
         {
-            using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
+            using (await queueLock.AcquireAsync(cancellationToken).ConfigureAwait(false))
             {
                 // See if there is an existing operation.  If there is, then validate that it can be collapsed.
                 TableOperation existingOperation = await OperationsQueue.GetOperationByItemIdAsync(operation.TableName, operation.ItemId, cancellationToken).ConfigureAwait(false);

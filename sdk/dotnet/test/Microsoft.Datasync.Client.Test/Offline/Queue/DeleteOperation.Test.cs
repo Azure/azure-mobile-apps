@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test.Models;
-using Microsoft.Datasync.Client.Exceptions;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Offline.Queue;
 using Moq;

@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.Datasync.Client.Exceptions
+namespace Microsoft.Datasync.Client.Offline
 {
     /// <summary>
     /// Exception that is thrown from a table operation when the push is aborted.

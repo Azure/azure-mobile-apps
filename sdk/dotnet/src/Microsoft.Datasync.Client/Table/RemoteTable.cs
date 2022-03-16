@@ -206,7 +206,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <returns>The conditional headers, or <c>null</c> if there are no conditional headers.</returns>
         protected static Dictionary<string, string> GetConditionalHeaders(JObject instance)
         {
-            string version = ServiceSerializer.GetVersionOrDefault(instance);
+            string version = ServiceSerializer.GetVersion(instance);
             return string.IsNullOrEmpty(version) ? null : new Dictionary<string, string> { [ServiceHeaders.IfMatch] = version.ToETagValue() };
         }
 

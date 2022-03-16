@@ -13,8 +13,7 @@ namespace Microsoft.Datasync.Client.Offline.Actions
     /// </summary>
     internal abstract class TableAction : SyncAction
     {
-        internal TableAction(SyncContext context, string tableName, string query, string queryId)
-            : base(context.OperationsQueue, context.OfflineStore)
+        internal TableAction(SyncContext context, string tableName, string query, string queryId) : base(context)
         {
             Arguments.IsValidTableName(tableName, nameof(tableName));
             Arguments.IsNotNull(query, nameof(query));

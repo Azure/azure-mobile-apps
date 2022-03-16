@@ -55,6 +55,16 @@ namespace Datasync.Common.Test.Mocks
         public Func<QueryDescription, IEnumerable<JObject>> ReadAsyncFunc { get; set; }
 
         /// <summary>
+        /// A func that returns a page of items (for testing multi-page responses)
+        /// </summary>
+        public Func<QueryDescription, Page<JObject>> ReadPageFunc { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is initialized.
+        /// </summary>
+        public bool IsInitialized { get; private set; }
+
+        /// <summary>
         /// Gets or sets the exception to throw.
         /// </summary>
         public Exception ExceptionToThrow { get; set; }
@@ -165,6 +175,7 @@ namespace Datasync.Common.Test.Mocks
                 throw ExceptionToThrow;
             }
 
+            IsInitialized = true;
             return Task.CompletedTask;
         }
 

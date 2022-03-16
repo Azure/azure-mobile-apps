@@ -74,6 +74,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <returns>The number of operations in the queue for the table.</returns>
         public async Task<long> CountPendingOperationsAsync(string tableName, CancellationToken cancellationToken = default)
         {
+            EnsureQueueIsInitialized();
             QueryDescription query = new(SystemTables.OperationsQueue)
             {
                 Filter = Compare(BinaryOperatorKind.Equal, "tableName", tableName),
@@ -116,6 +117,21 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         }
 
         /// <summary>
+        /// Deletes operations in the queue identified by the query.
+        /// </summary>
+        /// <param name="query">The query identifying the operations to be deleted.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the operation is finished.</returns>
+        public async Task DeleteOperationsAsync(QueryDescription query, CancellationToken cancellationToken = default)
+        {
+            using (await AcquireLockAsync(cancellationToken).ConfigureAwait(false))
+            {
+                EnsureQueueIsInitialized();
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
         /// Places a new operation into the queue.
         /// </summary>
         /// <param name="operation">The operation to enqueue.</param>
@@ -130,6 +146,37 @@ namespace Microsoft.Datasync.Client.Offline.Queue
                 await OfflineStore.UpsertAsync(SystemTables.OperationsQueue, new[] { operation.Serialize() }, false, cancellationToken).ConfigureAwait(false);
                 Interlocked.Increment(ref pendingOperations);
             }
+        }
+
+        /// <summary>
+        /// Execute a query against an offline table, returning a pageable response.
+        /// </summary>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the results when the query finishes.</returns>
+        internal AsyncPageable<TableOperation> GetAsyncOperations(string query, CancellationToken cancellationToken = default)
+        {
+            EnsureQueueIsInitialized();
+            return new FuncAsyncPageable<TableOperation>(nextLink => GetNextPageOfOperationsAsync(query, nextLink, cancellationToken));
+        }
+
+        /// <summary>
+        /// Gets the next page of results in a search for operations in the queue.
+        /// </summary>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="nextLink">The URI to the next link of results.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns a page of results when complete.</returns>
+        private async Task<Page<TableOperation>> GetNextPageOfOperationsAsync(string query, string nextLink, CancellationToken cancellationToken = default)
+        {
+            var queryDescription = QueryDescription.Parse(SystemTables.OperationsQueue, nextLink != null ? new Uri(nextLink).Query.TrimStart('?') : query);
+            var rawPage = await OfflineStore.GetPageAsync(queryDescription, cancellationToken).ConfigureAwait(false);
+            return new Page<TableOperation>()
+            {
+                Count = rawPage.Count,
+                Items = rawPage.Items.Select(x => TableOperation.Deserialize(x)).ToArray(),
+                NextLink = rawPage.NextLink
+            };
         }
 
         /// <summary>

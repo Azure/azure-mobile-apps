@@ -18,14 +18,19 @@ namespace Microsoft.Datasync.Client.Offline.Actions
         /// </summary>
         /// <param name="queue">The operations queue holding the pending operations.</param>
         /// <param name="store">The persistent store used for storing synchronized items.</param>
-        public SyncAction(OperationsQueue queue, IOfflineStore store)
+        public SyncAction(SyncContext context)
         {
-            Arguments.IsNotNull(queue, nameof(queue));
-            Arguments.IsNotNull(store, nameof(store));
+            Arguments.IsNotNull(context, nameof(context));
 
-            OperationsQueue = queue;
-            OfflineStore = store;
+            OperationsQueue = context.OperationsQueue;
+            OfflineStore = context.OfflineStore;
+            DeltaTokenStore = context.DeltaTokenStore;
         }
+
+        /// <summary>
+        /// The delta token store.
+        /// </summary>
+        protected DeltaTokenStore DeltaTokenStore { get; }
 
         /// <summary>
         /// The offline store that the synchronization action is affecting.

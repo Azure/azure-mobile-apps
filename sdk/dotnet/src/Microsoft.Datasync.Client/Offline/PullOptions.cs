@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-namespace Microsoft.Datasync.Client
+namespace Microsoft.Datasync.Client.Offline
 {
     /// <summary>
     /// The options used to configure a pull operation.

@@ -97,7 +97,7 @@ namespace Microsoft.Datasync.Client.Serialization
         /// </summary>
         /// <param name="instance">The subject instance.</param>
         /// <returns>The version of the instance, or <c>null</c>.</returns>
-        public static string GetVersionOrDefault(JObject instance)
+        public static string GetVersion(JObject instance)
         {
             foreach (JProperty property in instance.Properties())
             {
@@ -116,14 +116,6 @@ namespace Microsoft.Datasync.Client.Serialization
         /// <returns><c>true</c> if the instance is marked as deleted.</returns>
         public static bool IsDeleted(JObject instance)
             => instance.Value<bool>(SystemProperties.JsonDeletedProperty);
-
-        /// <summary>
-        /// Parses a JSON string to a JToken.
-        /// </summary>
-        /// <param name="json">The JSON string</param>
-        /// <returns>The <see cref="JToken"/> representation.</returns>
-        internal JToken ParseToJToken(string json)
-            => string.IsNullOrEmpty(json) ? null : JsonConvert.DeserializeObject<JToken>(json, SerializerSettings);
 
         /// <summary>
         /// Removes all system properties from the instance.
@@ -207,14 +199,5 @@ namespace Microsoft.Datasync.Client.Serialization
             id = (hasId && idToken is JValue idValue && idValue.Type == JTokenType.String) ? idValue.Value<string>() : null;
             return hasId && id != null;
         }
-
-        /// <summary>
-        /// Determines if the specified JToken is a valid item, converting it to a JObject if it is,
-        /// and returning <c>null</c> if not.
-        /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        internal static JObject ValidItemOrNull(JToken item)
-            => item is JObject obj && obj.Value<string>(SystemProperties.JsonIdProperty) != null ? (JObject)item : null;
     }
 }

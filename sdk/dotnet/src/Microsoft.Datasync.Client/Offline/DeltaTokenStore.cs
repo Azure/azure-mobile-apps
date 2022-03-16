@@ -28,7 +28,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <summary>
         /// A set of locks to coordinate access to the cache.
         /// </summary>
-        private readonly AsyncLockDictionary cacheLock = new();
+        private readonly AsyncLock cacheLock = new();
 
         /// <summary>
         /// A cache of the delta-tokens.
@@ -65,7 +65,7 @@ namespace Microsoft.Datasync.Client.Offline
         public virtual async Task<DateTimeOffset> GetDeltaTokenAsync(string tableName, string queryId, CancellationToken cancellationToken = default)
         {
             string key = GetKey(tableName, queryId);
-            using (await cacheLock.AcquireAsync(key, cancellationToken).ConfigureAwait(false))
+            using (await cacheLock.AcquireAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (cache.TryGetValue(key, out DateTimeOffset cacheValue))
                 {
@@ -93,7 +93,7 @@ namespace Microsoft.Datasync.Client.Offline
         public virtual async Task ResetDeltaTokenAsync(string tableName, string queryId, CancellationToken cancellationToken = default)
         {
             string key = GetKey(tableName, queryId);
-            using (await cacheLock.AcquireAsync(key, cancellationToken).ConfigureAwait(false))
+            using (await cacheLock.AcquireAsync(cancellationToken).ConfigureAwait(false))
             {
                 cache.Remove(key);
                 await OfflineStore.DeleteAsync(SystemTables.Configuration, new string[] { key }, cancellationToken).ConfigureAwait(false);
@@ -115,7 +115,7 @@ namespace Microsoft.Datasync.Client.Offline
         public virtual async Task SetDeltaTokenAsync(string tableName, string queryId, DateTimeOffset deltaToken, CancellationToken cancellationToken = default)
         {
             var key = GetKey(tableName, queryId);
-            using (await cacheLock.AcquireAsync(key, cancellationToken).ConfigureAwait(false))
+            using (await cacheLock.AcquireAsync(cancellationToken).ConfigureAwait(false))
             {
                 long unixms = deltaToken.ToUnixTimeMilliseconds();
                 var obj = new JObject()
