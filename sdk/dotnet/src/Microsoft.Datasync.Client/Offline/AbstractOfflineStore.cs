@@ -97,7 +97,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// </summary>
         /// <param name="tableName">The name of the table.</param>
         /// <param name="tableDefinition">The table definition as a sample JSON object.</param>
-        internal abstract void DefineTable(string tableName, JObject tableDefinition);
+        public abstract void DefineTable(string tableName, JObject tableDefinition);
 
         /// <summary>
         /// Ensures that the store has been initialized.

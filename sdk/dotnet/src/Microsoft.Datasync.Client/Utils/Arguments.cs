@@ -11,7 +11,7 @@ namespace Microsoft.Datasync.Client.Utils
     /// Methods required to validate that method arguments meet
     /// the contract requirements.
     /// </summary>
-    internal static class Arguments
+    public static class Arguments
     {
         /// <summary>
         /// The regular expression to match for a valid table name.
@@ -40,7 +40,7 @@ namespace Microsoft.Datasync.Client.Utils
         /// <param name="param">The parameter to validate.</param>
         /// <param name="paramName">The name of the parameter.</param>
         /// <exception cref="ArgumentNullException">if the parameter is <c>null</c>.</exception>
-        internal static void IsNotNull(object param, string paramName)
+        public static void IsNotNull(object param, string paramName)
         {
             if (param == null)
             {
@@ -55,7 +55,7 @@ namespace Microsoft.Datasync.Client.Utils
         /// <param name="paramName">The name of the parameter.</param>
         /// <exception cref="ArgumentNullException">if the parameter is <c>null</c>.</exception>
         /// <exception cref="ArgumentException">if the parameter comprises of only whitespace.</exception>
-        internal static void IsNotNullOrWhitespace(string param, string paramName)
+        public static void IsNotNullOrWhitespace(string param, string paramName)
         {
             IsNotNull(param, paramName);
             if (string.IsNullOrWhiteSpace(param))
@@ -71,7 +71,7 @@ namespace Microsoft.Datasync.Client.Utils
         /// <param name="paramName">The name of the parameter.</param>
         /// <returns>The parameter, if valid.</returns>
         /// <exception cref="ArgumentException">if the parameter is invalid.</exception>
-        internal static int IsPositiveInteger(int param, string paramName)
+        public static int IsPositiveInteger(int param, string paramName)
         {
             if (param <= 0)
             {
@@ -91,7 +91,7 @@ namespace Microsoft.Datasync.Client.Utils
         /// <param name="paramName">The parameter name.</param>
         /// <exception cref="ArgumentNullException">if the endpoint is null.</exception>
         /// <exception cref="UriFormatException">if the endpoint is not valid.</exception>
-        internal static void IsValidEndpoint(Uri endpoint, string paramName)
+        public static void IsValidEndpoint(Uri endpoint, string paramName)
         {
             IsNotNull(endpoint, paramName);
             if (!endpoint.IsAbsoluteUri)
@@ -118,7 +118,7 @@ namespace Microsoft.Datasync.Client.Utils
         /// <param name="paramName">The parameter name.</param>
         /// <exception cref="ArgumentNullException">if the parameter is null.</exception>
         /// <exception cref="ArgumentException">if the parameter cannot be used as an ID</exception>
-        internal static void IsValidId(string param, string paramName)
+        public static void IsValidId(string param, string paramName)
         {
             IsNotNull(param, paramName);
             if (!validIdRegex.IsMatch(param))
@@ -134,7 +134,7 @@ namespace Microsoft.Datasync.Client.Utils
         /// <param name="paramName">The parameter name.</param>
         /// <exception cref="ArgumentNullException">if the table name is null.</exception>
         /// <exception cref="ArgumentException">if the table name is invalid.</exception>
-        internal static void IsValidTableName(string tableName, string paramName)
+        public static void IsValidTableName(string tableName, string paramName)
             => IsValidTableName(tableName, false, paramName);
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace Microsoft.Datasync.Client.Utils
         /// <param name="paramName">The parameter name.</param>
         /// <exception cref="ArgumentNullException">if the table name is null.</exception>
         /// <exception cref="ArgumentException">if the table name is invalid.</exception>
-        internal static void IsValidTableName(string tableName, bool allowSystemTables, string paramName)
+        public static void IsValidTableName(string tableName, bool allowSystemTables, string paramName)
         {
             IsNotNull(tableName, paramName);
             if (allowSystemTables && tableName.StartsWith(SystemTables.Prefix))

@@ -37,6 +37,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Datasy
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Datasync.Integration.Test", "test\Microsoft.Datasync.Integration.Test\Microsoft.Datasync.Integration.Test.csproj", "{E3361D5F-DBA8-4599-86A1-D622193C778A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Datasync.Client.InMemoryStore", "src\Microsoft.Datasync.Client.InMemoryStore\Microsoft.Datasync.Client.InMemoryStore.csproj", "{EB065E7F-4F78-4BFF-B946-DC4050F472DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{E3361D5F-DBA8-4599-86A1-D622193C778A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3361D5F-DBA8-4599-86A1-D622193C778A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3361D5F-DBA8-4599-86A1-D622193C778A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB065E7F-4F78-4BFF-B946-DC4050F472DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB065E7F-4F78-4BFF-B946-DC4050F472DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB065E7F-4F78-4BFF-B946-DC4050F472DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB065E7F-4F78-4BFF-B946-DC4050F472DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -107,6 +113,7 @@ Global
 		{1AEFC848-C5D9-4BC6-B407-DE6EAB68D6C8} = {36374470-D235-4CD3-917D-BD036A657F6C}
 		{BFEB9691-4646-48C9-A3F9-AE499B365F75} = {1675CF58-54FE-474F-80AD-8E494662F2A4}
 		{E3361D5F-DBA8-4599-86A1-D622193C778A} = {FC1EEC9E-3B6D-487B-80AF-DF63352EC02A}
+		{EB065E7F-4F78-4BFF-B946-DC4050F472DD} = {EAE97D18-4D6B-4983-858E-4A7A5EF3043A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A0CEDA72-A2EB-4741-98C3-6E5CFA65DF02}
