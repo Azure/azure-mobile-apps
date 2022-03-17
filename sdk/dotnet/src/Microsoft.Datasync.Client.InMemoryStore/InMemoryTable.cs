@@ -9,6 +9,7 @@ using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -115,7 +116,72 @@ namespace Microsoft.Datasync.Client.InMemoryStore
         public Task UpsertAsync(IEnumerable<JObject> items, bool ignoreMissingColumns, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(items, nameof(items));
-            throw new NotImplementedException();
+            Dictionary<string, JObject> itemsToAdd = new();
+
+            foreach (var item in items)
+            {
+                try
+                {
+                    var id = item.Value<string>(SystemProperties.JsonIdProperty);
+                    Arguments.IsValidId(id, nameof(id));
+
+                    StripExtraFields(item, TableDefinition);
+                    if (!ignoreMissingColumns)
+                    {
+                        ValidateTableDefinition(item, TableDefinition);
+                    }
+                    itemsToAdd.Add(id, (JObject)item.DeepClone());
+                }
+                catch (ArgumentException)
+                {
+                    throw new OfflineStoreException($"The '{SystemProperties.JsonIdProperty}' field for one of the items is not valid");
+                }
+
+                foreach (var itemToAdd in itemsToAdd)
+                {
+                    content.Add(itemToAdd.Key, itemToAdd.Value);
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Strips any extra fields that are not in the table definition from the stored value.
+        /// </summary>
+        /// <param name="item">The item to modify.</param>
+        /// <param name="tableDefinition">The table definition.</param>
+        internal static void StripExtraFields(JObject item, JObject tableDefinition)
+        {
+            List<string> propertiesInItem = item.Properties().Select(prop => prop.Name).ToList();
+            List<string> propertiesInDefinition = tableDefinition.Properties().Select(prop => prop.Name).ToList();
+            foreach (var propToRemove in propertiesInItem.Where(prop => !propertiesInDefinition.Contains(prop)))
+            {
+                item.Remove(propToRemove);
+            }
+        }
+
+        /// <summary>
+        /// Determines if the object provided has missing fields when compared to the field list within
+        /// the table definition.
+        /// </summary>
+        /// <param name="item">The item to check.</param>
+        /// <param name="tableDefinition">The table definition.</param>
+        /// <exception cref="OfflineStoreException">if a field has the wrong type or a missing field.</exception>
+        internal static void ValidateTableDefinition(JObject item, JObject tableDefinition)
+        {
+            var id = item.Value<string>(SystemProperties.JsonIdProperty) ?? "missing-id";
+            foreach (var property in tableDefinition.Properties())
+            {
+                if (!item.ContainsKey(property.Name))
+                {
+                    throw new OfflineStoreException($"The item with ID '{id}' is missing property '{property.Name}'");
+                }
+                if (item[property.Name].Type != property.Type)
+                {
+                    throw new OfflineStoreException($"The item with ID '{id}' has the wrong type for property '{property.Name}'");
+                }
+            }
         }
     }
 }
