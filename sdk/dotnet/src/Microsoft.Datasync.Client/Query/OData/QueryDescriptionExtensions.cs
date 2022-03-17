@@ -11,7 +11,7 @@ namespace Microsoft.Datasync.Client.Query.OData
     /// <summary>
     /// A set of extension methods to enable OData translation for a <see cref="QueryDescription"/>.
     /// </summary>
-    internal static class QueryDescriptionExtensions
+    public static class QueryDescriptionExtensions
     {
         /// <summary>
         /// Converts the query structure into a standard OData URI protocol for queries.

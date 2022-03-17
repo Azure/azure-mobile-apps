@@ -7,8 +7,6 @@ using System.Collections.Generic;
 
 namespace Microsoft.Datasync.Client.Query.OData
 {
-
-
     /// <summary>
     /// A set of methods for converting to/from supported types.
     /// </summary>
@@ -30,7 +28,7 @@ namespace Microsoft.Datasync.Client.Query.OData
         };
 
         /// <summary>
-        /// The type lookup table to get the type over to the 
+        /// The type lookup table to get the type over to the
         /// </summary>
         private static readonly Dictionary<long, EdmType> TypeLookupTable = new()
         {
@@ -59,7 +57,7 @@ namespace Microsoft.Datasync.Client.Query.OData
         public static string ToODataString(object value)
         {
             long handle = (long)value.GetType().TypeHandle.Value;
-            if (!TypeLookupTable.TryGetValue(handle, out EdmType type)) 
+            if (!TypeLookupTable.TryGetValue(handle, out EdmType type))
             {
                 return null;
             }

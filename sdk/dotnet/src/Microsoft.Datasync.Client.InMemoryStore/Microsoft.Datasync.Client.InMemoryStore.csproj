@@ -26,6 +26,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="Community.OData.Linq" Version="2.1.0" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj" />
 	</ItemGroup>
 </Project>

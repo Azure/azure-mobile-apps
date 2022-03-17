@@ -13,6 +13,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+// This file contains several async methods that are actually sync methods.  The
+// InMemoryOfflineStore passes along the cancellationToken, but we don't use it.
+#pragma warning disable RCS1163 // Remove unused parameter for cancellationToken
+#pragma warning disable IDE0060 // Remove unused parameter for cancellationToken
+
 namespace Microsoft.Datasync.Client.InMemoryStore
 {
     internal class InMemoryTable
@@ -63,7 +68,17 @@ namespace Microsoft.Datasync.Client.InMemoryStore
         {
             Arguments.IsNotNull(query, nameof(query));
 
-            throw new NotImplementedException();
+            var odataQuery = ODataQuery.Parse(query);
+            foreach (var item in odataQuery.Invoke(content.Values.AsQueryable()).ToArray())
+            {
+                var id = item.Value<string>(SystemProperties.JsonIdProperty);
+                if (!string.IsNullOrEmpty(id) && content.ContainsKey(id))
+                {
+                    content.Remove(id);
+                }
+            }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -103,7 +118,17 @@ namespace Microsoft.Datasync.Client.InMemoryStore
         public Task<Page<JObject>> GetPageAsync(QueryDescription query, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(query, nameof(query));
-            throw new NotImplementedException();
+
+            var odataQuery = ODataQuery.Parse(query);
+            long count = odataQuery.CountWithoutPaging(content.Values.AsQueryable());
+            JObject[] items = odataQuery.Invoke(content.Values.AsQueryable()).ToArray();
+            var result = new Page<JObject>() { Count = odataQuery.Count ? count : null, Items = items };
+            var skipValue = string.IsNullOrEmpty(odataQuery.Skip) ? 0 : int.Parse(odataQuery.Skip);
+            if (skipValue + items.Length < count)
+            {
+                result.NextLink = odataQuery.NextQuery(skipValue + items.Length, count - skipValue - items.Length);
+            }
+            return Task.FromResult(result);
         }
 
         /// <summary>

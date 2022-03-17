@@ -32,7 +32,6 @@ namespace Microsoft.Datasync.Client.Query.OData
 
     internal static class TableLookupExtensions
     {
-
         private static readonly Dictionary<long, ConstantType> ConstantTypeLookupTable = new()
         {
             { (long)typeof(bool).TypeHandle.Value, ConstantType.Boolean },
@@ -55,7 +54,7 @@ namespace Microsoft.Datasync.Client.Query.OData
         /// </summary>
         /// <param name="value">The reference value</param>
         /// <returns>The <see cref="ConstantType"/></returns>
-        internal static ConstantType GetConstantType(object value)
+        internal static ConstantType GetConstantType(this object value)
         {
             if (value == null)
             {
@@ -94,11 +93,15 @@ namespace Microsoft.Datasync.Client.Query.OData
             _ => throw new NotSupportedException($"'{kind}' is not supported in a 'Where' table query expression.")
         };
 
+        /// <summary>
+        /// Converts a constant to the value of the OData representation.
+        /// </summary>
+        /// <param name="node">The <see cref="ConstantNode"/> to convert.</param>
+        /// <returns>The OData representation of the constant node value.</returns>
         internal static string ToODataString(this ConstantNode node)
         {
             object value = node.Value;
-            ConstantType type = GetConstantType(value);
-            switch (GetConstantType(value))
+            switch (value.GetConstantType())
             {
                 case ConstantType.Null:
                     return "null";
@@ -109,7 +112,6 @@ namespace Microsoft.Datasync.Client.Query.OData
                 case ConstantType.Character:
                     string ch = (char)value == '\'' ? "''" : ((char)value).ToString();
                     return $"'{ch}'";
-
                 case ConstantType.Decimal:
                     return $"{value}M";
                 case ConstantType.Double:
