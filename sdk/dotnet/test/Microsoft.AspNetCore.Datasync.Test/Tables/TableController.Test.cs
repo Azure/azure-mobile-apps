@@ -26,7 +26,6 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables
         }
 
         [Fact]
-        [SuppressMessage("Style", "IDE0017:Simplify object initialization", Justification = "Proper split of arrange/act/assert")]
         public void Repository_CanBeStored()
         {
             var repository = new InMemoryRepository<InMemoryMovie>();
