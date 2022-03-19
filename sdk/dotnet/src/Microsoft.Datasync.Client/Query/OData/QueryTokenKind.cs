@@ -10,7 +10,7 @@ namespace Microsoft.Datasync.Client.Query.OData
     /// A list of kinds for the <see cref="QueryToken"/> objects
     /// used in the OData expression parser.
     /// </summary>
-    internal enum QueryTokenKind
+    public enum QueryTokenKind
     {
         Unknown,
         End,

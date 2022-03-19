@@ -85,9 +85,11 @@ namespace Datasync.Common.Test.Mocks
 
             DeleteQueries.Add(query);
             var table = GetOrCreateTable(query.TableName);
-
-            // TODO: Convert query to a LINQ method.
-            table.Clear();
+            var items = FilterItemList(query, table.Values).Select(o => o.Value<string>("id"));
+            foreach (var item in items)
+            {
+                table.Remove(item);
+            }
 
             return Task.CompletedTask;
         }

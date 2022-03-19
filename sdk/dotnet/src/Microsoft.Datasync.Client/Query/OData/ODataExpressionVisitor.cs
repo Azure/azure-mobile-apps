@@ -33,7 +33,7 @@ namespace Microsoft.Datasync.Client.Query.OData
         /// <summary>
         /// You cannot instantiate this - access the visitor through the static methods.
         /// </summary>
-        private ODataExpressionVisitor()
+        protected ODataExpressionVisitor()
         {
         }
 
@@ -138,7 +138,7 @@ namespace Microsoft.Datasync.Client.Query.OData
         /// </summary>
         /// <param name="parent">The parent node</param>
         /// <param name="node">The node to visit</param>
-        private void Accept(QueryNode parent, QueryNode node)
+        protected void Accept(QueryNode parent, QueryNode node)
         {
             if (node == null)
             {

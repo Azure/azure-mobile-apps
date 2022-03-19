@@ -4,7 +4,9 @@
 using Datasync.Common.Test;
 using Microsoft.Datasync.Client.Query.Linq.Nodes;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Query
@@ -65,6 +67,25 @@ namespace Microsoft.Datasync.Client.Test.Query
         {
             ConstantNode node = new(true);
             Assert.ThrowsAny<Exception>(() => node.SetChildren(new QueryNode[] { node }));
+        }
+
+        [Fact]
+        [Trait("Method", "SetChildren")]
+        public void ConvertNode_SetChildren_Works()
+        {
+            ConvertNode instance = new ConvertNode(null, typeof(string));
+            List<QueryNode> children = new QueryNode[] { new ConstantNode("abc123") }.ToList();
+            instance.SetChildren(children);
+            Assert.Same(children[0], instance.Source);
+            Assert.Equal(typeof(string), instance.TargetType);
+        }
+
+        [Fact]
+        [Trait("Method", "SetChildren")]
+        public void ConvertNode_SetChildren_ThrowsException()
+        {
+            ConvertNode instance = new ConvertNode(null, typeof(string));
+            Assert.ThrowsAny<Exception>(() => instance.SetChildren(Array.Empty<QueryNode>()));
         }
     }
 }

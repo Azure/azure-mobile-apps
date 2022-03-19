@@ -89,7 +89,7 @@ namespace Microsoft.Datasync.Client.Test.Query
         [Fact]
         public void ParseFilter_DateTime()
         {
-            string dateStr = "2018-08-15T12:15:22.012Z";
+            const string dateStr = "2018-08-15T12:15:22.012Z";
             DateTime comparison = DateTime.Parse(dateStr);
             QueryNode queryNode = ODataExpressionParser.ParseFilter($"Field eq cast({dateStr},Edm.DateTime)");
 
@@ -109,11 +109,10 @@ namespace Microsoft.Datasync.Client.Test.Query
             Assert.Equal(comparison, right.Value);
         }
 
-
         [Fact]
         public void ParseFilter_DateTimeOffset()
         {
-            string dateStr = "2018-08-15T12:15:22.012Z";
+            const string dateStr = "2018-08-15T12:15:22.012Z";
             DateTimeOffset comparison = DateTimeOffset.Parse(dateStr);
             QueryNode queryNode = ODataExpressionParser.ParseFilter($"Field eq cast({dateStr},Edm.DateTimeOffset)");
 
@@ -194,6 +193,73 @@ namespace Microsoft.Datasync.Client.Test.Query
         {
             var ex = Assert.Throws<ODataException>(() => ODataExpressionParser.ParseFilter(string.Format("Field eq cast(this is not a guid,Edm.Unknown)")));
             Assert.Equal(9, ex.ErrorPosition);
+        }
+
+        [Theory]
+        [InlineData(QueryTokenKind.Unknown, false)]
+        [InlineData(QueryTokenKind.End, false)]
+        [InlineData(QueryTokenKind.Identifier, false)]
+        [InlineData(QueryTokenKind.StringLiteral, false)]
+        [InlineData(QueryTokenKind.IntegerLiteral, true)]
+        [InlineData(QueryTokenKind.RealLiteral, true)]
+        [InlineData(QueryTokenKind.Not, false)]
+        [InlineData(QueryTokenKind.Modulo, false)]
+        [InlineData(QueryTokenKind.OpenParen, false)]
+        [InlineData(QueryTokenKind.CloseParen, false)]
+        [InlineData(QueryTokenKind.Multiply, false)]
+        [InlineData(QueryTokenKind.Add, false)]
+        [InlineData(QueryTokenKind.Subtract, false)]
+        [InlineData(QueryTokenKind.Comma, false)]
+        [InlineData(QueryTokenKind.Minus, false)]
+        [InlineData(QueryTokenKind.Dot, false)]
+        [InlineData(QueryTokenKind.Divide, false)]
+        [InlineData(QueryTokenKind.LessThan, false)]
+        [InlineData(QueryTokenKind.Equal, false)]
+        [InlineData(QueryTokenKind.GreaterThan, false)]
+        [InlineData(QueryTokenKind.NotEqual, false)]
+        [InlineData(QueryTokenKind.And, false)]
+        [InlineData(QueryTokenKind.LessThanEqual, false)]
+        [InlineData(QueryTokenKind.GreaterThanEqual, false)]
+        [InlineData(QueryTokenKind.Or, false)]
+        public void QueryTokenKind_IsNumberLiteral_Works(QueryTokenKind kind, bool expected)
+        {
+            Assert.Equal(expected, kind.IsNumberLiteral());
+        }
+
+        [Theory]
+        [InlineData(QueryTokenKind.Add, BinaryOperatorKind.Add)]
+        [InlineData(QueryTokenKind.And, BinaryOperatorKind.And)]
+        [InlineData(QueryTokenKind.Or, BinaryOperatorKind.Or)]
+        [InlineData(QueryTokenKind.Equal, BinaryOperatorKind.Equal)]
+        [InlineData(QueryTokenKind.NotEqual, BinaryOperatorKind.NotEqual)]
+        [InlineData(QueryTokenKind.LessThan, BinaryOperatorKind.LessThan)]
+        [InlineData(QueryTokenKind.LessThanEqual, BinaryOperatorKind.LessThanOrEqual)]
+        [InlineData(QueryTokenKind.GreaterThan, BinaryOperatorKind.GreaterThan)]
+        [InlineData(QueryTokenKind.GreaterThanEqual, BinaryOperatorKind.GreaterThanOrEqual)]
+        [InlineData(QueryTokenKind.Subtract, BinaryOperatorKind.Subtract)]
+        [InlineData(QueryTokenKind.Multiply, BinaryOperatorKind.Multiply)]
+        [InlineData(QueryTokenKind.Divide, BinaryOperatorKind.Divide)]
+        [InlineData(QueryTokenKind.Modulo, BinaryOperatorKind.Modulo)]
+        public void QueryTokenKind_ToBinaryOperatorKind_Works(QueryTokenKind kind, BinaryOperatorKind expected)
+        {
+            Assert.Equal(expected, kind.ToBinaryOperatorKind());
+        }
+
+        [Theory]
+        [InlineData(QueryTokenKind.Unknown)]
+        [InlineData(QueryTokenKind.End)]
+        [InlineData(QueryTokenKind.Identifier)]
+        [InlineData(QueryTokenKind.StringLiteral)]
+        [InlineData(QueryTokenKind.IntegerLiteral)]
+        [InlineData(QueryTokenKind.RealLiteral)]
+        [InlineData(QueryTokenKind.Not)]
+        [InlineData(QueryTokenKind.OpenParen)]
+        [InlineData(QueryTokenKind.CloseParen)]
+        [InlineData(QueryTokenKind.Comma)]
+        [InlineData(QueryTokenKind.Dot)]
+        public void QueryTokenKind_ToBinaryOperatorKind_ThrowsOnInvalid(QueryTokenKind kind)
+        {
+            Assert.ThrowsAny<Exception>(() => kind.ToBinaryOperatorKind());
         }
     }
 }

@@ -244,7 +244,7 @@ namespace Microsoft.Datasync.Client.Table
                 var response = await ServiceClient.HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
                 return GetJTokenFromResponse(response);
             }
-            catch (DatasyncInvalidOperationException ex) when (ex.Response?.IsConflictStatusCode() == true)
+            catch (DatasyncInvalidOperationException ex) when (ex.IsConflictStatusCode())
             {
                 string content = await ex.Response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
                 JToken token = string.IsNullOrEmpty(content) ? null : JsonConvert.DeserializeObject<JToken>(content, ServiceClient.Serializer.SerializerSettings);

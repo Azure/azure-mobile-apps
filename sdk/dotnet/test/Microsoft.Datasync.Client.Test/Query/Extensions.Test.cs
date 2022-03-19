@@ -2,6 +2,9 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Query.Linq;
+using Microsoft.Datasync.Client.Query.Linq.Nodes;
+using Microsoft.Datasync.Client.Query.OData;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
@@ -42,6 +45,38 @@ namespace Microsoft.Datasync.Client.Test.Query
             var actual = ExpressionExtensions.IsValidLambdaExpression(null, out LambdaExpression lambda);
             Assert.False(actual);
             Assert.Null(lambda);
+        }
+
+        [Fact]
+        public void ToODataString_InvalidBinaryOperatorKind_Throws()
+        {
+            BinaryOperatorKind sut = (BinaryOperatorKind)99;
+            Assert.ThrowsAny<Exception>(() => sut.ToODataString());
+        }
+
+        [Theory]
+        [InlineData(null, "null")]
+        [InlineData(true, "true")]
+        [InlineData(false, "false")]
+        [InlineData((byte)42, "42")]
+        [InlineData('a', "'a'")]
+        [InlineData('\'', "''''")]
+        [InlineData(42.2f, "42.2f")]
+        [InlineData(4.2E9, "4.2E9")]
+        [InlineData((double)42.4, "42.4")]
+        [InlineData((double)42, "42.0")]
+        [InlineData((long)4000, "4000L")]
+        public void ToODataString_ConstantNode(object sut, string expected)
+        {
+            var node = new ConstantNode(sut);
+            Assert.Equal(expected, node.ToODataString());
+        }
+
+        [Fact]
+        public void ToODataString_ConstantNode_NonTheory()
+        {
+            var node = new ConstantNode(5.8M);
+            Assert.Equal("5.8M", node.ToODataString());
         }
     }
 }

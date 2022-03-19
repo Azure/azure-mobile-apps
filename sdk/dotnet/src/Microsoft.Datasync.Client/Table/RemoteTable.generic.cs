@@ -294,7 +294,7 @@ namespace Microsoft.Datasync.Client.Table
             {
                 return await action();
             }
-            catch (DatasyncInvalidOperationException ex) when (ex.Response?.IsConflictStatusCode() == true)
+            catch (DatasyncInvalidOperationException ex) when (ex.IsConflictStatusCode())
             {
                 try
                 {

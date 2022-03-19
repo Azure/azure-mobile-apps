@@ -4,7 +4,6 @@
 using Datasync.Common.Test.TestData;
 using Microsoft.Datasync.Client.Utils;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Xunit;
 

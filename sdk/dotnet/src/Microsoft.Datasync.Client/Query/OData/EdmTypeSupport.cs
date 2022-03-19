@@ -73,9 +73,8 @@ namespace Microsoft.Datasync.Client.Query.OData
                 case EdmType.Guid:
                     Guid guid = (Guid)value;
                     return $"cast({guid:D},Edm.Guid)";
-                default:
-                    throw new NotImplementedException("EdmType not found.  This should never happen.");
             }
+            return null;
         }
 
         /// <summary>
@@ -90,13 +89,20 @@ namespace Microsoft.Datasync.Client.Query.OData
             {
                 throw new InvalidOperationException($"Edm Type '{typestr}' is not valid.");
             }
-            return type switch
+            var result = new ConstantNode(null);
+            switch (type)
             {
-                EdmType.DateTime => new ConstantNode(DateTime.Parse(literal)),
-                EdmType.DateTimeOffset => new ConstantNode(DateTimeOffset.Parse(literal)),
-                EdmType.Guid => new ConstantNode(Guid.Parse(literal)),
-                _ => throw new NotImplementedException("EdmType not found.  This should never happen."),
-            };
+                case EdmType.DateTime:
+                    result.Value = DateTime.Parse(literal);
+                    break;
+                case EdmType.DateTimeOffset:
+                    result.Value = DateTimeOffset.Parse(literal);
+                    break;
+                case EdmType.Guid:
+                    result.Value = Guid.Parse(literal);
+                    break;
+            }
+            return result;
         }
     }
 }

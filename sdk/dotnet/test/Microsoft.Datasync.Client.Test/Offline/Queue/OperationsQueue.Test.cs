@@ -184,6 +184,16 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         }
 
         [Fact]
+        [Trait("Method", "DeleteOperationsAsync")]
+        public async Task DeleteOperationsAsync_Throws_WhenNotOperationsQueue()
+        {
+            var query = new QueryDescription("test");
+            var sut = new OperationsQueue(store);
+            await sut.InitializeAsync();
+            await Assert.ThrowsAsync<InvalidOperationException>(() => sut.DeleteOperationsAsync(query));
+        }
+
+        [Fact]
         [Trait("Method", "GetAsyncOperations")]
         public async Task GetAsyncOperations_Returns_ZeroItems()
         {

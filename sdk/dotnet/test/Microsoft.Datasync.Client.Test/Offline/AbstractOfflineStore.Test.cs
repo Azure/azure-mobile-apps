@@ -99,7 +99,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
             return Task.CompletedTask;
         }
 
-        internal override void DefineTable(string tableName, JObject tableDefinition)
+        public override void DefineTable(string tableName, JObject tableDefinition)
         {
             tableDefinitions[tableName] = tableDefinition;
         }

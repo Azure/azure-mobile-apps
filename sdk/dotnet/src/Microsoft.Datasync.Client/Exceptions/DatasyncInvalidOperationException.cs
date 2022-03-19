@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Http;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Net.Http;
@@ -94,5 +95,12 @@ namespace Microsoft.Datasync.Client
         /// The server response deserialized as a JObject.
         /// </summary>
         public JObject Value { get; }
+
+        /// <summary>
+        /// Determines if this error is because of a conflict response.
+        /// </summary>
+        /// <returns><c>true</c> if the response indicates a conflict; otherwise, <c>false</c>. </returns>
+        public bool IsConflictStatusCode()
+            => Response?.IsConflictStatusCode() == true;
     }
 }

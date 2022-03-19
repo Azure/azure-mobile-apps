@@ -127,7 +127,11 @@ namespace Microsoft.Datasync.Client.Offline.Queue
             using (await AcquireLockAsync(cancellationToken).ConfigureAwait(false))
             {
                 EnsureQueueIsInitialized();
-                throw new NotImplementedException();
+                if (query.TableName != SystemTables.OperationsQueue)
+                {
+                    throw new InvalidOperationException("To delete an operation in the operations queue by query, ensure the operations queue is the target.");
+                }
+                await OfflineStore.DeleteAsync(query, cancellationToken).ConfigureAwait(false);
             }
         }
 

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Offline.Actions;
 using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Serialization;
@@ -19,7 +18,8 @@ namespace Microsoft.Datasync.Client.Offline
     internal class SyncContext : IDisposable
     {
         private readonly AsyncLock initializationLock = new();
-        private readonly AsyncLock queueLock = new();
+        private readonly AsyncReaderWriterLock queueLock = new();
+        private readonly AsyncLockDictionary tableLock = new();
 
         /// <summary>
         /// Coordinates all the requests for offline operations.
@@ -185,8 +185,9 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="options">The options used to configure the pull operation.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the pull operation has finished.</returns>
-        internal Task PullItemsAsync(string tableName, string query, PullOptions options, CancellationToken cancellationToken = default)
+        internal async Task PullItemsAsync(string tableName, string query, PullOptions options, CancellationToken cancellationToken = default)
         {
+            EnsureContextIsInitialized();
             throw new NotImplementedException();
         }
 
@@ -200,16 +201,44 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the purge operation has finished.</returns>
         internal async Task PurgeItemsAsync(string tableName, string query, PurgeOptions options, CancellationToken cancellationToken = default)
         {
+            Arguments.IsValidTableName(tableName, nameof(tableName));
+            Arguments.IsNotNull(query, nameof(query));
+            Arguments.IsNotNull(options, nameof(options));
             EnsureContextIsInitialized();
+
             var queryId = options.QueryId ?? GetQueryIdFromQuery(tableName, query);
-            var action = new PurgeAction(this, tableName, query, queryId, options.DiscardPendingOperations);
-            await action.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+            var queryDescription = QueryDescription.Parse(tableName, query);
+            using (await tableLock.AcquireAsync(tableName, cancellationToken).ConfigureAwait(false))
+            {
+                if (await TableIsDirtyAsync(tableName, cancellationToken).ConfigureAwait(false))
+                {
+                    if (options.DiscardPendingOperations)
+                    {
+                        await DiscardTableOperationsAsync(tableName, cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("The table cannot be purged because it has pending operations.");
+                    }
+                }
+
+                // Execute the purge
+                using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (!string.IsNullOrEmpty(queryId))
+                    {
+                        await DeltaTokenStore.ResetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
+                    }
+                    await OfflineStore.DeleteAsync(queryDescription, cancellationToken).ConfigureAwait(false);
+                }
+            }
         }
 
         /// <summary>
         /// Pushes items in the operations queue for this table to the remote service.
         /// </summary>
         /// <param name="tableName">The name of the offline table.</param>
+        /// <param
         /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
         /// <returns>A task that completes when the push operation has finished.</returns>
         internal Task PushItemsAsync(string tableName, CancellationToken cancellationToken = default)
@@ -219,6 +248,22 @@ namespace Microsoft.Datasync.Client.Offline
         #endregion
 
         /// <summary>
+        /// Discards operations matching the given query in the operations queue.
+        /// </summary>
+        /// <param name="query">The query identifying the operations to remove.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        internal async Task DiscardTableOperationsAsync(string tableName, CancellationToken cancellationToken)
+        {
+            Arguments.IsValidTableName(tableName, nameof(tableName));
+            EnsureContextIsInitialized();
+            var query = QueryDescription.Parse(SystemTables.OperationsQueue, $"$filter=(tableName eq '{tableName}')");
+            using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
+            {
+                await OperationsQueue.DeleteOperationsAsync(query, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
         /// Enqueues an operation and updates the offline store.
         /// </summary>
         /// <param name="operation">The table operation to enqueue.</param>
@@ -226,7 +271,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the operation is enqueued on the operations queue.</returns>
         private async Task EnqueueOperationAsync(TableOperation operation, JObject instance, CancellationToken cancellationToken)
         {
-            using (await queueLock.AcquireAsync(cancellationToken).ConfigureAwait(false))
+            using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
             {
                 // See if there is an existing operation.  If there is, then validate that it can be collapsed.
                 TableOperation existingOperation = await OperationsQueue.GetOperationByItemIdAsync(operation.TableName, operation.ItemId, cancellationToken).ConfigureAwait(false);
@@ -282,13 +327,29 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="tableName">The name of the table.</param>
         /// <param name="query">The query string.</param>
         /// <returns>A query ID.</returns>
-        private static string GetQueryIdFromQuery(string tableName, string query)
+        internal static string GetQueryIdFromQuery(string tableName, string query)
         {
             string hashKey = $"q|{tableName}|{query}";
             byte[] bytes = Encoding.UTF8.GetBytes(hashKey);
             using MD5 md5 = MD5.Create();
             byte[] hashBytes = md5.ComputeHash(bytes);
             return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLower();
+        }
+
+        /// <summary>
+        /// Determines if the table is dirty (i.e. has pending operations)
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns <c>true</c> if the table is dirty, and <c>false</c> otherwise when complete.</returns>
+        internal async Task<bool> TableIsDirtyAsync(string tableName, CancellationToken cancellationToken)
+        {
+            EnsureContextIsInitialized();
+            using (await queueLock.ReaderLockAsync(cancellationToken).ConfigureAwait(false))
+            {
+                long pendingOperations = await OperationsQueue.CountPendingOperationsAsync(tableName, cancellationToken).ConfigureAwait(false);
+                return pendingOperations > 0;
+            }
         }
 
         #region IDisposable

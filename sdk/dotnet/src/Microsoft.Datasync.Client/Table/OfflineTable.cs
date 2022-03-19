@@ -34,7 +34,7 @@ namespace Microsoft.Datasync.Client.Table
             Arguments.IsValidTableName(tableName, nameof(tableName));
             Arguments.IsNotNull(serviceClient, nameof(serviceClient));
 
-            if (serviceClient.SyncContext.OfflineStore == null)
+            if (serviceClient.SyncContext?.OfflineStore == null)
             {
                 throw new InvalidOperationException("An offline store must be defined before offline operations can be used.");
             }
@@ -136,7 +136,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the replaced data when complete.</returns>
         public Task ReplaceItemAsync(JObject instance, CancellationToken cancellationToken = default)
-            =>  _context.ReplaceItemAsync(TableName, instance, cancellationToken);
+            => _context.ReplaceItemAsync(TableName, instance, cancellationToken);
 
         #endregion
 
