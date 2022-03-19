@@ -7,6 +7,7 @@ using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -237,6 +238,55 @@ namespace Microsoft.Datasync.Client.Offline.Queue
                 sequenceId = page.Items?.Select(v => v.Value<long>("sequence")).FirstOrDefault() ?? 0;
 
                 IsInitialized = true;
+            }
+        }
+
+        /// <summary>
+        /// Peeks inside the operations queue for the next operation (after the given sequence ID)targeting the set of tables
+        /// </summary>
+        /// <param name="previousSequenceId">The previous sequence ID read.</param>
+        /// <param name="tableNames">The list of tables to consider.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the table operation when finished.</returns>
+        public virtual async Task<TableOperation> PeekAsync(long previousSequenceId, IEnumerable<string> tableNames, CancellationToken cancellationToken = default)
+        {
+            QueryDescription query = new(SystemTables.OperationsQueue)
+            {
+                Filter = Compare(BinaryOperatorKind.GreaterThan, "sequence", previousSequenceId),
+                Top = 1
+            };
+            query.Ordering.Add(new OrderByNode(new MemberAccessNode(null, "sequence"), OrderByDirection.Ascending));
+
+            if (tableNames?.Any() == true)
+            {
+                BinaryOperatorNode nameInList = tableNames
+                    .Select(t => Compare(BinaryOperatorKind.Or, "tableName", t))
+                    .Aggregate((first, second) => new BinaryOperatorNode(BinaryOperatorKind.Or, first, second));
+                query.Filter = new BinaryOperatorNode(BinaryOperatorKind.And, query.Filter, nameInList);
+            }
+            var page = await OfflineStore.GetPageAsync(query, cancellationToken).ConfigureAwait(false);
+            JToken result = page.Items?.FirstOrDefault();
+            return (result != null && result is JObject op) ? TableOperation.Deserialize(op) : null;
+        }
+
+        /// <summary>
+        /// Tries to update the operation state within the queue, and throws an error if it can't/
+        /// </summary>
+        /// <param name="operation">The operation to update.</param>
+        /// <param name="state">The new state of the operation.</param>
+        /// <param name="batch">An <see cref="OperationBatch"/> to report any failure..</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        public virtual async Task TryUpdateOperationStateAsync(TableOperation operation, TableOperationState state, OperationBatch batch, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                operation.State = state;
+                await UpdateOperationAsync(operation, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                batch.Abort(PushStatus.CancelledByOfflineStoreError);
+                throw new OfflineStoreException($"Failed to set operation state for QID '{operation.Id}' to '{state}' in the offline store.", ex);
             }
         }
 

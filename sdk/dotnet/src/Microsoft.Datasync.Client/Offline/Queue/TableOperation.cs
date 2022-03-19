@@ -29,6 +29,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
     public enum TableOperationState
     {
         Pending,
+        Attempted,
         Completed,
         Failed
     };

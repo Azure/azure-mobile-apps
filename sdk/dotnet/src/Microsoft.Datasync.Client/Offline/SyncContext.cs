@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Serialization;
@@ -8,6 +9,10 @@ using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -235,22 +240,81 @@ namespace Microsoft.Datasync.Client.Offline
         }
 
         /// <summary>
-        /// Pushes items in the operations queue for this table to the remote service.
+        /// Pushes items in the operations queue for the named table to the remote service.
         /// </summary>
         /// <param name="tableName">The name of the offline table.</param>
         /// <param
         /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
         /// <returns>A task that completes when the push operation has finished.</returns>
         internal Task PushItemsAsync(string tableName, CancellationToken cancellationToken = default)
+            => PushItemsAsync(new string[] { tableName }, cancellationToken);
+
+        /// <summary>
+        /// Pushes items in the operations queue for the list of tables to the remote service.
+        /// </summary>
+        /// <param name="tableNames">The list of table names to push.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the push operation has finished.</returns>
+        /// <exception cref="PushFailedException">if the push operation failed.</exception>
+        internal async Task PushItemsAsync(string[] tableNames, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            EnsureContextIsInitialized();
+
+            var batch = new OperationBatch(this);
+            cancellationToken.Register(() => batch.Abort(PushStatus.CancelledByToken));
+
+            // Main Push Operations Loop
+            try
+            {
+                using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    TableOperation operation = await OperationsQueue.PeekAsync(0, tableNames, cancellationToken).ConfigureAwait(false);
+                    while (operation != null)
+                    {
+                        bool success = await ExecutePushOperationAsync(operation, batch, cancellationToken).ConfigureAwait(false);
+                        if (batch.AbortReason.HasValue)
+                        {
+                            break;
+                        }
+                        if (success)
+                        {
+                            await OperationsQueue.DeleteOperationByIdAsync(operation.Id, operation.Version, cancellationToken).ConfigureAwait(false);
+                        }
+                        operation = await OperationsQueue.PeekAsync(operation.Sequence, tableNames, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                batch.OtherErrors.Add(ex);
+            }
+
+            // If there were errors, then create a push failed exception.
+            List<TableOperationError> errors = new();
+            PushStatus batchStatus = batch.AbortReason ?? PushStatus.Complete;
+            try
+            {
+                errors.AddRange(await batch.LoadErrorsAsync(cancellationToken).ConfigureAwait(false));
+            }
+            catch (Exception ex)
+            {
+                batch.OtherErrors.Add(new OfflineStoreException("Failed to read errors from the local store.", ex));
+            }
+
+            // If the push did not complete successfully, then throw a PushFailedException.
+            if (batchStatus != PushStatus.Complete || batch.HasErrors(errors))
+            {
+                List<TableOperationError> unhandledErrors = errors.Where(error => !error.Handled).ToList();
+                Exception innerException = batch.OtherErrors.Count > 0 ? new AggregateException(batch.OtherErrors) : null;
+                throw new PushFailedException(new PushCompletionResult(unhandledErrors, batchStatus), innerException);
+            }
         }
         #endregion
 
         /// <summary>
-        /// Discards operations matching the given query in the operations queue.
+        /// Discards operations within the operations queue for a specific table.
         /// </summary>
-        /// <param name="query">The query identifying the operations to remove.</param>
+        /// <param name="tableName">The name of the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         internal async Task DiscardTableOperationsAsync(string tableName, CancellationToken cancellationToken)
         {
@@ -318,6 +382,106 @@ namespace Microsoft.Datasync.Client.Offline
             {
                 throw new InvalidOperationException("The synchronization context must be initialized before an offline store can be used.");
             }
+        }
+
+        /// <summary>
+        /// Executes a single operation within the queue.
+        /// </summary>
+        /// <param name="operation">The operation to execute.</param>
+        /// <param name="batch">The operation batch being executed.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>A task that returns <c>true</c> if the execution was successful when complete.</returns>
+        private async Task<bool> ExecutePushOperationAsync(TableOperation operation, OperationBatch batch, CancellationToken cancellationToken)
+        {
+            if (operation.IsCancelled || cancellationToken.IsCancellationRequested)
+            {
+                return false;
+            }
+
+            if (operation.Item == null)
+            {
+                try
+                {
+                    operation.Item = await OfflineStore.GetItemAsync(operation.TableName, operation.ItemId, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    batch.Abort(PushStatus.CancelledByOfflineStoreError);
+                    throw new OfflineStoreException($"Failed to read Item '{operation.ItemId}' from table '{operation.TableName}' in the offline store.", ex);
+                }
+
+                if (operation.Item == null)
+                {
+                    var item = new JObject(new JProperty(SystemProperties.JsonIdProperty, operation.ItemId));
+                    await batch.AddErrorAsync(operation, null, null, item, cancellationToken).ConfigureAwait(false);
+                    return false;
+                }
+            }
+
+            await OperationsQueue.TryUpdateOperationStateAsync(operation, TableOperationState.Attempted, batch, cancellationToken).ConfigureAwait(false);
+            operation.Item = ServiceSerializer.RemoveSystemProperties(operation.Item, out string version);
+            if (version != null)
+            {
+                operation.Item[SystemProperties.JsonVersionProperty] = version;
+            }
+
+            JObject result = null;
+            Exception error = null;
+            try
+            {
+                result = await operation.ExecuteOperationOnRemoteServiceAsync(ServiceClient, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await OperationsQueue.TryUpdateOperationStateAsync(operation, TableOperationState.Failed, batch, cancellationToken).ConfigureAwait(false);
+                if (ex is HttpRequestException || ex is TimeoutException)
+                {
+                    batch.Abort(PushStatus.CancelledByNetworkError);
+                    return false;
+                }
+                else if (ex is DatasyncInvalidOperationException ios && ios.Response?.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    batch.Abort(PushStatus.CancelledByAuthenticationError);
+                    return false;
+                }
+                else if (ex is PushAbortedException)
+                {
+                    batch.Abort(PushStatus.CancelledByOperation);
+                    return false;
+                }
+
+                error = ex;
+            }
+
+            if (error == null && result.Value<string>(SystemProperties.JsonIdProperty) != null && operation.CanWriteResultToStore)
+            {
+                try
+                {
+                    await OfflineStore.UpsertAsync(operation.TableName, new[] { result }, true, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    batch.Abort(PushStatus.CancelledByOfflineStoreError);
+                    throw new OfflineStoreException($"Failed to update item '{operation.ItemId}' in table '{operation.TableName}' of the offline store.", ex);
+                }
+            }
+            else if (error != null)
+            {
+                string rawResult = null;
+                if (error is DatasyncInvalidOperationException iox && iox.Response != null)
+                {
+                    HttpStatusCode? statusCode = iox.Response.StatusCode;
+                    try
+                    {
+                        rawResult = await iox.Response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                        result = ServiceClient.Serializer.DeserializeObjectOrDefault(rawResult);
+                    }
+                    catch { /* Deliberately ignore JSON parsing errors */ }
+                    await batch.AddErrorAsync(operation, statusCode, rawResult, result, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return error == null;
         }
 
         /// <summary>

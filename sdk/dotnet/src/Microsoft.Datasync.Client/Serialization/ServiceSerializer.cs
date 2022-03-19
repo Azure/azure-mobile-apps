@@ -47,6 +47,17 @@ namespace Microsoft.Datasync.Client.Serialization
         }
 
         /// <summary>
+        /// Given a JSON string, return it as a <see cref="JObject"/> or return <c>null</c> if not valid.
+        /// </summary>
+        /// <param name="json">The json string to parse.</param>
+        /// <returns>The <see cref="JObject"/> value, or <c>null</c></returns>
+        public JObject DeserializeObjectOrDefault(string json)
+        {
+            var item = string.IsNullOrEmpty(json) ? null : JsonConvert.DeserializeObject<JToken>(json, SerializerSettings);
+            return item is JObject obj && obj.Value<string>(SystemProperties.JsonIdProperty) != null ? (JObject)item : null;
+        }
+
+        /// <summary>
         /// Gets the value of the ID property from a <see cref="JObject"/> instance, ensuring
         /// that the value is valid.
         /// </summary>
