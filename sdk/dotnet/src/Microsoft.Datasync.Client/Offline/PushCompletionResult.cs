@@ -4,6 +4,7 @@
 using Microsoft.Datasync.Client.Offline.Queue;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Microsoft.Datasync.Client.Offline
 {
@@ -19,7 +20,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="status">The state in which push completed.</param>
         public PushCompletionResult(IEnumerable<TableOperationError> errors, PushStatus status)
         {
-            Errors = new ReadOnlyCollection<TableOperationError>(errors as IList<TableOperationError> ?? new List<TableOperationError>());
+            Errors = new ReadOnlyCollection<TableOperationError>(errors?.ToList() ?? new List<TableOperationError>());
             Status = status;
         }
 

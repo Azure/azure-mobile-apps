@@ -313,6 +313,36 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         }
 
         /// <summary>
+        /// Updates a table operation within the operations queue.
+        /// </summary>
+        /// <param name="id">The ID of the table operation.</param>
+        /// <param name="version">The version of the table operation to update.</param>
+        /// <param name="item">The new version of the item.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns <c>true</c> if the item has been updated, and false otherwise.</returns>
+        public virtual async Task<bool> UpdateOperationAsync(string id, long version, JObject item, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                TableOperation operation = await GetOperationByIdAsync(id, cancellationToken).ConfigureAwait(false);
+                if (operation == null || operation.Version != version)
+                {
+                    return false;
+                }
+                operation.Version++;
+                operation.State = TableOperationState.Pending;
+                operation.Item = operation.Kind == TableOperationKind.Delete ? item : null;
+
+                await UpdateOperationAsync(operation, cancellationToken).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new OfflineStoreException($"Failed to update operation '{id}' in the offline store", ex);
+            }
+        }
+
+        /// <summary>
         /// Ensures the queue is initialized.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">The operations queue is not initialized.</exception>

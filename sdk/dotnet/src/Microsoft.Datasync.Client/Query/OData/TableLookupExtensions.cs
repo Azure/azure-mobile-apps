@@ -115,7 +115,7 @@ namespace Microsoft.Datasync.Client.Query.OData
                 case ConstantType.Decimal:
                     return $"{value}M";
                 case ConstantType.Double:
-                    string d = string.Format(CultureInfo.InvariantCulture, "{0}", value);
+                    string d = ((double)value).ToString("G");
                     return (d.Contains("E") || d.Contains(".")) ? d : $"{d}.0";
                 case ConstantType.Float:
                     return $"{value}f";
@@ -129,7 +129,7 @@ namespace Microsoft.Datasync.Client.Query.OData
                 case ConstantType.UnsignedLong:
                     return $"{value}L";
                 default:
-                    return  EdmTypeSupport.ToODataString(value) ?? $"'{value.ToString().Replace("'", "''")}'";
+                    return EdmTypeSupport.ToODataString(value) ?? $"'{value.ToString().Replace("'", "''")}'";
             }
         }
     }

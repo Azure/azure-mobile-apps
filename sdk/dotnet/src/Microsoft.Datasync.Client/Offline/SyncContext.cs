@@ -311,6 +311,79 @@ namespace Microsoft.Datasync.Client.Offline
         }
         #endregion
 
+        #region Callbacks for handling conflicts
+        /// <summary>
+        /// Cancels the table operation, discarding the item.
+        /// </summary>
+        /// <param name="error">The <see cref="TableOperationError"/> being processed.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the operation is finished.</returns>
+        public async Task CancelAndDiscardItemAsync(TableOperationError error, CancellationToken cancellationToken = default)
+        {
+            string itemId = error.Item.Value<string>(SystemProperties.JsonIdProperty);
+            using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
+            {
+                await TryCancelOperationAsync(error, cancellationToken).ConfigureAwait(false);
+                await OfflineStore.DeleteAsync(error.TableName, new[] { itemId }, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Cancels an operation and updated the item with the version from the service.
+        /// </summary>
+        /// <param name="error">The <see cref="TableOperationError"/> that is being processed.</param>
+        /// <param name="item">The item to use for updating.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the update is finished.</returns>
+        public async Task CancelAndUpdateItemAsync(TableOperationError error, JObject item, CancellationToken cancellationToken = default)
+        {
+            using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
+            {
+                await TryCancelOperationAsync(error, cancellationToken).ConfigureAwait(false);
+                await OfflineStore.UpsertAsync(error.TableName, new[] { item }, true, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Updates the item within an operation for retry.
+        /// </summary>
+        /// <param name="error">The <see cref="TableOperationError"/> that is being processed.</param>
+        /// <param name="item">The item to use for updating.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the update is finished.</returns>
+        public async Task UpdateOperationAsync(TableOperationError error, JObject item, CancellationToken cancellationToken = default)
+        {
+            string itemId = error.Item.Value<string>(SystemProperties.JsonIdProperty);
+            using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (!await OperationsQueue.UpdateOperationAsync(error.Id, error.OperationVersion, item, cancellationToken).ConfigureAwait(false))
+                {
+                    throw new InvalidOperationException("The operation has been updated and cannot be updated again.");
+                }
+                await OfflineStore.DeleteAsync(SystemTables.SyncErrors, new[] { error.Id }, cancellationToken).ConfigureAwait(false);
+                if (error.OperationKind != TableOperationKind.Delete)
+                {
+                    await OfflineStore.UpsertAsync(error.TableName, new[] { item }, true, cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tries to cancel an operation in the operations queue.
+        /// </summary>
+        /// <param name="error">The table operation to cancel.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns></returns>
+        private async Task TryCancelOperationAsync(TableOperationError error, CancellationToken cancellationToken = default)
+        {
+            if (!await OperationsQueue.DeleteOperationByIdAsync(error.Id, error.OperationVersion, cancellationToken).ConfigureAwait(false))
+            {
+                throw new InvalidOperationException("The operation has been updated and cannot be cancelled.");
+            }
+            await OfflineStore.DeleteAsync(SystemTables.SyncErrors, new[] { error.Id }, cancellationToken).ConfigureAwait(false);
+        }
+        #endregion
+
         /// <summary>
         /// Discards operations within the operations queue for a specific table.
         /// </summary>
