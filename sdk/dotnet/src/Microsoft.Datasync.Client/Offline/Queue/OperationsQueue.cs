@@ -250,6 +250,11 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <returns>A task that returns the table operation when finished.</returns>
         public virtual async Task<TableOperation> PeekAsync(long previousSequenceId, IEnumerable<string> tableNames, CancellationToken cancellationToken = default)
         {
+            if (previousSequenceId < 0)
+            {
+                throw new ArgumentOutOfRangeException("Sequence ID must be a positive integer", nameof(previousSequenceId));
+            }
+
             QueryDescription query = new(SystemTables.OperationsQueue)
             {
                 Filter = Compare(BinaryOperatorKind.GreaterThan, "sequence", previousSequenceId),
@@ -260,7 +265,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
             if (tableNames?.Any() == true)
             {
                 BinaryOperatorNode nameInList = tableNames
-                    .Select(t => Compare(BinaryOperatorKind.Or, "tableName", t))
+                    .Select(t => Compare(BinaryOperatorKind.Equal, "tableName", t))
                     .Aggregate((first, second) => new BinaryOperatorNode(BinaryOperatorKind.Or, first, second));
                 query.Filter = new BinaryOperatorNode(BinaryOperatorKind.And, query.Filter, nameInList);
             }
@@ -276,8 +281,9 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <param name="state">The new state of the operation.</param>
         /// <param name="batch">An <see cref="OperationBatch"/> to report any failure..</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        public virtual async Task TryUpdateOperationStateAsync(TableOperation operation, TableOperationState state, OperationBatch batch, CancellationToken cancellationToken = default)
+        public virtual async Task TryUpdateOperationStateAsync(TableOperation operation, TableOperationState state, OperationBatch batch = null, CancellationToken cancellationToken = default)
         {
+            Arguments.IsNotNull(operation, nameof(operation));
             try
             {
                 operation.State = state;
@@ -285,7 +291,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
             }
             catch (Exception ex)
             {
-                batch.Abort(PushStatus.CancelledByOfflineStoreError);
+                batch?.Abort(PushStatus.CancelledByOfflineStoreError);
                 throw new OfflineStoreException($"Failed to set operation state for QID '{operation.Id}' to '{state}' in the offline store.", ex);
             }
         }

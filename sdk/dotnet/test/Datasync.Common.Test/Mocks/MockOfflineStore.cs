@@ -146,18 +146,22 @@ namespace Datasync.Common.Test.Mocks
             {
                 items = FilterItemList(query, table.Values);
             }
-            else if (query.TableName == SystemTables.SyncErrors)
-            {
-                items = FilterSyncErrorsList(query, table.Values);
-            }
             else if (ReadAsyncFunc != null)
             {
                 items = ReadAsyncFunc(query);
             }
-            else
+            else if (ReadResponses.Count > 0)
             {
                 var arr = JArray.Parse(ReadResponses.Dequeue());
                 items = (IEnumerable<JObject>)arr.ToArray();
+            }
+            else if (ReadPageFunc != null)
+            {
+                return Task.FromResult(ReadPageFunc.Invoke(query));
+            }
+            else
+            {
+                items = table.Values;
             }
 
             if (query.IncludeTotalCount)
@@ -274,26 +278,6 @@ namespace Datasync.Common.Test.Mocks
                 return items.Where(o => o.Value<string>("tableName") == ((ConstantNode)((BinaryOperatorNode)query.Filter).RightOperand).Value.ToString());
             }
             return items;
-        }
-
-        /// <summary>
-        /// Filters the synchronization errors items.
-        /// </summary>
-        /// <param name="query">The query passed in from the sync context.</param>
-        /// <param name="items">The items to be filtered.</param>
-        /// <returns></returns>
-        /// <exception cref="System.NotImplementedException"></exception>
-        private static IEnumerable<JObject> FilterSyncErrorsList(QueryDescription query, IEnumerable<JObject> items)
-        {
-            var odata = ODataQuery.Parse(query);
-            if (odata.Filter == null)
-            {
-                // No filtering.
-                return items;
-            }
-
-            // TODO: Handle all the SyncErrors done here.
-            throw new NotImplementedException();
         }
 
         /// <summary>

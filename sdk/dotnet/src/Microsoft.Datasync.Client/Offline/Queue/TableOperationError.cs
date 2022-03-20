@@ -5,6 +5,7 @@ using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
     /// <summary>
     /// The details of a failed table operation.
     /// </summary>
-    public class TableOperationError
+    public class TableOperationError : IEquatable<TableOperationError>
     {
         /// <summary>
         /// The table definition for the offline store representation.
@@ -177,9 +178,9 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// Deserialize an operation error from the offline store.
         /// </summary>
         /// <param name="obj">The <see cref="JObject"/> version of the oepration error received from the offline store.</param>
-        /// <param name="settings">The serializer settings.</param>
+        /// <param name="serializerSettings">The serializer settings.</param>
         /// <returns>The deserialized <see cref="TableOperationError"/>.</returns>
-        internal static TableOperationError Deserialize(JObject obj, DatasyncSerializerSettings settings)
+        internal static TableOperationError Deserialize(JObject obj, DatasyncSerializerSettings serializerSettings)
         {
             // Get the relevant values from the JObject.
             string id = obj.Value<string>(SystemProperties.JsonIdProperty);
@@ -192,16 +193,40 @@ namespace Microsoft.Datasync.Client.Offline.Queue
             JObject item = itemStr == null ? null : JObject.Parse(itemStr);
             string rawResult = obj.Value<string>("rawResult");
             JObject result = null;
-            try
+            if (rawResult != null)
             {
-                result = JsonConvert.DeserializeObject<JObject>(rawResult, settings);
-            }
-            catch (JsonReaderException)
-            {
-                // Ignore JsonReaderException, because 'rawResult' might not be JSON.
+                try
+                {
+                    result = JsonConvert.DeserializeObject<JObject>(rawResult, serializerSettings);
+                }
+                catch (JsonReaderException)
+                {
+                    // Ignore JsonReaderException, because 'rawResult' might not be JSON.
+                }
             }
 
             return new TableOperationError(id, version, operationKind, status, tableName, item, rawResult, result);
         }
+
+        /// <summary>
+        /// Indicates if this <see cref="TableOperationError"/> is identical to the other one.
+        /// </summary>
+        /// <param name="other">The other <see cref="TableOperationError"/>.</param>
+        /// <returns><c>true</c> if the <paramref name="other"/> is identical to this one.</returns>
+        public bool Equals(TableOperationError other)
+            => other != null && other.Id == Id && other.OperationVersion == OperationVersion && other.OperationKind == OperationKind && other.TableName == TableName && other.RawResult == RawResult;
+
+        /// <summary>
+        /// Indicates if this <see cref="TableOperationError"/> is identical to the other one.
+        /// </summary>
+        /// <param name="other">The other <see cref="TableOperationError"/>.</param>
+        /// <returns><c>true</c> if the <paramref name="other"/> is identical to this one.</returns>
+        public override bool Equals(object obj)
+            => Equals(obj as TableOperationError);
+
+        /// <summary>
+        /// Returns a hash code for this instance.
+        /// </summary>
+        public override int GetHashCode() => Id.GetHashCode();
     }
 }

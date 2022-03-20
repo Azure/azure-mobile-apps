@@ -141,7 +141,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <summary>
         /// The state of the operation.
         /// </summary>
-        [JsonIgnore]
+        [JsonProperty("state")]
         public TableOperationState State { get; internal set; }
 
         /// <summary>

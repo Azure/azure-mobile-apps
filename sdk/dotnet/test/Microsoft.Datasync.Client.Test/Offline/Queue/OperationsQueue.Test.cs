@@ -5,6 +5,7 @@ using Datasync.Common.Test.Mocks;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
+using Microsoft.Datasync.Client.Query.OData;
 using Microsoft.Datasync.Client.Table;
 using Moq;
 using Newtonsoft.Json;
@@ -274,6 +275,147 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
             var actual = await sut.GetOperationByItemIdAsync("test", "1234");
             Assert.Equal(operation, actual);
         }
+
+        [Fact]
+        [Trait("Method", "PeekAsync")]
+        public async Task PeekAsync_NegativeSequenceId_Throws()
+        {
+            var store = new Mock<IOfflineStore>();
+            var sut = new OperationsQueue(store.Object);
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => sut.PeekAsync(-1, null));
+        }
+
+        [Theory]
+        [InlineData(0, null, "(sequence gt 0L)")]
+        [InlineData(1, null, "(sequence gt 1L)")]
+        [InlineData(42, null, "(sequence gt 42L)")]
+        [InlineData(0, new string[] { "movies" }, "((sequence gt 0L) and (tableName eq 'movies'))")]
+        [InlineData(1, new string[] { "movies" }, "((sequence gt 1L) and (tableName eq 'movies'))")]
+        [InlineData(42, new string[] { "movies" }, "((sequence gt 42L) and (tableName eq 'movies'))")]
+        [InlineData(500, new string[] { "movies", "test" }, "((sequence gt 500L) and ((tableName eq 'movies') or (tableName eq 'test')))")]
+        [Trait("Method", "PeekAsync")]
+        public async Task PeekAsync_GeneratesCorrectQuery(long sequenceId, string[] tableNames, string filter)
+        {
+            var response = new Page<JObject>();
+            var store = new Mock<IOfflineStore>();
+            store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(response));
+            var sut = new OperationsQueue(store.Object);
+
+            _ = await sut.PeekAsync(sequenceId, tableNames);
+
+            Assert.Single(store.Invocations);
+            var invocation = store.Invocations[0];
+            var query = invocation.Arguments[0] as QueryDescription;
+
+            Assert.NotNull(query);
+            Assert.Equal(SystemTables.OperationsQueue, query.TableName);
+
+            var odata = query.ToODataString();
+            var expected = $"$filter={filter}&$orderby=sequence&$top=1";
+            Assert.Equal(expected, odata);
+        }
+
+        [Fact]
+        [Trait("Method", "PeekAsync")]
+        public async Task PeekAsync_ReturnsCorrectValue()
+        {
+            var operation = new DeleteOperation("movies", Guid.NewGuid().ToString());
+            var response = new Page<JObject>() { Items = new[] { operation.Serialize() } };
+            var store = new Mock<IOfflineStore>();
+            store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(response));
+            var sut = new OperationsQueue(store.Object);
+
+            var actual = await sut.PeekAsync(0L, new[] { "movies" });
+
+            Assert.Equal(operation.Id, actual.Id);
+        }
+
+        [Fact]
+        [Trait("Method", "TryUpdateOperationStateAsync")]
+        public async Task TryUpdateOperationState_Throws_NullOperation()
+        {
+            var store = new Mock<IOfflineStore>();
+            var sut = new OperationsQueue(store.Object);
+
+            await Assert.ThrowsAsync<ArgumentNullException>(() => sut.TryUpdateOperationStateAsync(null, TableOperationState.Failed));
+        }
+
+        [Fact]
+        [Trait("Method", "TryUpdateOperationStateAsync")]
+        public async Task TryUpdateOperationState_SetsNewState_InStore()
+        {
+            var operation = new DeleteOperation("movies", Guid.NewGuid().ToString());
+            var store = new Mock<IOfflineStore>();
+            store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new Page<JObject>()));
+            store.Setup(x => x.UpsertAsync(It.IsAny<string>(), It.IsAny<IEnumerable<JObject>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+            var context = new SyncContext(GetMockClient(), store.Object);
+            var sut = new OperationsQueue(store.Object);
+            await sut.InitializeAsync();
+
+            await sut.TryUpdateOperationStateAsync(operation, TableOperationState.Completed);
+
+            // Step 1: We should have exactly one invocation of the UpsertAsync method.
+            var invocations = store.Invocations.Where(x => x.Method.Name == "UpsertAsync").ToList();
+            Assert.Single(invocations);
+            Assert.Equal(SystemTables.OperationsQueue, invocations[0].Arguments[0] as string);
+
+            var ops = invocations[0].Arguments[1] as IEnumerable<JObject>;
+            Assert.Single(ops);
+            var actual = ops.First();
+            Assert.Equal(operation.Id, actual.Value<string>("id"));
+            Assert.Equal((int)TableOperationState.Completed, actual.Value<int>("state"));
+        }
+
+        [Fact]
+        [Trait("Method", "TryUpdateOperationStateAsync")]
+        public async Task TryUpdateOperationState_SetsBatchState_OnError()
+        {
+            var operation = new DeleteOperation("movies", Guid.NewGuid().ToString());
+            var exception = new ApplicationException();
+            var store = new Mock<IOfflineStore>();
+            store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new Page<JObject>()));
+            store.Setup(x => x.UpsertAsync(It.IsAny<string>(), It.IsAny<IEnumerable<JObject>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Throws(exception);
+            var context = new SyncContext(GetMockClient(), store.Object);
+            var sut = new OperationsQueue(store.Object);
+            await sut.InitializeAsync();
+
+            var batch = new OperationBatch(context);
+            var ex = await Assert.ThrowsAsync<OfflineStoreException>(() => sut.TryUpdateOperationStateAsync(operation, TableOperationState.Completed, batch));
+
+            Assert.Equal(PushStatus.CancelledByOfflineStoreError, batch.AbortReason);
+            // Find the root of the exception heirarchy
+            Exception inner = ex;
+            while (inner.InnerException != null)
+            {
+                inner = inner.InnerException;
+            }
+            Assert.Same(exception, inner);
+        }
+
+        [Fact]
+        [Trait("Method", "TryUpdateOperationStateAsync")]
+        public async Task TryUpdateOperationState_SetsBatchState_OnErrorWithoutBatch()
+        {
+            var operation = new DeleteOperation("movies", Guid.NewGuid().ToString());
+            var exception = new ApplicationException();
+            var store = new Mock<IOfflineStore>();
+            store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new Page<JObject>()));
+            store.Setup(x => x.UpsertAsync(It.IsAny<string>(), It.IsAny<IEnumerable<JObject>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Throws(exception);
+            var context = new SyncContext(GetMockClient(), store.Object);
+            var sut = new OperationsQueue(store.Object);
+            await sut.InitializeAsync();
+
+            var ex = await Assert.ThrowsAsync<OfflineStoreException>(() => sut.TryUpdateOperationStateAsync(operation, TableOperationState.Completed));
+
+            // Find the root of the exception heirarchy
+            Exception inner = ex;
+            while (inner.InnerException != null)
+            {
+                inner = inner.InnerException;
+            }
+            Assert.Same(exception, inner);
+        }
+
 
         [Fact]
         [Trait("Method", "UpdateOperationAsync")]

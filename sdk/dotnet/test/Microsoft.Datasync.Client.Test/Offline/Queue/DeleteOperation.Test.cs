@@ -20,7 +20,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
     [ExcludeFromCodeCoverage]
     public class DeleteOperation_Tests : BaseOperationTest
     {
-        private readonly JObject serializedObject = JObject.Parse("{\"kind\":1,\"itemId\":\"1234\",\"item\":\"{\\\"id\\\":\\\"1234\\\"}\", \"sequence\":0, \"tableName\":\"test\", \"version\":1}");
+        private readonly JObject serializedObject = JObject.Parse("{\"kind\":1,\"itemId\":\"1234\",\"item\":\"{\\\"id\\\":\\\"1234\\\"}\", \"sequence\":0, \"state\": 0, \"tableName\":\"test\", \"version\":1}");
         private readonly JObject testObject = JObject.Parse("{\"id\":\"1234\"}");
 
         [Fact]

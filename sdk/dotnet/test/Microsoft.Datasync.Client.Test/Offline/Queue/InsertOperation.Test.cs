@@ -22,7 +22,7 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
     [ExcludeFromCodeCoverage]
     public class InsertOperation_Tests : BaseOperationTest
     {
-        private readonly JObject serializedObject = JObject.Parse("{\"kind\":2,\"itemId\":\"1234\",\"item\":null, \"sequence\":0, \"tableName\":\"test\", \"version\":1}");
+        private readonly JObject serializedObject = JObject.Parse("{\"kind\":2,\"itemId\":\"1234\",\"item\":null, \"sequence\":0, \"state\": 0, \"tableName\":\"test\", \"version\":1}");
         private readonly JObject testObject = JObject.Parse("{\"id\":\"1234\"}");
 
         [Fact]

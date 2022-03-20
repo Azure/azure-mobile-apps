@@ -6,9 +6,11 @@ using Datasync.Common.Test.Mocks;
 using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Offline.Queue;
+using Microsoft.Datasync.Client.Table;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
@@ -31,11 +33,32 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
             context = new SyncContext(client, store);
         }
 
+        #region Helpers
         private async Task<OperationBatch> CreateBatch()
         {
             await context.InitializeAsync();
             return new OperationBatch(context);
         }
+
+        private List<TableOperationError> CreateErrorItems(int count)
+        {
+            List<TableOperationError> result = new();
+
+            for (int i = 0; i < count; i++)
+            {
+                TableOperation op = (i % 3) switch
+                {
+                    0 => new DeleteOperation("movies", Guid.NewGuid().ToString()),
+                    1 => new InsertOperation("movies", Guid.NewGuid().ToString()),
+                    _ => new UpdateOperation("movies", Guid.NewGuid().ToString())
+                };
+                TableOperationError err = new(op, context, HttpStatusCode.BadRequest, null, null);
+                result.Add(err);
+            }
+
+            return result;
+        }
+        #endregion
 
         [Fact]
         [Trait("Method", "Ctor")]
@@ -260,35 +283,65 @@ namespace Microsoft.Datasync.Client.Test.Offline.Queue
         [Trait("Method", "LoadErrorsAsync")]
         public async Task LoadErrorsAsync_Works_WhenNoErrors()
         {
+            store.ReadPageFunc = _ => new Page<JObject>() { Items = Array.Empty<JObject>() };
             var batch = await CreateBatch();
+
             var errors = await batch.LoadErrorsAsync();
+
             Assert.Empty(errors);
         }
 
         [Fact]
         [Trait("Method", "LoadErrorsAsync")]
-        public async Task LoadErrorsAsync_Works_WithErrors()
+        public async Task LoadErrorsAsync_Works_WithSinglePage()
         {
+            const int count = 20;
+            var inputList = CreateErrorItems(count);
+            store.ReadPageFunc = _ => new Page<JObject>() { Items = inputList.Select(err => err.Serialize()).ToArray() };
             var batch = await CreateBatch();
-            var item = new IdEntity { Id = Guid.NewGuid().ToString(), StringValue = "test" };
-            var obj = JObject.FromObject(item);
-            var json = obj.ToString(Formatting.None);
-            var op = new DeleteOperation("movies", Guid.NewGuid().ToString()) { Item = obj };
-
-            await batch.AddErrorAsync(op, HttpStatusCode.BadRequest, json, obj);
 
             var errors = await batch.LoadErrorsAsync();
 
-            Assert.Single(errors);
-            var error = errors.First();
+            Assert.Equal(count, errors.Count);
+            for (int i = 0; i < count; i++)
+            {
+                Assert.True(inputList[i].Equals(errors[i]), $"Errors at index {i} mismatch");
+            }
+        }
 
-            Assert.NotEmpty(error.Id);
-            Assert.Equal(HttpStatusCode.BadRequest, error.Status);
-            Assert.Equal("movies", error.TableName);
-            Assert.Equal(1, error.OperationVersion);
-            Assert.Equal(TableOperationKind.Delete, error.OperationKind);
-            Assert.Equal(obj, error.Item);
-            Assert.Equal(json, error.RawResult);
+
+        [Fact]
+        [Trait("Method", "LoadErrorsAsync")]
+        public async Task LoadErrorsAsync_Works_WithMultiplePages()
+        {
+            const int count = 20;
+            var inputList = CreateErrorItems(count);
+            store.ReadPageFunc = query =>
+            {
+                Assert.Equal(SystemTables.SyncErrors, query.TableName);
+                int offset = query.Skip ?? 0;
+                if (offset > count)
+                {
+                    return new Page<JObject>();
+                }
+                else
+                {
+                    return new Page<JObject>()
+                    {
+                        Items = inputList.Skip(offset).Take(5).Select(err => err.Serialize()).ToArray(),
+                        NextLink = new Uri($"https://inmemorystore.local/tables/__syncerrors?$skip={offset + 5}&$top=5")
+                    };
+                }
+            };
+            var batch = await CreateBatch();
+
+            var errors = await batch.LoadErrorsAsync();
+
+            Assert.Equal(count, errors.Count);
+            for (int i = 0; i < count; i++)
+            {
+                Assert.True(inputList[i].Equals(errors[i]), $"Errors at index {i} mismatch");
+            }
         }
     }
 }
