@@ -78,6 +78,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <param name="cancellationToken">The cancellation token.</param>
         public async Task AddErrorAsync(TableOperation operation, HttpStatusCode? status, string rawResult, JObject result, CancellationToken cancellationToken = default)
         {
+            Arguments.IsNotNull(operation, nameof(operation));
             var error = new TableOperationError(operation, Context, status, rawResult, result);
             await OfflineStore.UpsertAsync(SystemTables.SyncErrors, new[] { error.Serialize() }, false, cancellationToken);
         }
@@ -110,7 +111,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <param name="syncErrors">List of all sync errors.</param>
         /// <returns><c>true</c> if there are any errors to be concerned with.</returns>
         public bool HasErrors(IEnumerable<TableOperationError> errors)
-            => errors.Any(e => !e.Handled) || OtherErrors.Count > 0;
+            => errors?.Any(e => !e.Handled) == true || OtherErrors.Count > 0;
 
         /// <summary>
         /// Loads all the sync errors in local store that are recorded for this batch.

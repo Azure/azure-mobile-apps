@@ -15,6 +15,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using MockTable = System.Collections.Generic.Dictionary<string, Newtonsoft.Json.Linq.JObject>;
 
 namespace Datasync.Common.Test.Mocks
@@ -145,6 +146,10 @@ namespace Datasync.Common.Test.Mocks
             {
                 items = FilterItemList(query, table.Values);
             }
+            else if (query.TableName == SystemTables.SyncErrors)
+            {
+                items = FilterSyncErrorsList(query, table.Values);
+            }
             else if (ReadAsyncFunc != null)
             {
                 items = ReadAsyncFunc(query);
@@ -244,7 +249,6 @@ namespace Datasync.Common.Test.Mocks
         private static IEnumerable<JObject> FilterItemList(QueryDescription query, IEnumerable<JObject> items)
         {
             var odata = query.ToODataString();
-
             if (odata.Contains("$orderby=sequence desc")) // the query to take total count and max sequence
             {
                 return items.OrderByDescending(o => o.Value<long>("sequence"));
@@ -270,6 +274,26 @@ namespace Datasync.Common.Test.Mocks
                 return items.Where(o => o.Value<string>("tableName") == ((ConstantNode)((BinaryOperatorNode)query.Filter).RightOperand).Value.ToString());
             }
             return items;
+        }
+
+        /// <summary>
+        /// Filters the synchronization errors items.
+        /// </summary>
+        /// <param name="query">The query passed in from the sync context.</param>
+        /// <param name="items">The items to be filtered.</param>
+        /// <returns></returns>
+        /// <exception cref="System.NotImplementedException"></exception>
+        private static IEnumerable<JObject> FilterSyncErrorsList(QueryDescription query, IEnumerable<JObject> items)
+        {
+            var odata = ODataQuery.Parse(query);
+            if (odata.Filter == null)
+            {
+                // No filtering.
+                return items;
+            }
+
+            // TODO: Handle all the SyncErrors done here.
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -323,5 +347,49 @@ namespace Datasync.Common.Test.Mocks
             GC.SuppressFinalize(this);
         }
         #endregion
+
+        private class ODataQuery
+        {
+            public string Filter { get; set; }
+            public string[] OrderBy { get; set; }
+            public string[] Select { get; set; }
+            public int Skip { get; set; } = 0;
+            public int Top { get; set; } = 0;
+            public Dictionary<string, string> Parameters { get; set; } = new();
+
+            public static ODataQuery Parse(string odata)
+            {
+                var result = new ODataQuery();
+                var parameters = HttpUtility.ParseQueryString(odata);
+                foreach (var parameter in parameters.AllKeys)
+                {
+                    switch (parameter.ToLowerInvariant())
+                    {
+                        case "$filter":
+                            result.Filter = parameters[parameter];
+                            break;
+                        case "$orderby":
+                            result.OrderBy = parameters[parameter].Split(',');
+                            break;
+                        case "$select":
+                            result.Select = parameters[parameter].Split(',');
+                            break;
+                        case "$skip":
+                            result.Skip = Int32.Parse(parameters[parameter]);
+                            break;
+                        case "$top":
+                            result.Top = Int32.Parse(parameters[parameter]);
+                            break;
+                        default:
+                            result.Parameters.Add(parameter, parameters[parameter]);
+                            break;
+                    }
+                }
+                return result;
+            }
+
+            public static ODataQuery Parse(QueryDescription query)
+                => Parse(query.ToODataString());
+        }
     }
 }
