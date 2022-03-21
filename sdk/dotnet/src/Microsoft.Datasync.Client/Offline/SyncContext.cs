@@ -4,6 +4,8 @@
 using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
+using Microsoft.Datasync.Client.Query.Linq.Nodes;
+using Microsoft.Datasync.Client.Query.OData;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
@@ -192,8 +194,82 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the pull operation has finished.</returns>
         internal async Task PullItemsAsync(string tableName, string query, PullOptions options, CancellationToken cancellationToken = default)
         {
+            Arguments.IsValidTableName(tableName, nameof(tableName));
+            Arguments.IsNotNull(query, nameof(query));
+            Arguments.IsNotNull(options, nameof(options));
             EnsureContextIsInitialized();
-            throw new NotImplementedException();
+
+            var table = ServiceClient.GetRemoteTable(tableName);
+            var queryId = options.QueryId ?? GetQueryIdFromQuery(tableName, query);
+            var queryDescription = QueryDescription.Parse(tableName, query);
+            string[] relatedTables = options.PushOtherTables ? new string[] { tableName } : null;
+
+            if (queryDescription.Selection.Count > 0 || queryDescription.Projections.Count > 0)
+            {
+                throw new ArgumentException("Pull query with select clause is not supported.", nameof(query));
+            }
+
+            queryDescription.Ordering.Clear();
+            queryDescription.Top = null;
+            queryDescription.Skip = null;
+            queryDescription.IncludeTotalCount = false;
+
+            if (await TableIsDirtyAsync(tableName, cancellationToken).ConfigureAwait(false))
+            {
+                await PushItemsAsync(relatedTables, cancellationToken).ConfigureAwait(false);
+
+                // If the table is still dirty, then throw an error.
+                if (await TableIsDirtyAsync(tableName, cancellationToken).ConfigureAwait(false))
+                {
+                    throw new DatasyncInvalidOperationException($"There are still pending operations for table '{tableName}' after a push");
+                }
+            }
+
+            var deltaToken = await DeltaTokenStore.GetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
+            var deltaString = EdmTypeSupport.ToODataString(deltaToken);
+            var deltaTokenFilter = new BinaryOperatorNode(BinaryOperatorKind.GreaterThan, new MemberAccessNode(null, SystemProperties.JsonUpdatedAtProperty), new ConstantNode(deltaString));
+            queryDescription.Filter = queryDescription.Filter == null ? deltaTokenFilter : new BinaryOperatorNode(BinaryOperatorKind.And, queryDescription.Filter, deltaTokenFilter);
+            Dictionary<string, string> parameters = new()
+            {
+                { ODataOptions.IncludeDeleted, "true" }
+            };
+
+            var odataString = queryDescription.ToODataString(parameters);
+            await foreach (var instance in table.GetAsyncItems(odataString).WithCancellation(cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (instance is not JObject item)
+                {
+                    throw new DatasyncInvalidOperationException("Received item is not an object");
+                }
+
+                string itemId = ServiceSerializer.GetId(item);
+                if (itemId == null)
+                {
+                    throw new DatasyncInvalidOperationException("Received an item without an ID");
+                }
+
+                var pendingOperation = await OperationsQueue.GetOperationByItemIdAsync(tableName, itemId, cancellationToken).ConfigureAwait(false);
+                if (pendingOperation != null)
+                {
+                    throw new InvalidOperationException("Received an item for which there is a pending operation.");
+                }
+                DateTimeOffset? updatedAt = ServiceSerializer.GetUpdatedAt(item)?.ToUniversalTime();
+                if (ServiceSerializer.IsDeleted(item))
+                {
+                    await OfflineStore.DeleteAsync(tableName, new[] { itemId }, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    await OfflineStore.UpsertAsync(tableName, new[] { item }, true, cancellationToken).ConfigureAwait(false);
+                }
+
+                if (updatedAt.HasValue)
+                {
+                    await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, updatedAt.Value, cancellationToken).ConfigureAwait(false);
+                }
+            }
         }
 
         /// <summary>
@@ -266,22 +342,15 @@ namespace Microsoft.Datasync.Client.Offline
             // Main Push Operations Loop
             try
             {
-                using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
+                TableOperation operation = await OperationsQueue.PeekAsync(0, tableNames, cancellationToken).ConfigureAwait(false);
+                while (operation != null)
                 {
-                    TableOperation operation = await OperationsQueue.PeekAsync(0, tableNames, cancellationToken).ConfigureAwait(false);
-                    while (operation != null)
+                    _ = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
+                    if (batch.AbortReason.HasValue)
                     {
-                        bool success = await ExecutePushOperationAsync(operation, batch, cancellationToken).ConfigureAwait(false);
-                        if (batch.AbortReason.HasValue)
-                        {
-                            break;
-                        }
-                        if (success)
-                        {
-                            await OperationsQueue.DeleteOperationByIdAsync(operation.Id, operation.Version, cancellationToken).ConfigureAwait(false);
-                        }
-                        operation = await OperationsQueue.PeekAsync(operation.Sequence, tableNames, cancellationToken).ConfigureAwait(false);
+                        break;
                     }
+                    operation = await OperationsQueue.PeekAsync(operation.Sequence, tableNames, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -321,11 +390,8 @@ namespace Microsoft.Datasync.Client.Offline
         public async Task CancelAndDiscardItemAsync(TableOperationError error, CancellationToken cancellationToken = default)
         {
             string itemId = error.Item.Value<string>(SystemProperties.JsonIdProperty);
-            using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
-            {
-                await TryCancelOperationAsync(error, cancellationToken).ConfigureAwait(false);
-                await OfflineStore.DeleteAsync(error.TableName, new[] { itemId }, cancellationToken).ConfigureAwait(false);
-            }
+            await TryCancelOperationAsync(error, cancellationToken).ConfigureAwait(false);
+            await OfflineStore.DeleteAsync(error.TableName, new[] { itemId }, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -337,11 +403,8 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the update is finished.</returns>
         public async Task CancelAndUpdateItemAsync(TableOperationError error, JObject item, CancellationToken cancellationToken = default)
         {
-            using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
-            {
-                await TryCancelOperationAsync(error, cancellationToken).ConfigureAwait(false);
-                await OfflineStore.UpsertAsync(error.TableName, new[] { item }, true, cancellationToken).ConfigureAwait(false);
-            }
+            await TryCancelOperationAsync(error, cancellationToken).ConfigureAwait(false);
+            await OfflineStore.UpsertAsync(error.TableName, new[] { item }, true, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -353,18 +416,14 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the update is finished.</returns>
         public async Task UpdateOperationAsync(TableOperationError error, JObject item, CancellationToken cancellationToken = default)
         {
-            string itemId = error.Item.Value<string>(SystemProperties.JsonIdProperty);
-            using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
+            if (!await OperationsQueue.UpdateOperationAsync(error.Id, error.OperationVersion, item, cancellationToken).ConfigureAwait(false))
             {
-                if (!await OperationsQueue.UpdateOperationAsync(error.Id, error.OperationVersion, item, cancellationToken).ConfigureAwait(false))
-                {
-                    throw new InvalidOperationException("The operation has been updated and cannot be updated again.");
-                }
-                await OfflineStore.DeleteAsync(SystemTables.SyncErrors, new[] { error.Id }, cancellationToken).ConfigureAwait(false);
-                if (error.OperationKind != TableOperationKind.Delete)
-                {
-                    await OfflineStore.UpsertAsync(error.TableName, new[] { item }, true, cancellationToken).ConfigureAwait(false);
-                }
+                throw new InvalidOperationException("The operation has been updated and cannot be updated again.");
+            }
+            await OfflineStore.DeleteAsync(SystemTables.SyncErrors, new[] { error.Id }, cancellationToken).ConfigureAwait(false);
+            if (error.OperationKind != TableOperationKind.Delete)
+            {
+                await OfflineStore.UpsertAsync(error.TableName, new[] { item }, true, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -394,10 +453,7 @@ namespace Microsoft.Datasync.Client.Offline
             Arguments.IsValidTableName(tableName, nameof(tableName));
             EnsureContextIsInitialized();
             var query = QueryDescription.Parse(SystemTables.OperationsQueue, $"$filter=(tableName eq '{tableName}')");
-            using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
-            {
-                await OperationsQueue.DeleteOperationsAsync(query, cancellationToken).ConfigureAwait(false);
-            }
+            await OperationsQueue.DeleteOperationsAsync(query, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -462,9 +518,10 @@ namespace Microsoft.Datasync.Client.Offline
         /// </summary>
         /// <param name="operation">The operation to execute.</param>
         /// <param name="batch">The operation batch being executed.</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="removeFromQueueOnSuccess">If <c>true</c>, remove the operation from the queue when successful.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns <c>true</c> if the execution was successful when complete.</returns>
-        private async Task<bool> ExecutePushOperationAsync(TableOperation operation, OperationBatch batch, CancellationToken cancellationToken)
+        private async Task<bool> ExecutePushOperationAsync(TableOperation operation, OperationBatch batch, bool removeFromQueueOnSuccess, CancellationToken cancellationToken)
         {
             if (operation.IsCancelled || cancellationToken.IsCancellationRequested)
             {
@@ -554,6 +611,11 @@ namespace Microsoft.Datasync.Client.Offline
                 }
             }
 
+            if (removeFromQueueOnSuccess && error == null)
+            {
+                await OperationsQueue.DeleteOperationByIdAsync(operation.Id, operation.Version, cancellationToken).ConfigureAwait(false);
+            }
+
             return error == null;
         }
 
@@ -582,11 +644,8 @@ namespace Microsoft.Datasync.Client.Offline
         internal async Task<bool> TableIsDirtyAsync(string tableName, CancellationToken cancellationToken)
         {
             EnsureContextIsInitialized();
-            using (await queueLock.ReaderLockAsync(cancellationToken).ConfigureAwait(false))
-            {
-                long pendingOperations = await OperationsQueue.CountPendingOperationsAsync(tableName, cancellationToken).ConfigureAwait(false);
-                return pendingOperations > 0;
-            }
+            long pendingOperations = await OperationsQueue.CountPendingOperationsAsync(tableName, cancellationToken).ConfigureAwait(false);
+            return pendingOperations > 0;
         }
 
         #region IDisposable

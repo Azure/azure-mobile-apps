@@ -240,7 +240,6 @@ namespace Microsoft.Datasync.Client.Serialization
         {
             List<string> systemProperties = new();
 
-            // TODO: Rationalize this - it has dead code in it.
             foreach (object attribute in member.GetCustomAttributes(true))
             {
                 if (attribute is ISystemPropertyAttribute systemProperty)
