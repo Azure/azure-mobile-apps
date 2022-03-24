@@ -22,7 +22,26 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Datasync.Client.Offline
 {
-    internal class SyncContext : IDisposable
+    /// <summary>
+    /// The push context - this is used during testing.
+    /// </summary>
+    internal interface IPushContext
+    {
+        /// <summary>
+        /// Pushes items in the operations queue for the list of tables to the remote service.
+        /// </summary>
+        /// <param name="tableNames">The list of table names to push.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the push operation has finished.</returns>
+        /// <exception cref="PushFailedException">if the push operation failed.</exception>
+        Task PushItemsAsync(string[] tableNames, CancellationToken cancellationToken = default);
+    }
+
+    /// <summary>
+    /// The synchronization context, used for coordinating requests between the online and
+    /// offline stores.
+    /// </summary>
+    internal class SyncContext : IPushContext, IDisposable
     {
         private readonly AsyncLock initializationLock = new();
         private readonly AsyncReaderWriterLock queueLock = new();
@@ -38,6 +57,7 @@ namespace Microsoft.Datasync.Client.Offline
 
             ServiceClient = client;
             OfflineStore = store;
+            PushContext = this;
         }
 
         /// <summary>
@@ -64,6 +84,14 @@ namespace Microsoft.Datasync.Client.Offline
         /// The service client to use for communicating with the back end service.
         /// </summary>
         internal DatasyncClient ServiceClient { get; }
+
+        /// <summary>
+        /// The context to use when doing an automatic push.
+        /// </summary>
+        /// <remarks>
+        /// This is only really used during testing.
+        /// </remarks>
+        internal IPushContext PushContext { get; set; }
 
         /// <summary>
         /// Initialize the synchronization context for this offline store.
@@ -98,7 +126,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="instance">The instance to delete from the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the response when complete.</returns>
-        internal async Task DeleteItemAsync(string tableName, JObject instance, CancellationToken cancellationToken = default)
+        public async Task DeleteItemAsync(string tableName, JObject instance, CancellationToken cancellationToken = default)
         {
             EnsureContextIsInitialized();
             string itemId = ServiceSerializer.GetId(instance);
@@ -119,7 +147,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="id">The ID of the item to retrieve.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the item when complete.</returns>
-        internal async Task<JObject> GetItemAsync(string tableName, string id, CancellationToken cancellationToken = default)
+        public async Task<JObject> GetItemAsync(string tableName, string id, CancellationToken cancellationToken = default)
         {
             EnsureContextIsInitialized();
             return await OfflineStore.GetItemAsync(tableName, id, cancellationToken).ConfigureAwait(false);
@@ -131,7 +159,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="query">The query.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns a page of items when complete.</returns>
-        internal async Task<Page<JObject>> GetNextPageAsync(string tableName, string query, CancellationToken cancellationToken = default)
+        public async Task<Page<JObject>> GetNextPageAsync(string tableName, string query, CancellationToken cancellationToken = default)
         {
             EnsureContextIsInitialized();
             var queryDescription = QueryDescription.Parse(tableName, query);
@@ -145,7 +173,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="instance">The instance to insert into the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the inserted data when complete.</returns>
-        internal async Task InsertItemAsync(string tableName, JObject instance, CancellationToken cancellationToken = default)
+        public async Task InsertItemAsync(string tableName, JObject instance, CancellationToken cancellationToken = default)
         {
             EnsureContextIsInitialized();
 
@@ -168,7 +196,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="instance">The instance to replace into the table.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the replaced data when complete.</returns>
-        internal async Task ReplaceItemAsync(string tableName, JObject instance, CancellationToken cancellationToken = default)
+        public async Task ReplaceItemAsync(string tableName, JObject instance, CancellationToken cancellationToken = default)
         {
             EnsureContextIsInitialized();
 
@@ -192,7 +220,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="options">The options used to configure the pull operation.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the pull operation has finished.</returns>
-        internal async Task PullItemsAsync(string tableName, string query, PullOptions options, CancellationToken cancellationToken = default)
+        public async Task PullItemsAsync(string tableName, string query, PullOptions options, CancellationToken cancellationToken = default)
         {
             Arguments.IsValidTableName(tableName, nameof(tableName));
             Arguments.IsNotNull(query, nameof(query));
@@ -202,7 +230,7 @@ namespace Microsoft.Datasync.Client.Offline
             var table = ServiceClient.GetRemoteTable(tableName);
             var queryId = options.QueryId ?? GetQueryIdFromQuery(tableName, query);
             var queryDescription = QueryDescription.Parse(tableName, query);
-            string[] relatedTables = options.PushOtherTables ? new string[] { tableName } : null;
+            string[] relatedTables = options.PushOtherTables ? null : new string[] { tableName };
 
             if (queryDescription.Selection.Count > 0 || queryDescription.Projections.Count > 0)
             {
@@ -216,7 +244,7 @@ namespace Microsoft.Datasync.Client.Offline
 
             if (await TableIsDirtyAsync(tableName, cancellationToken).ConfigureAwait(false))
             {
-                await PushItemsAsync(relatedTables, cancellationToken).ConfigureAwait(false);
+                await PushContext.PushItemsAsync(relatedTables, cancellationToken).ConfigureAwait(false);
 
                 // If the table is still dirty, then throw an error.
                 if (await TableIsDirtyAsync(tableName, cancellationToken).ConfigureAwait(false))
@@ -226,8 +254,7 @@ namespace Microsoft.Datasync.Client.Offline
             }
 
             var deltaToken = await DeltaTokenStore.GetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
-            var deltaString = EdmTypeSupport.ToODataString(deltaToken);
-            var deltaTokenFilter = new BinaryOperatorNode(BinaryOperatorKind.GreaterThan, new MemberAccessNode(null, SystemProperties.JsonUpdatedAtProperty), new ConstantNode(deltaString));
+            var deltaTokenFilter = new BinaryOperatorNode(BinaryOperatorKind.GreaterThan, new MemberAccessNode(null, SystemProperties.JsonUpdatedAtProperty), new ConstantNode(deltaToken));
             queryDescription.Filter = queryDescription.Filter == null ? deltaTokenFilter : new BinaryOperatorNode(BinaryOperatorKind.And, queryDescription.Filter, deltaTokenFilter);
             Dictionary<string, string> parameters = new()
             {
@@ -280,7 +307,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="options">The options used to configure the purge operation.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the purge operation has finished.</returns>
-        internal async Task PurgeItemsAsync(string tableName, string query, PurgeOptions options, CancellationToken cancellationToken = default)
+        public async Task PurgeItemsAsync(string tableName, string query, PurgeOptions options, CancellationToken cancellationToken = default)
         {
             Arguments.IsValidTableName(tableName, nameof(tableName));
             Arguments.IsNotNull(query, nameof(query));
@@ -322,7 +349,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param
         /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
         /// <returns>A task that completes when the push operation has finished.</returns>
-        internal Task PushItemsAsync(string tableName, CancellationToken cancellationToken = default)
+        public Task PushItemsAsync(string tableName, CancellationToken cancellationToken = default)
             => PushItemsAsync(new string[] { tableName }, cancellationToken);
 
         /// <summary>
@@ -332,7 +359,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the push operation has finished.</returns>
         /// <exception cref="PushFailedException">if the push operation failed.</exception>
-        internal async Task PushItemsAsync(string[] tableNames, CancellationToken cancellationToken = default)
+        public async Task PushItemsAsync(string[] tableNames, CancellationToken cancellationToken = default)
         {
             EnsureContextIsInitialized();
 

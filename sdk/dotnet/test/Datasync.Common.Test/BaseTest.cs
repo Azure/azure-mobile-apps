@@ -114,6 +114,39 @@ namespace Datasync.Common.Test
             return page;
         }
 
+        /// <summary>
+        /// Creates a paging response for a list of movies, with an updatedAt set.
+        /// </summary>
+        /// <param name="count">Count of items</param>
+        /// <param name="lastUpdatedAt">The last updated at to use.</param>
+        /// <param name="nDeleted">Number of deleted items</param>
+        /// <param name="noUpdatedAt">Don't include the updatedAt field.</param>
+        /// <returns></returns>
+        protected List<JObject> CreatePageOfMovies(int count, DateTimeOffset lastUpdatedAt, int nDeleted = 0)
+        {
+            List<EFMovie> movies = TestData.Movies.OfType<EFMovie>().Take(count).ToList();
+            for (int i = 0; i < count; i++)
+            {
+                int offset = count - i -1; // Number of days offset.
+                movies[i].UpdatedAt = lastUpdatedAt.AddDays(-offset);
+            }
+            while (nDeleted > 0)
+            {
+                movies[nDeleted--].Deleted = true;
+            }
+
+            var page = new Page<EFMovie> { Items = movies };
+            MockHandler.AddResponse(HttpStatusCode.OK, page);
+
+            return movies.ConvertAll(m => (JObject)GetMockClient().Serializer.Serialize(m));
+        }
+
+        /// <summary>
+        /// Builds the handler set for the clients.
+        /// </summary>
+        /// <param name="authProvider"></param>
+        /// <param name="clientHandler"></param>
+        /// <returns></returns>
         private static List<HttpMessageHandler> BuildHandlers(AuthenticationProvider authProvider, HttpMessageHandler clientHandler)
         {
             List<HttpMessageHandler> handlers = new(new[] { clientHandler });

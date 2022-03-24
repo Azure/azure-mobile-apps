@@ -137,13 +137,21 @@ namespace Datasync.Common.Test
         public static void SequenceEqual(List<JObject> expected, List<JObject> actual)
         {
             Assert.Equal(expected.Count, actual.Count);
+
+            static bool DoCheck(JProperty prop) => prop.Value.Type switch
+            {
+                JTokenType.Null => false,
+                JTokenType.Boolean => prop.Value.Value<bool>(),
+                _ => true
+            };
+
             for (int i = 0; i < expected.Count; i++)
             {
                 var expectedItem = expected[i];
                 var actualItem = actual[i];
 
                 // Each property in the expectedItem should be present in the actualItem unless the value is null.
-                foreach (JProperty expectedProp in expectedItem.Properties().Where(prop => prop.Value.Type != JTokenType.Null))
+                foreach (JProperty expectedProp in expectedItem.Properties().Where(prop => DoCheck(prop)))
                 {
                     JProperty actualProp = actualItem.Properties().SingleOrDefault(ap => ap.Name == expectedProp.Name);
                     Assert.Equal(expectedProp.Value, actualProp.Value);

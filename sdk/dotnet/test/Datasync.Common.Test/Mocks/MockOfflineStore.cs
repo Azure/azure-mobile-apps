@@ -235,7 +235,7 @@ namespace Datasync.Common.Test.Mocks
         /// </summary>
         /// <param name="tableName">Name of the table.</param>
         /// <returns></returns>
-        private MockTable GetOrCreateTable(string tableName)
+        public MockTable GetOrCreateTable(string tableName)
         {
             if (!TableMap.TryGetValue(tableName, out MockTable table))
             {

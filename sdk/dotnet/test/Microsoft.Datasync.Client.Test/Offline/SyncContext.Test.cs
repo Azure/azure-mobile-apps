@@ -7,12 +7,17 @@ using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
+using Microsoft.Datasync.Client.Serialization;
+using Microsoft.Datasync.Client.Table;
+using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -447,6 +452,307 @@ namespace Microsoft.Datasync.Client.Test.Offline
             await context.DeleteItemAsync("test", jsonObject);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => context.InsertItemAsync("test", jsonObject));
+        }
+        #endregion
+
+        #region PullItemsAsync
+        [Fact]
+        [Trait("Method", "PullItemsAsync")]
+        public async Task PullItems_NullTable()
+        {
+            var context = await GetSyncContext();
+            await Assert.ThrowsAsync<ArgumentNullException>(() => context.PullItemsAsync(null, "", new PullOptions()));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("\t")]
+        [InlineData("abcdef gh")]
+        [InlineData("!!!")]
+        [InlineData("?")]
+        [InlineData(";")]
+        [InlineData("{EA235ADF-9F38-44EA-8DA4-EF3D24755767}")]
+        [InlineData("###")]
+        [InlineData("1abcd")]
+        [InlineData("true.false")]
+        [InlineData("a-b-c-d")]
+        [Trait("Method", "PullItemsAsync")]
+        public async Task PullItems_InvalidTable(string tableName)
+        {
+            var context = await GetSyncContext();
+            await Assert.ThrowsAsync<ArgumentException>(() => context.PullItemsAsync(tableName, "", new PullOptions()));
+        }
+
+        [Fact]
+        [Trait("Method", "PullItemsAsync")]
+        public async Task PullItems_NullQuery()
+        {
+            var context = await GetSyncContext();
+            await Assert.ThrowsAsync<ArgumentNullException>(() => context.PullItemsAsync("movies", null, new PullOptions()));
+        }
+
+        [Fact]
+        [Trait("Method", "PullItemsAsync")]
+        public async Task PullItems_NullOptions()
+        {
+            var context = await GetSyncContext();
+            await Assert.ThrowsAsync<ArgumentNullException>(() => context.PullItemsAsync("movies", "", null));
+        }
+
+        [Fact]
+        [Trait("Method", "PullItemsAsync")]
+        public async Task PullItems_SelectQuery_Throws()
+        {
+            var context = await GetSyncContext();
+            await Assert.ThrowsAsync<ArgumentException>(() => context.PullItemsAsync("movies", "$select=id,updatedAt", new PullOptions()));
+        }
+
+        [Fact]
+        [Trait("method", "PullItemsAsync")]
+        public async Task PullItemsAsync_NoResponse_Works()
+        {
+            var context = await GetSyncContext();
+            MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity> { Items = new List<IdEntity>() });
+            store.GetOrCreateTable("movies");
+
+            await context.PullItemsAsync("movies", "", new PullOptions());
+
+            // Items were pulled.
+            var storedEntities = store.TableMap["movies"]?.Values.ToList() ?? new List<JObject>();
+            Assert.Empty(storedEntities);
+
+            // Delta Token was not stored.
+            Assert.Empty(store.TableMap[SystemTables.Configuration]);
+
+            // Query was correct
+            Assert.Single(MockHandler.Requests);
+            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+        }
+
+        [Fact]
+        [Trait("method", "PullItemsAsync")]
+        public async Task PullItemsAsync_WithFilter_NoResponse_Works()
+        {
+            var context = await GetSyncContext();
+            MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity> { Items = new List<IdEntity>() });
+            store.GetOrCreateTable("movies");
+
+            await context.PullItemsAsync("movies", "$filter=(rating eq 'PG-13')", new PullOptions());
+
+            // Items were pulled.
+            var storedEntities = store.TableMap["movies"]?.Values.ToList() ?? new List<JObject>();
+            Assert.Empty(storedEntities);
+
+            // Delta Token was not stored.
+            Assert.Empty(store.TableMap[SystemTables.Configuration]);
+
+            // Query was correct
+            Assert.Single(MockHandler.Requests);
+            Assert.Equal("/tables/movies?$filter=((rating eq 'PG-13') and (updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset)))&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+        }
+
+        [Fact]
+        [Trait("Method", "PullItemsAsync")]
+        public async Task PullItemsAsync_ProducesCorrectQuery()
+        {
+            var lastUpdatedAt = DateTimeOffset.Parse("2021-03-24T12:50:44.000+00:00");
+            var context = await GetSyncContext();
+            var items = CreatePageOfMovies(10, lastUpdatedAt);
+
+            await context.PullItemsAsync("movies", "", new PullOptions());
+
+            // Items were pulled.
+            var storedEntities = store.TableMap["movies"].Values.ToList();
+            AssertEx.SequenceEqual(items, storedEntities);
+
+            // Delta Token was stored - it's stored as UnixTimeMilliseconds().
+            Assert.Single(store.TableMap[SystemTables.Configuration].Values);
+            var deltaToken = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(store.TableMap[SystemTables.Configuration].Values.FirstOrDefault()?.Value<string>("value")));
+            Assert.Equal(lastUpdatedAt.ToUniversalTime(), deltaToken.ToUniversalTime());
+
+            // Query was correct
+            Assert.Single(MockHandler.Requests);
+            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+        }
+
+        [Fact]
+        [Trait("Method", "PullItemsAsync")]
+        public async Task PullItemsAsync_ProducesCorrectQuery_WithoutUpdatedAt()
+        {
+            var context = await GetSyncContext();
+            _ = CreatePageOfItems(10);
+
+            await context.PullItemsAsync("movies", "", new PullOptions());
+
+            // Delta Token was not stored
+            var table = store.GetOrCreateTable(SystemTables.Configuration);
+            Assert.Empty(table);
+
+            // Query was correct
+            Assert.Single(MockHandler.Requests);
+            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+        }
+
+        [Fact]
+        [Trait("Method", "PullItemsAsync")]
+        public async Task PullItemsAsync_UsesQueryId()
+        {
+            var lastUpdatedAt = DateTimeOffset.Parse("2021-03-24T12:50:44.000+00:00");
+            var context = await GetSyncContext();
+            var options = new PullOptions { QueryId = "abc123" };
+            const string keyId = "dt.movies.abc123";
+            var items = CreatePageOfMovies(10, lastUpdatedAt);
+
+            await context.PullItemsAsync("movies", "", options);
+
+            // Items were pulled.
+            var storedEntities = store.TableMap["movies"].Values.ToList();
+            AssertEx.SequenceEqual(items, storedEntities);
+
+            // Delta Token was stored.
+            Assert.True(store.TableMap[SystemTables.Configuration].ContainsKey(keyId));
+            var deltaToken = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(store.TableMap[SystemTables.Configuration][keyId].Value<string>("value")));
+            Assert.Equal(lastUpdatedAt.ToUniversalTime(), deltaToken.ToUniversalTime());
+
+            // Query was correct
+            Assert.Single(MockHandler.Requests);
+            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+        }
+
+        [Fact]
+        [Trait("Method", "PullItemsAsync")]
+        public async Task PullItemsAsync_ReadsQueryId()
+        {
+            var lastUpdatedAt = DateTimeOffset.Parse("2021-03-24T12:50:44.000+00:00");
+            var context = await GetSyncContext();
+            var options = new PullOptions { QueryId = "abc123" };
+            const string keyId = "dt.movies.abc123";
+            var table = store.GetOrCreateTable(SystemTables.Configuration);
+            table[keyId] = JObject.Parse($"{{\"id\":\"{keyId}\",\"value\":\"{lastUpdatedAt.ToUnixTimeMilliseconds()}\"}}");
+            _ = CreatePageOfMovies(10, lastUpdatedAt);
+
+            await context.PullItemsAsync("movies", "", options);
+
+            // Query was correct
+            Assert.Single(MockHandler.Requests);
+            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(2021-03-24T12:50:44.000Z,Edm.DateTimeOffset))&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+        }
+
+        [Fact]
+        [Trait("Method", "PullItemsAsync")]
+        public async Task PullItemsAsync_Overwrites_Data()
+        {
+            var lastUpdatedAt = DateTimeOffset.Parse("2021-03-24T12:50:44.000+00:00");
+            var context = await GetSyncContext();
+            var items = CreatePageOfMovies(10, lastUpdatedAt, 3);
+            store.Upsert("movies", items); // store the 10 items in the store
+
+            await context.PullItemsAsync("movies", "", new PullOptions());
+
+            // Items were pulled, and the deleted items were in fact deleted.
+            var storedEntities = store.TableMap["movies"].Values.ToList();
+            AssertEx.SequenceEqual(items.Where(m => !m.Value<bool>("deleted")).ToList(), storedEntities);
+            // There are no deleted items.
+            Assert.DoesNotContain(storedEntities, m => m.Value<bool>("deleted"));
+
+            // Delta Token was stored - it's stored as UnixTimeMilliseconds().
+            Assert.Single(store.TableMap[SystemTables.Configuration].Values);
+            var deltaToken = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(store.TableMap[SystemTables.Configuration].Values.FirstOrDefault()?.Value<string>("value")));
+            Assert.Equal(lastUpdatedAt.ToUniversalTime(), deltaToken.ToUniversalTime());
+
+            // Query was correct
+            Assert.Single(MockHandler.Requests);
+            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+        }
+
+        [Fact]
+        [Trait("Method", "PullItemsAsync")]
+        public async Task PullItemsAsync_CallsPush_WhenDirty()
+        {
+            AddRandomOperations("movies", 1);
+
+            var lastUpdatedAt = DateTimeOffset.Parse("2021-03-24T12:50:44.000+00:00");
+            var context = await GetSyncContext();
+            var items = CreatePageOfMovies(10, lastUpdatedAt, 3);
+            store.Upsert("movies", items); // store the 10 items in the store
+
+            var pushContext = new Mock<IPushContext>();
+            pushContext.Setup(x => x.PushItemsAsync(It.IsAny<string[]>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+            context.PushContext = pushContext.Object;
+
+            // We don't "consume" the operation, so PullItemsAsync() will throw an invalid operation because the table is dirty the second time.
+            await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => context.PullItemsAsync("movies", "", new PullOptions()));
+
+            // PushItemsAsync should be called once.
+            Assert.Single(pushContext.Invocations);
+
+            // Since we didn't alter the movies, then args[0] should be string[] { "movies" }
+            var relatedTables = pushContext.Invocations[0].Arguments[0] as string[];
+            Assert.Single(relatedTables);
+            Assert.Equal("movies", relatedTables[0]);
+        }
+
+        [Fact]
+        [Trait("Method", "PullItemsAsync")]
+        public async Task PullItemsAsync_CallsPush_WhenDirty_WithPushOtherTables()
+        {
+            AddRandomOperations("movies", 1);
+
+            var lastUpdatedAt = DateTimeOffset.Parse("2021-03-24T12:50:44.000+00:00");
+            var context = await GetSyncContext();
+            var items = CreatePageOfMovies(10, lastUpdatedAt, 3);
+            store.Upsert("movies", items); // store the 10 items in the store
+
+            var pushContext = new Mock<IPushContext>();
+            pushContext.Setup(x => x.PushItemsAsync(It.IsAny<string[]>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+            context.PushContext = pushContext.Object;
+
+            // We don't "consume" the operation, so PullItemsAsync() will throw an invalid operation because the table is dirty the second time.
+            var options = new PullOptions { PushOtherTables = true };
+            await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => context.PullItemsAsync("movies", "",options));
+
+            // PushItemsAsync should be called once.
+            Assert.Single(pushContext.Invocations);
+
+            // Since we are pushing other tables, the argument should be null
+            Assert.Null(pushContext.Invocations[0].Arguments[0]);
+        }
+
+        [Fact]
+        [Trait("Method", "PullItemsAsync")]
+        public async Task PullItemsAsync_CallsPush_WhenDirty_ThenCleaned()
+        {
+            AddRandomOperations("movies", 1);
+
+            var lastUpdatedAt = DateTimeOffset.Parse("2021-03-24T12:50:44.000+00:00");
+            var context = await GetSyncContext();
+            var options = new PullOptions { QueryId = "abc123" };
+            const string keyId = "dt.movies.abc123";
+            var items = CreatePageOfMovies(10, lastUpdatedAt);
+
+            var pushContext = new Mock<IPushContext>();
+            pushContext.Setup(x => x.PushItemsAsync(It.IsAny<string[]>(), It.IsAny<CancellationToken>())).Returns(() =>
+            {
+                store.TableMap[SystemTables.OperationsQueue].Clear();
+                return Task.CompletedTask;
+            });
+            context.PushContext = pushContext.Object;
+
+            await context.PullItemsAsync("movies", "", options);
+
+            // Items were pulled.
+            var storedEntities = store.TableMap["movies"].Values.ToList();
+            AssertEx.SequenceEqual(items, storedEntities);
+
+            // Delta Token was stored.
+            Assert.True(store.TableMap[SystemTables.Configuration].ContainsKey(keyId));
+            var deltaToken = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(store.TableMap[SystemTables.Configuration][keyId].Value<string>("value")));
+            Assert.Equal(lastUpdatedAt.ToUniversalTime(), deltaToken.ToUniversalTime());
+
+            // Query was correct
+            Assert.Single(MockHandler.Requests);
+            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
         }
         #endregion
 

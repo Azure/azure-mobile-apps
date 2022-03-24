@@ -252,7 +252,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         {
             if (previousSequenceId < 0)
             {
-                throw new ArgumentOutOfRangeException("Sequence ID must be a positive integer", nameof(previousSequenceId));
+                throw new ArgumentOutOfRangeException(nameof(previousSequenceId), "Sequence ID must be a positive integer");
             }
 
             QueryDescription query = new(SystemTables.OperationsQueue)
