@@ -1,124 +1,106 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Utils;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Text.Json;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Datasync.Client.Http
 {
     /// <summary>
-    /// A set of <see cref="HttpRequestMessage"/> extensions for handling requests with a fluent interface
+    /// A set of extension methods to more easily deal with HTTP messages.
     /// </summary>
     internal static class HttpMessageExtensions
     {
-        /// <summary>
-        /// List of all the telemetry features in the DatasyncFeatures set.
-        /// </summary>
-        private static readonly List<Tuple<DatasyncFeatures, string>> AllTelemetryFeatures
-            = ((DatasyncFeatures[])Enum.GetValues(typeof(DatasyncFeatures))).Select(v => new Tuple<DatasyncFeatures, string>(v, EnumValueAttribute.GetValue(v))).ToList();
-
+        private static readonly string[] ValidCompressionMethods = new string[] { "br", "compress", "deflate", "gzip" };
 
         /// <summary>
-        /// Serialize the content for a request.
+        /// Gets the version string from the provided <c>ETag</c> header value.
         /// </summary>
-        /// <typeparam name="T">The type of the content</typeparam>
-        /// <param name="request">The request to modify</param>
-        /// <param name="content">The content</param>
-        /// <param name="serializerOptions">The serializer options</param>
-        /// <param name="mediaType">The media type</param>
-        /// <returns>The modified request</returns>
-        internal static HttpRequestMessage WithContent<T>(this HttpRequestMessage request, T content, JsonSerializerOptions serializerOptions, string mediaType = "application/json")
+        /// <param name="value">The <c>ETag</c> value.</param>
+        /// <returns>The version string.</returns>
+        internal static string GetVersion(this EntityTagHeaderValue value)
         {
-            Validate.IsNotNull(content, nameof(content));
-            Validate.IsNotNull(serializerOptions, nameof(serializerOptions));
-
-            request.Content = new StringContent(JsonSerializer.Serialize(content, serializerOptions), Encoding.UTF8, mediaType);
-            return request;
+            if (string.IsNullOrEmpty(value?.Tag))
+            {
+                return null;
+            }
+            return value.Tag.Substring(1, value.Tag.Length - 2).Replace("\\\"", "\"");
         }
 
         /// <summary>
-        /// Adds a set of headers to the request.
+        /// Converts a string to a quoted ETag value.
         /// </summary>
-        /// <param name="request">The request to modify</param>
-        /// <param name="headers">the HTTP headers to add</param>
-        /// <returns>The modified request</returns>
-        internal static HttpRequestMessage WithHeaders(this HttpRequestMessage request, IDictionary<string, string> headers = null)
+        /// <param name="value">The version string to convert.</param>
+        /// <returns>The converted value.</returns>
+        internal static string ToETagValue(this string value)
         {
-            if (headers != null)
+            if (string.IsNullOrEmpty(value))
             {
-                headers.ToList().ForEach(header => request.WithHeader(header.Key, header.Value));
+                return null;
             }
-            return request;
+            for (int i = 0; i < value.Length; i++)
+            {
+                if (value[i] == '"' && (i == 0 || value[i - 1] != '\\'))
+                {
+                    value = value.Insert(i, "\\");
+                }
+            }
+            return $"\"{value}\"";
         }
 
         /// <summary>
-        /// Adds a single header to the correct place in the request.
+        /// Returns true if the content is filled.
         /// </summary>
-        /// <param name="request">The request to modify</param>
-        /// <param name="headerName">The headerName</param>
-        /// <param name="headerValue">The headerValue</param>
-        /// <returns>The modified request</returns>
-        internal static HttpRequestMessage WithHeader(this HttpRequestMessage request, string headerName, string headerValue)
-        {
-            if (string.IsNullOrWhiteSpace(headerName) || string.IsNullOrWhiteSpace(headerValue))
-            {
-                // No-ope
-                return request;
-            }
+        /// <param name="content">The content to check..</param>
+        /// <returns><c>true</c> if there is content; <c>false</c> otherwise.</returns>
+        internal static bool HasContent(this HttpContent content)
+            => content != null && content.GetType().Name != "EmptyContent";
 
-            // There are a set of headers that apply to the content, and a set that apply to the body of the request.
-            // We need to put the headers in the right place.
-            if (headerName.StartsWith("Content-", StringComparison.InvariantCultureIgnoreCase))
+        /// <summary>
+        /// Returns true if the response has some content.
+        /// </summary>
+        /// <param name="response">The response to check.</param>
+        /// <returns><c>true</c> if the response has content; <c>false</c> otherwise.</returns>
+        internal static bool HasContent(this HttpResponseMessage response)
+            => HasContent(response.Content);
+
+        /// <summary>
+        /// Returns <c>true</c> if the response is compressed.
+        /// </summary>
+        /// <param name="response">The <see cref="HttpResponseMessage"/> for the response.</param>
+        /// <returns><c>true</c> if the response headers indicates the response is compressed.</returns>
+        internal static bool IsCompressed(this HttpResponseMessage response)
+        {
+            if (response.Content.Headers.ContentEncoding.Count > 0)
             {
-                throw new InvalidOperationException($"Adjusting content headers is unsupported ('{headerName}')");
+                return response.Content.Headers.ContentEncoding.Any(m => ValidCompressionMethods.Contains(m));
             }
-            else
+            else if (response.Headers.Vary.Count > 0)
             {
-                request.Headers.TryAddWithoutValidation(headerName, headerValue);
+                return response.Headers.Vary.Contains("Accept-Encoding");
             }
-            return request;
+            return false;
         }
 
         /// <summary>
-        /// Adds the features header to the request.
+        /// Returns <c>true</c> if the response indicates a conflict.
         /// </summary>
-        /// <param name="request">The request to modify</param>
-        /// <param name="features">The features for this request</param>
-        /// <returns>The modified request</returns>
-        internal static HttpRequestMessage WithFeatureHeader(this HttpRequestMessage request, DatasyncFeatures features = DatasyncFeatures.None)
-        {
-            if (features != DatasyncFeatures.None)
-            {
-                var featureHeader = string.Join(",", AllTelemetryFeatures.Where(t => (features & t.Item1) == t.Item1).Select(t => t.Item2)).Trim(',');
-                return request.WithHeader(ServiceHeaders.Features, featureHeader);
-            }
-            return request;
-        }
-
-
-        /// <summary>
-        /// Returns true if the status code is a conflict.
-        /// </summary>
-        /// <param name="response">The response message</param>
-        /// <returns>True if indicating a conflict</returns>
+        /// <param name="response">The <see cref="HttpResponseMessage"/> for the response.</param>
+        /// <returns><c>true</c> if the response indicates the response is a conflict.</returns>
         internal static bool IsConflictStatusCode(this HttpResponseMessage response)
-            => response.StatusCode == HttpStatusCode.Conflict || response.StatusCode == HttpStatusCode.PreconditionFailed;
+            => response.StatusCode == HttpStatusCode.PreconditionFailed || response.StatusCode == HttpStatusCode.Conflict;
 
         /// <summary>
-        /// Reads the content of the <see cref="HttpContent"/> object as a byte array, with cancellation.
+        /// Reads the content of the <see cref="HttpContent"/> object as a string, with cancellation.
         /// </summary>
         /// <param name="content">The <see cref="HttpContent"/> object to process</param>
-        /// <param name="token">A <see cref="CancellationToken"/></param>
-        /// <returns>The content as a byte array, asynchronously</returns>
-        internal static Task<byte[]> ReadAsByteArrayAsync(this HttpContent content, CancellationToken token)
-            => Task.Run(() => content.ReadAsByteArrayAsync(), token);
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+        /// <returns>A task that returns the content as a string when complete.</returns>
+        internal static Task<string> ReadAsStringAsync(this HttpContent content, CancellationToken cancellationToken)
+            => Task.Run(() => content.ReadAsStringAsync(), cancellationToken);
     }
 }

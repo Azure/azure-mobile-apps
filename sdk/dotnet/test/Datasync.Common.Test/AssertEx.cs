@@ -5,7 +5,9 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.Datasync.Client;
+using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Net.Http.Headers;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -31,6 +33,19 @@ namespace Datasync.Common.Test
         private const string format = "yyyy-MM-dd'T'HH:mm:ss.fffK";
 
         /// <summary>
+        /// Asserts if the two dates are "close" to one another (enough so to be valid in terms of test speed)
+        /// timings)
+        /// </summary>
+        /// <param name="expected"></param>
+        /// <param name="actual"></param>
+        /// <param name="interval"></param>
+        public static void CloseTo(DateTimeOffset expected, DateTimeOffset actual, int interval = 2000)
+        {
+            var ms = Math.Abs((expected.Subtract(actual)).TotalMilliseconds);
+            Assert.True(ms < interval, $"Date {expected} and {actual} are {ms}ms apart");
+        }
+
+        /// <summary>
         /// Asserts if the dictionary contains the provided value.
         /// </summary>
         /// <param name="key">the header name</param>
@@ -48,54 +63,11 @@ namespace Datasync.Common.Test
         /// <param name="key">the header name</param>
         /// <param name="expected">the header value</param>
         /// <param name="headers">The headers</param>
-        public static void Contains(string key, string expected, IReadOnlyDictionary<string, IEnumerable<string>> headers)
+        public static void Contains(string key, string expected, IDictionary<string, IEnumerable<string>> headers)
         {
             Assert.True(headers.TryGetValue(key, out IEnumerable<string> values), $"Dictionary does not contain key {key}");
             Assert.True(values.Count() == 1, $"Dictionary contains multiple values for {key}");
             Assert.Equal(expected, values.Single());
-        }
-
-        /// <summary>
-        /// Asserts if the two dates are "close" to one another (enough so to be valid in terms of test speed)
-        /// timings)
-        /// </summary>
-        /// <param name="expected"></param>
-        /// <param name="actual"></param>
-        /// <param name="interval"></param>
-        public static void CloseTo(DateTimeOffset expected, DateTimeOffset actual, int interval = 2000)
-        {
-            var ms = Math.Abs((expected.Subtract(actual)).TotalMilliseconds);
-            Assert.True(ms < interval, $"Date {expected} and {actual} are {ms}ms apart");
-        }
-
-        /// <summary>
-        /// Asserts if the provided actual date is in between the provided start and end dates.
-        /// </summary>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <param name="actual"></param>
-        public static void IsBetween(DateTimeOffset start, DateTimeOffset end, DateTimeOffset actual)
-        {
-            Assert.True(actual >= start, $"Date {actual} is earlier than expected start date {start}");
-            Assert.True(actual <= end, $"Date {actual} is later than expected end date {end}");
-        }
-
-        /// <summary>
-        /// Asserts if the headers contains the specific header provided
-        /// </summary>
-        /// <param name="response"></param>
-        /// <param name="headerName"></param>
-        /// <param name="expected"></param>
-        public static void ResponseHasHeader(HttpResponseMessage response, string headerName, string expected)
-        {
-            if (headerName.Equals("Last-Modified", StringComparison.InvariantCultureIgnoreCase) || headerName.StartsWith("Content-", StringComparison.InvariantCultureIgnoreCase))
-            {
-                HasHeader(response.Content.Headers, headerName, expected);
-            }
-            else
-            {
-                HasHeader(response.Headers, headerName, expected);
-            }
         }
 
         /// <summary>
@@ -113,6 +85,84 @@ namespace Datasync.Common.Test
             Assert.True(headers.TryGetValues(headerName, out IEnumerable<string> values), $"The request/response does not contain header {headerName} (Headers = {allHeaders})");
             Assert.True(values.Count() == 1, $"There are {values.Count()} values for header {headerName} (values = {string.Join(';', values)})");
             Assert.True(values.First().Equals(expected), $"Value of header {headerName} does not match (expected: {expected}, got: {values.First()})");
+        }
+
+        /// <summary>
+        /// Asserts if the headers contains the specific header provided
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="headerName"></param>
+        /// <param name="expected"></param>
+        public static void HasHeader(HttpResponseMessage response, string headerName, string expected)
+        {
+            if (headerName.Equals("Last-Modified", StringComparison.InvariantCultureIgnoreCase) || headerName.StartsWith("Content-", StringComparison.InvariantCultureIgnoreCase))
+            {
+                HasHeader(response.Content.Headers, headerName, expected);
+            }
+            else
+            {
+                HasHeader(response.Headers, headerName, expected);
+            }
+        }
+
+        /// <summary>
+        /// Asserts if the provided actual date is in between the provided start and end dates.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="actual"></param>
+        public static void IsBetween(DateTimeOffset start, DateTimeOffset end, DateTimeOffset actual)
+        {
+            Assert.True(actual >= start, $"Date {actual} is earlier than expected start date {start}");
+            Assert.True(actual <= end, $"Date {actual} is later than expected end date {end}");
+        }
+
+        /// <summary>
+        /// Ensures that the response has the required headers for conditional HTTP usage.
+        /// </summary>
+        /// <param name="expected">The <see cref="ITableData"/> representing the entity returned.</param>
+        /// <param name="response">The response to check.</param>
+        public static void ResponseHasConditionalHeaders(ITableData expected, HttpResponseMessage response)
+        {
+            var lastModified = expected.UpdatedAt.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern);
+            HasHeader(response, HeaderNames.ETag, expected.GetETag());
+            HasHeader(response, HeaderNames.LastModified, lastModified);
+        }
+
+        /// <summary>
+        /// Assert that the two JObjects are identical enough.
+        /// </summary>
+        /// <param name="expected"></param>
+        /// <param name="actual"></param>
+        public static void JsonEqual(JObject expected, JObject actual)
+        {
+            static bool DoCheck(JProperty prop) => prop.Value.Type switch
+            {
+                JTokenType.Null => false,
+                JTokenType.Boolean => prop.Value.Value<bool>(),
+                _ => true
+            };
+
+            // Each property in the expectedItem should be present in the actualItem unless the value is null.
+            foreach (JProperty expectedProp in expected.Properties().Where(prop => DoCheck(prop)))
+            {
+                JProperty actualProp = actual.Properties().SingleOrDefault(ap => ap.Name == expectedProp.Name);
+                Assert.Equal(expectedProp.Value, actualProp.Value);
+            }
+        }
+
+        /// <summary>
+        /// Ensures that the two JObject lists are identical.
+        /// </summary>
+        /// <param name="expected"></param>
+        /// <param name="actual"></param>
+        public static void SequenceEqual(List<JObject> expected, List<JObject> actual)
+        {
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                JsonEqual(expected[i], actual[i]);
+            }
         }
 
         /// <summary>
@@ -162,61 +212,6 @@ namespace Datasync.Common.Test
             Assert.Equal(expected.UpdatedAt.ToUniversalTime().ToString(format), actual.RootElement.GetProperty("updatedAt").GetString());
             Assert.Equal(expected.Deleted, actual.RootElement.GetProperty("deleted").GetBoolean());
             Assert.Equal(Convert.ToBase64String(expected.Version), actual.RootElement.GetProperty("version").GetString());
-        }
-
-        public static void ResponseHasConditionalHeaders(ITableData expected, HttpResponseMessage response)
-        {
-            var lastModified = expected.UpdatedAt.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern);
-            ResponseHasHeader(response, HeaderNames.ETag, expected.GetETag());
-            ResponseHasHeader(response, HeaderNames.LastModified, lastModified);
-        }
-
-        /// <summary>
-        /// Compares a JsonDocument.
-        /// </summary>
-        /// <param name="expected">The expected JsonDocument</param>
-        /// <param name="actual">The actual JsonDocument</param>
-        public static void JsonEqual(JsonDocument expected, JsonDocument actual)
-        {
-            actual.RootElement.Should().BeEquivalentTo(expected.RootElement, opt => opt.ComparingByMembers<JsonElement>());
-        }
-
-        /// <summary>
-        /// Compares a list of JsonDocuments.
-        /// </summary>
-        /// <param name="expected">The expected JsonDocument</param>
-        /// <param name="actual">The actual JsonDocument</param>
-        public static void JsonEqual(List<JsonDocument> expected, List<JsonDocument> actual)
-        {
-            Assert.Equal(expected.Count, actual.Count);
-            for (int index = 0; index < expected.Count; index++)
-            {
-                JsonEqual(expected[index], actual[index]);
-            }
-        }
-
-        /// <summary>
-        /// Compares a JSON string to the byte representation.
-        /// </summary>
-        /// <param name="expected"></param>
-        /// <param name="actual"></param>
-        public static void JsonEqual(string expected, byte[] actual)
-        {
-            var actualAsString = Encoding.UTF8.GetString(actual);
-            Assert.Equal(expected, actualAsString);
-        }
-
-        /// <summary>
-        /// Compares an entity to a JsonDocument returned from the server.
-        /// </summary>
-        /// <typeparam name="T">The type of the entity.</typeparam>
-        /// <param name="expected">The expected entity.</param>
-        /// <param name="actual">The <see cref="JsonDocument"/> that was returned from the service.</param>
-        public static void JsonDocumentMatches<T>(T expected, JsonDocument actual)
-        {
-            var serializerSettings = new DatasyncClientOptions().SerializerOptions;
-            JsonDocument expectedDocument = JsonSerializer.SerializeToDocument<T>(expected, serializerSettings);
-            JsonEqual(expectedDocument, actual);
         }
     }
 }

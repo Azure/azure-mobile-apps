@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
@@ -50,6 +49,7 @@ namespace Datasync.Common.Test.Models
     public class DTOIdEntity
     {
         public string Id { get; set; }
+        public string Version { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }
         public long Number { get; set; }
     }

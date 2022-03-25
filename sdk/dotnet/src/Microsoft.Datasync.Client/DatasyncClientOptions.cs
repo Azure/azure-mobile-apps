@@ -1,74 +1,48 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
-using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Microsoft.Datasync.Client
 {
     /// <summary>
-    /// A model class for holding the client options used to alter the communication between
-    /// the client and the datasync service.
+    /// The options used to configure the <see cref="DatasyncClient"/>.
     /// </summary>
     public class DatasyncClientOptions
     {
         /// <summary>
-        /// The serializer options used for deserializing content from the datasync service.
+        /// The HTTP Pipeline to use.  This can be null.  If set, it must
+        /// be an ordered set of <see cref="DelegatingHandler"/> objects,
+        /// potentially followed by a <see cref="HttpClientHandler"/> for
+        /// a transport.
         /// </summary>
-        public JsonSerializerOptions DeserializerOptions { get; set; }
+        public IEnumerable<HttpMessageHandler> HttpPipeline { get; set; }
 
         /// <summary>
-        /// An ordered sequence of <see cref="HttpMessageHandler"/> objects to apply as a pipeline of
-        /// policies to the HTTP request/response.  Each one except an (optional) last one must be a
-        /// <see cref="DelegatingHandler"/>.  The last one can either be a <see cref="DelegatingHandler"/>
-        /// or a <see cref="HttpClientHandler"/>.
+        /// If set, use this as the installation ID.  The installation ID
+        /// is sent to the remote server in the <c>ZUMO-INSTALLATION-ID</c>
+        /// header.
         /// </summary>
-        public IEnumerable<HttpMessageHandler> HttpPipeline { get; set; } = Array.Empty<HttpMessageHandler>();
+        public string InstallationId { get; set; }
 
         /// <summary>
-        /// The unique installation ID for this application on this device.
+        /// The offline store to use for offline table storage.
         /// </summary>
-        public string InstallationId { get; set; } = Platform.InstallationId;
+        public IOfflineStore OfflineStore { get; set; }
 
         /// <summary>
-        /// The serializer options used for serializing content to be sent to the datasync service.
+        /// The serializer settings to use for this connection.
         /// </summary>
-        public JsonSerializerOptions SerializerOptions { get; set; }
-
-        /// <summary>
-        /// The prefix for the tables to generate a relative URI to the table endpoint.
-        /// </summary>
-        public string TablesPrefix { get; set; } = "/tables/";
+        public DatasyncSerializerSettings SerializerSettings { get; set; }
 
         /// <summary>
         /// The value used for the <c>User-Agent</c> header.  By default, this includes enough information
         /// to do telemetry easily without being too obtrusive.  We'd prefer it if you didn't change this.
         /// </summary>
         public string UserAgent { get; set; } = $"Datasync/{Platform.AssemblyVersion} ({Platform.UserAgentDetails})";
-
-        /// <summary>
-        /// Establish defaults for the <see cref="DatasyncClientOptions"/>
-        /// </summary>
-        public DatasyncClientOptions()
-        {
-            SerializerOptions = new JsonSerializerOptions()
-            {
-                AllowTrailingCommas = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
-                NumberHandling = JsonNumberHandling.Strict,
-                PropertyNameCaseInsensitive = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-            };
-            SerializerOptions.Converters.Add(new IsoDateTimeOffsetConverter());
-            SerializerOptions.Converters.Add(new IsoDateTimeConverter());
-
-            DeserializerOptions = SerializerOptions;
-        }
     }
 }

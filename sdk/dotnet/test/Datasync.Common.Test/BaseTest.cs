@@ -7,10 +7,14 @@ using Datasync.Common.Test.Service;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Authentication;
+using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Table;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -111,23 +115,46 @@ namespace Datasync.Common.Test
         }
 
         /// <summary>
-        /// Creates a paging response with JsonDocuments.
+        /// Creates a paging response for a list of movies, with an updatedAt set.
         /// </summary>
-        /// <param name="count">The count of elements to return</param>
-        /// <param name="totalCount">The total count</param>
-        /// <param name="nextLink">The next link</param>
+        /// <param name="count">Count of items</param>
+        /// <param name="lastUpdatedAt">The last updated at to use.</param>
+        /// <param name="nDeleted">Number of deleted items</param>
+        /// <param name="noUpdatedAt">Don't include the updatedAt field.</param>
         /// <returns></returns>
-        protected Page<JsonDocument> CreatePageOfJsonItems(int count, long? totalCount = null, Uri nextLink = null)
+        protected List<JObject> CreatePageOfMovies(int count, DateTimeOffset lastUpdatedAt, int nDeleted = 0)
         {
-            List<JsonDocument> items = new();
-
+            List<EFMovie> movies = TestData.Movies.OfType<EFMovie>().Take(count).ToList();
             for (int i = 0; i < count; i++)
             {
-                items.Add(CreateJsonDocument(new IdEntity { Id = Guid.NewGuid().ToString("N") }));
+                int offset = count - i -1; // Number of days offset.
+                movies[i].UpdatedAt = lastUpdatedAt.AddDays(-offset);
             }
-            var page = new Page<JsonDocument> { Items = items, Count = totalCount, NextLink = nextLink };
+            while (nDeleted > 0)
+            {
+                movies[nDeleted--].Deleted = true;
+            }
+
+            var page = new Page<EFMovie> { Items = movies };
             MockHandler.AddResponse(HttpStatusCode.OK, page);
-            return page;
+
+            return movies.ConvertAll(m => (JObject)GetMockClient().Serializer.Serialize(m));
+        }
+
+        /// <summary>
+        /// Builds the handler set for the clients.
+        /// </summary>
+        /// <param name="authProvider"></param>
+        /// <param name="clientHandler"></param>
+        /// <returns></returns>
+        private static List<HttpMessageHandler> BuildHandlers(AuthenticationProvider authProvider, HttpMessageHandler clientHandler)
+        {
+            List<HttpMessageHandler> handlers = new(new[] { clientHandler });
+            if (authProvider != null)
+            {
+                handlers.Insert(0, authProvider);
+            }
+            return handlers;
         }
 
         /// <summary>
@@ -139,9 +166,9 @@ namespace Datasync.Common.Test
         {
             var options = new DatasyncClientOptions
             {
-                HttpPipeline = new HttpMessageHandler[] { MockHandler }
+                HttpPipeline = BuildHandlers(authProvider, MockHandler)
             };
-            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, authProvider, options);
+            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, options);
         }
 
         /// <summary>
@@ -153,9 +180,9 @@ namespace Datasync.Common.Test
         {
             var options = new DatasyncClientOptions
             {
-                HttpPipeline = new HttpMessageHandler[] { MovieServer.CreateHandler() }
+                HttpPipeline = BuildHandlers(authProvider, MovieServer.CreateHandler())
             };
-            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, authProvider, options);
+            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, options);
         }
 
         /// <summary>
@@ -182,10 +209,26 @@ namespace Datasync.Common.Test
             };
         }
 
-        protected static JsonDocument CreateJsonDocument<T>(T obj)
+        /// <summary>
+        /// Converts an object into a <see cref="JObject"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of the object.</typeparam>
+        /// <param name="obj">The object.</param>
+        /// <returns>The equivalent <see cref="JObject"/></returns>
+        protected static JObject CreateJsonDocument<T>(T obj)
         {
-            var serializerSettings = new DatasyncClientOptions().SerializerOptions;
-            return JsonSerializer.SerializeToDocument<T>(obj, serializerSettings);
+            var settings = new DatasyncSerializerSettings();
+            return JObject.FromObject(obj, settings.GetSerializerFromSettings());
+        }
+
+        /// <summary>
+        /// Split, sort, and re-join a query string so that it can be compared easily
+        /// </summary>
+        protected static string NormalizeQueryString(string queryString)
+        {
+            var splitArgs = queryString.Split('&').ToList();
+            splitArgs.Sort();
+            return string.Join('&', splitArgs).TrimStart('&');
         }
 
         /// <summary>

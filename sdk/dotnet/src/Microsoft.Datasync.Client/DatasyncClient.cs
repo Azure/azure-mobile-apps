@@ -3,10 +3,14 @@
 
 using Microsoft.Datasync.Client.Authentication;
 using Microsoft.Datasync.Client.Http;
+using Microsoft.Datasync.Client.Offline;
+using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Datasync.Client
 {
@@ -16,7 +20,7 @@ namespace Microsoft.Datasync.Client
     public class DatasyncClient : IDisposable
     {
         /// <summary>
-        /// Constructor, used for unit-testing
+        ///  This is for unit testing only
         /// </summary>
         [ExcludeFromCodeCoverage]
         protected DatasyncClient()
@@ -112,99 +116,155 @@ namespace Microsoft.Datasync.Client
         /// <exception cref="UriFormatException">if the endpoint is malformed</exception>
         public DatasyncClient(Uri endpoint, AuthenticationProvider authenticationProvider, DatasyncClientOptions clientOptions)
         {
-            Validate.IsValidEndpoint(endpoint, nameof(endpoint));
+            Arguments.IsValidEndpoint(endpoint, nameof(endpoint));
 
             Endpoint = endpoint.NormalizeEndpoint();
             ClientOptions = clientOptions ?? new DatasyncClientOptions();
             HttpClient = new ServiceHttpClient(Endpoint, authenticationProvider, ClientOptions);
-        }
-
-        /// <summary>
-        /// The base <see cref="Uri"/> for the datasync service this client is communicating with.
-        /// </summary>
-        public Uri Endpoint { get; }
-
-        /// <summary>
-        /// The client options used to communicate with the remote datasync service.
-        /// </summary>
-        public DatasyncClientOptions ClientOptions { get; }
-
-        /// <summary>
-        /// The <see cref="ServiceHttpClient"/> used to communicate with the remote datasync service.
-        /// </summary>
-        internal ServiceHttpClient HttpClient { get; private set; }
-
-        /// <summary>
-        /// Obtains a reference to a remote table, which provides untyped data operations for the
-        /// specified table.
-        /// </summary>
-        /// <param name="tableName">The name of the table, or relative URI to the table endpoint.</param>
-        /// <returns>A reference to the remote table.</returns>
-        public IRemoteTable GetRemoteTable(string tableName)
-        {
-            string relativeUri = tableName.StartsWith("/") ? tableName : ToRelativeUri(tableName);
-            Validate.IsRelativeUri(relativeUri, nameof(relativeUri));
-            return new RemoteTable(relativeUri, HttpClient, ClientOptions);
-        }
-
-        /// <summary>
-        /// Obtain an <see cref="IDatasyncTable{T}"/> instance, which provides typed data operations for the specified type.
-        /// The table is converted to lower case and then combined with the <see cref="DatasyncClientOptions.TablesPrefix"/>
-        /// to generate the relative URI.
-        /// </summary>
-        /// <typeparam name="T">The strongly-typed model type</typeparam>
-        /// <returns>A generic typed table reference.</returns>
-        public IRemoteTable<T> GetRemoteTable<T>()
-            => GetRemoteTable<T>(ToRelativeUri(typeof(T).Name.ToLowerInvariant()));
-
-        /// <summary>
-        /// Obtain an <see cref="IDatasyncTable{T}"/> instance, which provides typed data operations for the specified table.
-        /// </summary>
-        /// <remarks>
-        /// If the <paramref name="tableName"/> starts with a <c>/</c>, then it is assumed to be a relative URI
-        /// instead of a table name, and used directly.
-        /// </remarks>
-        /// <typeparam name="T">The strongly-typed model type.</typeparam>
-        /// <param name="tableName">The name of the table, or relative URI to the table.</param>
-        /// <returns>A generic typed table reference.</returns>
-        public IRemoteTable<T> GetRemoteTable<T>(string tableName)
-        {
-            string relativeUri = tableName.StartsWith("/") ? tableName : ToRelativeUri(tableName);
-            Validate.IsRelativeUri(relativeUri, nameof(relativeUri));
-            return new RemoteTable<T>(relativeUri, HttpClient, ClientOptions);
-        }
-
-        /// <summary>
-        /// Converts the provided <paramref name="tableName"/> into a relative URI.
-        /// </summary>
-        /// <param name="tableName">The table name to convert</param>
-        /// <returns>The relative URI to the table</returns>
-        private string ToRelativeUri(string tableName) => $"/{ClientOptions.TablesPrefix.Trim('/')}/{tableName}";
-
-        #region IDisposable
-        /// <summary>
-        /// Implementation of the <see cref="IDisposable"/> pattern for derived classes to use.
-        /// </summary>
-        /// <param name="disposing">Indicates if being called from the <see cref="Dispose"/> method or the finalizer.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
+            if (ClientOptions.SerializerSettings != null)
             {
-                if (HttpClient != null)
-                {
-                    HttpClient.Dispose();
-                    HttpClient = null;
-                }
+                Serializer.SerializerSettings = ClientOptions.SerializerSettings;
+            }
+            if (ClientOptions.OfflineStore != null)
+            {
+                SyncContext = new SyncContext(this, ClientOptions.OfflineStore);
             }
         }
 
         /// <summary>
-        /// Implementation of the <see cref="IDisposable"/> pattern.
+        /// The client options for the service.
         /// </summary>
+        public DatasyncClientOptions ClientOptions { get; }
+
+        /// <summary>
+        /// Absolute URI of the Microsoft Azure Mobile App.
+        /// </summary>
+        public Uri Endpoint { get; }
+
+        /// <summary>
+        /// Gets the <see cref="MobileServiceHttpClient"/> associated with the Azure Mobile App.
+        /// </summary>
+        internal ServiceHttpClient HttpClient { get; }
+
+        /// <summary>
+        /// The id used to identify this installation of the application to
+        /// provide telemetry data.
+        /// </summary>
+        public string InstallationId { get => HttpClient.InstallationId; }
+
+        /// <summary>
+        /// The serializer to use for serializing and deserializing content.
+        /// </summary>
+        internal ServiceSerializer Serializer { get; } = new();
+
+        /// <summary>
+        /// The synchronization context.
+        /// </summary>
+        internal SyncContext SyncContext { get; }
+
+        /// <summary>
+        /// Returns a reference to an offline table, providing untyped (JSON) data
+        /// operations for that table.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <returns>A reference to the table.</returns>
+        public virtual IOfflineTable GetOfflineTable(string tableName)
+        {
+            Arguments.IsValidTableName(tableName, nameof(tableName));
+            if (SyncContext == null)
+            {
+                throw new InvalidOperationException("An offline store must be specified before using offline tables.");
+            }
+            return new OfflineTable(tableName, this);
+        }
+
+        /// <summary>
+        /// Returns a reference to an offline table, providing typed data
+        /// operations for that table.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="tableName"/> is not specified, the name of the
+        /// type is used as the table name.
+        /// </remarks>
+        /// <typeparam name="T">The type of the data transfer object (model) being used.</typeparam>
+        /// <param name="tableName">The (optional) name of the table.</param>
+        /// <returns>A reference to the table.</returns>
+        public virtual IOfflineTable<T> GetOfflineTable<T>(string tableName = null)
+        {
+            tableName ??= Serializer.ResolveTableName<T>();
+            Arguments.IsValidTableName(tableName, nameof(tableName));
+            if (SyncContext == null)
+            {
+                throw new InvalidOperationException("An offline store must be specified before using offline tables.");
+            }
+            return new OfflineTable<T>(tableName, this);
+        }
+
+        /// <summary>
+        /// Returns a reference to a remote table, providing untyped (JSON) data
+        /// operations for that table.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <returns>A reference to the table.</returns>
+        public virtual IRemoteTable GetRemoteTable(string tableName)
+            => new RemoteTable(tableName, this);
+
+        /// <summary>
+        /// Returns a reference to a remote table, providing typed data
+        /// operations for that table.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="tableName"/> is not specified, the name of the type is used as
+        /// the table name.
+        /// </remarks>
+        /// <typeparam name="T">The type of the data transfer object (model) being used.</typeparam>
+        /// <param name="tableName">The (optional) name of the table.</param>
+        /// <returns>A reference to the table.</returns>
+        public virtual IRemoteTable<T> GetRemoteTable<T>(string tableName = null)
+            => new RemoteTable<T>(tableName ?? Serializer.ResolveTableName<T>(), this);
+
+        /// <summary>
+        /// Initializes the offline store.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the offline store is initialized.</returns>
+        /// <exception cref="InvalidOperationException">if the offline store was not provided.</exception>
+        public virtual async Task InitializeOfflineStoreAsync(CancellationToken cancellationToken = default)
+        {
+            if (SyncContext == null)
+            {
+                throw new InvalidOperationException("An offline store must be specified before initialization.");
+            }
+            await SyncContext.InitializeAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        #region IDisposable
+        /// <summary>
+        /// Implemenation of <see cref="IDisposable"/>
+        /// </summary>
+        [ExcludeFromCodeCoverage]
         public void Dispose()
         {
-            Dispose(disposing: true);
+            Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Implemenation of <see cref="IDisposable"/> for
+        /// derived classes to use.
+        /// </summary>
+        /// <param name="disposing">
+        /// Indicates if being called from the Dispose() method
+        /// or the finalizer.
+        /// </param>
+        [ExcludeFromCodeCoverage]
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                SyncContext.Dispose();
+                HttpClient.Dispose();
+            }
         }
         #endregion
     }

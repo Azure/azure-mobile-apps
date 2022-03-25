@@ -1,139 +1,91 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Query.Nodes;
+using Datasync.Common.Test;
+using Microsoft.Datasync.Client.Query.Linq.Nodes;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Query
 {
     [ExcludeFromCodeCoverage]
-    public class Nodes_Test
+    public class Nodes_Tests : BaseTest
     {
         [Fact]
-        public void UnaryOperatorNode_SetChildren_NullThrows()
+        [Trait("Method", "get_Kind")]
+        public void AllNodes_Kind_SetCorrectly()
         {
-            var sut = new UnaryOperatorNode(UnaryOperatorKind.Not, null);
-            Assert.Throws<ArgumentNullException>(() => sut.SetChildren(null));
+            QueryNode node = new ConstantNode(true);
+
+            Assert.Equal(QueryNodeKind.BinaryOperator, new BinaryOperatorNode(BinaryOperatorKind.Or).Kind);
+            Assert.Equal(QueryNodeKind.Constant, new ConstantNode(true).Kind);
+            Assert.Equal(QueryNodeKind.Convert, new ConvertNode(node, typeof(QueryNode)).Kind);
+            Assert.Equal(QueryNodeKind.FunctionCall, new FunctionCallNode("name").Kind);
+            Assert.Equal(QueryNodeKind.MemberAccess, new MemberAccessNode(null, "updatedAt").Kind);
+            Assert.Equal(QueryNodeKind.UnaryOperator, new UnaryOperatorNode(UnaryOperatorKind.Not, node).Kind);
         }
 
         [Fact]
-        public void UnaryOperatorNode_SetChildren_ThrowsEmpty()
+        [Trait("Method", "SetChildren")]
+        public void BinaryOperatorNode_NeedsTwoArguments()
         {
-            var sut = new UnaryOperatorNode(UnaryOperatorKind.Not, null);
-            var list = new List<QueryNode>();
-            Assert.Throws<ArgumentException>(() => sut.SetChildren(list));
+            BinaryOperatorNode node = new(BinaryOperatorKind.Add);
+            QueryNode[] children = new QueryNode[] { new ConstantNode(1), new ConstantNode(2) };
+            node.SetChildren(children);
+
+            children = new QueryNode[] { new ConstantNode(1) };
+            Assert.ThrowsAny<Exception>(() => node.SetChildren(children));
         }
 
         [Fact]
-        public void UnaryOperatorNode_SetChildren_ThrowsMoreThanOne()
+        [Trait("Method", "SetChildren")]
+        public void UnaryOperatorNode_NeedsOneArgument()
         {
-            var sut = new UnaryOperatorNode(UnaryOperatorKind.Not, null);
-            var constant = new ConstantNode(5);
-            var list = new List<QueryNode>();
-            list.AddRange(new QueryNode[] { constant, constant });
-            Assert.Throws<ArgumentException>(() => sut.SetChildren(list));
+            UnaryOperatorNode node = new(UnaryOperatorKind.Not, new ConstantNode(1));
+            QueryNode[] children = new QueryNode[] { new ConstantNode(1), new ConstantNode(2) };
+            Assert.ThrowsAny<Exception>(() => node.SetChildren(children));
+
+            children = new QueryNode[] { new ConstantNode(1) };
+            node.SetChildren(children);
         }
 
         [Fact]
-        public void UnaryOperatorNode_SetChildren_SetsForSingle()
+        [Trait("Method", "get_Instance")]
+        public void MemberAccessNode_GetInstance()
         {
-            var sut = new UnaryOperatorNode(UnaryOperatorKind.Not, null);
-            var constant = new ConstantNode(5);
-            var list = new List<QueryNode>();
-            list.AddRange(new QueryNode[] { constant });
-            sut.SetChildren(list);
-            Assert.Same(constant, sut.Operand);
+            BinaryOperatorNode instance = new(BinaryOperatorKind.Add);
+            MemberAccessNode node = new(instance, "field");
+            Assert.Same(instance, node.Instance);
         }
 
         [Fact]
+        [Trait("Method", "SetChildren")]
         public void ConstantNode_SetChildren_Throws()
         {
-            var sut = new ConstantNode(5);
-            Assert.Throws<NotSupportedException>(() => sut.SetChildren(new List<QueryNode>()));
+            ConstantNode node = new(true);
+            Assert.ThrowsAny<Exception>(() => node.SetChildren(new QueryNode[] { node }));
         }
 
         [Fact]
-        public void ConstantNode_Kind_IsSet()
+        [Trait("Method", "SetChildren")]
+        public void ConvertNode_SetChildren_Works()
         {
-            var sut = new ConstantNode(5);
-            Assert.Equal(QueryNodeKind.Constant, sut.Kind);
+            ConvertNode instance = new ConvertNode(null, typeof(string));
+            List<QueryNode> children = new QueryNode[] { new ConstantNode("abc123") }.ToList();
+            instance.SetChildren(children);
+            Assert.Same(children[0], instance.Source);
+            Assert.Equal(typeof(string), instance.TargetType);
         }
 
         [Fact]
-        public void MemberAccessNode_Kind_IsSet()
+        [Trait("Method", "SetChildren")]
+        public void ConvertNode_SetChildren_ThrowsException()
         {
-            var constant = new ConstantNode(5);
-            var sut = new MemberAccessNode(constant, "member");
-            Assert.Same(constant, sut.Instance);
-            Assert.Equal("member", sut.MemberName);
-            Assert.Equal(QueryNodeKind.MemberAccess, sut.Kind);
-        }
-
-        [Fact]
-        public void FunctionCallNode_Kind_IsSet()
-        {
-            var sut = new FunctionCallNode("test");
-            Assert.Equal(QueryNodeKind.FunctionCall, sut.Kind);
-            Assert.Equal("test", sut.Name);
-        }
-
-        [Fact]
-        public void ConvertNode_Kind_IsSet()
-        {
-            var from = new ConstantNode(5);
-            var to = typeof(int);
-            var sut = new ConvertNode(from, to);
-            Assert.Same(from, sut.Source);
-            Assert.Same(to, sut.TargetType);
-            Assert.Equal(QueryNodeKind.Convert, sut.Kind);
-        }
-
-        [Fact]
-        public void BinaryOperatorNode_SetChildren_NullThrows()
-        {
-            var sut = new BinaryOperatorNode(BinaryOperatorKind.And);
-            Assert.Throws<ArgumentNullException>(() => sut.SetChildren(null));
-        }
-
-        [Fact]
-        public void BinaryOperatorNode_SetChildren_ZeroThrows()
-        {
-            var sut = new BinaryOperatorNode(BinaryOperatorKind.And);
-            var list = new List<QueryNode>();
-            Assert.Throws<ArgumentException>(() => sut.SetChildren(list));
-        }
-
-        [Fact]
-        public void BinaryOperatorNode_SetChildren_OneThrows()
-        {
-            var sut = new BinaryOperatorNode(BinaryOperatorKind.And);
-            var list = new List<QueryNode>();
-            list.AddRange(new QueryNode[] { new ConstantNode(1) });
-            Assert.Throws<ArgumentException>(() => sut.SetChildren(list));
-        }
-
-        [Fact]
-        public void BinaryOperatorNode_SetChildren_TwoWorks()
-        {
-            var sut = new BinaryOperatorNode(BinaryOperatorKind.And);
-            var list = new List<QueryNode>();
-            list.AddRange(new QueryNode[] { new ConstantNode(1), new ConstantNode(2) });
-            sut.SetChildren(list);
-
-            Assert.Same(list[0], sut.LeftOperand);
-            Assert.Same(list[1], sut.RightOperand);
-        }
-
-        [Fact]
-        public void BinaryOperatorNode_SetChildren_ThreeThrows()
-        {
-            var sut = new BinaryOperatorNode(BinaryOperatorKind.And);
-            var list = new List<QueryNode>();
-            list.AddRange(new QueryNode[] { new ConstantNode(1), new ConstantNode(2), new ConstantNode(3) });
-            Assert.Throws<ArgumentException>(() => sut.SetChildren(list));
+            ConvertNode instance = new ConvertNode(null, typeof(string));
+            Assert.ThrowsAny<Exception>(() => instance.SetChildren(Array.Empty<QueryNode>()));
         }
     }
 }

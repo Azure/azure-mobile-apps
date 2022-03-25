@@ -14,8 +14,6 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-#pragma warning disable RCS1090 // Add call to 'ConfigureAwait' (or vice versa).
-
 namespace Microsoft.Datasync.Integration.Test.Server
 {
     [ExcludeFromCodeCoverage(Justification = "Test suite")]

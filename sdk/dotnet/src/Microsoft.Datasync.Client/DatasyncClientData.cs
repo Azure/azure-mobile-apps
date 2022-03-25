@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Newtonsoft.Json;
 using System;
-using System.Text.Json.Serialization;
 
 namespace Microsoft.Datasync.Client
 {
@@ -14,26 +14,26 @@ namespace Microsoft.Datasync.Client
         /// <summary>
         /// The item globally unique ID.
         /// </summary>
-        [JsonPropertyName("id")]
+        [JsonProperty("id")]
         public string Id { get; set; }
 
         /// <summary>
         /// If set to true, the item is deleted.
         /// </summary>
-        [JsonPropertyName("deleted")]
+        [JsonProperty("deleted")]
         public bool? Deleted { get; set; }
 
         /// <summary>
         /// The last time that the record was updated.
         /// </summary>
-        [JsonPropertyName("updatedAt")]
+        [JsonProperty("updatedAt")]
         public DateTimeOffset? UpdatedAt { get; set; }
 
         /// <summary>
         /// The opaque version string.  This changes when the
         /// item is updated.
         /// </summary>
-        [JsonPropertyName("version")]
+        [JsonProperty("version")]
         public string Version { get; set; }
     }
 }

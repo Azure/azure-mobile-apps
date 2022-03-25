@@ -24,17 +24,12 @@ namespace Microsoft.Datasync.Client.Platforms
         };
 
         /// <summary>
-        /// True if this is running on an emulated device
-        /// </summary>
-        public bool IsEmulator => UIDevice.CurrentDevice.Model.Contains("simulator", StringComparison.InvariantCultureIgnoreCase);
-
-        /// <summary>
         /// Converts the IsEmulator into a string.
         /// </summary>
         /// <remarks>
         /// Excluded from code coverage because the string.Empty version will never be returned in a test situation.
         /// </remarks>
-        private string Emulator => IsEmulator ? ";test" : "";
+        private string Emulator => UIDevice.CurrentDevice.Model.Contains("simulator", StringComparison.InvariantCultureIgnoreCase) ? ";simulator" : "";
 
         /// <summary>
         /// The details section of the <c>User-Agent</c> header.

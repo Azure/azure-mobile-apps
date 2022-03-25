@@ -3,6 +3,9 @@
 
 namespace Microsoft.Datasync.Client.Utils
 {
+    /// <summary>
+    /// Provides a key-value store for the storage of configuration data.
+    /// </summary>
     internal interface IApplicationStorage
     {
         /// <summary>

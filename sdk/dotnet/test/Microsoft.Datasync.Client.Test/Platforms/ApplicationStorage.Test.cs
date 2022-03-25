@@ -79,9 +79,6 @@ namespace Microsoft.Datasync.Client.Test.Platforms
             // Create a new instance of the storage
             var newStore = new ApplicationStorage(defaultStore, containerName);
 
-            Assert.True(newStore.TryGetValue(key, out string value2));
-            Assert.Equal(value, value2);
-
             // Update the key
             var newValue = Guid.NewGuid().ToString();
             newStore.SetValue(key, newValue);

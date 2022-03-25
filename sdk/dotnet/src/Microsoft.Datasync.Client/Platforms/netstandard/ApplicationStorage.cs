@@ -2,11 +2,11 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Utils;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.IsolatedStorage;
-using System.Text.Json;
 
 namespace Microsoft.Datasync.Client.Platforms
 {
@@ -18,6 +18,8 @@ namespace Microsoft.Datasync.Client.Platforms
     {
         internal ApplicationStorage(IsolatedStorageFile storageLocation, string containerName = "")
         {
+            Arguments.IsNotNull(storageLocation, nameof(storageLocation));
+
             StorageLocation = storageLocation;
             SharedContainerName = string.IsNullOrWhiteSpace(containerName) ? "ms-datasync-client" : containerName;
             LoadPreferences();
@@ -111,10 +113,10 @@ namespace Microsoft.Datasync.Client.Platforms
         {
             try
             {
-                using var stream = StorageLocation.OpenFile(Filename, FileMode.OpenOrCreate, FileAccess.Read);
+                using var stream = StorageLocation.OpenFile(Filename, FileMode.Open, FileAccess.Read);
                 using var reader = new StreamReader(stream);
                 var jsonText = reader.ReadToEnd();
-                Preferences = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonText);
+                Preferences = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonText) ?? new Dictionary<string, string>();
             }
             catch
             {
@@ -135,8 +137,8 @@ namespace Microsoft.Datasync.Client.Platforms
         {
             try
             {
-                var jsonText = JsonSerializer.Serialize(Preferences);
-                using var stream = StorageLocation.OpenFile(Filename, FileMode.OpenOrCreate, FileAccess.Write);
+                var jsonText = JsonConvert.SerializeObject(Preferences);
+                using var stream = StorageLocation.OpenFile(Filename, FileMode.Create, FileAccess.Write);
                 using var writer = new StreamWriter(stream);
                 writer.WriteLine(jsonText);
             }

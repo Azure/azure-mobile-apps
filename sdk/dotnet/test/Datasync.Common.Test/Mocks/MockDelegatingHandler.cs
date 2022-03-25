@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -79,6 +80,17 @@ namespace Datasync.Common.Test.Mocks
         /// <param name="headers"></param>
         public void AddResponse(HttpStatusCode statusCode, IDictionary<string, string> headers = null)
             => Responses.Add(CreateResponse(statusCode, headers));
+
+        /// <summary>
+        /// Adds a response with a string payload.
+        /// </summary>
+        /// <param name="content">The JSON content</param>
+        public void AddResponseContent(string content, HttpStatusCode statusCode = HttpStatusCode.OK)
+        {
+            var response = CreateResponse(statusCode);
+            response.Content = new StringContent(content, Encoding.UTF8, "application/json");
+            Responses.Add(response);
+        }
 
         /// <summary>
         /// Adds a response with a payload to the list of responses.

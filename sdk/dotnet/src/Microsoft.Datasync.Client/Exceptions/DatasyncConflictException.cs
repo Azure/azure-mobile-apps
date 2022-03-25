@@ -1,51 +1,39 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Http;
-using Microsoft.Datasync.Client.Utils;
-using System;
-using System.Net.Http;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Datasync.Client
 {
     /// <summary>
-    /// An exception thrown when the requested operation is in conflict with the information
-    /// already present on th service.
+    /// Provides details of a HTTP <c>Conflict</c> or <c>Precondition Failed</c>
+    /// response.
     /// </summary>
-    /// <typeparam name="T">The type of the entity being transferred</typeparam>
-    public sealed class DatasyncConflictException<T> : DatasyncOperationException
+    [SuppressMessage("Roslynator", "RCS1194:Implement exception constructors.", Justification = "Specialty exception.")]
+    public class DatasyncConflictException : DatasyncInvalidOperationException
     {
-        private DatasyncConflictException(HttpRequestMessage request, HttpResponseMessage response)
-            : base(request, response)
+        public DatasyncConflictException(DatasyncInvalidOperationException source, JObject value)
+            : base(source.Message, source.Request, source.Response, value)
         {
-            Content = Array.Empty<byte>();
-            ServerItem = default;
+        }
+    }
+
+    /// <summary>
+    /// Provides details of a HTTP <c>Conflict</c> or <c>Precondition Failed</c>
+    /// response.
+    /// </summary>
+    [SuppressMessage("Roslynator", "RCS1194:Implement exception constructors.", Justification = "Specialty exception.")]
+    public class DatasyncConflictException<T> : DatasyncConflictException
+    {
+        public DatasyncConflictException(DatasyncInvalidOperationException source, T item) : base(source, source.Value)
+        {
+            Item = item;
         }
 
-        internal static async Task<DatasyncConflictException<T>> CreateAsync(HttpRequestMessage request, HttpResponseMessage response, JsonSerializerOptions deserializerOptions, CancellationToken token = default)
-        {
-            Validate.IsNotNull(request, nameof(request));
-            Validate.IsNotNull(response, nameof(response));
-            Validate.IsNotNull(deserializerOptions, nameof(deserializerOptions));
-
-            var content = await response.Content.ReadAsByteArrayAsync(token).ConfigureAwait(false);
-            return new DatasyncConflictException<T>(request, response)
-            {
-                Content = content,
-                ServerItem = content.Length > 0 ? JsonSerializer.Deserialize<T>(content, deserializerOptions) : default
-            };
-        }
         /// <summary>
-        /// The content from the response.
+        /// The current instance from the server that the precondition failed for.
         /// </summary>
-        public new byte[] Content { get; private set; }
-
-        /// <summary>
-        /// The deserialized content of the payload.
-        /// </summary>
-        public T ServerItem { get; private set; }
+        public T Item { get; }
     }
 }

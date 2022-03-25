@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Query;
-using Microsoft.Datasync.Client.Query.Nodes;
-using Microsoft.Datasync.Client.Query.Visitor;
+using Microsoft.Datasync.Client.Query.Linq.Nodes;
+using Microsoft.Datasync.Client.Query.OData;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Xunit;
@@ -11,51 +10,49 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Query
 {
     /// <summary>
-    /// The main flows are tested by the <see cref="DatasyncTableQuery_Tests"/> test suite.  However, there
-    /// are some test cases for things that **should** never happen.  If they do happen, we check
-    /// to ensure the right exceptions are thrown and/or the right results are returned.
+    /// Corner case tests for things that should never happen.
     /// </summary>
-    [ExcludeFromCodeCoverage(Justification = "Test suite")]
+    [ExcludeFromCodeCoverage]
     public class ODataExpressionVisitor_Tests
     {
         [Fact]
-        [Trait("Method", "ToODataString")]
-        public void ToODataString_Null_ReturnsEmptyString()
+        public void ToODataString_Null_ReturnsEmpty()
         {
             Assert.Equal("", ODataExpressionVisitor.ToODataString(null));
         }
 
         [Fact]
-        [Trait("Method", "ToODataString")]
-        public void Accept_InvalidBinaryNode_Throws()
+        public void Visitor_ConvertNode_Throws()
         {
-            var node = new BinaryOperatorNode(BinaryOperatorKind.And);
-            Assert.Throws<ArgumentException>(() => ODataExpressionVisitor.ToODataString(node));
+            var visitor = new TestODataExpressionVisitor();
+            var node = new ConvertNode(new ConstantNode(1), typeof(int));
+            Assert.ThrowsAny<Exception>(() => visitor.Visit(node));
         }
 
         [Fact]
-        [Trait("Method", "ToODataString")]
-        public void Accept_InvalidUnaryNode_Throws()
+        public void Visitor_UnaryNode_Throws()
         {
-            var node = new UnaryOperatorNode(UnaryOperatorKind.Not, null);
-            Assert.Throws<ArgumentException>(() => ODataExpressionVisitor.ToODataString(node));
+            var visitor = new TestODataExpressionVisitor();
+            var node = new UnaryOperatorNode(UnaryOperatorKind.Negate, new ConstantNode(1));
+            Assert.ThrowsAny<Exception>(() => visitor.Visit(node));
         }
 
         [Fact]
-        [Trait("Method", "ToODataString")]
-        public void Accept_NegateNode_Throws()
+        public void Accept_Throws_OnIncompleteTypes()
         {
-            var node = new UnaryOperatorNode(UnaryOperatorKind.Negate, null);
-            Assert.Throws<NotSupportedException>(() => ODataExpressionVisitor.ToODataString(node));
+            var visitor = new TestODataExpressionVisitor();
+            var node = new ConstantNode(1);
+            Assert.ThrowsAny<Exception>(() => visitor.TestAccept(node, null));
         }
 
-        [Fact]
-        [Trait("Method", "ToODataString")]
-        public void Accept_ConvertNode_Throws()
+        private class TestODataExpressionVisitor : ODataExpressionVisitor
         {
-            var constant = new ConstantNode(5);
-            var node = new ConvertNode(constant, typeof(string));
-            Assert.Throws<NotSupportedException>(() => ODataExpressionVisitor.ToODataString(node));
+            public TestODataExpressionVisitor() : base()
+            {
+            }
+
+            public void TestAccept(QueryNode parent, QueryNode node)
+                => base.Accept(parent, node);
         }
     }
 }

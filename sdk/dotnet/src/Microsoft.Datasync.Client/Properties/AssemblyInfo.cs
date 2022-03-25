@@ -3,5 +3,8 @@
 
 using System.Runtime.CompilerServices;
 
-[assembly:InternalsVisibleTo("Microsoft.Datasync.Client.Test")]
-[assembly:InternalsVisibleTo("Microsoft.Datasync.Integration.Test")]
+[assembly: InternalsVisibleTo("Datasync.Common.Test")]
+[assembly: InternalsVisibleTo("Microsoft.Datasync.Client.Test")]
+[assembly: InternalsVisibleTo("Microsoft.Datasync.Client.InMemoryStore.Test")]
+[assembly: InternalsVisibleTo("Microsoft.Datasync.Integration.Test")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

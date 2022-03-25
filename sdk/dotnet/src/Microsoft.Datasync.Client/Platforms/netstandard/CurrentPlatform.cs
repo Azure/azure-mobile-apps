@@ -15,7 +15,7 @@ namespace Microsoft.Datasync.Client.Platforms
         /// <summary>
         /// Lazy initializer for the <see cref="IApplicationStorage"/> implementation.
         /// </summary>
-        private readonly Lazy<IApplicationStorage> _applicationStorage = new(() => new ApplicationStorage(IsolatedStorageFile.GetUserStoreForApplication()));
+        private readonly Lazy<IApplicationStorage> _applicationStorage = new(() => new Platforms.ApplicationStorage(IsolatedStorageFile.GetUserStoreForApplication()));
 
         /// <summary>
         /// Accessor for the platform-specific <see cref="IApplicationStorage"/> implementation.
@@ -25,7 +25,7 @@ namespace Microsoft.Datasync.Client.Platforms
         /// <summary>
         /// Lazy initializer for the <see cref="IPlatformInformation"/> implementation.
         /// </summary>
-        private readonly Lazy<IPlatformInformation> _platformInformation = new(() => new PlatformInformation());
+        private readonly Lazy<IPlatformInformation> _platformInformation = new(() => new Platforms.PlatformInformation());
 
         /// <summary>
         /// Accessor for the platform-specific <see cref="IPlatformInformation"/> implementation.

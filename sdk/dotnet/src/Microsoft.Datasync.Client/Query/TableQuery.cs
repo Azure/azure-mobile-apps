@@ -1,95 +1,86 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Query.Linq;
+using Microsoft.Datasync.Client.Query.OData;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
 
 namespace Microsoft.Datasync.Client.Query
 {
     /// <summary>
-    /// The concrete implementation of the <see cref="ITableQuery{T}"/> interface that provides search
-    /// capabilities for OData services.
+    /// Represents a query that can be evaluated against an OData table.
     /// </summary>
-    /// <typeparam name="T">The type of the item being queried</typeparam>
+    /// <remarks>
+    /// Rather than implenting <see cref="IQueryable{T}"/> directly, we've implemented the
+    /// portion of the LINQ query pattern we support on a datasync service.  You can use
+    /// the <see cref="ITableQuery{T}"/> instance to build up a query using normal LINQ
+    /// patterns.
+    /// </remarks>
     internal class TableQuery<T> : ITableQuery<T>
     {
-        private const string IncludeCountQueryParameter = "$count";
-        private const string IncludeDeletedQueryParameter = "__includedeleted";
-
         /// <summary>
-        /// Creates a new (empty) <see cref="TableQuery{T}"/> that will be used to
-        /// query the provided table.
+        /// Initializes a new instance of the <see cref="TableQuery{T}"/> class.
         /// </summary>
-        /// <param name="table">The table associated with this query.</param>
+        /// <param name="table">The table being queried.</param>
         internal TableQuery(IRemoteTable<T> table)
+            : this(table, null, null, false)
         {
-            Validate.IsNotNull(table, nameof(table));
-            Table = table;
-            Query = Array.Empty<T>().AsQueryable();
-            QueryParameters = new Dictionary<string, string>();
         }
 
         /// <summary>
-        /// Generates a new <see cref="TableQuery{T}"/> based on a source query, but
-        /// with a new <see cref="IQueryable{T}"/>.
+        /// Initializes a new instance of the <see cref="TableQuery{T}"/> class.
         /// </summary>
-        /// <param name="source">The source query.</param>
-        /// <param name="queryable">The replacement <see cref="IQueryable{T}"/>.</param>
-        private TableQuery(TableQuery<T> source, IQueryable<T> queryable)
+        /// <param name="table">The table being queried.</param>
+        /// <param name="query"> The encapsulated <see cref="IQueryable{T}"/>.</param>
+        /// <param name="parameters"> The optional user-defined query string parameters to include with the query.</param>
+        /// <param name="requestTotalCount">If <c>true</c>, include the total count of items that will be returned with this query (without considering paging).</param>
+        internal TableQuery(IRemoteTable<T> table, IQueryable<T> query, IDictionary<string, string> parameters, bool requestTotalCount)
         {
-            Query = queryable;
-            QueryParameters = source.QueryParameters;
-            SkipCount = source.SkipCount;
-            TakeCount = source.TakeCount;
-            Table = source.Table;
+            Arguments.IsNotNull(table, nameof(table));
+
+            Parameters = parameters ?? new Dictionary<string, string>();
+            Query = query ?? Array.Empty<T>().AsQueryable();
+            RemoteTable = table;
+            RequestTotalCount = requestTotalCount;
         }
 
         /// <summary>
-        /// Generates a new <see cref="TableQuery{T}"/> by specifying all the required parameters.
+        /// Converts the current query into an OData query string for use by the
+        /// other <c>To*</c> methods.
         /// </summary>
-        /// <param name="table">The table associated with this query.</param>
-        /// <param name="queryable">The underlying <see cref="IQueryable{T}"/> for this query.</param>
-        /// <param name="parameters">Any user-defined parameters for this query.</param>
-        /// <param name="skipCount">The current skip count.</param>
-        /// <param name="takeCount">The current take count.</param>
-        private TableQuery(IRemoteTable<T> table, IQueryable<T> queryable, IDictionary<string, string> parameters, int skipCount, int takeCount)
-        {
-            Query = queryable;
-            QueryParameters = parameters ?? new Dictionary<string, string>();
-            SkipCount = skipCount;
-            TakeCount = takeCount;
-            Table = table;
-        }
+        /// <param name="includeParameters">If <c>true</c>, include the optional parameters.</param>
+        /// <returns>The OData query string representing this query</returns>
+        internal string ToODataString(bool includeParameters = true)
+            => new QueryTranslator<T>(this).Translate().ToODataString(includeParameters ? Parameters : null);
+
+        #region ITableQuery<T>
+        /// <summary>
+        /// The user-defined query string parameters to include with the query when
+        /// sent to the remote service.
+        /// </summary>
+        public IDictionary<string, string> Parameters { get; }
 
         /// <summary>
-        /// The <see cref="IQueryable{T}"/> representing the underlying LINQ query.
+        /// The underlying <see cref="IQueryable{T}"/> associated with this query.
         /// </summary>
-        internal IQueryable<T> Query { get; set; }
+        public IQueryable<T> Query { get; set; }
 
         /// <summary>
-        /// The additional query parameters to be sent.
+        /// The <see cref="IRemoteTable{T}"/> being queried.
         /// </summary>
-        internal IDictionary<string, string> QueryParameters { get; }
+        public IRemoteTable<T> RemoteTable { get; }
 
         /// <summary>
-        /// The $skip component of the query.
+        /// If <c>true</c>, include the total count of items that will be returned with this query
+        /// (without considering paging).
         /// </summary>
-        internal int SkipCount { get; set; } = 0;
-
-        /// <summary>
-        /// The table that is associated with this query.
-        /// </summary>
-        public IRemoteTable<T> Table { get; }
-
-        /// <summary>
-        /// The $top component of the query.
-        /// </summary>
-        internal int TakeCount { get; set; } = 0;
+        public bool RequestTotalCount { get; private set; }
+        #endregion
 
         #region ILinqMethods<T>
         /// <summary>
@@ -101,11 +92,11 @@ namespace Microsoft.Datasync.Client.Query
         {
             if (enabled)
             {
-                QueryParameters[IncludeDeletedQueryParameter] = "true";
+                Parameters[ODataOptions.IncludeDeleted] = "true";
             }
             else
             {
-                QueryParameters.Remove(IncludeDeletedQueryParameter);
+                Parameters.Remove(ODataOptions.IncludeDeleted);
             }
             return this;
         }
@@ -118,14 +109,7 @@ namespace Microsoft.Datasync.Client.Query
         /// <returns>The composed query object.</returns>
         public ITableQuery<T> IncludeTotalCount(bool enabled = true)
         {
-            if (enabled)
-            {
-                QueryParameters[IncludeCountQueryParameter] = "true";
-            }
-            else
-            {
-                QueryParameters.Remove(IncludeCountQueryParameter);
-            }
+            RequestTotalCount = enabled;
             return this;
         }
 
@@ -136,7 +120,10 @@ namespace Microsoft.Datasync.Client.Query
         /// <param name="keySelector">The expression selecting the member to order by.</param>
         /// <returns>The composed query object.</returns>
         public ITableQuery<T> OrderBy<TKey>(Expression<Func<T, TKey>> keySelector)
-            => new TableQuery<T>(this, Query.OrderBy(keySelector));
+        {
+            Query = Query.OrderBy(keySelector);
+            return this;
+        }
 
         /// <summary>
         /// Applies the specified descending order clause to the source query.
@@ -145,7 +132,10 @@ namespace Microsoft.Datasync.Client.Query
         /// <param name="keySelector">The expression selecting the member to order by.</param>
         /// <returns>The composed query object.</returns>
         public ITableQuery<T> OrderByDescending<TKey>(Expression<Func<T, TKey>> keySelector)
-            => new TableQuery<T>(this, Query.OrderByDescending(keySelector));
+        {
+            Query = Query.OrderByDescending(keySelector);
+            return this;
+        }
 
         /// <summary>
         /// Applies the specified selection to the source query.
@@ -154,7 +144,10 @@ namespace Microsoft.Datasync.Client.Query
         /// <param name="selector">The selector function.</param>
         /// <returns>The composed query object.</returns>
         public ITableQuery<U> Select<U>(Expression<Func<T, U>> selector)
-            => new TableQuery<U>(new RemoteTable<U>(Table as RemoteTable), Query.Select(selector), QueryParameters, SkipCount, TakeCount);
+        {
+            IRemoteTable<U> remoteTable = new RemoteTable<U>(RemoteTable.TableName, RemoteTable.ServiceClient);
+            return new TableQuery<U>(remoteTable, Query.Select(selector), Parameters, RequestTotalCount);
+        }
 
         /// <summary>
         /// Applies the specified skip clause to the source query.
@@ -167,7 +160,7 @@ namespace Microsoft.Datasync.Client.Query
             {
                 throw new ArgumentOutOfRangeException(nameof(count), $"{nameof(count)} must be positive");
             }
-            SkipCount += count;
+            Query = Query.Skip(count);
             return this;
         }
 
@@ -182,7 +175,7 @@ namespace Microsoft.Datasync.Client.Query
             {
                 throw new ArgumentOutOfRangeException(nameof(count), $"{nameof(count)} must be positive");
             }
-            TakeCount = (TakeCount == 0) ? count : Math.Min(count, TakeCount);
+            Query = Query.Take(count);
             return this;
         }
 
@@ -193,24 +186,32 @@ namespace Microsoft.Datasync.Client.Query
         /// <param name="keySelector">The expression selecting the member to order by.</param>
         /// <returns>The composed query object.</returns>
         public ITableQuery<T> ThenBy<TKey>(Expression<Func<T, TKey>> keySelector)
-            => new TableQuery<T>(this, ((IOrderedQueryable<T>)Query).ThenBy(keySelector));
+        {
+            Query = ((IOrderedQueryable<T>)Query).ThenBy(keySelector);
+            return this;
+        }
 
         /// <summary>
         /// Applies the specified descending order clause to the source query.
         /// </summary>
         /// <typeparam name="TKey">The type of the member being ordered by.</typeparam>
         /// <param name="keySelector">The expression selecting the member to order by.</param>
-        /// <returns>The composed query object.</returns>
+        /// <returns>The composed query object.</returns
         public ITableQuery<T> ThenByDescending<TKey>(Expression<Func<T, TKey>> keySelector)
-            => new TableQuery<T>(this, ((IOrderedQueryable<T>)Query).ThenByDescending(keySelector));
+        {
+            Query = ((IOrderedQueryable<T>)Query).ThenByDescending(keySelector);
+            return this;
+        }
 
         /// <summary>
-        /// Execute the query, returning an <see cref="AsyncPageable{T}"/>
+        /// Returns the result of the query as an <see cref="IAsyncEnumerable{T}"/>.
         /// </summary>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>An <see cref="AsyncPageable{T}"/> to iterate over the items</returns>
-        public AsyncPageable<T> ToAsyncPageable(CancellationToken cancellationToken = default)
-            => Table.GetAsyncItems<T>(ToQueryString(), cancellationToken);
+        /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/></returns>
+        public IAsyncEnumerable<T> ToAsyncEnumerable()
+        {
+            var odataQuery = ToODataString(true);
+            return RemoteTable.GetAsyncItems<T>(odataQuery);
+        }
 
         /// <summary>
         /// Applies the specified filter predicate to the source query.
@@ -218,7 +219,10 @@ namespace Microsoft.Datasync.Client.Query
         /// <param name="predicate">The filter predicate.</param>
         /// <returns>The composed query object.</returns>
         public ITableQuery<T> Where(Expression<Func<T, bool>> predicate)
-            => new TableQuery<T>(this, Query.Where(predicate));
+        {
+            Query = Query.Where(predicate);
+            return this;
+        }
 
         /// <summary>
         /// Adds the parameter to the list of user-defined parameters to send with the
@@ -229,13 +233,13 @@ namespace Microsoft.Datasync.Client.Query
         /// <returns>The composed query object.</returns>
         public ITableQuery<T> WithParameter(string key, string value)
         {
-            Validate.IsNotNullOrWhitespace(key, nameof(key));
-            Validate.IsNotNullOrWhitespace(value, nameof(value));
+            Arguments.IsNotNullOrWhitespace(key, nameof(key));
+            Arguments.IsNotNullOrWhitespace(value, nameof(value));
             if (key.StartsWith("$") || key.StartsWith("__"))
             {
                 throw new ArgumentException($"Parameter '{key}' is invalid", nameof(key));
             }
-            QueryParameters[key] = value;
+            Parameters[key] = value;
             return this;
         }
 
@@ -248,25 +252,17 @@ namespace Microsoft.Datasync.Client.Query
         /// <returns>The composed query object.</returns>
         public ITableQuery<T> WithParameters(IEnumerable<KeyValuePair<string, string>> parameters)
         {
-            Validate.IsNotNullOrEmpty(parameters, nameof(parameters));
+            Arguments.IsNotNull(parameters, nameof(parameters));
             parameters.ToList().ForEach(param =>
             {
                 if (param.Key.StartsWith("$") || param.Key.StartsWith("__"))
                 {
                     throw new ArgumentException($"Parameter '{param.Key}' is invalid", nameof(parameters));
                 }
-                QueryParameters[param.Key] = param.Value;
+               Parameters[param.Key] = param.Value;
             });
             return this;
         }
         #endregion
-
-        /// <summary>
-        /// Converts the current query into an OData query string for use by the
-        /// other To* methods.
-        /// </summary>
-        /// <returns>The OData query string representing this query</returns>
-        internal string ToQueryString()
-            => new QueryTranslator<T>(this, Table.ClientOptions).Translate().ToODataString();
     }
 }

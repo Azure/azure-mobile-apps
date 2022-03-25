@@ -24,18 +24,13 @@ namespace Microsoft.Datasync.Client.Platforms
         };
 
         /// <summary>
-        /// True if this is running on an emulated device
-        /// </summary>
-        public bool IsEmulator => Build.Brand.Equals("generic", StringComparison.InvariantCultureIgnoreCase);
-
-        /// <summary>
         /// Converts the IsEmulator into a string.
         /// </summary>
         /// <remarks>
         /// Excluded from code coverage because the string.Empty version will never be returned in a test situation.
         /// </remarks>
         [ExcludeFromCodeCoverage]
-        private string Emulator => IsEmulator ? ";test" : "";
+        private string Emulator => Build.Brand.Equals("generic", StringComparison.InvariantCultureIgnoreCase) ? ";emulator" : "";
 
         /// <summary>
         /// The details section of the <c>User-Agent</c> header.

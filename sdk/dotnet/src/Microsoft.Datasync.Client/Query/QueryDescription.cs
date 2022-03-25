@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Query.Nodes;
-using Microsoft.Datasync.Client.Query.Visitor;
+using Microsoft.Datasync.Client.Query.Linq.Nodes;
+using Microsoft.Datasync.Client.Query.OData;
+using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,97 +11,149 @@ using System.Linq;
 namespace Microsoft.Datasync.Client.Query
 {
     /// <summary>
-    /// Represents the structural elements of an OData query over the
-    /// subset of OData that the library uses.
+    /// The structural elements of a compiled LINQ query that can be
+    /// represented by the subset of OData that a Datasync service uses.
     /// </summary>
-    internal class QueryDescription
+    public sealed class QueryDescription
     {
-        private const string FilterQueryParameter = "$filter";
-        private const string OrderByQueryParameter = "$orderby";
-        private const string SelectQueryParameter = "$select";
-        private const string SkipQueryParameter = "$skip";
-        private const string TopQueryParameter = "$top";
+        public QueryDescription(string tableName)
+        {
+            Arguments.IsValidTableName(tableName, true, nameof(tableName));
+            TableName = tableName;
+        }
 
         /// <summary>
-        /// The top of the parsed Filter query.
+        /// The <see cref="QueryNode"/> for the query filter expression.
         /// </summary>
-        internal QueryNode Filter { get; set; }
+        public QueryNode Filter { get; set; }
 
         /// <summary>
-        /// The set of order-by descriptors.
+        /// If <c>true</c>, include the total count of items that will be returned with this query
+        /// (without considering paging).
         /// </summary>
-        internal List<OrderByNode> Ordering { get; } = new();
+        public bool IncludeTotalCount { get; set; }
 
         /// <summary>
-        /// A list of additional parameters to send with the query.
+        /// The list of expressions that specify the ordering constraints requested by the query.
         /// </summary>
-        internal IDictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
+        public IList<OrderByNode> Ordering { get; private set; } = new List<OrderByNode>();
 
         /// <summary>
-        /// The list of projections that should be applied to each element of the query.
-        /// </summary>
-        internal List<Delegate> Projections { get; } = new();
-
-        /// <summary>
-        /// The type of the argument to the projection (i.e. the type that should be deserialized)
+        /// The type of the argument to the projection (i.e. the type that should be deserialized).
         /// </summary>
         internal Type ProjectionArgumentType { get; set; }
 
         /// <summary>
-        /// The set of fields to return from the query.
+        /// The collection of projections that should be applied to each element of the query.
         /// </summary>
-        internal List<string> Selection { get; } = new();
+        internal List<Delegate> Projections { get; private set; } = new();
 
         /// <summary>
-        /// The number of items to skip within the query
+        /// The list of fields that should be selected from the items in the table.
         /// </summary>
-        internal int Skip { get; set; }
+        public IList<string> Selection { get; private set; } = new List<string>();
 
         /// <summary>
-        /// The number of items to return.
+        /// The number of elements to skip
         /// </summary>
-        internal int Top { get; set; }
+        public int? Skip { get; set; }
 
         /// <summary>
-        /// Converts the current query to an OData string.
+        /// The name of the table being queried.
         /// </summary>
-        /// <returns>The query string</returns>
-        internal string ToODataString()
+        public string TableName { get; }
+
+        /// <summary>
+        /// The number of elements to take.
+        /// </summary>
+        public int? Top { get; set; }
+
+        /// <summary>
+        /// Creates a copy of a <see cref="QueryDescription."/>
+        /// </summary>
+        /// <returns>The cloned copy.</returns>
+        public QueryDescription Clone() => new(TableName)
         {
-            List<string> queryParams = new();
+            Filter = Filter,
+            IncludeTotalCount = IncludeTotalCount,
+            Ordering = Ordering.ToList(),
+            Projections = Projections.ToList(),
+            ProjectionArgumentType = ProjectionArgumentType,
+            Selection = Selection.ToList(),
+            Skip = Skip,
+            Top = Top
+        };
 
-            if (Filter != null)
+        /// <summary>
+        /// Parses an OData query and creates a <see cref="QueryDescription"/> instance.
+        /// </summary>
+        /// <param name="tableName">The name of the table for the query.</param>
+        /// <param name="query">The OData query string.</param>
+        /// <returns>The <see cref="QueryDescription"/> for the query.</returns>
+        public static QueryDescription Parse(string tableName, string query = null)
+            => Parse(tableName, query ?? string.Empty, null);
+
+        /// <summary>
+        /// Parses an OData query and creates a <see cref="QueryDescription"/> instance.
+        /// </summary>
+        /// <param name="tableName">The name of the table for the query.</param>
+        /// <param name="query">The OData query string.</param>
+        /// <param name="uriPath">The path within the URI.</param>
+        /// <returns>The <see cref="QueryDescription"/> for the query.</returns>
+        private static QueryDescription Parse(string tableName, string query, string uriPath)
+        {
+            bool includeTotalCount = false;
+            int? top = null, skip = null;
+            string[] selection = null;
+            QueryNode filter = null;
+            IList<OrderByNode> orderings = null;
+
+            IDictionary<string, string> parameters = query.Split('&')
+                .Select(part => part.Split(new[] { '=' }, 2))
+                .ToDictionary(x => Uri.UnescapeDataString(x[0]), x => x.Length > 1 ? Uri.UnescapeDataString(x[1]) : string.Empty);
+            foreach (var parameter in parameters)
             {
-                queryParams.Add($"{FilterQueryParameter}={Uri.EscapeUriString(ODataExpressionVisitor.ToODataString(Filter))}");
+                if (string.IsNullOrEmpty(parameter.Key))
+                {
+                    continue;
+                }
+
+                switch (parameter.Key)
+                {
+                    case ODataOptions.Filter:
+                        filter = ODataExpressionParser.ParseFilter(parameter.Value);
+                        break;
+                    case ODataOptions.OrderBy:
+                        orderings = ODataExpressionParser.ParseOrderBy(parameter.Value);
+                        break;
+                    case ODataOptions.Skip:
+                        skip = Int32.Parse(parameter.Value);
+                        break;
+                    case ODataOptions.Top:
+                        top = Int32.Parse(parameter.Value);
+                        break;
+                    case ODataOptions.Select:
+                        selection = parameter.Value.Split(',');
+                        break;
+                    case ODataOptions.InlineCount:
+                        includeTotalCount = parameter.Value.Equals("true");
+                        break;
+                    default:
+                        // Skip this argument - it isn't important.
+                        break;
+                }
             }
 
-            if (Ordering.Count > 0)
+            return new QueryDescription(tableName)
             {
-                queryParams.Add($"{OrderByQueryParameter}={string.Join(",", Ordering.Select(o => o.ToODataString()))}");
-            }
-
-            if (Selection.Count > 0)
-            {
-                queryParams.Add($"{SelectQueryParameter}={string.Join(",", Selection.Select(Uri.EscapeUriString))}");
-            }
-
-            if (Skip > 0)
-            {
-                queryParams.Add($"{SkipQueryParameter}={Skip}");
-            }
-
-            if (Top > 0)
-            {
-                queryParams.Add($"{TopQueryParameter}={Top}");
-            }
-
-            if (Parameters.Count > 0)
-            {
-                Parameters.ToList().ForEach(p => queryParams.Add($"{Uri.EscapeUriString(p.Key)}={Uri.EscapeUriString(p.Value)}"));
-            }
-
-            queryParams.Sort(StringComparer.InvariantCulture); // Deterministic output order for testing
-            return string.Join("&", queryParams);
+                Filter = filter,
+                IncludeTotalCount = includeTotalCount,
+                Ordering = new List<OrderByNode>(orderings ?? Array.Empty<OrderByNode>()),
+                Projections = new(),
+                Selection = new List<string>(selection ?? Array.Empty<string>()),
+                Skip = skip,
+                Top = top,
+            };
         }
     }
 }

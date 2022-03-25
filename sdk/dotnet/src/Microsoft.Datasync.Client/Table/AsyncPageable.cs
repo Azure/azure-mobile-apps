@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Http;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -63,11 +62,6 @@ namespace Microsoft.Datasync.Client.Table
         }
 
         /// <summary>
-        /// The <see cref="Response"/> object that was issued as a result of the most recent request.
-        /// </summary>
-        public ServiceResponse<Page<T>> CurrentResponse { get; protected set; }
-
-        /// <summary>
         /// The total number of items that would be returned by the query, if not for paging.
         /// This is populated only if the total count ($count=true) is requested on the query.
         /// </summary>
@@ -84,13 +78,13 @@ namespace Microsoft.Datasync.Client.Table
         /// <summary>
         /// The internal storage for the paging function to call for the next page.
         /// </summary>
-        private readonly Func<string, Task<ServiceResponse<Page<T>>>> _pageFunc;
+        private readonly Func<string, Task<Page<T>>> _pageFunc;
 
         /// <summary>
         /// Creates a new <see cref="AsyncPageable{T}"/> with a function iterator.
         /// </summary>
         /// <param name="pageFunc">The function that gets the next page</param>
-        public FuncAsyncPageable(Func<string, Task<ServiceResponse<Page<T>>>> pageFunc)
+        public FuncAsyncPageable(Func<string, Task<Page<T>>> pageFunc)
         {
             _pageFunc = pageFunc;
         }
@@ -100,10 +94,9 @@ namespace Microsoft.Datasync.Client.Table
         {
             do
             {
-                ServiceResponse<Page<T>> pageResponse = await _pageFunc(requestUri).ConfigureAwait(false);
-                CurrentResponse = pageResponse;
-                requestUri = pageResponse.Value?.NextLink?.ToString();
-                yield return pageResponse.Value ?? new Page<T>();
+                Page<T> pageResponse = await _pageFunc(requestUri).ConfigureAwait(false);
+                requestUri = pageResponse.NextLink?.ToString();
+                yield return pageResponse ?? new Page<T>();
             } while (requestUri != null);
         }
     }

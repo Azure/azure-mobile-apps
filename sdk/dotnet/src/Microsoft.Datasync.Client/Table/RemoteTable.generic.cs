@@ -5,282 +5,150 @@ using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
-using System.Net;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Datasync.Client.Table
 {
     /// <summary>
-    /// Communicates with the datasync service using DTO classes.
+    /// Provides the operations that can be done against a remote table
+    /// with strongly type models.
     /// </summary>
     internal class RemoteTable<T> : RemoteTable, IRemoteTable<T>
     {
         /// <summary>
-        /// Creates a new <see cref="RemoteTable{T}"/> based on the settings provided by
-        /// the <see cref="DatasyncClient"/>.
+        /// Creates a new <see cref="RemoteTable{T}"/> instance to perform
+        /// typed requests to a remote table.
         /// </summary>
-        /// <param name="relativeUri">The relative URI to the table, from the endpoint defined in the <paramref name="client"/>.</param>
-        /// <param name="client">The <see cref="ServiceHttpClient"/> to use for communication.</param>
-        /// <param name="options">The <see cref="DatasyncClientOptions"/> to use for handling communication.</param>
-        internal RemoteTable(string relativeUri, ServiceHttpClient client, DatasyncClientOptions options)
-            : base(relativeUri, client, options)
+        /// <param name="tableName">The name of the table.</param>
+        /// <param name="serviceClient">The service client that created this table.</param>
+        internal RemoteTable(string tableName, DatasyncClient serviceClient) : base(tableName, serviceClient)
         {
-            Features = DatasyncFeatures.TypedTable;
+            // ResolveTableName has a side effect of initializing the contract in the contract resolver,
+            // so call it here to ensure initialization.
+            serviceClient.Serializer.ResolveTableName<T>();
         }
-
-        /// <summary>
-        /// Creates a new <see cref="RemoteTable{T}"/> based on an existing table.  This is
-        /// used to create a table with the same settings but a subset of fields.
-        /// </summary>
-        /// <param name="source">The source table</param>
-        internal RemoteTable(RemoteTable source)
-            : base(source.RelativeUri, source.HttpClient, source.ClientOptions)
-        {
-            Features = DatasyncFeatures.TypedTable;
-        }
-
-        /// <summary>
-        /// An event that is fired when the table is modified - an entity is either
-        /// created, deleted, or updated.
-        /// </summary>
-        public override event EventHandler<TableModifiedEventArgs> TableModified;
 
         #region IRemoteTable<T>
         /// <summary>
-        /// Creates a query based on this table.
+        /// Creates a blank query for the current table.
         /// </summary>
-        /// <returns>A query against this table.</returns>
-        public ITableQuery<T> CreateQuery() => new TableQuery<T>(this);
+        /// <returns>A query against the table.</returns>
+        public ITableQuery<T> CreateQuery()
+            => new TableQuery<T>(this);
 
         /// <summary>
-        /// Deletes an existing item within the table.
+        /// Deletes an item from the remote table.
         /// </summary>
-        /// <param name="item">The ID of the item to delete.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe</param>
-        /// <returns>A <see cref="ServiceResponse"/> object.</returns>
-        public async Task<ServiceResponse> DeleteItemAsync(T item, CancellationToken cancellationToken = default)
+        /// <param name="instance">The instance to delete from the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns when the operation complete.</returns>
+        public async Task DeleteItemAsync(T instance, CancellationToken cancellationToken = default)
         {
-            Validate.IsNotNull(item, nameof(item));
-
-            ObjectReader.GetSystemProperties(item, out DatasyncClientData systemProperties);
-            if (string.IsNullOrEmpty(systemProperties.Id))
-            {
-                throw new ArgumentException("Item does not have an ID field", nameof(item));
-            }
-            Validate.IsValidId(systemProperties.Id, nameof(item));
-            var precondition = systemProperties.Version == null ? null : IfMatch.Version(systemProperties.Version);
-            var request = new HttpRequestMessage(HttpMethod.Delete, new Uri(Endpoint, systemProperties.Id))
-                .WithFeatureHeader(Features)
-                .WithHeader(precondition?.HeaderName, precondition?.HeaderValue);
-            var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await ServiceResponse.FromResponseAsync(response, cancellationToken).ConfigureAwait(false);
-                OnItemDeleted(systemProperties.Id);
-                request.Dispose();
-                response.Dispose();
-                return result;
-            }
-            else
-            {
-                throw await ThrowResponseException(request, response, cancellationToken).ConfigureAwait(false);
-            }
+            Arguments.IsNotNull(instance, nameof(instance));
+            JObject value = ServiceClient.Serializer.Serialize(instance) as JObject;
+            await TransformHttpExceptionAsync(() => DeleteItemAsync(value, cancellationToken)).ConfigureAwait(false);
+            ServiceClient.Serializer.SetIdToDefault(instance);
         }
 
         /// <summary>
-        /// Retrieves a list of items based on a query.
+        /// Returns all instances from the table as an <see cref="IAsyncEnumerable{T}"/>.
         /// </summary>
-        /// <typeparam name="U">The type of the items being returned - can be a subset of properties in the table entity</typeparam>
-        /// <param name="query">The query string to send to the service</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe</param>
-        /// <returns>An <see cref="AsyncPageable{T}"/> for retrieving the items asynchronously.</returns>
-        public AsyncPageable<U> GetAsyncItems<U>(string query = "", CancellationToken cancellationToken = default)
-            => new FuncAsyncPageable<U>(nextLink => GetNextPageAsync<U>(query, nextLink, cancellationToken));
+        /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/>.</returns>
+        public IAsyncEnumerable<T> GetAsyncItems()
+            => GetAsyncItems(CreateQuery());
 
         /// <summary>
-        /// Retrieves a list of items based on a query.
+        /// Executes a query against the remote table.
         /// </summary>
-        /// <typeparam name="U">The type of the items being returned - can be a subset of properties in the table entity</typeparam>
-        /// <param name="query">The query definition to send to the service</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe</param>
-        /// <returns>An <see cref="AsyncPageable{T}"/> for retrieving the items asynchronously.</returns>
-        public AsyncPageable<U> GetAsyncItems<U>(ITableQuery<U> query, CancellationToken cancellationToken = default)
-        {
-            Validate.IsNotNull(query, nameof(query));
-            return query.ToAsyncPageable(cancellationToken);
-        }
+        /// <typeparam name="U">The type of the items being returned by the query.</typeparam>
+        /// <param name="query">The query.</param>
+        /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/>.</returns>
+        public IAsyncEnumerable<U> GetAsyncItems<U>(string query)
+            => new FuncAsyncPageable<U>(nextLink => GetNextPageAsync<U>(query, nextLink));
 
         /// <summary>
-        /// Retrieves an item within the table.
+        /// Executes a query against the remote table.
+        /// </summary>
+        /// <typeparam name="U">The type of the items being returned by the query.</typeparam>
+        /// <param name="query">The query.</param>
+        /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/>.</returns>
+        public IAsyncEnumerable<U> GetAsyncItems<U>(ITableQuery<U> query)
+            => query.ToAsyncEnumerable();
+
+        /// <summary>
+        /// Retrieve an item from the remote table.
         /// </summary>
         /// <param name="id">The ID of the item to retrieve.</param>
-        /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe</param>
-        /// <returns>A <see cref="ServiceResponse{T}"/> object with the item that was stored.</returns>
-        public new async Task<ServiceResponse<T>> GetItemAsync(string id, CancellationToken cancellationToken = default)
-        {
-            Validate.IsValidId(id, nameof(id));
-
-            var request = new HttpRequestMessage(HttpMethod.Get, new Uri(Endpoint, id))
-                .WithFeatureHeader(DatasyncFeatures.TypedTable);
-            var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, cancellationToken).ConfigureAwait(false);
-                request.Dispose();
-                response.Dispose();
-                return result;
-            }
-            else if (response.StatusCode == HttpStatusCode.NotModified)
-            {
-                throw new EntityNotModifiedException(request, response);
-            }
-            else
-            {
-                var content = response.Content != null ? await response.Content.ReadAsStringAsync().ConfigureAwait(false) : null;
-                throw new DatasyncOperationException(request, response, content);
-            }
-        }
-
-        /// <summary>
-        /// Creates a new item within the table.
-        /// </summary>
-        /// <param name="item">The item to add to the table.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe</param>
-        /// <returns>A <see cref="ServiceResponse{T}"/> object with the item that was stored.</returns>
-        public async Task<ServiceResponse<T>> InsertItemAsync(T item, CancellationToken cancellationToken = default)
-        {
-            Validate.IsNotNull(item, nameof(item));
-
-            var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
-                .WithFeatureHeader(Features)
-                .WithContent(item, ClientOptions.SerializerOptions);
-            var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, cancellationToken).ConfigureAwait(false);
-                OnItemInserted(result.Value);
-                request.Dispose();
-                response.Dispose();
-                return result;
-            }
-            else
-            {
-                throw await ThrowResponseException(request, response, cancellationToken).ConfigureAwait(true);
-            }
-        }
-
-        /// <summary>
-        /// Refresh the current instance with the latest values from the table.
-        /// </summary>
-        /// <param name="item">The item to refresh.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>The refreshed item.</returns>
-        public async Task<T> RefreshItemAsync(T item, CancellationToken cancellationToken = default)
+        /// <returns>A task that returns the item when complete.</returns>
+        public new async Task<T> GetItemAsync(string id, CancellationToken cancellationToken = default)
         {
-            Validate.IsNotNull(item, nameof(item));
-
-            ObjectReader.GetSystemProperties(item, out DatasyncClientData systemProperties);
-            if (string.IsNullOrEmpty(systemProperties.Id))
-            {
-                throw new ArgumentException("Item does not have an ID field", nameof(item));
-            }
-            Validate.IsValidId(systemProperties.Id, nameof(item));
-            var precondition = systemProperties.Version == null ? null : IfMatch.Version(systemProperties.Version);
-            var request = new HttpRequestMessage(HttpMethod.Get, new Uri(Endpoint, systemProperties.Id))
-                .WithFeatureHeader(Features)
-                .WithHeader(precondition?.HeaderName, precondition?.HeaderValue);
-            var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, cancellationToken).ConfigureAwait(false);
-                request.Dispose();
-                response.Dispose();
-                return result.Value;
-            }
-            else if (response.StatusCode == HttpStatusCode.NotModified)
-            {
-                return item;
-            }
-            else
-            {
-                throw await ThrowResponseException(request, response, cancellationToken).ConfigureAwait(false);
-            }
+            JToken value = await base.GetItemAsync(id, cancellationToken).ConfigureAwait(false);
+            return ServiceClient.Serializer.Deserialize<T>(value);
         }
 
         /// <summary>
-        /// Replace the item with a new copy of the item.  Note that the item must have an Id (either called Id,
-        /// or decorated with the <see cref="KeyAttribute"/> attribute) that is a string and set.
+        /// Inserts the instance in the remote table.
         /// </summary>
-        /// <param name="item">the replacement item</param>
-        /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe</param>
-        /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
-        public async Task<ServiceResponse<T>> ReplaceItemAsync(T item, CancellationToken cancellationToken = default)
+        /// <param name="instance">The instance to insert.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns when the operation is complete.</returns>
+        public async Task InsertItemAsync(T instance, CancellationToken cancellationToken = default)
         {
-            Validate.IsNotNull(item, nameof(item));
-
-            ObjectReader.GetSystemProperties(item, out DatasyncClientData systemProperties);
-            if (string.IsNullOrEmpty(systemProperties.Id))
-            {
-                throw new ArgumentException("Item does not have an ID field", nameof(item));
-            }
-            Validate.IsValidId(systemProperties.Id, nameof(item));
-            var precondition = systemProperties.Version == null ? null : IfMatch.Version(systemProperties.Version);
-            var request = new HttpRequestMessage(HttpMethod.Put, new Uri(Endpoint, systemProperties.Id))
-                .WithFeatureHeader(Features)
-                .WithHeader(precondition?.HeaderName, precondition?.HeaderValue)
-                .WithContent(item, ClientOptions.SerializerOptions);
-            var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, cancellationToken).ConfigureAwait(false);
-                OnItemReplaced(result.Value);
-                request.Dispose();
-                response.Dispose();
-                return result;
-            }
-            else
-            {
-                throw await ThrowResponseException(request, response, cancellationToken).ConfigureAwait(false);
-            }
+            Arguments.IsNotNull(instance, nameof(instance));
+            JObject value = ServiceClient.Serializer.Serialize(instance) as JObject;
+            value = ServiceSerializer.RemoveSystemProperties(value, out _);
+            JToken insertedValue = await TransformHttpExceptionAsync(() => InsertItemAsync(value, cancellationToken)).ConfigureAwait(false);
+            ServiceClient.Serializer.Deserialize(insertedValue, instance);
         }
 
         /// <summary>
-        ///Update the specified item with the provided changes.
+        /// Refreshes the current instance with the latest values from the table.
         /// </summary>
-        /// <param name="id">The ID of the item</param>
-        /// <param name="changes">A list of changes to apply to the item</param>
-        /// <param name="precondition">An optional <see cref="HttpCondition"/> for conditional operation</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe</param>
-        /// <returns>A <see cref="HttpResponse{T}"/> object with the item that was stored.</returns>
-        public new async Task<ServiceResponse<T>> UpdateItemAsync(string id, IReadOnlyDictionary<string, object> changes, IfMatch precondition, CancellationToken cancellationToken)
+        /// <param name="instance">The instance to refresh.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns when the operation is complete.</returns>
+        public Task RefreshItemAsync(T instance, CancellationToken cancellationToken = default)
         {
-            Validate.IsValidId(id, nameof(id));
-            Validate.IsNotNullOrEmpty(changes, nameof(changes));
+            Arguments.IsNotNull(instance, nameof(instance));
+            throw new NotImplementedException();
+        }
 
-            var request = new HttpRequestMessage(new HttpMethod("PATCH"), new Uri(Endpoint, id))
-                .WithFeatureHeader(Features)
-                .WithHeader(precondition?.HeaderName, precondition?.HeaderValue)
-                .WithContent(changes, ClientOptions.SerializerOptions);
-            var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await ServiceResponse.FromResponseAsync<T>(response, ClientOptions.DeserializerOptions, cancellationToken).ConfigureAwait(false);
-                OnItemReplaced(result.Value);
-                request.Dispose();
-                response.Dispose();
-                return result;
-            }
-            else
-            {
-                throw await ThrowResponseException(request, response, cancellationToken).ConfigureAwait(true);
-            }
+        /// <summary>
+        /// Replaces the current instance with the provided instance in the remote table.
+        /// </summary>
+        /// <param name="instance">The instance to replace.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns when the operation is complete.</returns>
+        public async Task ReplaceItemAsync(T instance, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(instance, nameof(instance));
+            JObject value = ServiceClient.Serializer.Serialize(instance) as JObject;
+            JToken updatedValue = await TransformHttpExceptionAsync(() => ReplaceItemAsync(value, cancellationToken)).ConfigureAwait(false);
+            ServiceClient.Serializer.Deserialize(updatedValue, instance);
+        }
+
+        /// <summary>
+        /// Undeletes an item in the remote table.
+        /// </summary>
+        /// <remarks>
+        /// This requires that the table supports soft-delete.
+        /// </remarks>
+        /// <param name="instance">The instance to undelete in the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns when the operation complete.</returns>
+        public async Task UndeleteItemAsync(T instance, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(instance, nameof(instance));
+            JObject value = ServiceClient.Serializer.Serialize(instance) as JObject;
+            JToken updatedValue = await TransformHttpExceptionAsync(() => UndeleteItemAsync(value, cancellationToken)).ConfigureAwait(false);
+            ServiceClient.Serializer.Deserialize(updatedValue, instance);
         }
         #endregion
 
@@ -364,11 +232,11 @@ namespace Microsoft.Datasync.Client.Table
             => CreateQuery().ThenByDescending(keySelector);
 
         /// <summary>
-        /// Execute the query, returning an <see cref="AsyncPageable{T}"/>
+        /// Returns the result of the query as an <see cref="IAsyncEnumerable{T}"/>.
         /// </summary>
-        /// <returns>An <see cref="AsyncPageable{T}"/> to iterate over the items</returns>
-        public AsyncPageable<T> ToAsyncPageable(CancellationToken token = default)
-            => GetAsyncItems<T>("$count=true", token);
+        /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/></returns>
+        public IAsyncEnumerable<T> ToAsyncEnumerable()
+            => CreateQuery().ToAsyncEnumerable();
 
         /// <summary>
         /// Applies the specified filter predicate to the source query.
@@ -389,8 +257,9 @@ namespace Microsoft.Datasync.Client.Table
             => CreateQuery().WithParameter(key, value);
 
         /// <summary>
-        /// Adds the list of parameters to the list of user-defined parameters to send
-        /// with the request
+        /// Applies to the source query the specified string key-value
+        /// pairs to be used as user-defined parameters with the request URI
+        /// query string.
         /// </summary>
         /// <param name="parameters">The parameters to apply.</param>
         /// <returns>The composed query object.</returns>
@@ -401,94 +270,42 @@ namespace Microsoft.Datasync.Client.Table
         /// <summary>
         /// Gets a single page of items produced as a result of a query against the server.
         /// </summary>
-        /// <param name="query">The query string to send to the service.</param>
-        /// <param name="requestUri">The request URI to send (if we're on the second or future pages)</param>
-        /// <param name="token">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A <see cref="ServiceResponse{T}"/> containing the page of items.</returns>
-        internal virtual async Task<ServiceResponse<Page<U>>> GetNextPageAsync<U>(string query = "", string requestUri = null, CancellationToken token = default)
+        /// <param name="query">The query string to send with the first request to the service.</param>
+        /// <param name="nextLink">The link to the next page of items (for subsequent requests).</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns a page of items when complete.</returns>
+        internal async Task<Page<U>> GetNextPageAsync<U>(string query, string nextLink, CancellationToken cancellationToken = default)
         {
-            Uri uri = requestUri != null ? new Uri(requestUri) : new UriBuilder(Endpoint).WithQuery(query).Uri;
-            var request = new HttpRequestMessage(HttpMethod.Get, uri).WithFeatureHeader(Features);
-            var response = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await ServiceResponse.FromResponseAsync<Page<U>>(response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
-                request.Dispose();
-                response.Dispose();
-                return result;
-            }
-            else
-            {
-                throw await ThrowResponseException(request, response, token).ConfigureAwait(true);
-            }
+            Page<JToken> json = await base.GetNextPageAsync(query, nextLink, cancellationToken).ConfigureAwait(false);
+            Page<U> result = new() { Count = json.Count, NextLink = json.NextLink };
+            result.Items = json.Items?.Select(item => ServiceClient.Serializer.Deserialize<U>(item));
+            return result;
         }
 
         /// <summary>
-        /// Post an "item deleted" event to the <see cref="TableModified"/> event handler.
+        /// Executes a request and transfoms a conflict exception.
         /// </summary>
-        /// <param name="id">The ID of the item that was deleted.</param>
-        private void OnItemDeleted(string id)
+        /// <param name="action">The asynchronous request to execute.</param>
+        /// <returns>The result of the execution.</returns>
+        /// <exception cref="DatasyncConflictException{T}">if the response indicates a conflict.</exception>
+        private async Task<JToken> TransformHttpExceptionAsync(Func<Task<JToken>> action)
         {
-            TableModified?.Invoke(this, new TableModifiedEventArgs
+            try
             {
-                TableEndpoint = Endpoint,
-                Operation = TableModifiedEventArgs.TableOperation.Delete,
-                Id = id
-            });
-        }
-
-        /// <summary>
-        /// Post an "item inserted" event to the <see cref="TableModified"/> event handler.
-        /// </summary>
-        /// <param name="item">The item that was inserted.</param>
-        private void OnItemInserted(T item)
-        {
-            ObjectReader.GetSystemProperties(item, out DatasyncClientData systemProperties);
-            TableModified?.Invoke(this, new TableModifiedEventArgs
-            {
-                TableEndpoint = Endpoint,
-                Operation = TableModifiedEventArgs.TableOperation.Create,
-                Id = systemProperties.Id,
-                Entity = item
-            });
-        }
-
-        /// <summary>
-        /// Post an "item replaced" event to the <see cref="TableModified"/> event handler.
-        /// </summary>
-        /// <param name="item">The replacement item.</param>
-        private void OnItemReplaced(T item)
-        {
-            ObjectReader.GetSystemProperties(item, out DatasyncClientData systemProperties);
-            TableModified?.Invoke(this, new TableModifiedEventArgs
-            {
-                TableEndpoint = Endpoint,
-                Operation = TableModifiedEventArgs.TableOperation.Replace,
-                Id = systemProperties.Id,
-                Entity = item
-            });
-        }
-
-        /// <summary>
-        /// Throws the standard errors.  If this method returns, it wasn't a valid error condition.
-        /// </summary>
-        /// <param name="request">The <see cref="HttpRequestMessage"/> that caused the error.</param>
-        /// <param name="response">The <see cref="HttpResponseMessage"/> that caused the error.</param>
-        /// <param name="token">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>The exception to throw.</returns>
-        private async Task<Exception> ThrowResponseException(HttpRequestMessage request, HttpResponseMessage response, CancellationToken token = default)
-        {
-            if (response.IsConflictStatusCode())
-            {
-                return await DatasyncConflictException<T>.CreateAsync(request, response, ClientOptions.DeserializerOptions, token).ConfigureAwait(false);
+                return await action();
             }
-            else if (response.Content != null)
+            catch (DatasyncInvalidOperationException ex) when (ex.IsConflictStatusCode())
             {
-                return new DatasyncOperationException(request, response, await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-            }
-            else
-            {
-                return new DatasyncOperationException(request, response);
+                try
+                {
+                    T item = ServiceClient.Serializer.Deserialize<T>(ex.Value);
+                    ex = new DatasyncConflictException<T>(ex, item);
+                }
+                catch
+                {
+                    // Deliberately empty to fall-through to throwing the original exception.
+                }
+                throw ex;
             }
         }
     }

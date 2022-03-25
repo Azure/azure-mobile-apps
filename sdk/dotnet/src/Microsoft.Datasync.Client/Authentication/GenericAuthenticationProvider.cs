@@ -26,7 +26,7 @@ namespace Microsoft.Datasync.Client
         public GenericAuthenticationProvider(Func<Task<AuthenticationToken>> asyncTokenRequestor, string headerName = "Authorization", string authenticationType = null)
         {
             TokenRequestorAsync = asyncTokenRequestor ?? throw new ArgumentNullException(nameof(asyncTokenRequestor));
-            Validate.IsNotNullOrWhitespace(headerName, nameof(headerName));
+            Arguments.IsNotNullOrWhitespace(headerName, nameof(headerName));
 
             if (headerName.Equals("authorization", StringComparison.InvariantCultureIgnoreCase))
             {

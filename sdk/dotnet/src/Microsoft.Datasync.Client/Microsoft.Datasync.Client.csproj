@@ -1,65 +1,66 @@
-<Project Sdk="MSBuild.Sdk.Extras/3.0.23">
+﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.23">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;monoandroid12.0;xamarin.ios10</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);uap10.0</TargetFrameworks>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;monoandroid12.0;xamarin.ios10</TargetFrameworks>
+		<TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);uap10.0</TargetFrameworks>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <Description>A client package for communicating with a Microsoft Datasync service.  Formally known as Azure Mobile Apps</Description>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageIcon>icon.png</PackageIcon>
-    <PackageTags>azure;mobile;datasync;microsoft</PackageTags>
-    <Product>$(AssemblyName) ($(TargetFramework))</Product>
-  </PropertyGroup>
+	<PropertyGroup>
+		<Description>A client package for communicating with a Microsoft Datasync service.  Formally known as Azure Mobile Apps</Description>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageIcon>icon.png</PackageIcon>
+		<PackageTags>azure;mobile;datasync;microsoft</PackageTags>
+		<Product>$(AssemblyName) ($(TargetFramework))</Product>
+	</PropertyGroup>
 
-  <Import Project="..\..\Shared.Build.props" />
+	<Import Project="..\..\Shared.Build.props" />
 
-  <PropertyGroup>
-    <DebugType>portable</DebugType>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <LangVersion>9.0</LangVersion>
-    <NeutralLanguage>en-US</NeutralLanguage>
-  </PropertyGroup>
+	<PropertyGroup>
+		<DebugType>portable</DebugType>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<LangVersion>9.0</LangVersion>
+		<NeutralLanguage>en-US</NeutralLanguage>
+	</PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+		<DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="Platforms\**\*.cs" />
-    <Compile Remove="Platforms\**\*.cs" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="Platforms\**\*.cs" />
+		<Compile Remove="Platforms\**\*.cs" />
+	</ItemGroup>
 
-  <!-- Android Platform Support -->
-  <ItemGroup Condition="$(TargetFramework.StartsWith('monoandroid'))">
-    <Compile Include="Platforms\android\*.cs" />
-    <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
-  </ItemGroup>
+	<!-- Android Platform Support -->
+	<ItemGroup Condition="$(TargetFramework.StartsWith('monoandroid'))">
+		<Compile Include="Platforms\android\*.cs" />
+		<PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
+	</ItemGroup>
 
-  <!-- iOS Platform Support -->
-  <ItemGroup Condition="$(TargetFramework.StartsWith('xamarin.ios'))">
-    <Compile Include="Platforms\ios\*.cs" />
-    <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
-  </ItemGroup>
+	<!-- iOS Platform Support -->
+	<ItemGroup Condition="$(TargetFramework.StartsWith('xamarin.ios'))">
+		<Compile Include="Platforms\ios\*.cs" />
+		<PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
+	</ItemGroup>
 
-  <!-- UWP/UAP/Windows Store Platform Support -->
-  <PropertyGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
-    <TargetPlatformVersion>10.0.19041.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
-  </PropertyGroup>
-  <ItemGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
-    <Compile Include="Platforms\uap\*.cs" />
-  </ItemGroup>
+	<!-- UWP/UAP/Windows Store Platform Support -->
+	<PropertyGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
+		<TargetPlatformVersion>10.0.19041.0</TargetPlatformVersion>
+		<TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
+	</PropertyGroup>
+	<ItemGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
+		<Compile Include="Platforms\uap\*.cs" />
+	</ItemGroup>
 
-  <!-- .NET Standard 2.1 Platform Support -->
-  <ItemGroup Condition="$(TargetFramework.StartsWith('netstandard'))">
-    <Compile Include="Platforms\netstandard\*.cs" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
-  </ItemGroup>
+	<!-- .NET Standard 2.1 Platform Support -->
+	<ItemGroup Condition="$(TargetFramework.StartsWith('netstandard'))">
+		<Compile Include="Platforms\netstandard\*.cs" />
+	</ItemGroup>
 
-  <!-- Common package requirements -->
-  <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="6.0.1" />
-  </ItemGroup>
+	<!-- Common package requirements -->
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="Xamarin.Essentials" Version="1.7.1" />
+	</ItemGroup>
 </Project>
