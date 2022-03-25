@@ -1769,6 +1769,170 @@ namespace Microsoft.Datasync.Client.Test.Offline
         }
         #endregion
 
+        #region ExecutePushOperationAsync
+        [Fact]
+        [Trait("Method", "ExecutePushOperationAsync")]
+        public async Task ExecutePushOperation_ReturnsFalse_WhenOperationIsCancelled()
+        {
+            var context = new CSyncContext(client, store);
+            await context.InitializeAsync();
+            var batch = new OperationBatch(context);
+            var op = new DeleteOperation("movies", "abc123");
+            op.Cancel();
+
+            Assert.False(await context.CExecutePushOperationAsync(op, batch, false, CancellationToken.None));
+        }
+
+        [Fact]
+        [Trait("Method", "ExecutePushOperationAsync")]
+        public async Task ExecutePushOperation_ReturnsFalse_WhenBatchIsCancelled()
+        {
+            var context = new CSyncContext(client, store);
+            await context.InitializeAsync();
+            var batch = new OperationBatch(context);
+            var op = new DeleteOperation("movies", "abc123");
+            CancellationToken token = new(true);
+
+            Assert.False(await context.CExecutePushOperationAsync(op, batch, false, token));
+        }
+
+        [Fact]
+        [Trait("Method", "ExecutePushOperationAsync")]
+        public async Task ExecutePushOperation_AbortsBatch_WhenStoreError()
+        {
+            var context = new CSyncContext(client, store);
+            await context.InitializeAsync();
+            var batch = new OperationBatch(context);
+            var op = new DeleteOperation("movies", "abc123");
+            store.ReadExceptionToThrow = new ApplicationException();
+
+            var ex = await Assert.ThrowsAsync<OfflineStoreException>(() => context.CExecutePushOperationAsync(op, batch, false, CancellationToken.None));
+
+            Assert.Equal(PushStatus.CancelledByOfflineStoreError, batch.AbortReason);
+            Assert.Same(store.ReadExceptionToThrow, ex.InnerException);
+        }
+
+        [Fact]
+        [Trait("Method", "ExecutePushOperationAsync")]
+        public async Task ExecutePushOperation_AddsError_WhenNoItem()
+        {
+            var context = new CSyncContext(client, store);
+            await context.InitializeAsync();
+            var batch = new OperationBatch(context);
+            var op = new DeleteOperation("movies", "abc123");
+
+            Assert.False(await context.CExecutePushOperationAsync(op, batch, false, CancellationToken.None));
+            Assert.Single(store.TableMap[SystemTables.SyncErrors]);
+        }
+
+        [Fact]
+        [Trait("Method", "ExecutePushOperationAsync")]
+        public async Task ExecutePushOperation_AbortsBatch_OnTimeoutException()
+        {
+            var context = new CSyncContext(client, store);
+            await context.InitializeAsync();
+            var item = new IdEntity { Id = Guid.NewGuid().ToString() };
+            store.Upsert("movies", new[] { (JObject)client.Serializer.Serialize(item) });
+            var batch = new OperationBatch(context);
+            var op = new CInsertOperation("movies", item.Id) { ExceptionToThrow = new TimeoutException() };
+
+            Assert.False(await context.CExecutePushOperationAsync(op, batch, true, CancellationToken.None));
+            Assert.Equal(PushStatus.CancelledByNetworkError, batch.AbortReason);
+        }
+
+        [Fact]
+        [Trait("Method", "ExecutePushOperationAsync")]
+        public async Task ExecutePushOperation_AbortsBatch_OnHttpException()
+        {
+            var context = new CSyncContext(client, store);
+            await context.InitializeAsync();
+            var item = new IdEntity { Id = Guid.NewGuid().ToString() };
+            store.Upsert("movies", new[] { (JObject)client.Serializer.Serialize(item) });
+            var batch = new OperationBatch(context);
+            var op = new CInsertOperation("movies", item.Id) { ExceptionToThrow = new HttpRequestException() };
+
+            Assert.False(await context.CExecutePushOperationAsync(op, batch, true, CancellationToken.None));
+            Assert.Equal(PushStatus.CancelledByNetworkError, batch.AbortReason);
+        }
+
+        [Fact]
+        [Trait("Method", "ExecutePushOperationAsync")]
+        public async Task ExecutePushOperation_AbortsBatch_OnAuthError()
+        {
+            var context = new CSyncContext(client, store);
+            await context.InitializeAsync();
+            var item = new IdEntity { Id = Guid.NewGuid().ToString() };
+            store.Upsert("movies", new[] { (JObject)client.Serializer.Serialize(item) });
+            var batch = new OperationBatch(context);
+            var response = new HttpResponseMessage(HttpStatusCode.Unauthorized);
+            var op = new CInsertOperation("movies", item.Id) { ExceptionToThrow = new DatasyncInvalidOperationException("Unauthorized", null, response) };
+
+            Assert.False(await context.CExecutePushOperationAsync(op, batch, true, CancellationToken.None));
+            Assert.Equal(PushStatus.CancelledByAuthenticationError, batch.AbortReason);
+        }
+
+        [Fact]
+        [Trait("Method", "ExecutePushOperationAsync")]
+        public async Task ExecutePushOperation_OnInvalidOperationError()
+        {
+            var context = new CSyncContext(client, store);
+            await context.InitializeAsync();
+            var item = new IdEntity { Id = Guid.NewGuid().ToString() };
+            store.Upsert("movies", new[] { (JObject)client.Serializer.Serialize(item) });
+            var batch = new OperationBatch(context);
+            var response = new HttpResponseMessage(HttpStatusCode.Unauthorized);
+            var op = new CInsertOperation("movies", item.Id) { ExceptionToThrow = new DatasyncInvalidOperationException("Unauthorized", null, null) };
+
+            Assert.False(await context.CExecutePushOperationAsync(op, batch, true, CancellationToken.None));
+
+            // One error, and one operation in the queue
+            Assert.Single(store.TableMap[SystemTables.OperationsQueue]);
+
+            // TODO: This should really probably throw an error, but need to figure out what is meant to happen here.
+            //Assert.Single(store.TableMap[SystemTables.SyncErrors]);
+        }
+
+        [Fact]
+        [Trait("Method", "ExecutePushOperationAsync")]
+        public async Task ExecutePushOperation_AbortsBatch_OnPushError()
+        {
+            var context = new CSyncContext(client, store);
+            await context.InitializeAsync();
+            var item = new IdEntity { Id = Guid.NewGuid().ToString() };
+            store.Upsert("movies", new[] { (JObject)client.Serializer.Serialize(item) });
+            var batch = new OperationBatch(context);
+            var op = new CInsertOperation("movies", item.Id) { ExceptionToThrow = new PushAbortedException() };
+
+            Assert.False(await context.CExecutePushOperationAsync(op, batch, true, CancellationToken.None));
+            Assert.Equal(PushStatus.CancelledByOperation, batch.AbortReason);
+        }
+
+        [Fact]
+        [Trait("Method", "ExecutePushOperationAsync")]
+        public async Task ExecutePushOperation_AbortsBatch_WhenUpsertFails()
+        {
+            var context = new CSyncContext(client, store);
+            await context.InitializeAsync();
+            var item = new IdEntity { Id = Guid.NewGuid().ToString() };
+            store.Upsert("movies", new[] { (JObject)client.Serializer.Serialize(item) });
+            var batch = new OperationBatch(context);
+            var instance = client.Serializer.Serialize(item);
+            var op = new CInsertOperation("movies", item.Id)
+            {
+                ResponseObjectFunc = () =>
+                {
+                    store.ExceptionToThrow = new ApplicationException();
+                    return instance;
+                }
+            };
+            store.Upsert(SystemTables.OperationsQueue, new[] { op.Serialize() });
+
+            var ex = await Assert.ThrowsAsync<OfflineStoreException>(() => context.CExecutePushOperationAsync(op, batch, true, CancellationToken.None));
+            Assert.Equal(PushStatus.CancelledByOfflineStoreError, batch.AbortReason);
+            Assert.Same(store.ExceptionToThrow, ex.InnerException);
+        }
+        #endregion
+
         #region IsDisposable
         [Fact]
         public async Task SyncContext_CanBeDisposed()
@@ -1777,5 +1941,44 @@ namespace Microsoft.Datasync.Client.Test.Offline
             context.Dispose(); // Should not throw.
         }
         #endregion
+    }
+
+    [ExcludeFromCodeCoverage]
+    internal class CSyncContext : SyncContext
+    {
+        public CSyncContext(DatasyncClient client, IOfflineStore store) : base(client, store) { }
+
+        public Task<bool> CExecutePushOperationAsync(TableOperation operation, OperationBatch batch, bool removeFromQueueOnSuccess, CancellationToken token = default)
+            => base.ExecutePushOperationAsync(operation, batch, removeFromQueueOnSuccess, token);
+    }
+
+    /// <summary>
+    /// A modified version of the InsertOperation that we can set up an
+    /// exception on.
+    /// </summary>
+    /// <seealso cref="Microsoft.Datasync.Client.Offline.Queue.InsertOperation" />
+    [ExcludeFromCodeCoverage]
+    internal class CInsertOperation : InsertOperation
+    {
+        [JsonIgnore]
+        public Exception ExceptionToThrow { get; set; }
+
+        [JsonIgnore]
+        public Func<JToken> ResponseObjectFunc { get; set; }
+
+        public CInsertOperation(string tableName, string itemId) : base(tableName, itemId) { }
+
+        protected override Task<JToken> ExecuteRemoteOperationAsync(IRemoteTable table, CancellationToken cancellationToken)
+        {
+            if (ExceptionToThrow != null)
+            {
+                throw ExceptionToThrow;
+            }
+            if (ResponseObjectFunc != null)
+            {
+                return Task.FromResult(ResponseObjectFunc.Invoke());
+            }
+            return base.ExecuteRemoteOperationAsync(table, cancellationToken);
+        }
     }
 }

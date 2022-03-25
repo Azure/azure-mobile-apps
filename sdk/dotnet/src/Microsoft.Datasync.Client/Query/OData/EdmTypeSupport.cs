@@ -62,19 +62,23 @@ namespace Microsoft.Datasync.Client.Query.OData
                 return null;
             }
 
+            string result = null;
             switch (type)
             {
                 case EdmType.DateTime:
                     string dt = new DateTimeOffset(((DateTime)value).ToUniversalTime()).ToString(DateTimeFormat);
-                    return $"cast({dt},Edm.DateTimeOffset)";
+                    result = $"cast({dt},Edm.DateTimeOffset)";
+                    break;
                 case EdmType.DateTimeOffset:
                     string dto = ((DateTimeOffset)value).ToUniversalTime().ToString(DateTimeFormat);
-                    return $"cast({dto},Edm.DateTimeOffset)";
+                    result = $"cast({dto},Edm.DateTimeOffset)";
+                    break;
                 case EdmType.Guid:
                     Guid guid = (Guid)value;
-                    return $"cast({guid:D},Edm.Guid)";
+                    result = $"cast({guid:D},Edm.Guid)";
+                    break;
             }
-            return null;
+            return result;
         }
 
         /// <summary>
