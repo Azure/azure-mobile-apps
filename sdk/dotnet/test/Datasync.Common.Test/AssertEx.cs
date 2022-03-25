@@ -130,14 +130,12 @@ namespace Datasync.Common.Test
         }
 
         /// <summary>
-        /// Ensures that the two JObject lists are identical.
+        /// Assert that the two JObjects are identical enough.
         /// </summary>
         /// <param name="expected"></param>
         /// <param name="actual"></param>
-        public static void SequenceEqual(List<JObject> expected, List<JObject> actual)
+        public static void JsonEqual(JObject expected, JObject actual)
         {
-            Assert.Equal(expected.Count, actual.Count);
-
             static bool DoCheck(JProperty prop) => prop.Value.Type switch
             {
                 JTokenType.Null => false,
@@ -145,17 +143,25 @@ namespace Datasync.Common.Test
                 _ => true
             };
 
+            // Each property in the expectedItem should be present in the actualItem unless the value is null.
+            foreach (JProperty expectedProp in expected.Properties().Where(prop => DoCheck(prop)))
+            {
+                JProperty actualProp = actual.Properties().SingleOrDefault(ap => ap.Name == expectedProp.Name);
+                Assert.Equal(expectedProp.Value, actualProp.Value);
+            }
+        }
+
+        /// <summary>
+        /// Ensures that the two JObject lists are identical.
+        /// </summary>
+        /// <param name="expected"></param>
+        /// <param name="actual"></param>
+        public static void SequenceEqual(List<JObject> expected, List<JObject> actual)
+        {
+            Assert.Equal(expected.Count, actual.Count);
             for (int i = 0; i < expected.Count; i++)
             {
-                var expectedItem = expected[i];
-                var actualItem = actual[i];
-
-                // Each property in the expectedItem should be present in the actualItem unless the value is null.
-                foreach (JProperty expectedProp in expectedItem.Properties().Where(prop => DoCheck(prop)))
-                {
-                    JProperty actualProp = actualItem.Properties().SingleOrDefault(ap => ap.Name == expectedProp.Name);
-                    Assert.Equal(expectedProp.Value, actualProp.Value);
-                }
+                JsonEqual(expected[i], actual[i]);
             }
         }
 

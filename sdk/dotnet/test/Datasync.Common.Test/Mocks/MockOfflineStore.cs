@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -245,6 +246,14 @@ namespace Datasync.Common.Test.Mocks
         }
 
         /// <summary>
+        /// Gets from value from the <see cref="ConstantNode"/> as the specified type.
+        /// </summary>
+        /// <typeparam name="T">The type of the value of the node.</typeparam>
+        /// <param name="node">The node.</param>
+        /// <returns>The value of the node.</returns>
+        private static T GetFromConstantNode<T>(QueryNode node) => (T)((ConstantNode)node).Value;
+
+        /// <summary>
         /// Selects the correct set of entities based on the provided OData string.
         /// </summary>
         /// <param name="query">The query.</param>
@@ -252,31 +261,70 @@ namespace Datasync.Common.Test.Mocks
         /// <returns>The filtered items list.</returns>
         private static IEnumerable<JObject> FilterItemList(QueryDescription query, IEnumerable<JObject> items)
         {
-            var odata = query.ToODataString();
-            if (odata.Contains("$orderby=sequence desc")) // the query to take total count and max sequence
+            var odataString = query.ToODataString();
+            var odataQuery = ODataQuery.Parse(odataString);
+            if (!items.Any())
             {
-                return items.OrderByDescending(o => o.Value<long>("sequence"));
+                return items;
             }
-            else if (odata.StartsWith("$filter=((tableKind eq ") && odata.Contains("(sequence gt "))
-            {
-                var sequenceCompareNode = ((BinaryOperatorNode)query.Filter).RightOperand as BinaryOperatorNode;
 
-                return items.Where(o => o.Value<long>("sequence") > (long)((ConstantNode)sequenceCompareNode.RightOperand).Value).OrderBy(o => o.Value<long>("sequence"));
-            }
-            else if (odata.Contains("(sequence gt ")) // the query to get next operation
+            string filter = odataQuery.Filter;
+            if (!string.IsNullOrEmpty(filter))
             {
-                return items.Where(o => o.Value<long>("sequence") > (long)((ConstantNode)((BinaryOperatorNode)query.Filter).RightOperand).Value).OrderBy(o => o.Value<long>("sequence"));
+                if (Regex.IsMatch(filter, "^\\(\\(sequence gt [0-9]+L\\) and \\(tableName eq '[^']+'\\)\\)$"))
+                {
+                    BinaryOperatorNode sequenceComparison = (BinaryOperatorNode)((BinaryOperatorNode)query.Filter).LeftOperand;
+                    long sequence = GetFromConstantNode<long>(sequenceComparison.RightOperand);
+                    BinaryOperatorNode tableComparison = (BinaryOperatorNode)((BinaryOperatorNode)query.Filter).RightOperand;
+                    string tableName = GetFromConstantNode<string>(tableComparison.RightOperand);
+                    items = items.Where(item => item.Value<long>("sequence") > sequence && item.Value<string>("tableName") == tableName);
+                }
+                else if (Regex.IsMatch(filter, "^\\(\\(tableName eq '[^']+'\\) and \\(itemId eq '[^']+'\\)\\)$"))
+                {
+                    BinaryOperatorNode tableComparison = (BinaryOperatorNode)((BinaryOperatorNode)query.Filter).LeftOperand;
+                    string tableName = GetFromConstantNode<string>(tableComparison.RightOperand);
+                    BinaryOperatorNode itemIdComparison = (BinaryOperatorNode)((BinaryOperatorNode)query.Filter).RightOperand;
+                    string itemId = GetFromConstantNode<string>(itemIdComparison.RightOperand);
+                    items = items.Where(item => item.Value<string>("tableName") == tableName && item.Value<string>("itemId") == itemId);
+                }
+                else if (Regex.IsMatch(filter, "^\\(tableName eq '[^']+'\\)$"))
+                {
+                    BinaryOperatorNode tableComparison = (BinaryOperatorNode)query.Filter;
+                    string tableName = GetFromConstantNode<string>(tableComparison.RightOperand);
+                    items = items.Where(item => item.Value<string>("tableName") == tableName);
+                }
+                else if (Regex.IsMatch(filter, "^\\(sequence gt [0-9]+L\\)$"))
+                {
+                    BinaryOperatorNode sequenceComparison = (BinaryOperatorNode)query.Filter;
+                    long sequence = GetFromConstantNode<long>(sequenceComparison.RightOperand);
+                    items = items.Where(item => item.Value<long>("sequence") > sequence);
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
             }
-            else if (odata.Contains(") and (itemId eq '")) // the query to retrive operation by item id
+
+            if (odataQuery.OrderBy?.Length > 0)
             {
-                string targetTable = ((ConstantNode)((BinaryOperatorNode)((BinaryOperatorNode)query.Filter).LeftOperand).RightOperand).Value.ToString();
-                string targetId = ((ConstantNode)((BinaryOperatorNode)((BinaryOperatorNode)query.Filter).RightOperand).RightOperand).Value.ToString();
-                return items.Where(o => o.Value<string>("itemId") == targetId && o.Value<string>("tableName") == targetTable);
+                foreach (var orderBy in odataQuery.OrderBy)
+                {
+                    bool descending = false;
+                    string field = orderBy;
+                    if (orderBy.EndsWith(" desc"))
+                    {
+                        descending = true;
+                        field = orderBy.Replace(" desc", "");
+                    }
+
+                    items = field switch
+                    {
+                        "sequence" => descending ? items.OrderByDescending(i => i.Value<long>(field)) : items.OrderBy(i => i.Value<long>(field)),
+                        _ => throw new NotImplementedException()
+                    };
+                }
             }
-            else if (odata.Contains("$filter=(tableName eq '"))
-            {
-                return items.Where(o => o.Value<string>("tableName") == ((ConstantNode)((BinaryOperatorNode)query.Filter).RightOperand).Value.ToString());
-            }
+
             return items;
         }
 

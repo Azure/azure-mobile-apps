@@ -610,7 +610,7 @@ namespace Microsoft.Datasync.Client.Offline
                 error = ex;
             }
 
-            if (error == null && result.Value<string>(SystemProperties.JsonIdProperty) != null && operation.CanWriteResultToStore)
+            if (error == null && operation.CanWriteResultToStore && result?.Value<string>(SystemProperties.JsonIdProperty) != null)
             {
                 try
                 {

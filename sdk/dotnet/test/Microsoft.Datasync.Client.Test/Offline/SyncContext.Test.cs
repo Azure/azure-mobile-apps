@@ -7,7 +7,6 @@ using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
-using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Table;
 using Moq;
 using Newtonsoft.Json;
@@ -17,6 +16,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -710,7 +710,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             // We don't "consume" the operation, so PullItemsAsync() will throw an invalid operation because the table is dirty the second time.
             var options = new PullOptions { PushOtherTables = true };
-            await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => context.PullItemsAsync("movies", "",options));
+            await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => context.PullItemsAsync("movies", "", options));
 
             // PushItemsAsync should be called once.
             Assert.Single(pushContext.Invocations);
@@ -974,6 +974,537 @@ namespace Microsoft.Datasync.Client.Test.Offline
             Assert.NotEmpty(store.TableMap["test"]);
             Assert.NotEmpty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.NotEmpty(store.TableMap[SystemTables.Configuration]["dt.test.abc123"]);
+        }
+        #endregion
+
+        #region PushItemsAsync
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_HandlesEmptyQueue_AllTables()
+        {
+            var context = await GetSyncContext();
+            MockHandler.AddResponse(HttpStatusCode.NotFound);
+
+            await context.PushItemsAsync((string[])null);
+
+            Assert.Empty(MockHandler.Requests);
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_HandlesEmptyQueue_SingleTable()
+        {
+            var context = await GetSyncContext();
+            MockHandler.AddResponse(HttpStatusCode.NotFound);
+            var op = new DeleteOperation("test", "abc123");
+            store.Upsert(SystemTables.OperationsQueue, new[] { op.Serialize() });
+
+            await context.PushItemsAsync("movies");
+
+            Assert.Empty(MockHandler.Requests);
+            Assert.Single(store.TableMap[SystemTables.OperationsQueue]);
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_AllTables_HandlesDeleteOperation_WithVersion()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "abc123" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            store.Upsert("movies", new[] { instance });
+            MockHandler.AddResponse(HttpStatusCode.NoContent);
+
+            await context.DeleteItemAsync("movies", instance);
+            await context.PushItemsAsync((string[])null);
+
+            Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
+            Assert.Single(MockHandler.Requests);
+
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Delete, request.Method);
+            Assert.Equal($"/tables/movies/{item.Id}", request.RequestUri.PathAndQuery);
+            Assert.Equal($"\"{item.Version}\"", request.Headers.IfMatch.FirstOrDefault()?.Tag);
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_SingleTable_HandlesDeleteOperation_WithVersion()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "abc123" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            store.Upsert("movies", new[] { instance });
+            MockHandler.AddResponse(HttpStatusCode.NoContent);
+
+            await context.DeleteItemAsync("movies", instance);
+            await context.PushItemsAsync("movies");
+
+            Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
+            Assert.Single(MockHandler.Requests);
+
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Delete, request.Method);
+            Assert.Equal($"/tables/movies/{item.Id}", request.RequestUri.PathAndQuery);
+            Assert.Equal($"\"{item.Version}\"", request.Headers.IfMatch.FirstOrDefault()?.Tag);
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_AllTables_HandlesDeleteOperation_WithoutVersion()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString() };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            store.Upsert("movies", new[] { instance });
+            MockHandler.AddResponse(HttpStatusCode.NoContent);
+
+            await context.DeleteItemAsync("movies", instance);
+
+            await context.PushItemsAsync((string[])null);
+
+            Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
+            Assert.Single(MockHandler.Requests);
+
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Delete, request.Method);
+            Assert.Equal($"/tables/movies/{item.Id}", request.RequestUri.PathAndQuery);
+            Assert.Empty(request.Headers.IfMatch);
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_SingleTable_HandlesDeleteOperation_WithoutVersion()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString() };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            store.Upsert("movies", new[] { instance });
+            MockHandler.AddResponse(HttpStatusCode.NoContent);
+
+            await context.DeleteItemAsync("movies", instance);
+
+            await context.PushItemsAsync("movies");
+
+            Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
+            Assert.Single(MockHandler.Requests);
+
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Delete, request.Method);
+            Assert.Equal($"/tables/movies/{item.Id}", request.RequestUri.PathAndQuery);
+            Assert.Empty(request.Headers.IfMatch);
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_AllTables_HandlesDeleteOperation_Conflict()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var conflictItem = new ClientMovie { Id = item.Id, Version = "2" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            store.Upsert("movies", new[] { instance });
+            MockHandler.AddResponse(HttpStatusCode.Conflict, conflictItem);
+
+            await context.DeleteItemAsync("movies", instance);
+            var ex = await Assert.ThrowsAsync<PushFailedException>(() => context.PushItemsAsync((string[])null));
+
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Delete, request.Method);
+            Assert.Equal($"/tables/movies/{item.Id}", request.RequestUri.PathAndQuery);
+
+            Assert.Equal(PushStatus.Complete, ex.PushResult.Status);
+            Assert.Single(ex.PushResult.Errors);
+            Assert.Equal("movies", ex.PushResult.Errors.First().TableName);
+            Assert.Equal(item.Id, ex.PushResult.Errors.First().Item.Value<string>("id"));
+
+            Assert.Single(store.TableMap[SystemTables.OperationsQueue]);
+            var op = TableOperation.Deserialize(store.TableMap[SystemTables.OperationsQueue].Values.First());
+            Assert.Equal(TableOperationState.Failed, op.State);
+
+            Assert.Single(store.TableMap[SystemTables.SyncErrors]);
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_SingleTable_HandlesDeleteOperation_Conflict()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var conflictItem = new ClientMovie { Id = item.Id, Version = "2" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            store.Upsert("movies", new[] { instance });
+            MockHandler.AddResponse(HttpStatusCode.Conflict, conflictItem);
+
+            await context.DeleteItemAsync("movies", instance);
+            var ex = await Assert.ThrowsAsync<PushFailedException>(() => context.PushItemsAsync("movies"));
+
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Delete, request.Method);
+            Assert.Equal($"/tables/movies/{item.Id}", request.RequestUri.PathAndQuery);
+
+            Assert.Equal(PushStatus.Complete, ex.PushResult.Status);
+            Assert.Single(ex.PushResult.Errors);
+            Assert.Equal("movies", ex.PushResult.Errors.First().TableName);
+            Assert.Equal(item.Id, ex.PushResult.Errors.First().Item.Value<string>("id"));
+
+            Assert.Single(store.TableMap[SystemTables.OperationsQueue]);
+            var op = TableOperation.Deserialize(store.TableMap[SystemTables.OperationsQueue].Values.First());
+            Assert.Equal(TableOperationState.Failed, op.State);
+
+            Assert.Single(store.TableMap[SystemTables.SyncErrors]);
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_AllTables_HandlesInsertOperation()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Title = "The Big Test" };
+            var returnedItem = item.Clone();
+            returnedItem.UpdatedAt = DateTimeOffset.Now;
+            returnedItem.Version = "1";
+            var expectedContent = $"{{\"bestPictureWinner\":false,\"duration\":0,\"rating\":null,\"releaseDate\":\"0001-01-01T00:00:00.000Z\",\"title\":\"The Big Test\",\"year\":0,\"id\":\"{item.Id}\"}}";
+            var instance = (JObject)client.Serializer.Serialize(item);
+            MockHandler.AddResponse(HttpStatusCode.OK, returnedItem);
+
+            await context.InsertItemAsync("movies", instance);
+            await context.PushItemsAsync((string[])null);
+
+            Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
+            Assert.Single(MockHandler.Requests);
+
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Post, request.Method);
+            Assert.Equal("/tables/movies", request.RequestUri.PathAndQuery);
+            Assert.Equal(expectedContent, await request.Content.ReadAsStringAsync());
+
+            Assert.True(store.TableMap["movies"].ContainsKey(item.Id));
+            var storedItem = store.TableMap["movies"][item.Id];
+            Assert.Equal(storedItem.Value<DateTime>("updatedAt").Ticks, returnedItem.UpdatedAt?.Ticks);
+            Assert.Equal(storedItem.Value<string>("version"), returnedItem.Version);
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_SingleTable_HandlesInsertOperation()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Title = "The Big Test" };
+            var returnedItem = item.Clone();
+            returnedItem.UpdatedAt = DateTimeOffset.Now;
+            returnedItem.Version = "1";
+            var expectedContent = $"{{\"bestPictureWinner\":false,\"duration\":0,\"rating\":null,\"releaseDate\":\"0001-01-01T00:00:00.000Z\",\"title\":\"The Big Test\",\"year\":0,\"id\":\"{item.Id}\"}}";
+            var instance = (JObject)client.Serializer.Serialize(item);
+            MockHandler.AddResponse(HttpStatusCode.OK, returnedItem);
+
+            await context.InsertItemAsync("movies", instance);
+            await context.PushItemsAsync("movies");
+
+            Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
+            Assert.Single(MockHandler.Requests);
+
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Post, request.Method);
+            Assert.Equal("/tables/movies", request.RequestUri.PathAndQuery);
+            Assert.Equal(expectedContent, await request.Content.ReadAsStringAsync());
+
+            Assert.True(store.TableMap["movies"].ContainsKey(item.Id));
+            var storedItem = store.TableMap["movies"][item.Id];
+            Assert.Equal(storedItem.Value<DateTime>("updatedAt").Ticks, returnedItem.UpdatedAt?.Ticks);
+            Assert.Equal(storedItem.Value<string>("version"), returnedItem.Version);
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_AllTables_HandlesInsertOperation_Conflict()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var conflictItem = new ClientMovie { Id = item.Id, Version = "2" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            MockHandler.AddResponse(HttpStatusCode.Conflict, conflictItem);
+
+            await context.InsertItemAsync("movies", instance);
+            var ex = await Assert.ThrowsAsync<PushFailedException>(() => context.PushItemsAsync((string[])null));
+
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Post, request.Method);
+            Assert.Equal("/tables/movies", request.RequestUri.PathAndQuery);
+
+            Assert.Equal(PushStatus.Complete, ex.PushResult.Status);
+            Assert.Single(ex.PushResult.Errors);
+            Assert.Equal("movies", ex.PushResult.Errors.First().TableName);
+            Assert.Equal(item.Id, ex.PushResult.Errors.First().Item.Value<string>("id"));
+
+            Assert.Single(store.TableMap[SystemTables.OperationsQueue]);
+            var op = TableOperation.Deserialize(store.TableMap[SystemTables.OperationsQueue].Values.First());
+            Assert.Equal(TableOperationState.Failed, op.State);
+
+            Assert.Single(store.TableMap[SystemTables.SyncErrors]);
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_SingleTable_HandlesInsertOperation_Conflict()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var conflictItem = new ClientMovie { Id = item.Id, Version = "2" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            MockHandler.AddResponse(HttpStatusCode.Conflict, conflictItem);
+
+            await context.InsertItemAsync("movies", instance);
+            var ex = await Assert.ThrowsAsync<PushFailedException>(() => context.PushItemsAsync("movies"));
+
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Post, request.Method);
+            Assert.Equal("/tables/movies", request.RequestUri.PathAndQuery);
+
+            Assert.Equal(PushStatus.Complete, ex.PushResult.Status);
+            Assert.Single(ex.PushResult.Errors);
+            Assert.Equal("movies", ex.PushResult.Errors.First().TableName);
+            Assert.Equal(item.Id, ex.PushResult.Errors.First().Item.Value<string>("id"));
+
+            Assert.Single(store.TableMap[SystemTables.OperationsQueue]);
+            var op = TableOperation.Deserialize(store.TableMap[SystemTables.OperationsQueue].Values.First());
+            Assert.Equal(TableOperationState.Failed, op.State);
+
+            Assert.Single(store.TableMap[SystemTables.SyncErrors]);
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_AllTables_HandlesUpdateOperation_WithoutVersion()
+        {
+            var context = await GetSyncContext();
+            var itemToUpdate = new ClientMovie { Id = Guid.NewGuid().ToString(), Title = "The Big Test" };
+            var instance = client.Serializer.Serialize(itemToUpdate) as JObject;
+            store.Upsert("movies", new[] { instance });
+
+            var updatedItem = itemToUpdate.Clone();
+            updatedItem.Title = "Modified";
+            var mInstance = client.Serializer.Serialize(updatedItem) as JObject;
+
+            var returnedItem = itemToUpdate.Clone();
+            returnedItem.Version = "2";
+            MockHandler.AddResponse(HttpStatusCode.OK, returnedItem);
+
+            await context.ReplaceItemAsync("movies", mInstance);
+            await context.PushItemsAsync((string[])null);
+
+            // Request was a PUT
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Put, request.Method);
+            Assert.Equal($"/tables/movies/{itemToUpdate.Id}", request.RequestUri.PathAndQuery);
+            Assert.Empty(request.Headers.IfMatch);
+            var requestObj = JObject.Parse(await request.Content.ReadAsStringAsync());
+            AssertEx.JsonEqual(mInstance, requestObj);
+
+            // Queue is empty
+            Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
+
+            // Item in the store has been updated.
+            Assert.True(store.TableMap["movies"].ContainsKey(itemToUpdate.Id));
+            Assert.Equal("2", store.TableMap["movies"][itemToUpdate.Id].Value<string>("version"));
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_SingleTable_HandlesUpdateOperationWithoutVersion()
+        {
+            var context = await GetSyncContext();
+            var itemToUpdate = new ClientMovie { Id = Guid.NewGuid().ToString(), Title = "The Big Test" };
+            var instance = client.Serializer.Serialize(itemToUpdate) as JObject;
+            store.Upsert("movies", new[] { instance });
+
+            var updatedItem = itemToUpdate.Clone();
+            updatedItem.Title = "Modified";
+            var mInstance = client.Serializer.Serialize(updatedItem) as JObject;
+
+            var returnedItem = itemToUpdate.Clone();
+            returnedItem.Version = "2";
+            MockHandler.AddResponse(HttpStatusCode.OK, returnedItem);
+
+            await context.ReplaceItemAsync("movies", mInstance);
+            await context.PushItemsAsync("movies");
+
+            // Request was a PUT
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Put, request.Method);
+            Assert.Equal($"/tables/movies/{itemToUpdate.Id}", request.RequestUri.PathAndQuery);
+            Assert.Empty(request.Headers.IfMatch);
+            var requestObj = JObject.Parse(await request.Content.ReadAsStringAsync());
+            AssertEx.JsonEqual(mInstance, requestObj);
+
+            // Queue is empty
+            Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
+
+            // Item in the store has been updated.
+            Assert.True(store.TableMap["movies"].ContainsKey(itemToUpdate.Id));
+            Assert.Equal("2", store.TableMap["movies"][itemToUpdate.Id].Value<string>("version"));
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_AllTables_HandlesUpdateOperation_WithVersion()
+        {
+            var context = await GetSyncContext();
+            var itemToUpdate = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1", Title = "The Big Test" };
+            var instance = client.Serializer.Serialize(itemToUpdate) as JObject;
+            store.Upsert("movies", new[] { instance });
+
+            var updatedItem = itemToUpdate.Clone();
+            updatedItem.Title = "Modified";
+            var mInstance = client.Serializer.Serialize(updatedItem) as JObject;
+
+            var returnedItem = itemToUpdate.Clone();
+            returnedItem.Version = "2";
+            MockHandler.AddResponse(HttpStatusCode.OK, returnedItem);
+
+            await context.ReplaceItemAsync("movies", mInstance);
+            await context.PushItemsAsync((string[])null);
+
+            // Request was a PUT
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Put, request.Method);
+            Assert.Equal($"/tables/movies/{itemToUpdate.Id}", request.RequestUri.PathAndQuery);
+            Assert.Equal("\"1\"", request.Headers.IfMatch.First().Tag);
+            var requestObj = JObject.Parse(await request.Content.ReadAsStringAsync());
+            AssertEx.JsonEqual(mInstance, requestObj);
+
+            // Queue is empty
+            Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
+
+            // Item in the store has been updated.
+            Assert.True(store.TableMap["movies"].ContainsKey(itemToUpdate.Id));
+            Assert.Equal("2", store.TableMap["movies"][itemToUpdate.Id].Value<string>("version"));
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_SingleTable_HandlesUpdateOperation_WithVersion()
+        {
+            var context = await GetSyncContext();
+            var itemToUpdate = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1", Title = "The Big Test" };
+            var instance = client.Serializer.Serialize(itemToUpdate) as JObject;
+            store.Upsert("movies", new[] { instance });
+
+            var updatedItem = itemToUpdate.Clone();
+            updatedItem.Title = "Modified";
+            var mInstance = client.Serializer.Serialize(updatedItem) as JObject;
+
+            var returnedItem = itemToUpdate.Clone();
+            returnedItem.Version = "2";
+            MockHandler.AddResponse(HttpStatusCode.OK, returnedItem);
+
+            await context.ReplaceItemAsync("movies", mInstance);
+            await context.PushItemsAsync("movies");
+
+            // Request was a PUT
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Put, request.Method);
+            Assert.Equal($"/tables/movies/{itemToUpdate.Id}", request.RequestUri.PathAndQuery);
+            Assert.Equal("\"1\"", request.Headers.IfMatch.First().Tag);
+            var requestObj = JObject.Parse(await request.Content.ReadAsStringAsync());
+            AssertEx.JsonEqual(mInstance, requestObj);
+
+            // Queue is empty
+            Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
+
+            // Item in the store has been updated.
+            Assert.True(store.TableMap["movies"].ContainsKey(itemToUpdate.Id));
+            Assert.Equal("2", store.TableMap["movies"][itemToUpdate.Id].Value<string>("version"));
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_AllTables_HandlesUpdateOperation_Conflict()
+        {
+            var context = await GetSyncContext();
+            var itemToUpdate = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1", Title = "The Big Test" };
+            var instance = client.Serializer.Serialize(itemToUpdate) as JObject;
+            store.Upsert("movies", new[] { instance });
+
+            var updatedItem = itemToUpdate.Clone();
+            updatedItem.Title = "Modified";
+            var mInstance = client.Serializer.Serialize(updatedItem) as JObject;
+
+            var returnedItem = itemToUpdate.Clone();
+            returnedItem.Version = "2";
+            var expectedInstance = client.Serializer.Serialize(returnedItem) as JObject;
+            MockHandler.AddResponse(HttpStatusCode.Conflict, returnedItem);
+
+            await context.ReplaceItemAsync("movies", mInstance);
+            var ex = await Assert.ThrowsAsync<PushFailedException>(() => context.PushItemsAsync((string[])null));
+
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Put, request.Method);
+            Assert.Equal($"/tables/movies/{itemToUpdate.Id}", request.RequestUri.PathAndQuery);
+            Assert.Equal("\"1\"", request.Headers.IfMatch.First().Tag);
+            var requestObj = JObject.Parse(await request.Content.ReadAsStringAsync());
+            AssertEx.JsonEqual(mInstance, requestObj);
+
+            Assert.Equal(PushStatus.Complete, ex.PushResult.Status);
+            Assert.Single(ex.PushResult.Errors);
+            Assert.Equal("movies", ex.PushResult.Errors.First().TableName);
+            Assert.Equal(itemToUpdate.Id, ex.PushResult.Errors.First().Item.Value<string>("id"));
+
+            Assert.Single(store.TableMap[SystemTables.OperationsQueue]);
+            var op = TableOperation.Deserialize(store.TableMap[SystemTables.OperationsQueue].Values.First());
+            Assert.Equal(TableOperationState.Failed, op.State);
+
+            Assert.Single(store.TableMap[SystemTables.SyncErrors]);
+        }
+
+        [Fact]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_SingleTable_HandlesUpdateOperation_Conflict()
+        {
+            var context = await GetSyncContext();
+            var itemToUpdate = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1", Title = "The Big Test" };
+            var instance = client.Serializer.Serialize(itemToUpdate) as JObject;
+            store.Upsert("movies", new[] { instance });
+
+            var updatedItem = itemToUpdate.Clone();
+            updatedItem.Title = "Modified";
+            var mInstance = client.Serializer.Serialize(updatedItem) as JObject;
+
+            var returnedItem = itemToUpdate.Clone();
+            returnedItem.Version = "2";
+            var expectedInstance = client.Serializer.Serialize(returnedItem) as JObject;
+            MockHandler.AddResponse(HttpStatusCode.Conflict, returnedItem);
+
+            await context.ReplaceItemAsync("movies", mInstance);
+            var ex = await Assert.ThrowsAsync<PushFailedException>(() => context.PushItemsAsync("movies"));
+
+            Assert.Single(MockHandler.Requests);
+            var request = MockHandler.Requests[0];
+            Assert.Equal(HttpMethod.Put, request.Method);
+            Assert.Equal($"/tables/movies/{itemToUpdate.Id}", request.RequestUri.PathAndQuery);
+            Assert.Equal("\"1\"", request.Headers.IfMatch.First().Tag);
+            var requestObj = JObject.Parse(await request.Content.ReadAsStringAsync());
+            AssertEx.JsonEqual(mInstance, requestObj);
+
+            Assert.Equal(PushStatus.Complete, ex.PushResult.Status);
+            Assert.Single(ex.PushResult.Errors);
+            Assert.Equal("movies", ex.PushResult.Errors.First().TableName);
+            Assert.Equal(itemToUpdate.Id, ex.PushResult.Errors.First().Item.Value<string>("id"));
+
+            Assert.Single(store.TableMap[SystemTables.OperationsQueue]);
+            var op = TableOperation.Deserialize(store.TableMap[SystemTables.OperationsQueue].Values.First());
+            Assert.Equal(TableOperationState.Failed, op.State);
+
+            Assert.Single(store.TableMap[SystemTables.SyncErrors]);
         }
         #endregion
 
