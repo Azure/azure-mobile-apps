@@ -548,7 +548,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="removeFromQueueOnSuccess">If <c>true</c>, remove the operation from the queue when successful.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns <c>true</c> if the execution was successful when complete.</returns>
-        private async Task<bool> ExecutePushOperationAsync(TableOperation operation, OperationBatch batch, bool removeFromQueueOnSuccess, CancellationToken cancellationToken)
+        protected virtual async Task<bool> ExecutePushOperationAsync(TableOperation operation, OperationBatch batch, bool removeFromQueueOnSuccess, CancellationToken cancellationToken)
         {
             if (operation.IsCancelled || cancellationToken.IsCancellationRequested)
             {

@@ -71,6 +71,14 @@ namespace Datasync.Common.Test.Mocks
         /// </summary>
         public Exception ExceptionToThrow { get; set; }
 
+        /// <summary>
+        /// Gets or sets the read exception to throw.
+        /// </summary>
+        /// <value>
+        /// The read exception to throw.
+        /// </value>
+        public Exception ReadExceptionToThrow { get; set; }
+
         #region IOfflineStore
         /// <summary>
         /// Deletes items from the table where the items are identified by a query.
@@ -126,6 +134,11 @@ namespace Datasync.Common.Test.Mocks
         /// <returns>A task that returns a page of items when complete.</returns>
         public Task<JObject> GetItemAsync(string tableName, string id, CancellationToken cancellationToken = default)
         {
+            if (ReadExceptionToThrow != null)
+            {
+                throw ReadExceptionToThrow;
+            }
+
             var table = GetOrCreateTable(tableName);
             table.TryGetValue(id, out JObject item);
             return Task.FromResult(item);
