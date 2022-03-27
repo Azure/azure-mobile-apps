@@ -416,6 +416,12 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the operation is finished.</returns>
         public async Task CancelAndDiscardItemAsync(TableOperationError error, CancellationToken cancellationToken = default)
         {
+            Arguments.IsNotNull(error, nameof(error));
+            if (error.Item == null)
+            {
+                throw new ArgumentException("Operation error must contain an item", nameof(error));
+            }
+
             string itemId = error.Item.Value<string>(SystemProperties.JsonIdProperty);
             await TryCancelOperationAsync(error, cancellationToken).ConfigureAwait(false);
             await OfflineStore.DeleteAsync(error.TableName, new[] { itemId }, cancellationToken).ConfigureAwait(false);
@@ -430,6 +436,13 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the update is finished.</returns>
         public async Task CancelAndUpdateItemAsync(TableOperationError error, JObject item, CancellationToken cancellationToken = default)
         {
+            Arguments.IsNotNull(error, nameof(error));
+            Arguments.IsNotNull(item, nameof(item));
+            if (error.Item == null)
+            {
+                throw new ArgumentException("Operation error must contain an item", nameof(error));
+            }
+
             await TryCancelOperationAsync(error, cancellationToken).ConfigureAwait(false);
             await OfflineStore.UpsertAsync(error.TableName, new[] { item }, true, cancellationToken).ConfigureAwait(false);
         }
@@ -443,6 +456,9 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the update is finished.</returns>
         public async Task UpdateOperationAsync(TableOperationError error, JObject item, CancellationToken cancellationToken = default)
         {
+            Arguments.IsNotNull(error, nameof(error));
+            Arguments.IsNotNull(item, nameof(item));
+
             if (!await OperationsQueue.UpdateOperationAsync(error.Id, error.OperationVersion, item, cancellationToken).ConfigureAwait(false))
             {
                 throw new InvalidOperationException("The operation has been updated and cannot be updated again.");
