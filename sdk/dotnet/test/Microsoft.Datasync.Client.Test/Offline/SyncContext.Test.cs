@@ -1933,6 +1933,240 @@ namespace Microsoft.Datasync.Client.Test.Offline
         }
         #endregion
 
+        #region CancelAndDiscardItemAsync
+        [Fact]
+        [Trait("Method", "CancelAndDiscardItemAsync")]
+        public async Task CancelAndDiscardItem_Throws_OnNullError()
+        {
+            var context = await GetSyncContext();
+            await Assert.ThrowsAsync<ArgumentNullException>(() => context.CancelAndDiscardItemAsync(null));
+        }
+
+        [Fact]
+        [Trait("Method", "CancelAndDiscardItemAsync")]
+        public async Task CancelAndDiscardItem_Throws_OnNullItem()
+        {
+            var context = await GetSyncContext();
+            var operation = new DeleteOperation("movies", "1234") { Item = null };
+            var error = new TableOperationError(operation, context, null, null, null);
+            await Assert.ThrowsAsync<ArgumentException>(() => context.CancelAndDiscardItemAsync(error));
+        }
+
+        [Fact]
+        [Trait("Method", "CancelAndDiscardItemAsync")]
+        public async Task CancelAndDiscardItem_Throws_IfOperationHasBeenUpdated()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var conflictItem = new ClientMovie { Id = item.Id, Version = "2" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            MockHandler.AddResponse(HttpStatusCode.Conflict, conflictItem);
+
+            await context.InsertItemAsync("movies", instance);
+            var ex = await Assert.ThrowsAsync<PushFailedException>(() => context.PushItemsAsync((string[])null));
+            var tableError = ex.PushResult.Errors.First();
+
+            // Update the version in the operation
+            store.TableMap[SystemTables.OperationsQueue][tableError.Id]["version"] = 3;
+
+            // Now try to cancel and discard.
+            await Assert.ThrowsAsync<InvalidOperationException>(() => context.CancelAndDiscardItemAsync(tableError));
+        }
+
+        [Fact]
+        [Trait("Method", "CancelAndDiscardItemAsync")]
+        public async Task CancelAndDiscardItem_Works_Normally()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var conflictItem = new ClientMovie { Id = item.Id, Version = "2" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            MockHandler.AddResponse(HttpStatusCode.Conflict, conflictItem);
+
+            await context.InsertItemAsync("movies", instance);
+            var ex = await Assert.ThrowsAsync<PushFailedException>(() => context.PushItemsAsync((string[])null));
+            var tableError = ex.PushResult.Errors.First();
+
+            await context.CancelAndDiscardItemAsync(tableError);
+
+            // the tableError is not in the __errors table
+            Assert.False(store.TableMap[SystemTables.SyncErrors].ContainsKey(tableError.Id));
+
+            // the tableError.Id is not store
+            Assert.False(store.TableMap[SystemTables.OperationsQueue].ContainsKey(tableError.Id));
+
+            // the item we added is not in the store
+            Assert.False(store.TableMap["movies"].ContainsKey(item.Id));
+        }
+        #endregion
+
+        #region CancelAndUpdateItemAsync
+        [Fact]
+        [Trait("Method", "CancelAndUpdateItemAsync")]
+        public async Task CancelAndUpdateItem_Throws_OnNullError()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+
+            await Assert.ThrowsAsync<ArgumentNullException>(() => context.CancelAndUpdateItemAsync(null, instance));
+        }
+
+        [Fact]
+        [Trait("Method", "CancelAndUpdateItemAsync")]
+        public async Task CancelAndUpdateItem_Throws_OnNullInstance()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            var operation = new DeleteOperation("movies", "1234") { Item = instance };
+            var error = new TableOperationError(operation, context, null, null, null);
+            await Assert.ThrowsAsync<ArgumentNullException>(() => context.CancelAndUpdateItemAsync(error, null));
+        }
+
+        [Fact]
+        [Trait("Method", "CancelAndUpdateItemAsync")]
+        public async Task CancelAndUpdateItem_Throws_OnNullItem()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            var operation = new DeleteOperation("movies", "1234") { Item = null };
+            var error = new TableOperationError(operation, context, null, null, null);
+            await Assert.ThrowsAsync<ArgumentException>(() => context.CancelAndUpdateItemAsync(error, instance));
+        }
+
+        [Fact]
+        [Trait("Method", "CancelAndUpdateItemAsync")]
+        public async Task CancelAndUpdateItem_Throws_IfOperationHasBeenUpdated()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            var conflictItem = new ClientMovie { Id = item.Id, Version = "2" };
+            MockHandler.AddResponse(HttpStatusCode.Conflict, conflictItem);
+
+            await context.InsertItemAsync("movies", instance);
+            var ex = await Assert.ThrowsAsync<PushFailedException>(() => context.PushItemsAsync((string[])null));
+            var tableError = ex.PushResult.Errors.First();
+
+            // Update the version in the operation
+            store.TableMap[SystemTables.OperationsQueue][tableError.Id]["version"] = 3;
+
+            // Now try to cancel and update.
+            await Assert.ThrowsAsync<InvalidOperationException>(() => context.CancelAndUpdateItemAsync(tableError, instance));
+        }
+
+        [Fact]
+        [Trait("Method", "CancelAndUpdateItemAsync")]
+        public async Task CancelAndUpdateItem_Works_Normally()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var conflictItem = new ClientMovie { Id = item.Id, Version = "2" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            MockHandler.AddResponse(HttpStatusCode.Conflict, conflictItem);
+
+            await context.InsertItemAsync("movies", instance);
+            var ex = await Assert.ThrowsAsync<PushFailedException>(() => context.PushItemsAsync((string[])null));
+            var tableError = ex.PushResult.Errors.First();
+
+            var updatedInstance = (JObject)instance.DeepClone();
+            updatedInstance["version"] = "3";
+            await context.CancelAndUpdateItemAsync(tableError, updatedInstance);
+
+            // the tableError is not in the __errors table
+            Assert.False(store.TableMap[SystemTables.SyncErrors].ContainsKey(tableError.Id));
+
+            // the tableError.Id is not store
+            Assert.False(store.TableMap[SystemTables.OperationsQueue].ContainsKey(tableError.Id));
+
+            // the item we added is in the store
+            Assert.True(store.TableMap["movies"].ContainsKey(item.Id));
+            // and is updated
+            Assert.Equal("3", store.TableMap["movies"][item.Id].Value<string>("version"));
+        }
+        #endregion
+
+        #region UpdateOperationAsync
+        [Fact]
+        [Trait("Method", "UpdateOperationAsync")]
+        public async Task UpdateOperationAsync_Throws_OnNullError()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+
+            await Assert.ThrowsAsync<ArgumentNullException>(() => context.UpdateOperationAsync(null, instance));
+        }
+
+        [Fact]
+        [Trait("Method", "UpdateOperationAsync")]
+        public async Task UpdateOperationAsync_Throws_OnNullInstance()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            var operation = new DeleteOperation("movies", "1234") { Item = instance };
+            var error = new TableOperationError(operation, context, null, null, null);
+            await Assert.ThrowsAsync<ArgumentNullException>(() => context.UpdateOperationAsync(error, null));
+        }
+
+
+        [Fact]
+        [Trait("Method", "UpdateOperationAsync")]
+        public async Task UpdateOperationAsync_Throws_IfOperationHasBeenUpdated()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            var conflictItem = new ClientMovie { Id = item.Id, Version = "2" };
+            MockHandler.AddResponse(HttpStatusCode.Conflict, conflictItem);
+
+            await context.InsertItemAsync("movies", instance);
+            var ex = await Assert.ThrowsAsync<PushFailedException>(() => context.PushItemsAsync((string[])null));
+            var tableError = ex.PushResult.Errors.First();
+
+            // Update the version in the operation
+            store.TableMap[SystemTables.OperationsQueue][tableError.Id]["version"] = 3;
+
+            // Now try to cancel and update.
+            await Assert.ThrowsAsync<InvalidOperationException>(() => context.UpdateOperationAsync(tableError, instance));
+        }
+
+        [Fact]
+        [Trait("Method", "UpdateOperationAsync")]
+        public async Task UpdateOperationAsync_Works_Normally()
+        {
+            var context = await GetSyncContext();
+            var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "1" };
+            var conflictItem = new ClientMovie { Id = item.Id, Version = "2" };
+            var instance = (JObject)client.Serializer.Serialize(item);
+            MockHandler.AddResponse(HttpStatusCode.Conflict, conflictItem);
+
+            await context.InsertItemAsync("movies", instance);
+            var ex = await Assert.ThrowsAsync<PushFailedException>(() => context.PushItemsAsync((string[])null));
+            var tableError = ex.PushResult.Errors.First();
+
+            var updatedInstance = (JObject)instance.DeepClone();
+            updatedInstance["version"] = "3";
+            await context.UpdateOperationAsync(tableError, updatedInstance);
+
+            // the tableError is not in the __errors table
+            Assert.False(store.TableMap[SystemTables.SyncErrors].ContainsKey(tableError.Id));
+
+            // the tableError.Id is updated in the store
+            Assert.True(store.TableMap[SystemTables.OperationsQueue].ContainsKey(tableError.Id));
+            var operation = await context.OperationsQueue.GetOperationByIdAsync(tableError.Id);
+            Assert.Equal(2, operation.Version);
+
+            // the item we added is in the store
+            Assert.True(store.TableMap["movies"].ContainsKey(item.Id));
+            // and is updated
+            Assert.Equal("3", store.TableMap["movies"][item.Id].Value<string>("version"));
+        }
+        #endregion
+
         #region IsDisposable
         [Fact]
         public async Task SyncContext_CanBeDisposed()
@@ -1943,6 +2177,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
         #endregion
     }
 
+    #region Helper Classes
     [ExcludeFromCodeCoverage]
     internal class CSyncContext : SyncContext
     {
@@ -1981,4 +2216,5 @@ namespace Microsoft.Datasync.Client.Test.Offline
             return base.ExecuteRemoteOperationAsync(table, cancellationToken);
         }
     }
+    #endregion
 }
