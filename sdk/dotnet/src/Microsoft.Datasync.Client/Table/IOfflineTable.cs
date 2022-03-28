@@ -77,6 +77,13 @@ namespace Microsoft.Datasync.Client
         Task PurgeItemsAsync(string query, PurgeOptions options, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Pushes all operations for this table in the operations queue to the remote service.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the push operation has finished.</returns>
+        Task PushItemsAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Replaces an item into the remote table.
         /// </summary>
         /// <param name="instance">The instance to replace into the table.</param>

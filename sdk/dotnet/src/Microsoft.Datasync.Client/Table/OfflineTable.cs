@@ -80,7 +80,10 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the item when complete.</returns>
         public Task<JObject> GetItemAsync(string id, CancellationToken cancellationToken = default)
-            => _context.GetItemAsync(TableName, id, cancellationToken);
+        {
+            Arguments.IsValidId(id, nameof(id));
+            return _context.GetItemAsync(TableName, id, cancellationToken);
+        }
 
         /// <summary>
         /// Inserts an item into the offline table.

@@ -7,6 +7,7 @@ using Datasync.Common.Test.Service;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Authentication;
+using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Table;
 using Newtonsoft.Json;
@@ -127,7 +128,7 @@ namespace Datasync.Common.Test
             List<EFMovie> movies = TestData.Movies.OfType<EFMovie>().Take(count).ToList();
             for (int i = 0; i < count; i++)
             {
-                int offset = count - i -1; // Number of days offset.
+                int offset = count - i - 1; // Number of days offset.
                 movies[i].UpdatedAt = lastUpdatedAt.AddDays(-offset);
             }
             while (nDeleted > 0)
@@ -162,11 +163,12 @@ namespace Datasync.Common.Test
         /// </summary>
         /// <param name="authProvider">... with the provided authentication provider</param>
         /// <returns>A datasync client</returns>
-        protected DatasyncClient GetMockClient(AuthenticationProvider authProvider = null)
+        protected DatasyncClient GetMockClient(AuthenticationProvider authProvider = null, IOfflineStore store = null)
         {
             var options = new DatasyncClientOptions
             {
-                HttpPipeline = BuildHandlers(authProvider, MockHandler)
+                HttpPipeline = BuildHandlers(authProvider, MockHandler),
+                OfflineStore = store
             };
             return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, options);
         }
@@ -176,11 +178,12 @@ namespace Datasync.Common.Test
         /// </summary>
         /// <param name="authProvider">... with the provided authentication provider</param>
         /// <returns>A datasync client</returns>
-        protected DatasyncClient GetMovieClient(AuthenticationProvider authProvider = null)
+        protected DatasyncClient GetMovieClient(AuthenticationProvider authProvider = null, IOfflineStore store = null)
         {
             var options = new DatasyncClientOptions
             {
-                HttpPipeline = BuildHandlers(authProvider, MovieServer.CreateHandler())
+                HttpPipeline = BuildHandlers(authProvider, MovieServer.CreateHandler()),
+                OfflineStore = store
             };
             return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, options);
         }
