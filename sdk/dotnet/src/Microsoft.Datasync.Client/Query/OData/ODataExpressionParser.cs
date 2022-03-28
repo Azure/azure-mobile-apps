@@ -13,7 +13,7 @@ namespace Microsoft.Datasync.Client.Query.OData
     /// Parse an OData string into the appropriate <see cref="QueryNode"/>
     /// type.
     /// </summary>
-    internal class ODataExpressionParser
+    internal sealed class ODataExpressionParser
     {
         private readonly ODataExpressionLexer lexer;
 
@@ -245,17 +245,10 @@ namespace Microsoft.Datasync.Client.Query.OData
                 _ => throw new ODataException("Expression expected", lexer.Text, lexer.Token.Position)
             };
 
-            while (true)
+            while (lexer.Token.Kind == QueryTokenKind.Dot)
             {
-                if (lexer.Token.Kind == QueryTokenKind.Dot)
-                {
-                    lexer.NextToken();
-                    expression = ParseMemberAccess(expression);
-                }
-                else
-                {
-                    break;
-                }
+                lexer.NextToken();
+                expression = ParseMemberAccess(expression);
             }
             return expression;
         }
@@ -267,7 +260,7 @@ namespace Microsoft.Datasync.Client.Query.OData
         private QueryNode ParseIdentifier()
         {
             ValidateTokenIsType(QueryTokenKind.Identifier, "Expected identifier.");
-            if (lexer.Token.Text == "true") 
+            if (lexer.Token.Text == "true")
             {
                 lexer.NextToken();
                 return new ConstantNode(true);
@@ -309,7 +302,7 @@ namespace Microsoft.Datasync.Client.Query.OData
                 throw new ODataException($"The specified odata query has an invalid integer '{lexer.Token.Text}'", lexer.Text, lexer.Token.Position);
             }
             lexer.NextToken();
-            if (lexer.Token.Text.ToUpper() == "L")
+            if (string.Equals(lexer.Token.Text, "L", StringComparison.OrdinalIgnoreCase))
             {
                 lexer.NextToken(); // Eat the L or l on the end of a long.
             }
@@ -536,7 +529,7 @@ namespace Microsoft.Datasync.Client.Query.OData
             }
             else if (functionName == "substring" && functionArgs.Count != 2 && functionArgs.Count != 3)
             {
-                throw new ODataException($"Function 'substring' requires 2 or 3 arguments.", lexer.Text, errorPos);
+                throw new ODataException("Function 'substring' requires 2 or 3 arguments.", lexer.Text, errorPos);
             }
         }
 
