@@ -21,15 +21,16 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTable
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_ThrowsOnNull()
         {
+            await table.ServiceClient.InitializeOfflineStoreAsync();
             await Assert.ThrowsAsync<ArgumentNullException>(() => table.DeleteItemAsync(null)).ConfigureAwait(false);
         }
-
 
         [Theory]
         [MemberData(nameof(BaseOperationTest.GetInvalidIds), MemberType = typeof(BaseOperationTest))]
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_ThrowsOnInvalidId(string id)
         {
+            await table.ServiceClient.InitializeOfflineStoreAsync();
             var json = CreateJsonDocument(new IdOnly { Id = id });
             await Assert.ThrowsAsync<ArgumentException>(() => table.DeleteItemAsync(json)).ConfigureAwait(false);
         }
@@ -38,13 +39,15 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTable
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_Throws_WhenItemDoesNotExist()
         {
+            await table.ServiceClient.InitializeOfflineStoreAsync();
             var item = GetSampleMovie<ClientMovie>();
+            item.Id = Guid.NewGuid().ToString();
             var instance = StoreInTable("movies", item);
 
             var toDelete = (JObject)instance.DeepClone();
             toDelete["id"] = Guid.NewGuid().ToString();
 
-            await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.DeleteItemAsync(toDelete));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => table.DeleteItemAsync(toDelete));
 
             var opQueue = store.GetOrCreateTable(SystemTables.OperationsQueue);
             Assert.Empty(opQueue);
@@ -54,7 +57,9 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTable
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_DeletesItem_AndAddsToQueue_WhenItemExists()
         {
+            await table.ServiceClient.InitializeOfflineStoreAsync();
             var item = GetSampleMovie<ClientMovie>();
+            item.Id = Guid.NewGuid().ToString();
             var instance = StoreInTable("movies", item);
 
             await table.DeleteItemAsync(instance);
