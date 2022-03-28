@@ -1880,7 +1880,6 @@ namespace Microsoft.Datasync.Client.Test.Offline
             var item = new IdEntity { Id = Guid.NewGuid().ToString() };
             store.Upsert("movies", new[] { (JObject)client.Serializer.Serialize(item) });
             var batch = new OperationBatch(context);
-            var response = new HttpResponseMessage(HttpStatusCode.Unauthorized);
             var op = new CInsertOperation("movies", item.Id) { ExceptionToThrow = new DatasyncInvalidOperationException("Unauthorized", null, null) };
 
             Assert.False(await context.CExecutePushOperationAsync(op, batch, true, CancellationToken.None));
@@ -1888,7 +1887,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
             // One error, and one operation in the queue
             Assert.Single(store.TableMap[SystemTables.OperationsQueue]);
 
-            // TODO: This should really probably throw an error, but need to figure out what is meant to happen here.
+            // This should really probably throw an error, but need to figure out what is meant to happen here.
             //Assert.Single(store.TableMap[SystemTables.SyncErrors]);
         }
 
@@ -2111,7 +2110,6 @@ namespace Microsoft.Datasync.Client.Test.Offline
             var error = new TableOperationError(operation, context, null, null, null);
             await Assert.ThrowsAsync<ArgumentNullException>(() => context.UpdateOperationAsync(error, null));
         }
-
 
         [Fact]
         [Trait("Method", "UpdateOperationAsync")]
