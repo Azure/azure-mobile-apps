@@ -87,6 +87,30 @@ namespace Microsoft.Datasync.Client.Serialization
         }
 
         /// <summary>
+        /// Gets the value of the ID property from a strongly typed object, ensuring
+        /// that the value is valid.
+        /// </summary>
+        /// <param name="instance">The subject instance.</param>
+        /// <param name="allowDefault">If <c>true</c>, the default value for the ID is valid.</param>
+        /// <returns>The ID property value.</returns>
+        /// <exception cref="ArgumentException">If the value is invalid.</exception>
+        public string GetId<T>(T instance, bool allowDefault = false)
+        {
+            Arguments.IsNotNull(instance, nameof(instance));
+            JsonProperty idProperty = SerializerSettings.ContractResolver.ResolveIdProperty(instance.GetType());
+            string id = idProperty.ValueProvider.GetValue(instance) as string;
+            if (id != null)
+            {
+                Arguments.IsValidId(id, nameof(instance));
+            }
+            else if (!allowDefault)
+            {
+                throw new ArgumentException($"Required '{SystemProperties.JsonIdProperty}' property is not found.", nameof(instance));
+            }
+            return id;
+        }
+
+        /// <summary>
         /// Gets the <c>updatedAt</c> field as a parsed DateTimeOffset, returns
         /// null if the <c>updatedAt</c> field is missing.
         /// </summary>
