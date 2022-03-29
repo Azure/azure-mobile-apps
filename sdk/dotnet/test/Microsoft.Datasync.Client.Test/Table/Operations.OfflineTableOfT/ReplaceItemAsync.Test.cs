@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTable
+namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTableOfT
 {
     [ExcludeFromCodeCoverage]
     public class ReplaceItemAsync_Tests : BaseOperationTest
@@ -27,8 +27,8 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTable
         public async Task ReplaceItemAsync_ThrowsOnNullId()
         {
             await table.ServiceClient.InitializeOfflineStoreAsync();
-            var json = CreateJsonDocument(new IdEntity { Id = null });
-            await Assert.ThrowsAsync<ArgumentException>(() => table.ReplaceItemAsync(json)).ConfigureAwait(false);
+            var item = new ClientMovie { Id = null };
+            await Assert.ThrowsAsync<ArgumentException>(() => table.ReplaceItemAsync(item)).ConfigureAwait(false);
         }
 
         [Theory]
@@ -37,8 +37,8 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTable
         public async Task ReplaceItemAsync_ThrowsOnInvalidId(string id)
         {
             await table.ServiceClient.InitializeOfflineStoreAsync();
-            var json = CreateJsonDocument(new IdEntity { Id = id });
-            await Assert.ThrowsAsync<ArgumentException>(() => table.ReplaceItemAsync(json)).ConfigureAwait(false);
+            var item = new ClientMovie { Id = id };
+            await Assert.ThrowsAsync<ArgumentException>(() => table.ReplaceItemAsync(item)).ConfigureAwait(false);
         }
 
         [Fact]
@@ -52,14 +52,13 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTable
             var json = (JObject)table.ServiceClient.Serializer.Serialize(item);
             store.Upsert("movies", new[] { json });
 
-            var updatedItem = (JObject)json.DeepClone();
-            updatedItem["title"] = "Updated Title";
+            item.Title = "New Title";
 
             // Act
-            await table.ReplaceItemAsync(updatedItem).ConfigureAwait(false);
+            await table.ReplaceItemAsync(item).ConfigureAwait(false);
 
             // Assert
-            AssertEx.JsonEqual(updatedItem, store.TableMap["movies"][item.Id]);
+            Assert.Equal("New Title", store.TableMap["movies"][item.Id].Value<string>("title"));
         }
     }
 }

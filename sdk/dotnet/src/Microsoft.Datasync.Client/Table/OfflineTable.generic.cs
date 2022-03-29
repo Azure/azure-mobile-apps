@@ -8,6 +8,7 @@ using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -79,7 +80,7 @@ namespace Microsoft.Datasync.Client.Table
         public IAsyncEnumerable<U> GetAsyncItems<U>(ITableQuery<U> query)
         {
             Arguments.IsNotNull(query, nameof(query));
-            return query.ToAsyncEnumerable();
+            return new FuncAsyncPageable<U>(nextLink => GetNextPageAsync(query, nextLink));
         }
 
         /// <summary>
@@ -100,9 +101,18 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="instance">The instance to insert.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns when the operation is complete.</returns>
-        public Task InsertItemAsync(T instance, CancellationToken cancellationToken = default)
+        public async Task InsertItemAsync(T instance, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Arguments.IsNotNull(instance, nameof(instance));
+            var value = Serializer.Serialize(instance) as JObject;
+            value = ServiceSerializer.RemoveSystemProperties(value, out string version);
+            if (version != null)
+            {
+                value[SystemProperties.JsonVersionProperty] = version;
+            }
+
+            JObject inserted = await base.InsertItemAsync(value, cancellationToken).ConfigureAwait(false);
+            Serializer.Deserialize(inserted, instance);
         }
 
         /// <summary>
@@ -284,5 +294,24 @@ namespace Microsoft.Datasync.Client.Table
         public ITableQuery<T> WithParameters(IEnumerable<KeyValuePair<string, string>> parameters)
             => CreateQuery().WithParameters(parameters);
         #endregion
+
+        /// <summary>
+        /// Gets the next page of items from the list.  If the <c>nextLink</c> is set, use that for
+        /// the query; otherwise use the <c>query</c>
+        /// </summary>
+        /// <param name="query">The initial query.</param>
+        /// <param name="nextLink">The next link.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns a page of items when complete.</returns>
+        private async Task<Page<U>> GetNextPageAsync<U>(ITableQuery<U> query, string nextLink, CancellationToken cancellationToken = default)
+        {
+            var page = await base.GetNextPageAsync(((TableQuery<U>)query).ToODataString(true), nextLink, cancellationToken).ConfigureAwait(false);
+            return new Page<U>
+            {
+                Count = page.Count,
+                Items = page.Items.Select(m => Serializer.Deserialize<U>(m)).ToArray(),
+                NextLink = page.NextLink
+            };
+        }
     }
 }

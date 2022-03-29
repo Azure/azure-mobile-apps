@@ -39,13 +39,13 @@ namespace Microsoft.Datasync.Client.Serialization
 
             if (datetimeObject != null)
             {
-                if (datetimeObject is DateTime time)
+                if (datetimeObject is DateTime dt)
                 {
-                    return time.ToLocalTime();
+                    return dt.ToLocalTime();
                 }
-                else if (datetimeObject is DateTimeOffset)
+                else if (datetimeObject is DateTimeOffset dto)
                 {
-                    return new DateTimeOffset((DateTime)reader.Value).ToLocalTime();
+                    return dto.ToLocalTime();
                 }
             }
 

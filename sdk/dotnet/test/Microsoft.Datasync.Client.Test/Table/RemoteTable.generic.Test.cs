@@ -3,6 +3,7 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
+using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -71,5 +72,139 @@ namespace Microsoft.Datasync.Client.Test.Table
             Assert.NotNull(query);
             Assert.Same(table, query.RemoteTable);
         }
+
+        #region ILinqMethods<T>
+        [Fact]
+        [Trait("Method", "IncludeDeletedItems")]
+        public void ToODataString_IncludeDeletedItems_IsWellFormed()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable<IdEntity>("movies");
+            var query = table.IncludeDeletedItems() as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("__includedeleted=true", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "IncludeTotalCount")]
+        public void ToODataString_IncludeTotalCount_IsWellFormed()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable<IdEntity>("movies");
+            var query = table.IncludeTotalCount() as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$count=true", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "OrderBy")]
+        public void ToODataString_OrderBy_IsWellFormed()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable<IdEntity>("movies");
+            var query = table.OrderBy(m => m.Id) as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$orderby=id", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "OrderByDescending")]
+        public void ToODataString_OrderByDescending_IsWellFormed()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable<IdEntity>("movies");
+            var query = table.OrderByDescending(m => m.Id) as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$orderby=id desc", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "Select")]
+        public void ToODataString_Select_IsWellFormed()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable<IdEntity>("movies");
+            var query = table.Select(m => new IdOnly { Id = m.Id }) as TableQuery<IdOnly>;
+            var odata = query.ToODataString();
+            Assert.Equal("$select=id", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "Skip")]
+        public void ToODataString_Skip_IsWellFormed()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable<IdEntity>("movies");
+            var query = table.Skip(5) as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$skip=5", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "Take")]
+        public void ToODataString_Take_IsWellFormed()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable<IdEntity>("movies");
+            var query = table.Take(5) as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$top=5", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "ThenBy")]
+        public void ToODataString_ThenBy_IsWellFormed()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable<IdEntity>("movies");
+            var query = table.ThenBy(m => m.Id) as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$orderby=id", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "ThenByDescending")]
+        public void ToODataString_ThenByDescending_IsWellFormed()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable<IdEntity>("movies");
+            var query = table.ThenByDescending(m => m.Id) as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$orderby=id desc", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "Where")]
+        public void ToODataString_Where_IsWellFormed()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable<IdEntity>("movies");
+            var query = table.Where(m => m.Id == "foo") as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$filter=(id eq 'foo')", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "WithParameter")]
+        public void ToODataString_WithParameter_isWellFormed()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable<IdEntity>("movies");
+            var query = table.WithParameter("testkey", "testvalue") as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("testkey=testvalue", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "WithParameter")]
+        public void ToODataString_WithParameter_EncodesValue()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable<IdEntity>("movies");
+            var query = table.WithParameter("testkey", "test value") as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("testkey=test%20value", odata);
+        }
+        #endregion
     }
 }
