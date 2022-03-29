@@ -305,7 +305,10 @@ namespace Microsoft.Datasync.Client.Table
                 {
                     // Deliberately empty to fall-through to throwing the original exception.
                 }
+                // We alter the ex in the try/catch above, so RCS1044 is a false-positive.
+#pragma warning disable RCS1044 // Remove original exception from throw statement.
                 throw ex;
+#pragma warning restore RCS1044 // Remove original exception from throw statement.
             }
         }
     }
