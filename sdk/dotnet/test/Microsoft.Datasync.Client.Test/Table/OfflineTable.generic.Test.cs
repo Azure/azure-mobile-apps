@@ -4,9 +4,11 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Mocks;
 using Datasync.Common.Test.Models;
+using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Table
@@ -14,6 +16,15 @@ namespace Microsoft.Datasync.Client.Test.Table
     [ExcludeFromCodeCoverage]
     public class OfflineTable_generic_Tests : BaseTest
     {
+        private readonly MockOfflineStore store;
+        private readonly DatasyncClient client;
+
+        public OfflineTable_generic_Tests() : base()
+        {
+            store = new MockOfflineStore();
+            client = GetMockClient(null, store);
+        }
+
         [Fact]
         public void Ctor_Throws_OnNullTableName()
         {
@@ -56,13 +67,144 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Fact]
         public void Ctor_CreateTable_WhenArgsCorrect()
         {
-            var store = new MockOfflineStore();
-            var options = new DatasyncClientOptions { OfflineStore = store };
-            var client = new DatasyncClient(Endpoint, options);
             var table = new OfflineTable<ClientMovie>("movies", client);
 
             Assert.Same(client, table.ServiceClient);
             Assert.Equal("movies", table.TableName);
         }
+
+        #region ILinqMethods<T>
+        [Fact]
+        [Trait("Method", "IncludeDeletedItems")]
+        public async Task ToODataString_IncludeDeletedItems_IsWellFormed()
+        {
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
+            var query = table.IncludeDeletedItems() as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("__includedeleted=true", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "IncludeTotalCount")]
+        public async Task ToODataString_IncludeTotalCount_IsWellFormed()
+        {
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
+            var query = table.IncludeTotalCount() as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$count=true", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "OrderBy")]
+        public async Task ToODataString_OrderBy_IsWellFormed()
+        {
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
+            var query = table.OrderBy(m => m.Id) as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$orderby=id", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "OrderByDescending")]
+        public async Task ToODataString_OrderByDescending_IsWellFormed()
+        {
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
+            var query = table.OrderByDescending(m => m.Id) as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$orderby=id desc", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "Select")]
+        public async Task ToODataString_Select_IsWellFormed()
+        {
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
+            var query = table.Select(m => new IdOnly { Id = m.Id }) as TableQuery<IdOnly>;
+            var odata = query.ToODataString();
+            Assert.Equal("$select=id", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "Skip")]
+        public async Task ToODataString_Skip_IsWellFormed()
+        {
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
+            var query = table.Skip(5) as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$skip=5", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "Take")]
+        public async Task ToODataString_Take_IsWellFormed()
+        {
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
+            var query = table.Take(5) as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$top=5", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "ThenBy")]
+        public async Task ToODataString_ThenBy_IsWellFormed()
+        {
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
+            var query = table.ThenBy(m => m.Id) as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$orderby=id", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "ThenByDescending")]
+        public async Task ToODataString_ThenByDescending_IsWellFormed()
+        {
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
+            var query = table.ThenByDescending(m => m.Id) as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$orderby=id desc", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "Where")]
+        public async Task ToODataString_Where_IsWellFormed()
+        {
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
+            var query = table.Where(m => m.Id == "foo") as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("$filter=(id eq 'foo')", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "WithParameter")]
+        public async Task ToODataString_WithParameter_isWellFormed()
+        {
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
+            var query = table.WithParameter("testkey", "testvalue") as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("testkey=testvalue", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "WithParameter")]
+        public async Task ToODataString_WithParameter_EncodesValue()
+        {
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
+            var query = table.WithParameter("testkey", "test value") as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("testkey=test%20value", odata);
+        }
+        #endregion
     }
 }

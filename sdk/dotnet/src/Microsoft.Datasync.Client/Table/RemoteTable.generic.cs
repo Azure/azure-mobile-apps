@@ -114,10 +114,21 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="instance">The instance to refresh.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns when the operation is complete.</returns>
-        public Task RefreshItemAsync(T instance, CancellationToken cancellationToken = default)
+        public async Task RefreshItemAsync(T instance, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(instance, nameof(instance));
-            throw new NotImplementedException();
+            string id = ServiceClient.Serializer.GetId(instance, allowDefault: true);
+            if (id == null)
+            {
+                return; // refresh is not supposed to throw if your object does not have an ID.
+            }
+
+            JToken refreshed = await base.GetItemAsync(id, cancellationToken).ConfigureAwait(false);
+            if (refreshed == null)
+            {
+                throw new InvalidOperationException("Item not found in offline store.");
+            }
+            ServiceClient.Serializer.Deserialize<T>(refreshed, instance);
         }
 
         /// <summary>

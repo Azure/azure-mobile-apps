@@ -58,6 +58,11 @@ namespace Microsoft.Datasync.Client.Query
         internal string ToODataString(bool includeParameters = true)
             => new QueryTranslator<T>(this).Translate().ToODataString(includeParameters ? Parameters : null);
 
+        /// <summary>
+        /// The associated offline table.
+        /// </summary>
+        internal bool IsOfflineEnabled { get; set; }
+
         #region ITableQuery<T>
         /// <summary>
         /// The user-defined query string parameters to include with the query when
@@ -146,7 +151,7 @@ namespace Microsoft.Datasync.Client.Query
         public ITableQuery<U> Select<U>(Expression<Func<T, U>> selector)
         {
             IRemoteTable<U> remoteTable = new RemoteTable<U>(RemoteTable.TableName, RemoteTable.ServiceClient);
-            return new TableQuery<U>(remoteTable, Query.Select(selector), Parameters, RequestTotalCount);
+            return new TableQuery<U>(remoteTable, Query.Select(selector), Parameters, RequestTotalCount) { IsOfflineEnabled = IsOfflineEnabled };
         }
 
         /// <summary>
@@ -209,8 +214,12 @@ namespace Microsoft.Datasync.Client.Query
         /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/></returns>
         public IAsyncEnumerable<T> ToAsyncEnumerable()
         {
-            var odataQuery = ToODataString(true);
-            return RemoteTable.GetAsyncItems<T>(odataQuery);
+            if (IsOfflineEnabled)
+            {
+                var offlineTable = new OfflineTable<T>(RemoteTable.TableName, RemoteTable.ServiceClient);
+                return offlineTable.GetAsyncItems(this);
+            }
+            return RemoteTable.GetAsyncItems(this);
         }
 
         /// <summary>

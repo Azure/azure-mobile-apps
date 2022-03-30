@@ -49,7 +49,7 @@ namespace Microsoft.Datasync.Client.Table
         /// </summary>
         /// <returns>A query against the table.</returns>
         public ITableQuery<T> CreateQuery()
-            => new TableQuery<T>(RemoteTable);
+            => new TableQuery<T>(RemoteTable) { IsOfflineEnabled = true };
 
         /// <summary>
         /// Deletes an item from the remote table.
@@ -105,13 +105,8 @@ namespace Microsoft.Datasync.Client.Table
         {
             Arguments.IsNotNull(instance, nameof(instance));
             var value = Serializer.Serialize(instance) as JObject;
-            value = ServiceSerializer.RemoveSystemProperties(value, out string version);
-            if (version != null)
-            {
-                value[SystemProperties.JsonVersionProperty] = version;
-            }
-
-            JObject inserted = await base.InsertItemAsync(value, cancellationToken).ConfigureAwait(false);
+            value = ServiceSerializer.RemoveSystemProperties(value, out _);
+            JObject inserted = await InsertItemAsync(value, cancellationToken).ConfigureAwait(false);
             Serializer.Deserialize(inserted, instance);
         }
 
