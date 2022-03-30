@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
@@ -79,7 +78,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="query">The query.</param>
         /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/>.</returns>
         public IAsyncEnumerable<U> GetAsyncItems<U>(ITableQuery<U> query)
-            => query.ToAsyncEnumerable();
+            => GetAsyncItems<U>((query as TableQuery<U>).ToODataString(true));
 
         /// <summary>
         /// Retrieve an item from the remote table.
