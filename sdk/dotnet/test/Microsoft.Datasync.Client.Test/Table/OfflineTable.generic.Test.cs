@@ -2,36 +2,35 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
+using Datasync.Common.Test.Mocks;
 using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Table
 {
     [ExcludeFromCodeCoverage]
-    public class RemoteTable_generic_Tests : BaseTest
+    public class OfflineTable_generic_Tests : BaseTest
     {
-        [Fact]
-        [Trait("Method", "Ctor")]
-        public void Ctor_SetsInternals()
-        {
-            var client = GetMockClient();
-            var sut = new RemoteTable<ClientMovie>("movies", client);
+        private readonly MockOfflineStore store;
+        private readonly DatasyncClient client;
 
-            Assert.Equal("movies", sut.TableName);
-            Assert.Same(client, sut.ServiceClient);
+        public OfflineTable_generic_Tests() : base()
+        {
+            store = new MockOfflineStore();
+            client = GetMockClient(null, store);
         }
 
         [Fact]
-        [Trait("Method", "Ctor")]
-        public void Ctor_NullTableName_Throws()
+        public void Ctor_Throws_OnNullTableName()
         {
             var client = GetMockClient();
-            Assert.Throws<ArgumentNullException>(() => new RemoteTable<ClientMovie>(null, client));
+            Assert.Throws<ArgumentNullException>(() => new OfflineTable<ClientMovie>(null, client));
         }
 
         [Theory]
@@ -47,40 +46,41 @@ namespace Microsoft.Datasync.Client.Test.Table
         [InlineData("1abcd")]
         [InlineData("true.false")]
         [InlineData("a-b-c-d")]
-        [Trait("Method", "IsValidTableName")]
-        public void Ctor_InvalidTableName_Throws(string sut)
+        public void Ctor_Throws_OnInvalidTable(string tableName)
         {
             var client = GetMockClient();
-            Assert.Throws<ArgumentException>(() => new RemoteTable<ClientMovie>(sut, client));
+            Assert.Throws<ArgumentException>(() => new OfflineTable<ClientMovie>(tableName, client));
         }
 
         [Fact]
-        [Trait("Method", "Ctor")]
-        public void Ctor_NullClient_Throws()
+        public void Ctor_Throws_OnNullClient()
         {
-            var client = GetMockClient();
-            Assert.Throws<ArgumentNullException>(() => new RemoteTable<ClientMovie>("movies", null));
+            Assert.Throws<ArgumentNullException>(() => new OfflineTable<ClientMovie>("movies", null));
         }
 
         [Fact]
-        [Trait("Method", "CreateQuery")]
-        public void CreateQuery_ProducesQuery()
+        public void Ctor_Throws_WhenNoOfflineStore()
         {
             var client = GetMockClient();
-            var table = client.GetRemoteTable<ClientMovie>();
-            var query = table.CreateQuery();
+            Assert.Throws<InvalidOperationException>(() => new OfflineTable<ClientMovie>("movies", client));
+        }
 
-            Assert.NotNull(query);
-            Assert.Same(table, query.RemoteTable);
+        [Fact]
+        public void Ctor_CreateTable_WhenArgsCorrect()
+        {
+            var table = new OfflineTable<ClientMovie>("movies", client);
+
+            Assert.Same(client, table.ServiceClient);
+            Assert.Equal("movies", table.TableName);
         }
 
         #region ILinqMethods<T>
         [Fact]
         [Trait("Method", "IncludeDeletedItems")]
-        public void ToODataString_IncludeDeletedItems_IsWellFormed()
+        public async Task ToODataString_IncludeDeletedItems_IsWellFormed()
         {
-            var client = GetMockClient();
-            var table = client.GetRemoteTable<IdEntity>("movies");
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
             var query = table.IncludeDeletedItems() as TableQuery<IdEntity>;
             var odata = query.ToODataString();
             Assert.Equal("__includedeleted=true", odata);
@@ -88,10 +88,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "IncludeTotalCount")]
-        public void ToODataString_IncludeTotalCount_IsWellFormed()
+        public async Task ToODataString_IncludeTotalCount_IsWellFormed()
         {
-            var client = GetMockClient();
-            var table = client.GetRemoteTable<IdEntity>("movies");
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
             var query = table.IncludeTotalCount() as TableQuery<IdEntity>;
             var odata = query.ToODataString();
             Assert.Equal("$count=true", odata);
@@ -99,10 +99,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "OrderBy")]
-        public void ToODataString_OrderBy_IsWellFormed()
+        public async Task ToODataString_OrderBy_IsWellFormed()
         {
-            var client = GetMockClient();
-            var table = client.GetRemoteTable<IdEntity>("movies");
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
             var query = table.OrderBy(m => m.Id) as TableQuery<IdEntity>;
             var odata = query.ToODataString();
             Assert.Equal("$orderby=id", odata);
@@ -110,10 +110,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "OrderByDescending")]
-        public void ToODataString_OrderByDescending_IsWellFormed()
+        public async Task ToODataString_OrderByDescending_IsWellFormed()
         {
-            var client = GetMockClient();
-            var table = client.GetRemoteTable<IdEntity>("movies");
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
             var query = table.OrderByDescending(m => m.Id) as TableQuery<IdEntity>;
             var odata = query.ToODataString();
             Assert.Equal("$orderby=id desc", odata);
@@ -121,10 +121,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "Select")]
-        public void ToODataString_Select_IsWellFormed()
+        public async Task ToODataString_Select_IsWellFormed()
         {
-            var client = GetMockClient();
-            var table = client.GetRemoteTable<IdEntity>("movies");
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
             var query = table.Select(m => new IdOnly { Id = m.Id }) as TableQuery<IdOnly>;
             var odata = query.ToODataString();
             Assert.Equal("$select=id", odata);
@@ -132,10 +132,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "Skip")]
-        public void ToODataString_Skip_IsWellFormed()
+        public async Task ToODataString_Skip_IsWellFormed()
         {
-            var client = GetMockClient();
-            var table = client.GetRemoteTable<IdEntity>("movies");
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
             var query = table.Skip(5) as TableQuery<IdEntity>;
             var odata = query.ToODataString();
             Assert.Equal("$skip=5", odata);
@@ -143,10 +143,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "Take")]
-        public void ToODataString_Take_IsWellFormed()
+        public async Task ToODataString_Take_IsWellFormed()
         {
-            var client = GetMockClient();
-            var table = client.GetRemoteTable<IdEntity>("movies");
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
             var query = table.Take(5) as TableQuery<IdEntity>;
             var odata = query.ToODataString();
             Assert.Equal("$top=5", odata);
@@ -154,10 +154,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "ThenBy")]
-        public void ToODataString_ThenBy_IsWellFormed()
+        public async Task ToODataString_ThenBy_IsWellFormed()
         {
-            var client = GetMockClient();
-            var table = client.GetRemoteTable<IdEntity>("movies");
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
             var query = table.ThenBy(m => m.Id) as TableQuery<IdEntity>;
             var odata = query.ToODataString();
             Assert.Equal("$orderby=id", odata);
@@ -165,10 +165,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "ThenByDescending")]
-        public void ToODataString_ThenByDescending_IsWellFormed()
+        public async Task ToODataString_ThenByDescending_IsWellFormed()
         {
-            var client = GetMockClient();
-            var table = client.GetRemoteTable<IdEntity>("movies");
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
             var query = table.ThenByDescending(m => m.Id) as TableQuery<IdEntity>;
             var odata = query.ToODataString();
             Assert.Equal("$orderby=id desc", odata);
@@ -176,10 +176,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "Where")]
-        public void ToODataString_Where_IsWellFormed()
+        public async Task ToODataString_Where_IsWellFormed()
         {
-            var client = GetMockClient();
-            var table = client.GetRemoteTable<IdEntity>("movies");
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
             var query = table.Where(m => m.Id == "foo") as TableQuery<IdEntity>;
             var odata = query.ToODataString();
             Assert.Equal("$filter=(id eq 'foo')", odata);
@@ -187,10 +187,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "WithParameter")]
-        public void ToODataString_WithParameter_isWellFormed()
+        public async Task ToODataString_WithParameter_isWellFormed()
         {
-            var client = GetMockClient();
-            var table = client.GetRemoteTable<IdEntity>("movies");
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
             var query = table.WithParameter("testkey", "testvalue") as TableQuery<IdEntity>;
             var odata = query.ToODataString();
             Assert.Equal("testkey=testvalue", odata);
@@ -198,10 +198,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "WithParameter")]
-        public void ToODataString_WithParameter_EncodesValue()
+        public async Task ToODataString_WithParameter_EncodesValue()
         {
-            var client = GetMockClient();
-            var table = client.GetRemoteTable<IdEntity>("movies");
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
             var query = table.WithParameter("testkey", "test value") as TableQuery<IdEntity>;
             var odata = query.ToODataString();
             Assert.Equal("testkey=test%20value", odata);
@@ -209,10 +209,10 @@ namespace Microsoft.Datasync.Client.Test.Table
 
         [Fact]
         [Trait("Method", "WithParameters")]
-        public void ToODataString_WithParameters_EncodesValue()
+        public async Task ToODataString_WithParameters_EncodesValue()
         {
-            var client = GetMockClient();
-            var table = client.GetRemoteTable<IdEntity>("movies");
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
             var sut = new Dictionary<string, string>()
             {
                 { "key1", "value1" },

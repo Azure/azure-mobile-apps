@@ -45,6 +45,32 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
 
         [Fact]
         [Trait("Method", "GetAsyncItems")]
+        public async Task GetAsyncItems_NoArgs_RetrievesItems()
+        {
+            // Arrange
+            int count = 0;
+
+            var pageable = table.GetAsyncItems() as AsyncPageable<ClientMovie>;
+            Assert.NotNull(pageable);
+
+            var enumerator = pageable!.GetAsyncEnumerator();
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                count++;
+                var item = enumerator.Current;
+
+                Assert.NotNull(item);
+                Assert.NotNull(item.Id);
+
+                var expected = MovieServer.GetMovieById(item.Id);
+                Assert.Equal<IMovie>(expected, item);
+            }
+
+            Assert.Equal(MovieCount, count);
+        }
+
+        [Fact]
+        [Trait("Method", "GetAsyncItems")]
         public async Task GetAsyncItems_AsPages_RetrievesItems()
         {
             // Arrange
@@ -96,7 +122,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
 
             Assert.Equal(MovieCount, count);
         }
-        
+
         [Theory]
         [ClassData(typeof(LinqTestCases))]
         [Trait("Method", "ToAsyncEnumerable")]

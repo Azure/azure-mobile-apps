@@ -204,7 +204,6 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <param name="itemId">The ID of the item.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the existing operation, or <c>null</c> if no operation exists when complete.</returns>
-        /// <exception cref="NotImplementedException"></exception>
         public async Task<TableOperation> GetOperationByItemIdAsync(string tableName, string itemId, CancellationToken cancellationToken = default)
         {
             EnsureQueueIsInitialized();

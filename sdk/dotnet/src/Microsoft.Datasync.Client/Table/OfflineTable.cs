@@ -151,7 +151,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="nextLink">The next link.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns a page of items when complete.</returns>
-        private Task<Page<JObject>> GetNextPageAsync(string query, string nextLink, CancellationToken cancellationToken = default)
+        protected Task<Page<JObject>> GetNextPageAsync(string query, string nextLink, CancellationToken cancellationToken = default)
             => _context.GetNextPageAsync(TableName, nextLink != null ? new Uri(nextLink).Query.TrimStart('?') : query, cancellationToken);
     }
 }

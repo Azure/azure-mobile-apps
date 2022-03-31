@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
+using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Query.Linq.Nodes;
 using Microsoft.Datasync.Client.Query.OData;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace Microsoft.Datasync.Client.Test.Query
@@ -13,8 +16,6 @@ namespace Microsoft.Datasync.Client.Test.Query
     [ExcludeFromCodeCoverage]
     public class ODataExpressionParser_Tests
     {
-        private const string DateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffZ";
-
         /// <summary>
         /// A helper class to swap the culture to a temporary culture.
         /// </summary>
@@ -260,6 +261,25 @@ namespace Microsoft.Datasync.Client.Test.Query
         public void QueryTokenKind_ToBinaryOperatorKind_ThrowsOnInvalid(QueryTokenKind kind)
         {
             Assert.ThrowsAny<Exception>(() => kind.ToBinaryOperatorKind());
+        }
+
+        [Theory]
+        [ClassData(typeof(LinqTestCases))]
+        public void ODataExpressionParser_Roundtrips(LinqTestCase testcase)
+        {
+            if (testcase.ODataString.Contains("__includedeleted"))
+            {
+                return;     // We don't support parameters in the ODataString conversion, so skip this test case.
+            }
+
+            var query = QueryDescription.Parse("movies", testcase.ODataString);
+            Assert.NotNull(query);
+
+            // Numbers are converted to LONG during the conversion, which isn't an issue.  We translate [0-9]+L to [0-9]+
+            var odataString = query.ToODataString();
+            odataString = Regex.Replace(odataString, "([0-9]+)L", "$1");
+
+            Assert.Equal(testcase.ODataString, odataString);
         }
     }
 }

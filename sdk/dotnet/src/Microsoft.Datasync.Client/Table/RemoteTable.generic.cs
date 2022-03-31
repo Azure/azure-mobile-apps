@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
@@ -79,7 +78,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="query">The query.</param>
         /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/>.</returns>
         public IAsyncEnumerable<U> GetAsyncItems<U>(ITableQuery<U> query)
-            => query.ToAsyncEnumerable();
+            => GetAsyncItems<U>(((TableQuery<U>)query).ToODataString(true));
 
         /// <summary>
         /// Retrieve an item from the remote table.
@@ -114,10 +113,18 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="instance">The instance to refresh.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns when the operation is complete.</returns>
-        public Task RefreshItemAsync(T instance, CancellationToken cancellationToken = default)
+        public async Task RefreshItemAsync(T instance, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(instance, nameof(instance));
-            throw new NotImplementedException();
+            string id = ServiceClient.Serializer.GetId(instance, allowDefault: true);
+            if (id == null)
+            {
+                return; // refresh is not supposed to throw if your object does not have an ID.
+            }
+            Arguments.IsValidId(id, nameof(instance));  // If it's not null and invalid, throw.
+
+            JToken refreshed = await base.GetItemAsync(id, cancellationToken).ConfigureAwait(false);
+            ServiceClient.Serializer.Deserialize<T>(refreshed, instance);
         }
 
         /// <summary>
@@ -305,7 +312,10 @@ namespace Microsoft.Datasync.Client.Table
                 {
                     // Deliberately empty to fall-through to throwing the original exception.
                 }
+                // We alter the ex in the try/catch above, so RCS1044 is a false-positive.
+#pragma warning disable RCS1044 // Remove original exception from throw statement.
                 throw ex;
+#pragma warning restore RCS1044 // Remove original exception from throw statement.
             }
         }
     }

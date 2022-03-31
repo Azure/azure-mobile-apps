@@ -3,6 +3,7 @@
 
 using Newtonsoft.Json;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Datasync.Converters
 {
@@ -37,6 +38,7 @@ namespace Microsoft.AspNetCore.Datasync.Converters
         /// <summary>
         /// Read a value from JSON and convert it to the <see cref="DateTimeOffset"/> value
         /// </summary>
+        [SuppressMessage("General", "RCS1079:Throwing of new NotImplementedException.", Justification = "Only valid in write scenario.")]
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             throw new NotImplementedException();
