@@ -152,6 +152,7 @@ namespace Microsoft.Datasync.Client.Table
             {
                 return; // refresh is not supposed to throw if your object does not have an ID.
             }
+            Arguments.IsValidId(id, nameof(instance)); // If it's an invalid ID, but not null then throw.
 
             JObject refreshed = await base.GetItemAsync(id, cancellationToken).ConfigureAwait(false);
             if (refreshed == null)

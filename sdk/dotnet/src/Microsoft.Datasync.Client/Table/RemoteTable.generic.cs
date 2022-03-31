@@ -121,12 +121,9 @@ namespace Microsoft.Datasync.Client.Table
             {
                 return; // refresh is not supposed to throw if your object does not have an ID.
             }
+            Arguments.IsValidId(id, nameof(instance));  // If it's not null and invalid, throw.
 
             JToken refreshed = await base.GetItemAsync(id, cancellationToken).ConfigureAwait(false);
-            if (refreshed == null)
-            {
-                throw new InvalidOperationException("Item not found in offline store.");
-            }
             ServiceClient.Serializer.Deserialize<T>(refreshed, instance);
         }
 
