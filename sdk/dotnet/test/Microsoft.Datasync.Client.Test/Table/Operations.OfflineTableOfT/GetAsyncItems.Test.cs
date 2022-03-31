@@ -109,5 +109,24 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTableOfT
                 Assert.Equal(expectedItems[i].Id, items[i].Id);
             }
         }
+
+        [Fact]
+        [Trait("Method", "ToAsyncEnumerable")]
+        public async Task ToAsyncEnumerable_WithItems()
+        {
+            // Arrange
+            await table.ServiceClient.InitializeOfflineStoreAsync();
+            var expectedItems = InjectRandomItems(5);
+
+            // Act
+            List<ClientMovie> items = await table.ToAsyncEnumerable().ToListAsync();
+
+            // Assert
+            Assert.Equal(expectedItems.Count, items.Count);
+            for (int i = 0; i < expectedItems.Count; i++)
+            {
+                Assert.Equal(expectedItems[i].Id, items[i].Id);
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Xunit;
@@ -204,6 +205,22 @@ namespace Microsoft.Datasync.Client.Test.Table
             var query = table.WithParameter("testkey", "test value") as TableQuery<IdEntity>;
             var odata = query.ToODataString();
             Assert.Equal("testkey=test%20value", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "WithParameters")]
+        public async Task ToODataString_WithParameters_EncodesValue()
+        {
+            await client.InitializeOfflineStoreAsync();
+            var table = client.GetOfflineTable<IdEntity>("movies");
+            var sut = new Dictionary<string, string>()
+            {
+                { "key1", "value1" },
+                { "key2", "value2" }
+            };
+            var query = table.WithParameters(sut) as TableQuery<IdEntity>;
+            var odata = query.ToODataString();
+            Assert.Equal("key1=value1&key2=value2", odata);
         }
         #endregion
     }
