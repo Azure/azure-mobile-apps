@@ -6,9 +6,9 @@ using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
-using SQLitePCL;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,15 +20,15 @@ namespace Microsoft.Datasync.Client.SQLiteStore
     public class OfflineSQLiteStore : AbstractOfflineStore
     {
         /// <summary>
-        /// Internal flag to indicate that SQLite library is initialized.
-        /// </summary>
-        internal static bool sqliteIsInitialized = false;
-
-        /// <summary>
         /// The mapping from the table name to the table definition.  This is built using the
         /// <see cref="DefineTable(string, JObject)"/> method before store initialization.
         /// </summary>
         private readonly Dictionary<string, TableDefinition> tableMap = new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// A lock that is used to serialize write operations to the database.
+        /// </summary>
+        private readonly AsyncLock operationLock = new();
 
         /// <summary>
         /// Parameterless constructor for unit testing.
@@ -38,34 +38,27 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="OfflineSQLiteStore"/> using the
-        /// provided connection string.
+        /// Creates a new instance of <see cref="OfflineSQLiteStore"/> using the provided connection string.
         /// </summary>
-        /// <param name="filename">The name of the file to use for persistent storage.</param>
-        /// <param name="useInMemoryStore">If <c>true</c>, use the in-memory store.</param>
-        public OfflineSQLiteStore(string filename, bool useInMemoryStore = false)
+        /// <remarks>
+        /// <para>If the connection string starts with <c>file:</c>, then it is considered to be a URI filename and
+        /// should be structured as such.  This allows the setting of any options (such as mode, cache, etc.)
+        /// if needed.</para>
+        /// <para>If the connection string does not start with file:, then it should be an absolute path (which starts
+        /// with a <c>/</c>).</para>
+        /// </remarks>
+        /// <see href="https://sqlite.org/c3ref/open.html"/>
+        /// <param name="connectionString">The connection string to use for persistent storage.</param>
+        public OfflineSQLiteStore(string connectionString)
         {
-            Arguments.IsNotNullOrWhitespace(filename, nameof(filename));
-            if (!useInMemoryStore)
-            {
-                Filename = filename.StartsWith("/") ? filename : throw new NotSupportedException("Specify a fully-qualified path name.");
-            }
-            else
-            {
-                Filename = "in-memory-store.db";
-            }
-            DbConnection = GetSqliteConnection(Filename, useInMemoryStore);
+            Arguments.IsNotNullOrWhitespace(connectionString, nameof(connectionString));
+            DbConnection = new SqliteConnection(connectionString);
         }
-
-        /// <summary>
-        /// The filename for the store.
-        /// </summary>
-        internal string Filename { get; }
 
         /// <summary>
         /// The database connection.
         /// </summary>
-        internal sqlite3 DbConnection { get; }
+        internal SqliteConnection DbConnection { get; }
 
         #region AbstractOfflineStore
         /// <summary>
@@ -77,6 +70,12 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         {
             Arguments.IsValidTableName(tableName, true, nameof(tableName));
             Arguments.IsNotNull(tableDefinition, nameof(tableDefinition));
+
+            if (Initialized)
+            {
+                throw new InvalidOperationException("Cannot define a table after the offline store has been initialized.");
+            }
+
             tableMap.Add(tableName, new TableDefinition(tableDefinition));
         }
 
@@ -134,7 +133,11 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <returns>A task that completes when the store is initialized.</returns>
         protected override Task InitializeOfflineStoreAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            foreach (var table in tableMap)
+            {
+                CreateTableFromDefinition(table.Key, table.Value);
+            }
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -145,37 +148,80 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <param name="ignoreMissingColumns">If <c>true</c>, extra properties on the item can be ignored.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the item has been updated or inserted into the table.</returns>
-        public override Task UpsertAsync(string tableName, IEnumerable<JObject> items, bool ignoreMissingColumns, CancellationToken cancellationToken = default)
+        public override async Task UpsertAsync(string tableName, IEnumerable<JObject> items, bool ignoreMissingColumns, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Arguments.IsValidTableName(tableName, true, nameof(tableName));
+            Arguments.IsNotNull(items, nameof(items));
+            await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+
+            var first = items.FirstOrDefault();
+            if (first == null)
+            {
+                return; // No items.
+            }
+
+            var tableDefinition = GetTableOrThrow(tableName);
+            var columns = new List<ColumnDefinition>();
+            foreach (var prop in first.Properties())
+            {
+                if (!tableDefinition.TryGetValue(prop.Name, out ColumnDefinition columnDefinition) && !ignoreMissingColumns)
+                {
+                    throw new InvalidOperationException($"Column '{prop.Name}' is not defined on local table '{tableName}'");
+                }
+                if (columnDefinition != null)
+                {
+                    columns.Add(columnDefinition);
+                }
+            }
+
+            if (columns.Count == 0)
+            {
+                return; // No query to execute if there are no columns to add.
+            }
+
+            using (await operationLock.AcquireAsync(cancellationToken).ConfigureAwait(false))
+            {
+                DbConnection.ExecuteNonQuery("BEGIN TRANSACTION");
+                BatchInsert(tableName, items, columns);
+                DbConnection.ExecuteNonQuery("COMMIT TRANSACTION");
+            }
         }
         #endregion
 
         /// <summary>
-        /// Creates a new <see cref="sqlite3"/> database connection
+        /// Batch insert some items into the database.
         /// </summary>
-        /// <param name="filename">The fully qualified filename to use.</param>
-        /// <param name="useInMemoryStore">If <c>true</c>, ignore the filename and use an in-memory store.</param>
-        /// <returns>The opened database connection.</returns>
-        private static sqlite3 GetSqliteConnection(string filename, bool useInMemoryStore)
+        /// <param name="tableName">The name of the local table.</param>
+        /// <param name="items">The items to insert.</param>
+        /// <param name="columns">The column definitions.</param>
+        private void BatchInsert(string tableName, IEnumerable<JObject> items, List<ColumnDefinition> columns)
         {
-            if (!sqliteIsInitialized)
-            {
-                Batteries_V2.Init();
-                sqliteIsInitialized = true;
-            }
+            throw new NotImplementedException();
+        }
 
-            int flags = raw.SQLITE_OPEN_READWRITE | raw.SQLITE_OPEN_CREATE | raw.SQLITE_OPEN_FULLMUTEX;
-            if (useInMemoryStore)
+        /// <summary>
+        /// Creates a table in SQLite based on the definition.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <param name="definition">The table definition</param>
+        private void CreateTableFromDefinition(string tableName, TableDefinition definition)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Obtains the table definition for a defined table, or throws if not available.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <returns>The table definition</returns>
+        /// <exception cref="InvalidOperationException">If the table is not defined.</exception>
+        private TableDefinition GetTableOrThrow(string tableName)
+        {
+            if (tableMap.TryGetValue(tableName, out TableDefinition table))
             {
-                flags |= raw.SQLITE_OPEN_MEMORY;
+                return table;
             }
-            int rc = raw.sqlite3_open_v2(filename, out sqlite3 db, flags, null);
-            if (rc != raw.SQLITE_OK)
-            {
-                throw new SQLiteException(rc, db);
-            }
-            return db;
+            throw new InvalidOperationException($"Table '{tableName}' is not defined.");
         }
     }
 }

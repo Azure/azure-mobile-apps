@@ -10,7 +10,7 @@ namespace Microsoft.Datasync.Client.Utils
     /// <summary>
     /// An asynchronous lock mechanism that releases when disposed.
     /// </summary>
-    internal sealed class AsyncLock : IDisposable
+    public sealed class AsyncLock : IDisposable
     {
         /// <summary>
         /// The underlying lock.
