@@ -39,7 +39,7 @@ namespace Datasync.Common.Test
         /// <param name="expected"></param>
         /// <param name="actual"></param>
         /// <param name="interval"></param>
-        public static void CloseTo(DateTimeOffset expected, DateTimeOffset actual, int interval = 2000)
+        public static void CloseTo(DateTimeOffset expected, DateTimeOffset actual, int interval = 3000)
         {
             var ms = Math.Abs((expected.Subtract(actual)).TotalMilliseconds);
             Assert.True(ms < interval, $"Date {expected} and {actual} are {ms}ms apart");
@@ -169,7 +169,7 @@ namespace Datasync.Common.Test
         /// Asserts if the system properties are set.
         /// </summary>
         /// <param name="entity">The entity that is being checked</param>
-        public static void SystemPropertiesSet(ITableData entity, DateTimeOffset? startTime = null)
+        public static void SystemPropertiesSet(ITableData entity, DateTimeOffset? startTime = null, int interval = 3000)
         {
             if (startTime.HasValue)
             {
@@ -177,7 +177,7 @@ namespace Datasync.Common.Test
             }
             else
             {
-                CloseTo(DateTimeOffset.Now, entity.UpdatedAt);
+                CloseTo(DateTimeOffset.Now, entity.UpdatedAt, interval);
             }
             Assert.NotEmpty(entity.Version);
         }
