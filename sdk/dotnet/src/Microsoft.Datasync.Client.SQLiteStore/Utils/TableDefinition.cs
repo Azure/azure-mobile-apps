@@ -15,19 +15,32 @@ namespace Microsoft.Datasync.Client.SQLiteStore
     public class TableDefinition : Dictionary<string, ColumnDefinition>
     {
         /// <summary>
-        /// Creates a new <see cref="TableDefinition"/> with the supplied table definition.
+        /// Creates a new <see cref="TableDefinition"/> that is empty.
         /// </summary>
-        /// <param name="definition">The table definition.</param>
-        public TableDefinition(IDictionary<string, ColumnDefinition> definition) : base(definition, StringComparer.OrdinalIgnoreCase)
+        public TableDefinition()
         {
+            TableName = string.Empty;
         }
 
         /// <summary>
         /// Creates a new <see cref="TableDefinition"/> with the supplied table definition.
         /// </summary>
+        /// <param name="tableName">The name of the table.</param>
         /// <param name="definition">The table definition.</param>
-        public TableDefinition(JObject definition) : base(StringComparer.OrdinalIgnoreCase)
+        public TableDefinition(string tableName, IDictionary<string, ColumnDefinition> definition) : base(definition, StringComparer.OrdinalIgnoreCase)
         {
+            TableName = tableName;
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="TableDefinition"/> with the supplied table definition.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <param name="definition">The table definition.</param>
+        public TableDefinition(string tableName, JObject definition) : base(StringComparer.OrdinalIgnoreCase)
+        {
+            TableName = tableName;
+
             // Add the ID column if it isn't present.
             if (!definition.TryGetValue(SystemProperties.JsonIdProperty, out _))
             {
@@ -40,5 +53,12 @@ namespace Microsoft.Datasync.Client.SQLiteStore
                 Add(column.Name, column);
             }
         }
+
+        public string TableName { get; }
+
+        /// <summary>
+        /// The list of column definitions in the table.
+        /// </summary>
+        public IEnumerable<ColumnDefinition> Columns { get => Values; }
     }
 }

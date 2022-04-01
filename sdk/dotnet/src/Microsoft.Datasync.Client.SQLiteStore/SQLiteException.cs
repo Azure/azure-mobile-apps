@@ -10,9 +10,20 @@ namespace Microsoft.Datasync.Client.SQLiteStore
     /// <summary>
     /// Indicates a SQLite error occurred.
     /// </summary>
-    [SuppressMessage("Roslynator", "RCS1194:Implement exception constructors.", Justification = "Only generated exceptions are thrown.")]
     public class SQLiteException : Exception
     {
+        public SQLiteException() : base()
+        {
+        }
+
+        public SQLiteException(string message) : base(message)
+        {
+        }
+
+        public SQLiteException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
         /// <summary>
         /// Creates a <see cref="SQLiteException"/> based on the result of a SQLite call.
         /// </summary>

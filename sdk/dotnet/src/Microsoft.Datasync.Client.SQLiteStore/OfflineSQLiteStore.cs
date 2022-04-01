@@ -3,6 +3,9 @@
 
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Query;
+using Microsoft.Datasync.Client.Serialization;
+using Microsoft.Datasync.Client.SQLiteStore.Driver;
+using Microsoft.Datasync.Client.SQLiteStore.Utils;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
@@ -28,7 +31,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <summary>
         /// A lock that is used to serialize write operations to the database.
         /// </summary>
-        private readonly AsyncLock operationLock = new();
+        private readonly DisposableLock operationLock = new();
 
         /// <summary>
         /// Parameterless constructor for unit testing.
@@ -75,8 +78,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
             {
                 throw new InvalidOperationException("Cannot define a table after the offline store has been initialized.");
             }
-
-            tableMap.Add(tableName, new TableDefinition(tableDefinition));
+            tableMap.Add(tableName, new TableDefinition(tableName, tableDefinition));
         }
 
         /// <summary>
@@ -85,9 +87,16 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <param name="query">A query description that identifies the items to be deleted.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the items have been deleted from the table.</returns>
-        public override Task DeleteAsync(QueryDescription query, CancellationToken cancellationToken = default)
+        public override async Task DeleteAsync(QueryDescription query, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Arguments.IsNotNull(query, nameof(query));
+            await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+
+            string sql = SqlStatements.DeleteFromTable(query, out Dictionary<string, object> parameters);
+            using (operationLock.AcquireLock())
+            {
+                ExecuteNonQueryInternal(sql, parameters);
+            }
         }
 
         /// <summary>
@@ -97,9 +106,22 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <param name="ids">A list of IDs to delete.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the items have been deleted from the table.</returns>
-        public override Task DeleteAsync(string tableName, IEnumerable<string> ids, CancellationToken cancellationToken = default)
+        public override async Task DeleteAsync(string tableName, IEnumerable<string> ids, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Arguments.IsValidTableName(tableName, true, nameof(tableName));
+            Arguments.IsNotNull(ids, nameof(ids));
+            await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+
+            var parameters = ids.ToParameterList("id");
+            if (parameters.Count == 0)
+            {
+                return; // Don't execute a statement if there is nothing to execute.
+            }
+            string sql = SqlStatements.DeleteIdsFromTable(tableName, SystemProperties.JsonIdProperty, parameters.Keys);
+            using (operationLock.AcquireLock())
+            {
+                ExecuteNonQueryInternal(sql, parameters);
+            }
         }
 
         /// <summary>
@@ -109,9 +131,19 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <param name="id">The ID of the item.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the item when complete.</returns>
-        public override Task<JObject> GetItemAsync(string tableName, string id, CancellationToken cancellationToken = default)
+        public override async Task<JObject> GetItemAsync(string tableName, string id, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Arguments.IsValidTableName(tableName, true, nameof(tableName));
+            Arguments.IsValidId(id, nameof(id));
+            await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+
+            Dictionary<string, object> parameters = new[] { id }.ToParameterList("id");
+            string sql = SqlStatements.GetItemById(tableName, SystemProperties.JsonIdProperty, parameters.Keys.First());
+            using (operationLock.AcquireLock())
+            {
+                IList<JObject> results = ExecuteQueryInternal(tableName, sql, parameters);
+                return results.FirstOrDefault();
+            }
         }
 
         /// <summary>
@@ -120,9 +152,24 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <param name="query">A query describing the items to be returned.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns a page of items when complete.</returns>
-        public override Task<Page<JObject>> GetPageAsync(QueryDescription query, CancellationToken cancellationToken = default)
+        public override async Task<Page<JObject>> GetPageAsync(QueryDescription query, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Arguments.IsNotNull(query, nameof(query));
+            await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+
+            string queryStmt = SqlStatements.SelectFromTable(query, out Dictionary<string, object> parameters);
+            using (operationLock.AcquireLock())
+            {
+                IList<JObject> rows = ExecuteQueryInternal(query.TableName, queryStmt, parameters);
+                Page<JObject> result = new() { Items = rows };
+                if (query.IncludeTotalCount)
+                {
+                    string countStmt = SqlStatements.CountFromTable(query, out Dictionary<string, object> countParams);
+                    IList<JObject> countRows = ExecuteQueryInternal(query.TableName, countStmt, countParams);
+                    result.Count = countRows[0].Value<long>("count");
+                }
+                return result;
+            }
         }
 
         /// <summary>
@@ -135,7 +182,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         {
             foreach (var table in tableMap)
             {
-                CreateTableFromDefinition(table.Key, table.Value);
+                CreateTableFromDefinition(table.Value);
             }
             return Task.CompletedTask;
         }
@@ -154,59 +201,238 @@ namespace Microsoft.Datasync.Client.SQLiteStore
             Arguments.IsNotNull(items, nameof(items));
             await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
 
+            TableDefinition table = GetTableOrThrow(tableName);
             var first = items.FirstOrDefault();
             if (first == null)
             {
-                return; // No items.
+                return;
             }
 
-            var tableDefinition = GetTableOrThrow(tableName);
             var columns = new List<ColumnDefinition>();
             foreach (var prop in first.Properties())
             {
-                if (!tableDefinition.TryGetValue(prop.Name, out ColumnDefinition columnDefinition) && !ignoreMissingColumns)
+                if (!table.TryGetValue(prop.Name, out ColumnDefinition column) && !ignoreMissingColumns)
                 {
-                    throw new InvalidOperationException($"Column '{prop.Name}' is not defined on local table '{tableName}'");
+                    throw new InvalidOperationException($"Column '{prop.Name}' is not defined on table '{tableName}'");
                 }
-                if (columnDefinition != null)
-                {
-                    columns.Add(columnDefinition);
-                }
+                columns.Add(column);
             }
 
             if (columns.Count == 0)
             {
-                return; // No query to execute if there are no columns to add.
+                return;
             }
 
-            using (await operationLock.AcquireAsync(cancellationToken).ConfigureAwait(false))
+            using (operationLock.AcquireLock())
             {
-                DbConnection.ExecuteNonQuery("BEGIN TRANSACTION");
-                BatchInsert(tableName, items, columns);
-                DbConnection.ExecuteNonQuery("COMMIT TRANSACTION");
+                ExecuteNonQueryInternal("BEGIN TRANSACTION");
+                BatchInsert(tableName, items, columns.Where(c => c.IsIdColumn).Take(1).ToList());
+                BatchUpdate(tableName, items, columns);
+                ExecuteNonQueryInternal("COMMIT TRANSACTION");
             }
         }
         #endregion
 
         /// <summary>
-        /// Batch insert some items into the database.
+        /// Executes a SQL query against the store.  This is usedul for running arbitrary queries that are supported
+        /// by SQLite but not the SDK LINQ provider.
         /// </summary>
-        /// <param name="tableName">The name of the local table.</param>
-        /// <param name="items">The items to insert.</param>
-        /// <param name="columns">The column definitions.</param>
-        private void BatchInsert(string tableName, IEnumerable<JObject> items, List<ColumnDefinition> columns)
+        /// <remarks>If doing a JOIN between two tables, then use the <see cref="ExecuteQueryAsync(JObject, string, IDictionary{string, object}, CancellationToken)"/>
+        /// version to define the field mapping.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <param name="sqlStatement">The SQL statement to execute.</param>
+        /// <param name="parameters">A list of parameter values for referenced parameters in the SQL statement.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>The list of rows returned by the query.</returns>
+        public async Task<IList<JObject>> ExecuteQueryAsync(string tableName, string sqlStatement, IDictionary<string, object> parameters = null, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Arguments.IsValidTableName(tableName, nameof(tableName));
+            Arguments.IsNotNullOrWhitespace(sqlStatement, nameof(sqlStatement));
+            await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+
+            var tableDefinition = GetTableOrThrow(tableName);
+            using (operationLock.AcquireLock())
+            {
+                return ExecuteQueryInternal(tableDefinition, sqlStatement, parameters);
+            }
         }
 
         /// <summary>
-        /// Creates a table in SQLite based on the definition.
+        /// Executes a SQL query against the store.  This is usedul for running arbitrary queries that are supported
+        /// by SQLite but not the SDK LINQ provider.
+        /// </summary>
+        /// <remarks>
+        /// If doing a query on a single table, use <see cref="ExecuteQueryAsync(string, string, IDictionary{string, object}, CancellationToken)"/> instead.
+        /// </remarks>
+        /// <param name="definition">The definition of the result set.</param>
+        /// <param name="sqlStatement">The SQL statement to execute.</param>
+        /// <param name="parameters">A list of parameter values for referenced parameters in the SQL statement.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>The list of rows returned by the query.</returns>
+        public async Task<IList<JObject>> ExecuteQueryAsync(JObject definition, string sqlStatement, IDictionary<string, object> parameters = null, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(definition, nameof(definition));
+            Arguments.IsNotNullOrWhitespace(sqlStatement, nameof(sqlStatement));
+            await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+            var tableDefinition = new TableDefinition("", definition);
+            using (operationLock.AcquireLock())
+            {
+                return ExecuteQueryInternal(tableDefinition, sqlStatement, parameters);
+            }
+        }
+
+        /// <summary>
+        /// Do a batch update to set the list of columns for the list of items in the given table.
+        /// </summary>
+        /// <param name="tableName">The table to update.</param>
+        /// <param name="items">The list of items to update (with new values).</param>
+        /// <param name="columns">The list of columns to update.</param>
+        protected void BatchInsert(string tableName, IEnumerable<JObject> items, List<ColumnDefinition> columns)
+        {
+            int batchSize = DbConnection.MaxParametersPerQuery / columns.Count;
+            if (batchSize == 0)
+            {
+                throw new InvalidOperationException($"The number of fields per entity in an upsert is limited to {DbConnection.MaxParametersPerQuery}");
+            }
+
+            foreach (var batch in items.Split(maxLength: batchSize))
+            {
+                var sql = SqlStatements.BatchInsert(tableName, columns, batch, out Dictionary<string, object> parameters);
+                if (sql != null)
+                {
+                    ExecuteNonQueryInternal(sql, parameters);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Do a batch update to set the list of columns for the list of items in the given table.
+        /// </summary>
+        /// <param name="tableName">The table to update.</param>
+        /// <param name="items">The list of items to update (with new values).</param>
+        /// <param name="columns">The list of columns to update.</param>
+        protected void BatchUpdate(string tableName, IEnumerable<JObject> items, List<ColumnDefinition> columns)
+        {
+            if (columns.Count <= 1)
+            {
+                // For batch updates to work, there has to be at least one column desides Id that needs to be updated.
+                return;
+            }
+            if (columns.Count > DbConnection.MaxParametersPerQuery)
+            {
+                throw new InvalidOperationException($"The number of fields per entity in an upsert is limited to {DbConnection.MaxParametersPerQuery}");
+            }
+
+            foreach (JObject item in items)
+            {
+                string sql = SqlStatements.BatchUpdate(tableName, columns, item, out Dictionary<string, object> parameters);
+                if (sql != null)
+                {
+                    ExecuteNonQueryInternal(sql, parameters);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates or updates the table definition in the SQLite database to the provided definition.
+        /// </summary>
+        /// <param name="tableDefinition"></param>
+        protected void CreateTableFromDefinition(TableDefinition tableDefinition)
+        {
+            var idColumn = tableDefinition.Columns.First(c => c.IsIdColumn);
+            var columnDefinitions = tableDefinition.Columns.Where(c => !c.IsIdColumn);
+
+            string createTableSql = SqlStatements.CreateTableFromColumns(tableDefinition.TableName, idColumn, columnDefinitions);
+            ExecuteNonQueryInternal(createTableSql);
+
+            string tableInfoSql = SqlStatements.GetTableInformation(tableDefinition.TableName);
+            IDictionary<string, JObject> existingColumns = ExecuteQueryInternal(tableInfoSql).ToDictionary(c => c.Value<string>("name"), StringComparer.OrdinalIgnoreCase);
+
+            // Process changes to the table definition - column(s) added
+            foreach (var column in tableDefinition.Columns.Where(c => !existingColumns.ContainsKey(c.Name)))
+            {
+                string addColumnSql = SqlStatements.AddColumnToTable(tableDefinition.TableName, column);
+                ExecuteNonQueryInternal(addColumnSql);
+            }
+
+            // Process changes to the table definition - column(s) removed
+            foreach (var column in existingColumns.Keys.Where(c => !tableDefinition.ContainsKey(c)))
+            {
+                string dropColumnSql = SqlStatements.DropColumnFromTable(tableDefinition.TableName, column);
+                ExecuteNonQueryInternal(dropColumnSql);
+            }
+
+            // TODO: Detect changes in the SQLite definition (column types) and throw an exception if the store type does not match.
+        }
+
+        /// <summary>
+        /// Executes a SQL statement that does not produce any output.
+        /// </summary>
+        /// <param name="sqlStatement">The SQL statement to execute.</param>
+        /// <param name="parameters">The parameters that are referenced in the SQL statement.</param>
+        protected void ExecuteNonQueryInternal(string sqlStatement, Dictionary<string, object> parameters = null)
+        {
+            Arguments.IsNotNullOrWhitespace(sqlStatement, nameof(sqlStatement));
+            parameters ??= new();
+
+            using SqliteStatement stmt = DbConnection.PrepareStatement(sqlStatement);
+            stmt.BindParameters(parameters);
+            stmt.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// Executes a SQL query.
+        /// </summary>
+        /// <param name="sqlStatement">The SQL statement to execute.</param>
+        /// <param name="parameters">The parameters that are referenced in the SQL statement.</param>
+        /// <returns>The result of the query as a list of rows.</returns>
+        protected IList<JObject> ExecuteQueryInternal(string sqlStatement, Dictionary<string, object> parameters = null)
+            => ExecuteQueryInternal(new TableDefinition(), sqlStatement, parameters);
+
+        /// <summary>
+        /// Executes a SQL query.
         /// </summary>
         /// <param name="tableName">The name of the table.</param>
-        /// <param name="definition">The table definition</param>
-        private void CreateTableFromDefinition(string tableName, TableDefinition definition)
+        /// <param name="sqlStatement">The SQL statement to execute.</param>
+        /// <param name="parameters">The parameters that are referenced in the SQL statement.</param>
+        /// <returns>The result of the query as a list of rows.</returns>
+        protected IList<JObject> ExecuteQueryInternal(string tableName, string sqlStatement, Dictionary<string, object> parameters = null)
+            => ExecuteQueryInternal(GetTableOrThrow(tableName), sqlStatement, parameters);
+
+        /// <summary>
+        /// Executes a SQL query.
+        /// </summary>
+        /// <param name="tableDefinition">The definition of the result set.</param>
+        /// <param name="sqlStatement">The SQL statement to execute.</param>
+        /// <param name="parameters">The parameters that are referenced in the SQL statement.</param>
+        /// <returns>The result of the query as a list of rows.</returns>
+        protected IList<JObject> ExecuteQueryInternal(TableDefinition tableDefinition, string sqlStatement, IDictionary<string, object> parameters = null)
         {
-            throw new NotImplementedException();
+            Arguments.IsNotNull(tableDefinition, nameof(tableDefinition));
+            Arguments.IsNotNullOrWhitespace(sqlStatement, nameof(sqlStatement));
+            parameters ??= new Dictionary<string, object>();
+
+            var rows = new List<JObject>();
+            using var statement = DbConnection.PrepareStatement(sqlStatement);
+            statement.BindParameters(parameters);
+            foreach (var row in statement.ExecuteQuery())
+            {
+                var obj = new JObject();
+                foreach (var prop in row)
+                {
+                    if (tableDefinition.TryGetValue(prop.Key, out ColumnDefinition column))
+                    {
+                        obj[prop.Key] = column.DeserializeValue(prop.Value);
+                    }
+                    else
+                    {
+                        obj[prop.Key] = prop.Value == null ? null : JToken.FromObject(prop.Value);
+                    }
+                }
+                rows.Add(obj);
+            }
+            return rows;
         }
 
         /// <summary>

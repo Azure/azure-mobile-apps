@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Serialization;
 using Newtonsoft.Json.Linq;
 using System;
 
@@ -11,6 +12,8 @@ namespace Microsoft.Datasync.Client.SQLiteStore
     /// </summary>
     public class ColumnDefinition : IEquatable<ColumnDefinition>
     {
+        private static readonly DateTime epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         /// <summary>
         /// Creates a new column definition.
         /// </summary>
@@ -35,9 +38,68 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         public JTokenType JsonType { get; }
 
         /// <summary>
+        /// <c>true</c> if this is the ID column.
+        /// </summary>
+        public bool IsIdColumn { get => Name.Equals(SystemProperties.JsonIdProperty); }
+
+        /// <summary>
         /// The stored type.
         /// </summary>
         public string StoreType { get; }
+
+        /// <summary>
+        /// Deserializes a value of this column type back to the JSON form.
+        /// </summary>
+        /// <param name="value">The value to deserialize.</param>
+        /// <returns>The <see cref="JToken"/> for the value.</returns>
+        public JToken DeserializeValue(object value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (SqlColumnType.IsTextType(StoreType))
+            {
+                string strValue = value as string;
+                return JsonType switch
+                {
+                    JTokenType.Guid => Guid.Parse(strValue),
+                    JTokenType.Bytes => Convert.FromBase64String(strValue),
+                    JTokenType.TimeSpan => TimeSpan.Parse(strValue),
+                    JTokenType.Uri => new Uri(strValue, UriKind.RelativeOrAbsolute),
+                    JTokenType.Array => JToken.Parse(strValue),
+                    JTokenType.Object => JToken.Parse(strValue),
+                    _ => strValue
+                };
+            }
+
+            if (SqlColumnType.IsFloatType(StoreType))
+            {
+                return Convert.ToDouble(value);
+            }
+
+            if (SqlColumnType.IsNumberType(StoreType))
+            {
+                long longValue = Convert.ToInt64(value);
+                return JsonType switch
+                {
+                    JTokenType.Date => epoch.AddSeconds(Convert.ToDouble(value)),
+                    JTokenType.Boolean => longValue == 1,
+                    _ => longValue
+                };
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Serializes a value for storage into SQLite.
+        /// </summary>
+        /// <param name="value">The value to serialize.</param>
+        /// <returns>The serialized value.</returns>
+        public object SerializeValue(JToken value)
+            => SqlColumnType.SerializeValue(value, StoreType, JsonType);
 
         #region IEquatable<ColumnDefinition>
         /// <summary>
