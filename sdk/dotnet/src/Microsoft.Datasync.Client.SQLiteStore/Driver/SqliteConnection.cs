@@ -11,7 +11,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
         /// <summary>
         /// The maximum number of parameters per query.  See https://www.sqlite.org/limits.html#max_variable_number
         /// </summary>
-        public readonly int MaxParametersPerQuery = raw.SQLITE_LIMIT_VARIABLE_NUMBER - 16;
+        public int MaxParametersPerQuery { get; }
 
         /// <summary>
         /// Set to <c>true</c> once the SQLitePCL library is configured.
@@ -39,12 +39,14 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
             if (!sqliteIsInitialized)
             {
                 Batteries_V2.Init();
-                sqliteIsInitialized = true;
-            }
 
-            if (raw.sqlite3_config(raw.SQLITE_CONFIG_URI, 1) != raw.SQLITE_OK)
-            {
-                throw new SQLiteException("Unable to configure sqlite3 for URI connection strings.");
+                // You only need to configure the sqlite3 interface once.
+                if (raw.sqlite3_config(raw.SQLITE_CONFIG_URI, 1) != raw.SQLITE_OK)
+                {
+                    throw new SQLiteException("Unable to configure sqlite3 for URI connection strings.");
+                }
+
+                sqliteIsInitialized = true;
             }
 
             int rc = raw.sqlite3_open(connectionString, out connection);
@@ -52,6 +54,9 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
             {
                 throw new SQLiteException("Unable to open database connection to '{connectionString}'", rc, connection);
             }
+
+            int limit = raw.sqlite3_limit(connection, raw.SQLITE_LIMIT_VARIABLE_NUMBER, -1);
+            MaxParametersPerQuery = limit - 16;
         }
 
         /// <summary>

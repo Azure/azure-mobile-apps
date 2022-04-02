@@ -34,13 +34,6 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         private readonly DisposableLock operationLock = new();
 
         /// <summary>
-        /// Parameterless constructor for unit testing.
-        /// </summary>
-        protected OfflineSQLiteStore()
-        {
-        }
-
-        /// <summary>
         /// Creates a new instance of <see cref="OfflineSQLiteStore"/> using the provided connection string.
         /// </summary>
         /// <remarks>
@@ -55,6 +48,10 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         public OfflineSQLiteStore(string connectionString)
         {
             Arguments.IsNotNullOrWhitespace(connectionString, nameof(connectionString));
+            if (!connectionString.StartsWith("file:"))
+            {
+                throw new ArgumentException("The connection string must be a Uri string valid for SQLite");
+            }
             DbConnection = new SqliteConnection(connectionString);
         }
 
@@ -91,6 +88,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         {
             Arguments.IsNotNull(query, nameof(query));
             await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+            _ = GetTableOrThrow(query.TableName); // Validate that the table exists.
 
             string sql = SqlStatements.DeleteFromTable(query, out Dictionary<string, object> parameters);
             using (operationLock.AcquireLock())
