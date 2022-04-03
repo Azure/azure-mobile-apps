@@ -48,7 +48,8 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Test
             { "Date", DateTime.MinValue },
             { "Bytes", Array.Empty<byte>() },
             { "Guid", Guid.Empty },
-            { "TimeSpan", TimeSpan.Zero }
+            { "TimeSpan", TimeSpan.Zero },
+            { "Uri", new Uri("http://localhost") }
         };
 
         protected JObject IdEntityDefinition = new()
