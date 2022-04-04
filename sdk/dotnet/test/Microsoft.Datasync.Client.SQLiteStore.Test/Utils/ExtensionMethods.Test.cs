@@ -27,6 +27,5 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Test.Utils
             Assert.Equal(items.Skip(10).Take(10).ToList(), actual[1].ToList());
             Assert.Equal(items.Skip(20).ToList(), actual[2].ToList());
         }
-
     }
 }
