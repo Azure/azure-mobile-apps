@@ -150,7 +150,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Utils
             }
             if (query.Top.HasValue)
             {
-                sql.Append(" LIMIT ").Append(query.Top ?? int.MaxValue);
+                sql.Append(" LIMIT ").Append(query.Top);
             }
             if (query.Skip.HasValue)
             {
@@ -229,11 +229,11 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Utils
             {
                 if (node.OperatorKind == BinaryOperatorKind.Equal)
                 {
-                    sql.Append(" IS NULL");
+                    sql.Append(" IS ");
                 }
                 else if (node.OperatorKind == BinaryOperatorKind.NotEqual)
                 {
-                    sql.Append(" IS NOT NULL");
+                    sql.Append(" IS NOT ");
                 }
             }
             else
