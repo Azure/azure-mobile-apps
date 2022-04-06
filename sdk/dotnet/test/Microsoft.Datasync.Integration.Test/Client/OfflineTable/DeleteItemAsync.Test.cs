@@ -3,19 +3,21 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
-using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Offline;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable
 {
     [ExcludeFromCodeCoverage]
     public class DeleteItemAsync_Tests : BaseOperationTest
     {
+        public DeleteItemAsync_Tests(ITestOutputHelper logger) : base(logger) { }
+
         [Fact]
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_Basic()

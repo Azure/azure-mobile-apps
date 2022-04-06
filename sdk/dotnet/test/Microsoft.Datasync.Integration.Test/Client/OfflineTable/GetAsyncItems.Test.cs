@@ -5,12 +5,15 @@ using Datasync.Common.Test;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable
 {
     [ExcludeFromCodeCoverage]
     public class GetAsyncItems_Tests : BaseOperationTest
     {
+        public GetAsyncItems_Tests(ITestOutputHelper logger) : base(logger) { }
+
         [Fact]
         [Trait("Method", "GetAsyncItems")]
         public async Task GetAsyncItems_RetrievesItems()

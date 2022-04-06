@@ -84,7 +84,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
                 long longValue = Convert.ToInt64(value);
                 return JsonType switch
                 {
-                    JTokenType.Date => epoch.AddSeconds(Convert.ToDouble(value)),
+                    JTokenType.Date => epoch.AddMilliseconds(Convert.ToDouble(value)),
                     JTokenType.Boolean => longValue == 1,
                     _ => longValue
                 };

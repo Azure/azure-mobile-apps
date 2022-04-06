@@ -3,19 +3,18 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
-using Microsoft.Datasync.Client;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable
 {
     [ExcludeFromCodeCoverage]
     public class GetItemAsync_Tests : BaseOperationTest
     {
+        public GetItemAsync_Tests(ITestOutputHelper logger) : base(logger) { }
+
         [Fact]
         [Trait("Method", "GetItemAsync")]
         public async Task GetItemAsync_Basic()

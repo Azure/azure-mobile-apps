@@ -146,7 +146,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <returns></returns>
         public static object SerializeValue(JToken value, string storeType, JTokenType columnType)
         {
-            if (value == null || columnType == JTokenType.Null)
+            if (value == null || value.Type == JTokenType.Null)
             {
                 return null;
             }
@@ -174,7 +174,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
                     {
                         date = DateTime.SpecifyKind(date, DateTimeKind.Utc);
                     }
-                    return Math.Round((date.ToUniversalTime() - epoch).TotalSeconds, 3);
+                    return Math.Round((date.ToUniversalTime() - epoch).TotalMilliseconds, 3);
                 }
                 return value.Value<long>();
             }

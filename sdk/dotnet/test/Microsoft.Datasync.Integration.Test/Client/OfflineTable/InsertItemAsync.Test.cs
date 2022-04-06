@@ -3,21 +3,20 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
-using Microsoft.AspNetCore.Datasync;
-using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Offline;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable
 {
     [ExcludeFromCodeCoverage]
     public class InsertItemAsync_Tests : BaseOperationTest
     {
+        public InsertItemAsync_Tests(ITestOutputHelper logger) : base(logger) { }
+
         [Theory, CombinatorialData]
         [Trait("Method", "InsertItemAsync")]
         public async Task InsertItemAsync_Basic(bool hasId)
@@ -54,7 +53,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable
             // This is the entity that was actually inserted.
             var entity = MovieServer.GetMovieById(insertedId);
             Assert.Equal<IMovie>(movieToAdd, entity);
-            AssertJsonDocumentMatches(entity, response);
+            AssertSystemPropertiesMatch(entity, stored);
         }
 
         [Theory, CombinatorialData]
@@ -87,7 +86,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable
 
             var entity = MovieServer.GetMovieById(insertedId);
             Assert.Equal<IMovie>(movieToAdd, entity);
-            AssertJsonDocumentMatches(entity, response);
+            AssertSystemPropertiesMatch(entity, response);
 
             if (useUpdatedAt)
                 Assert.NotEqual("2018-12-31T01:01:01.000Z", response.Value<string>("updatedAt"));
