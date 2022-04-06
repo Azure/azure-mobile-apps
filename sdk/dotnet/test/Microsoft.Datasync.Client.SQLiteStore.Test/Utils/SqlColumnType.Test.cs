@@ -73,7 +73,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Test.Utils
         public void SerializeValue_Null_ReturnsNull()
         {
             Assert.Null(SqlColumnType.SerializeValue(null, "STRING", JTokenType.String));
-            Assert.Null(SqlColumnType.SerializeValue(new JValue(true), "STRING", JTokenType.Null));
+            Assert.Null(SqlColumnType.SerializeValue(JValue.CreateNull(), "STRING", JTokenType.String));
         }
 
         [Fact]
