@@ -21,6 +21,8 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         [Trait("Method", "GetItemAsync")]
         public async Task GetItemAsync_Basic()
         {
+            await InitializeAsync();
+
             // Arrange
             var id = GetRandomId();
             var expected = MovieServer.GetMovieById(id)!;
@@ -37,6 +39,8 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         [Trait("Method", "GetItemAsync")]
         public async Task GetItemAsync_NotFound()
         {
+            await InitializeAsync();
+
             // Arrange
             const string id = "not-found";
 

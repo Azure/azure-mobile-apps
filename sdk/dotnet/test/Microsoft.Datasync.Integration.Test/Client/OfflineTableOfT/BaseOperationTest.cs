@@ -20,7 +20,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
     public abstract class BaseOperationTest : BaseTest, IDisposable
     {
         protected readonly ITestOutputHelper Logger;
-        protected readonly string filename;
+        //protected readonly string filename;
         protected readonly string connectionString;
         protected readonly OfflineSQLiteStore store;
         protected readonly DatasyncClient client;
@@ -43,8 +43,9 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         protected BaseOperationTest(ITestOutputHelper logger)
         {
             Logger = logger;
-            filename = Path.GetTempFileName();
-            connectionString = new UriBuilder(filename) { Query = "?mode=rwc" }.Uri.ToString();
+            //filename = Path.GetTempFileName();
+            //connectionString = new UriBuilder(filename) { Query = "?mode=rwc" }.Uri.ToString();
+            connectionString = "file:in-memory.db?mode=memory";
             store = new OfflineSQLiteStore(connectionString);
             store.DefineTable<ClientMovie>("movies");
             store.DefineTable<ClientMovie>("soft");
@@ -78,8 +79,6 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
             Assert.Equal(expected.Id, actual.Value<string>("id"));
             Assert.Equal(expected.Deleted, actual.Value<bool>("deleted"));
             Assert.Equal(Convert.ToBase64String(expected.Version), actual.Value<string>("version"));
-            var actualUpdatedAt = actual.Value<DateTime>("updatedAt").ToDateTimeOffset();
-            Assert.Equal(expected.UpdatedAt.ToUnixTimeMilliseconds(), actualUpdatedAt.ToUnixTimeMilliseconds());
         }
 
         protected async Task ModifyServerVersionAsync(string id)

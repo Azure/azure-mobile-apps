@@ -3,8 +3,8 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
-using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Offline;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,6 +22,8 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_Basic()
         {
+            await InitializeAsync();
+
             // Arrange
             var id = GetRandomId();
             var item = ClientMovie.From(MovieServer.GetMovieById(id));
@@ -39,12 +41,14 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_NotFound()
         {
+            await InitializeAsync();
+
             // Arrange
             const string id = "not-found";
             var item = new ClientMovie { Id = id };
 
             // Act
-            var exception = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table!.DeleteItemAsync(item));
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => table!.DeleteItemAsync(item));
 
             // Assert
             Assert.Equal(MovieCount, MovieServer.GetMovieCount());
@@ -54,6 +58,8 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_ConditionalSuccess()
         {
+            await InitializeAsync();
+
             // Arrange
             var id = GetRandomId();
             var item = ClientMovie.From(MovieServer.GetMovieById(id));
@@ -73,6 +79,8 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         [Trait("Method", "DeleteItemAsync")]
         public async Task DeleteItemAsync_ConditionalFailure()
         {
+            await InitializeAsync();
+
             // Arrange
             var id = GetRandomId();
             var expected = MovieServer.GetMovieById(id);
@@ -92,7 +100,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
             // Check the PushFailedException
             Assert.Single(exception.PushResult.Errors);
             var error = exception.PushResult.Errors.First();
-            AssertSystemPropertiesMatch(entity, error.Item);
+            AssertSystemPropertiesMatch(entity, error.Result);
         }
     }
 }

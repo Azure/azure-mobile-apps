@@ -21,6 +21,8 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         [Trait("Method", "GetAsyncItems")]
         public async Task GetAsyncItems_RetrievesItems()
         {
+            await InitializeAsync();
+
             // Arrange
             int count = 0;
 
@@ -50,6 +52,8 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         [Trait("Method", "GetAsyncItems")]
         public async Task GetAsyncItems_NoArgs_RetrievesItems()
         {
+            await InitializeAsync();
+
             // Arrange
             int count = 0;
 
@@ -73,39 +77,11 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         }
 
         [Fact]
-        [Trait("Method", "GetAsyncItems")]
-        public async Task GetAsyncItems_AsPages_RetrievesItems()
-        {
-            // Arrange
-            int itemCount = 0, pageCount = 0;
-
-            var pageable = table!.GetAsyncItems() as AsyncPageable<ClientMovie>;
-            Assert.NotNull(pageable);
-
-            var enumerator = pageable!.AsPages().GetAsyncEnumerator();
-            while (await enumerator.MoveNextAsync())
-            {
-                pageCount++;
-
-                var page = enumerator.Current;
-                Assert.NotNull(page);
-                foreach (var item in page.Items)
-                {
-                    itemCount++;
-                    Assert.NotNull(item.Id);
-                    var expected = MovieServer.GetMovieById(item.Id);
-                    Assert.Equal<IMovie>(expected, item);
-                }
-            }
-
-            Assert.Equal(MovieCount, itemCount);
-            Assert.Equal(3, pageCount);
-        }
-
-        [Fact]
         [Trait("Method", "ToAsyncEnumerable")]
         public async Task ToAsyncEnumerable_RetrievesItems()
         {
+            await InitializeAsync();
+
             // Arrange
             int count = 0;
 
@@ -131,6 +107,8 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         [Trait("Method", "ToAsyncEnumerable")]
         public async Task ToAsyncEnumerable_WithLiveServer(LinqTestCase testCase)
         {
+            await InitializeAsync();
+
             // Arrange
             var query = table!.CreateQuery();
 

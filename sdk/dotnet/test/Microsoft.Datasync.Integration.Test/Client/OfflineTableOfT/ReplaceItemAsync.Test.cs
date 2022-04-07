@@ -3,7 +3,6 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
-using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Offline;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
@@ -21,17 +20,19 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         [Trait("Method", "ReplaceItemAsync")]
         public async Task ReplaceItemAsync_Basic()
         {
+            await InitializeAsync();
+
             // Arrange
             var id = GetRandomId();
             var original = MovieServer.GetMovieById(id)!;
             var expected = ClientMovie.From(original);
             expected.Title = "Replacement Title";
             expected.Rating = "PG-13";
-            var response = expected.Clone();
 
             // Act
-            await table!.ReplaceItemAsync(response);
+            await table!.ReplaceItemAsync(expected);
             await table!.PushItemsAsync();
+            var response = await table!.GetItemAsync(id);
 
             var stored = MovieServer.GetMovieById(id);
 
@@ -53,6 +54,8 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         [Trait("Method", "ReplaceItemAsync")]
         public async Task ReplaceItemAsync_Validation(string propName, object propValue)
         {
+            await InitializeAsync();
+
             // Arrange
             var id = GetRandomId();
             var original = MovieServer.GetMovieById(id)!;
@@ -81,18 +84,22 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         [Trait("Method", "ReplaceItemAsync")]
         public async Task ReplaceItemAsync_ThrowsWhenNotFound()
         {
+            await InitializeAsync();
+
             // Arrange
             var obj = GetSampleMovie<ClientMovie>();
             obj.Id = "not-found";
 
             // Act
-            await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table!.ReplaceItemAsync(obj));
+            await Assert.ThrowsAsync<OfflineStoreException>(() => table!.ReplaceItemAsync(obj));
         }
 
         [Fact]
         [Trait("Method", "ReplaceItemAsync")]
         public async Task ReplaceItemAsync_ConditionalFailure()
         {
+            await InitializeAsync();
+
             // Arrange
             var id = GetRandomId();
             var original = MovieServer.GetMovieById(id)!;

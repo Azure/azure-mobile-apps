@@ -148,14 +148,15 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Utils
             {
                 FormatOrderByClause(query.Ordering);
             }
-            if (query.Top.HasValue)
+            if (query.Top.HasValue || query.Skip.HasValue)
             {
-                sql.Append(" LIMIT ").Append(query.Top);
+                sql.Append(" LIMIT ").Append(query.Top ?? int.MaxValue);
+                if (query.Skip.HasValue)
+                {
+                    sql.Append(" OFFSET ").Append(query.Skip.Value);
+                }
             }
-            if (query.Skip.HasValue)
-            {
-                sql.Append(" OFFSET ").Append(query.Skip.Value);
-            }
+
             return sql.ToString().TrimEnd();
         }
 
@@ -295,8 +296,8 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Utils
             "hour" => FormatDateFunction(node, "%H"),
             "minute" => FormatDateFunction(node, "%M"),
             "second" => FormatDateFunction(node, "%S"),
-            "floor" => FormatMathFunction(node, "FLOOR"),
-            "ceiling" => FormatMathFunction(node, "CEILING"),
+            "floor" => FormatFloorFunction(node),
+            "ceiling" => FormatCeilingFunction(node),
             "round" => FormatMathFunction(node, "ROUND", ",0"),
             "tolower" => FormatStringFunction(node, "LOWER"),
             "toupper" => FormatStringFunction(node, "UPPER"),
@@ -345,6 +346,42 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Utils
         #endregion
 
         /// <summary>
+        /// The CEILING function is not available in the SQLitePCL.raw package we use for SQLite
+        /// access (because it is needs to be compiled in), so we need to use a workaround.
+        /// </summary>
+        /// <remarks>
+        /// The conversion for ceil is <c>(CAST(x as INT) + (x > CAST(x as INT)))</c>
+        /// </remarks>
+        /// <param name="node">The node being processed.</param>
+        /// <returns>The processed node.</returns>
+        private QueryNode FormatCeilingFunction(FunctionCallNode node)
+        {
+            var castToInt = new ConvertNode(node.Arguments[0], typeof(int));
+            var comparison = new BinaryOperatorNode(BinaryOperatorKind.GreaterThan, node.Arguments[0], new ConvertNode(node.Arguments[0], typeof(int)));
+            var ceiling = new BinaryOperatorNode(BinaryOperatorKind.Add, castToInt, comparison);
+            ceiling.Accept(this);
+            return node;
+        }
+
+        /// <summary>
+        /// The FLOOR function is not available in the SQLitePCL.raw package we use for SQLite
+        /// access (because it is needs to be compiled in), so we need to use a workaround.
+        /// </summary>
+        /// <remarks>
+        /// The converstion for floor is <c>(CAST(x as INT) - (x < CAST(x as INT)))</c>
+        /// </remarks>
+        /// <param name="node">The node being processed.</param>
+        /// <returns>The processed node.</returns>
+        private QueryNode FormatFloorFunction(FunctionCallNode node)
+        {
+            var castToInt = new ConvertNode(node.Arguments[0], typeof(int));
+            var comparison = new BinaryOperatorNode(BinaryOperatorKind.LessThan, node.Arguments[0], new ConvertNode(node.Arguments[0], typeof(int)));
+            var ceiling = new BinaryOperatorNode(BinaryOperatorKind.Subtract, castToInt, comparison);
+            ceiling.Accept(this);
+            return node;
+        }
+
+        /// <summary>
         /// Generate a CONCAT SQL statement.
         /// </summary>
         /// <param name="node">The node being processed.</param>
@@ -365,13 +402,14 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Utils
         /// Generate as <c>CAST(STRFTIME('%d', ...)</c> method.
         /// </summary>
         /// <param name="node">The node being processed.</param>
-        /// <param name="formatSting"></param>
+        /// <param name="formatString"></param>
         /// <returns>The processed node.</returns>
-        private QueryNode FormatDateFunction(FunctionCallNode node, string formatSting)
+        private QueryNode FormatDateFunction(FunctionCallNode node, string formatString)
         {
-            sql.AppendFormat("CAST(strftime('{0}', datetime(", formatSting);
+            sql.AppendFormat("CAST(strftime('{0}', datetime(", formatString);
             node.Arguments[0].Accept(this);
-            sql.Append(", 'unixepoch')) AS INTEGER)");
+            // datetimes are stored with ms accuracy.
+            sql.Append(" / 1000.0, 'unixepoch')) AS INTEGER)");
             return node;
         }
 
