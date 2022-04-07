@@ -20,7 +20,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
     public abstract class BaseOperationTest : BaseTest, IDisposable
     {
         protected readonly ITestOutputHelper Logger;
-        //protected readonly string filename;
+        protected readonly string? filename;
         protected readonly string connectionString;
         protected readonly OfflineSQLiteStore store;
         protected readonly DatasyncClient client;
@@ -101,7 +101,10 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
         public void Dispose()
         {
             store.DbConnection.connection.Close();
-            File.Delete(filename);
+            if (filename != null)
+            {
+                File.Delete(filename);
+            }
             GC.SuppressFinalize(this);
         }
     }
