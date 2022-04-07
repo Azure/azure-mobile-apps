@@ -40,12 +40,18 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
             { "year", 0 }
         };
 
-        protected BaseOperationTest(ITestOutputHelper logger)
+        protected BaseOperationTest(ITestOutputHelper logger, bool useFile = true)
         {
             Logger = logger;
-            //filename = Path.GetTempFileName();
-            //connectionString = new UriBuilder(filename) { Query = "?mode=rwc" }.Uri.ToString();
-            connectionString = "file:in-memory.db?mode=memory";
+            if (useFile)
+            {
+                filename = Path.GetTempFileName();
+                connectionString = new UriBuilder(filename) { Query = "?mode=rwc" }.Uri.ToString();
+            }
+            else
+            {
+                connectionString = "file:in-memory.db?mode=memory";
+            }           
             store = new OfflineSQLiteStore(connectionString);
             store.DefineTable<ClientMovie>("movies");
             store.DefineTable<ClientMovie>("soft");

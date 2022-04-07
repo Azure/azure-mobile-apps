@@ -15,7 +15,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
     [ExcludeFromCodeCoverage]
     public class GetAsyncItems_Tests : BaseOperationTest
     {
-        public GetAsyncItems_Tests(ITestOutputHelper logger) : base(logger) { }
+        public GetAsyncItems_Tests(ITestOutputHelper logger) : base(logger, false) { }
 
         [Fact]
         [Trait("Method", "GetAsyncItems")]
