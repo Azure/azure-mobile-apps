@@ -17,6 +17,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTable
     {
         protected readonly DatasyncClient client;
         protected readonly IRemoteTable soft, table;
+        protected readonly DateTimeOffset startTime = DateTimeOffset.UtcNow;
 
         protected BaseOperationTest()
         {

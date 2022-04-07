@@ -136,7 +136,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
             Assert.NotNull(exception.Response);
             Assert.Equal(MovieCount, MovieServer.GetMovieCount());
             var entity = MovieServer.GetMovieById(movieToAdd.Id)!;
-            AssertEx.SystemPropertiesSet(entity);
+            AssertEx.SystemPropertiesSet(entity, startTime);
             AssertEx.SystemPropertiesMatch(entity, exception.Item);
             Assert.Equal<IMovie>(expectedMovie, exception.Item);
             Assert.Equal<IMovie>(expectedMovie, entity);

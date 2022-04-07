@@ -4,6 +4,7 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client;
+using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
@@ -13,6 +14,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
     {
         protected readonly DatasyncClient client;
         protected readonly IRemoteTable<ClientMovie> soft, table;
+        protected readonly DateTimeOffset startTime = DateTimeOffset.UtcNow;
 
         protected BaseOperationTest()
         {
