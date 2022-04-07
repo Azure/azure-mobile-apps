@@ -5,38 +5,40 @@ using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.Datasync.Client;
+using Microsoft.Datasync.Client.Offline;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
+namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
 {
     [ExcludeFromCodeCoverage]
     public class InsertItemAsync_Tests : BaseOperationTest
     {
-        [Theory, CombinatorialData]
+        public InsertItemAsync_Tests(ITestOutputHelper logger) : base(logger) { }
+
+        [Fact]
         [Trait("Method", "CreateItemAsync")]
-        public async Task CreateItemAsync_Basic(bool hasId)
+        public async Task CreateItemAsync_Basic()
         {
+            await InitializeAsync();
+
             var movieToAdd = GetSampleMovie<ClientMovie>();
-            if (hasId)
-            {
-                movieToAdd.Id = Guid.NewGuid().ToString("N");
-            }
-            var result = movieToAdd.Clone();
+            movieToAdd.Id = Guid.NewGuid().ToString("N");
 
             // Act
-            await table.InsertItemAsync(result).ConfigureAwait(false);
+            await table!.InsertItemAsync(movieToAdd);
+            await table!.PushItemsAsync();
+            var result = await table!.GetItemAsync(movieToAdd.Id);
 
             // Assert
             Assert.True(Guid.TryParse(result.Id, out _));
-            if (hasId)
-            {
-                Assert.Equal(movieToAdd.Id, result.Id);
-            }
+            Assert.Equal(movieToAdd.Id, result.Id);
+
             Assert.Equal<IMovie>(movieToAdd, result);
             Assert.Equal(MovieCount + 1, MovieServer.GetMovieCount());
             var entity = MovieServer.GetMovieById(result.Id)!;
@@ -48,6 +50,8 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
         [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_OverwriteSystemProperties(bool useUpdatedAt, bool useVersion)
         {
+            await InitializeAsync();
+
             var movieToAdd = GetSampleMovie<ClientMovie>();
             movieToAdd.Id = Guid.NewGuid().ToString("N");
             if (useUpdatedAt)
@@ -58,10 +62,11 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
             {
                 movieToAdd.Version = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
             }
-            var result = movieToAdd.Clone();
 
             // Act
-            await table.InsertItemAsync(result).ConfigureAwait(false);
+            await table!.InsertItemAsync(movieToAdd);
+            await table!.PushItemsAsync();
+            var result = await table!.GetItemAsync(movieToAdd.Id);
 
             // Assert
             Assert.Equal(movieToAdd.Id, result.Id);
@@ -91,6 +96,8 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
         [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_ValidationTest(string propName, object propValue)
         {
+            await InitializeAsync();
+
             Dictionary<string, object> movieToAdd = new()
             {
                 { "id", "test-id" },
@@ -109,39 +116,26 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
                 movieToAdd[propName] = propValue;
 
             // Act
-            var table = client.GetRemoteTable<Dictionary<string, object>>("movies");
-            var exception = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.InsertItemAsync(movieToAdd)).ConfigureAwait(false);
+            var table = client.GetOfflineTable<Dictionary<string, object>>("movies");
+            await table!.InsertItemAsync(movieToAdd);
+            var exception = await Assert.ThrowsAsync<PushFailedException>(() => table!.PushItemsAsync());
 
             // Assert
-            Assert.NotNull(exception.Request);
-            Assert.NotNull(exception.Response);
-            Assert.Equal(HttpStatusCode.BadRequest, exception.Response?.StatusCode);
-            Assert.Equal(MovieCount, MovieServer.GetMovieCount());
-            Assert.Null(MovieServer.GetMovieById("test-id"));
+            Assert.Single(exception.PushResult.Errors);
         }
 
         [Fact]
         [Trait("Method", "CreateItemAsync")]
         public async Task CreateItemAsync_Conflict()
         {
+            await InitializeAsync();
+
             var movieToAdd = GetSampleMovie<ClientMovie>();
             movieToAdd.Id = GetRandomId();
             var expectedMovie = MovieServer.GetMovieById(movieToAdd.Id)!;
 
             // Act
-            var exception = await Assert.ThrowsAsync<DatasyncConflictException<ClientMovie>>(() => table.InsertItemAsync(movieToAdd)).ConfigureAwait(false);
-
-            // Assert
-            Assert.NotNull(exception.Request);
-            Assert.NotNull(exception.Response);
-            Assert.Equal(MovieCount, MovieServer.GetMovieCount());
-            var entity = MovieServer.GetMovieById(movieToAdd.Id)!;
-            AssertEx.SystemPropertiesSet(entity, startTime);
-            AssertEx.SystemPropertiesMatch(entity, exception.Item);
-            Assert.Equal<IMovie>(expectedMovie, exception.Item);
-            Assert.Equal<IMovie>(expectedMovie, entity);
-            Assert.Equal<ITableData>(expectedMovie, entity);
-            AssertEx.ResponseHasConditionalHeaders(entity, exception.Response);
+            await Assert.ThrowsAsync<OfflineStoreException>(() => table!.InsertItemAsync(movieToAdd));
         }
     }
 }

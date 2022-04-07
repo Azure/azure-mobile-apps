@@ -23,9 +23,9 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         internal static readonly JObject TableDefinition = new()
         {
             { SystemProperties.JsonIdProperty, string.Empty },
-            { "httpStatus", 0 },
-            { "operationVersion", 0 },
-            { "operationKind", 0 },
+            { "status", 0 },
+            { "version", 0 },
+            { "kind", 0 },
             { "tableName", string.Empty },
             { "item", string.Empty },
             { "rawResult", string.Empty }

@@ -18,19 +18,19 @@ namespace Microsoft.Datasync.Client.Utils
 
         public DisposeAction(Action action)
         {
-            this.isDisposed = false;
+            isDisposed = false;
             this.action = action;
         }
 
         public void Dispose()
         {
-            if (this.isDisposed)
+            if (isDisposed)
             {
                 return;
             }
 
-            this.isDisposed = true;
-            this.action();
+            isDisposed = true;
+            action();
         }
     }
 }

@@ -107,6 +107,9 @@ namespace Microsoft.Datasync.Client.Offline
                     return;
                 }
 
+                // Initialize the store
+                await OfflineStore.InitializeAsync(cancellationToken).ConfigureAwait(false);
+
                 // Initialize the operations queue.
                 OperationsQueue = new OperationsQueue(OfflineStore);
                 await OperationsQueue.InitializeAsync(cancellationToken).ConfigureAwait(false);
