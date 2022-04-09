@@ -1,0 +1,9 @@
+<resources>
+	<string name="app_name">Todo App</string>
+	<string name="action_refresh">Refresh</string>
+	<string name="action_add_item">Add Item</string>
+	<string name="new_item_title">Add New Item</string>
+	<string name="new_item_hint">Enter some text</string>
+	<string name="checkbox_text">Item text</string>
+	<string name="error_title">Error</string>
+</resources>

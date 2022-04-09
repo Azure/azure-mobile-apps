@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using TodoApp.Data;
 using TodoApp.Data.MVVM;
@@ -18,7 +19,7 @@ namespace TodoApp.UWP
     /// </summary>
     public partial class MainPage : Page, IMVVMHelper
     {
-        private TodoListViewModel _viewModel;
+        private readonly TodoListViewModel _viewModel;
 
         public MainPage()
         {
@@ -75,6 +76,7 @@ namespace TodoApp.UWP
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
+        [SuppressMessage("Roslynator", "RCS1163:Unused parameter.", Justification = "Event handler")]
         protected async void AddItemClickHandler(object sender, RoutedEventArgs e)
         {
             await _viewModel.AddItemAsync(textboxControl.Text.Trim()).ConfigureAwait(false);
@@ -86,6 +88,7 @@ namespace TodoApp.UWP
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
+        [SuppressMessage("Roslynator", "RCS1163:Unused parameter.", Justification = "Event handler")]
         protected async void CheckboxClickHandler(object sender, RoutedEventArgs e)
         {
             if (sender is CheckBox cb)
@@ -99,6 +102,7 @@ namespace TodoApp.UWP
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
+        [SuppressMessage("Roslynator", "RCS1163:Unused parameter.", Justification = "Event handler")]
         protected async void RefreshItemsClickHandler(object sender, RoutedEventArgs e)
         {
             await _viewModel.RefreshItemsAsync().ConfigureAwait(false);
