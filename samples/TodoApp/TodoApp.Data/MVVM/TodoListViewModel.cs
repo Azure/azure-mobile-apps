@@ -65,7 +65,7 @@ namespace TodoApp.Data.MVVM
         /// Command for refreshing the items.  This will synchronize the backend.
         /// </summary>
         /// <returns>A task that completes when the sync is done.</returns>
-        public async Task RefreshItemsAsync()
+        public virtual async Task RefreshItemsAsync()
         {
             await SetRefreshing(true).ConfigureAwait(false);
             try
@@ -103,7 +103,7 @@ namespace TodoApp.Data.MVVM
         /// <param name="itemId">The Id of the item to update</param>
         /// <param name="isComplete">The new value of the completion flag.</param>
         /// <returns>A task that completes when the update is done.</returns>
-        public async Task UpdateItemAsync(string itemId, bool isComplete)
+        public virtual async Task UpdateItemAsync(string itemId, bool isComplete)
         {
             try
             {
@@ -122,7 +122,7 @@ namespace TodoApp.Data.MVVM
         /// </summary>
         /// <param name="text">The value of the text box.</param>
         /// <returns>A task that completes when the addition is done.</returns>
-        public async Task AddItemAsync(string text)
+        public virtual async Task AddItemAsync(string text)
         {
             try
             {
@@ -134,7 +134,6 @@ namespace TodoApp.Data.MVVM
                 await _helper.DisplayErrorAlertAsync("UpdateItem", ex.Message).ConfigureAwait(false);
             }
         }
-
 
         /// <summary>
         /// Event handler that maintains the <see cref="ObservableCollection{TodoItem}"/> so that
@@ -166,6 +165,6 @@ namespace TodoApp.Data.MVVM
         /// </summary>
         /// <param name="value">The new value</param>
         private Task SetRefreshing(bool value)
-            => _helper.RunOnUiThreadAsync(() => { IsRefreshing = value; });
+            => _helper.RunOnUiThreadAsync(() => IsRefreshing = value);
     }
 }
