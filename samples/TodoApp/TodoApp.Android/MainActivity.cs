@@ -78,7 +78,7 @@ namespace TodoApp.Android
                 case Resource.Id.action_refresh:
                     if (isBusyIndicator.Visibility == ViewStates.Gone)
                     {
-                        RefreshItemsAsync().RunSynchronously();
+                        _ = Task.Run(async () => await RefreshItemsAsync());
                     }
                     return true;
                 default:
@@ -113,28 +113,25 @@ namespace TodoApp.Android
 
             builder.SetTitle(GetString(Resource.String.new_item_title));
             builder.SetView(dialogLayout);
-            builder.SetPositiveButton("OK", (sender, eventArgs) =>
-            {
-                if (control.Text != null)
-                {
-                    CreateItemFromDialogAsync(control.Text).RunSynchronously();
-                }
-            });
+            builder.SetPositiveButton("OK", async (sender, eventArgs) => await CreateItemFromDialogAsync(control));
             var dialog = builder.Create();
             dialog.Show();
         }
 
-        private async Task CreateItemFromDialogAsync(string text)
+        private async Task CreateItemFromDialogAsync(EditText control)
         {
-            var item = new TodoItem { Title = text, IsComplete = false };
-            try
+            if (control.Text != null)
             {
-                await todoService.SaveItemAsync(item);
-                RunOnUiThread(() => todoAdapter.AddItem(item));
-            }
-            catch (Exception error)
-            {
-                ShowError(error);
+                var item = new TodoItem { Title = control.Text, IsComplete = false };
+                try
+                {
+                    await todoService.SaveItemAsync(item);
+                    RunOnUiThread(() => todoAdapter.AddItem(item));
+                }
+                catch (Exception error)
+                {
+                    ShowError(error);
+                }
             }
         }
 
