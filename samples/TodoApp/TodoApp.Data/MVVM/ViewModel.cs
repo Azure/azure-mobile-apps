@@ -13,7 +13,6 @@ namespace TodoApp.Data.MVVM
         /// <summary>
         /// The event handler required by <see cref="INotifyPropertyChanged"/>
         /// </summary>
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>

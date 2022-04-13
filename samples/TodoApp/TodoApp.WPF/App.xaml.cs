@@ -34,10 +34,7 @@ namespace TodoApp.WPF
         /// <returns>A task that completes when the user acknowledges the error.</returns>
         public Task DisplayErrorAlertAsync(string title, string message)
         {
-            Dispatcher.Invoke(() =>
-            {
-                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
-            });
+            Dispatcher.Invoke(() => MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error));
             return Task.CompletedTask;
         }
         #endregion

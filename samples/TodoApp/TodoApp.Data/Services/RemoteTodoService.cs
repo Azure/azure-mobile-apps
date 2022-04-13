@@ -25,7 +25,7 @@ namespace TodoApp.Data.Services
         /// <summary>
         /// Reference to the table used for datasync operations.
         /// </summary>
-        private IDatasyncTable<TodoItem> _table = null;
+        private IRemoteTable<TodoItem> _table = null;
 
         /// <summary>
         /// When set to true, the client and table and both initialized.
@@ -57,7 +57,7 @@ namespace TodoApp.Data.Services
             try
             {
                 // Wait to get the async initialization lock
-                await _asyncLock.WaitAsync().ConfigureAwait(false);
+                await _asyncLock.WaitAsync();
                 if (_initialized)
                 {
                     // This will also execute the async lock.
@@ -66,7 +66,7 @@ namespace TodoApp.Data.Services
 
                 // Initialize the client.
                 _client = new DatasyncClient(Constants.ServiceUri);
-                _table = _client.GetTable<TodoItem>();
+                _table = _client.GetRemoteTable<TodoItem>();
 
                 // Set _initialied to true to prevent duplication of locking.
                 _initialized = true;
@@ -88,11 +88,8 @@ namespace TodoApp.Data.Services
         /// <returns>The list of items (asynchronously)</returns>
         public async Task<IEnumerable<TodoItem>> GetItemsAsync()
         {
-            await InitializeAsync().ConfigureAwait(false);
-
-            var enumerable = _table.GetAsyncItems<TodoItem>();
-            // The ToListAsync() method is a part of System.Linq.Async
-            return await enumerable.ToListAsync().ConfigureAwait(false);
+            await InitializeAsync();
+            return await _table.GetAsyncItems().ToListAsync();
         }
 
         /// <summary>
@@ -101,7 +98,7 @@ namespace TodoApp.Data.Services
         /// <returns>A task that completes when the refresh is done.</returns>
         public async Task RefreshItemsAsync()
         {
-            await InitializeAsync().ConfigureAwait(false);
+            await InitializeAsync();
 
             // Remote table doesn't need to refresh the local data.
             return;
@@ -124,13 +121,8 @@ namespace TodoApp.Data.Services
                 // Short circuit for when the item has not been saved yet.
                 return;
             }
-            await InitializeAsync().ConfigureAwait(false);
-
-            var response = await _table.DeleteItemAsync(item.Id, IfMatch.Version(item.Version)).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new ApplicationException($"Item cannot be deleted: {response.ReasonPhrase}");
-            }
+            await InitializeAsync();
+            await _table.DeleteItemAsync(item);
             TodoItemsUpdated?.Invoke(this, new TodoServiceEventArgs(TodoServiceEventArgs.ListAction.Delete, item));
         }
 
@@ -148,17 +140,18 @@ namespace TodoApp.Data.Services
                 throw new ArgumentException(nameof(item));
             }
 
-            await InitializeAsync().ConfigureAwait(false);
+            await InitializeAsync();
 
             TodoServiceEventArgs.ListAction action = (item.Id == null) ? TodoServiceEventArgs.ListAction.Add : TodoServiceEventArgs.ListAction.Update;
-            var response = (item.Id == null)
-                ? await _table.CreateItemAsync(item).ConfigureAwait(false)
-                : await _table.ReplaceItemAsync(item, IfMatch.Version(item.Version)).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode)
+            if (item.Id == null)
             {
-                throw new ApplicationException($"Item cannot be saved: {response.ReasonPhrase}");
+                await _table.InsertItemAsync(item);
             }
-            TodoItemsUpdated?.Invoke(this, new TodoServiceEventArgs(action, response.Value));
+            else
+            {
+                await _table.ReplaceItemAsync(item);
+            }
+            TodoItemsUpdated?.Invoke(this, new TodoServiceEventArgs(action, item));
         }
     }
 }

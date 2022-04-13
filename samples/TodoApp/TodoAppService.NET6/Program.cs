@@ -8,6 +8,11 @@ using TodoAppService.NET6.Db;
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+if (connectionString == null)
+{
+    throw new ApplicationException("DefaultConnection is not set");
+}
+
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddDatasyncControllers();
 
