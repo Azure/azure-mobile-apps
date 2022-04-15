@@ -16,7 +16,6 @@
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
     <MonoAndroidResourcePrefix>Resources</MonoAndroidResourcePrefix>
     <MonoAndroidAssetsPrefix>Assets</MonoAndroidAssetsPrefix>
-    <AndroidUseLatestPlatformSdk>false</AndroidUseLatestPlatformSdk>
     <TargetFrameworkVersion>v12.0</TargetFrameworkVersion>
     <AndroidEnableSGenConcurrent>true</AndroidEnableSGenConcurrent>
     <AndroidUseAapt2>true</AndroidUseAapt2>
@@ -86,7 +85,7 @@
   <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\TodoApp.Forms\TodoApp.Forms.csproj">
-      <Project>{0D89733E-6197-4DAF-8056-33761C2E7F03}</Project>
+      <Project>{F89AB8A1-82EE-48D3-A987-23DDBABB1E18}</Project>
       <Name>TodoApp.Forms</Name>
     </ProjectReference>
   </ItemGroup>
