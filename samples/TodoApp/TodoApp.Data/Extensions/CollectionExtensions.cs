@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -42,6 +43,21 @@ namespace TodoApp.Data.Extensions
                 collection.RemoveAt(idx);
             }
             return itemsToRemove.Length > 0;
+        }
+
+        /// <summary>
+        /// Clears the collection and replaces the contents with the provided content.
+        /// </summary>
+        /// <typeparam name="T">The type of the collection model.</typeparam>
+        /// <param name="collection">The collection.</param>
+        /// <param name="items">The new list of items.</param>
+        public static void ReplaceAllItems<T>(this Collection<T> collection, IEnumerable<T> items)
+        {
+            collection.Clear();
+            foreach (var item in items)
+            {
+                collection.Add(item);
+            }
         }
     }
 }
