@@ -148,7 +148,7 @@ namespace TodoApp.Data.MVVM
                 switch (e.Action)
                 {
                     case TodoServiceEventArgs.ListAction.Add:
-                        Items.Add(e.Item);
+                        Items.AddIfMissing(m => m.Id == e.Item.Id, e.Item);
                         break;
                     case TodoServiceEventArgs.ListAction.Delete:
                         Items.RemoveIf(m => m.Id == e.Item.Id);
