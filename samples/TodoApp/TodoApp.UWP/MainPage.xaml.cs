@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using TodoApp.Data;
 using TodoApp.Data.MVVM;
 using Windows.Foundation;
 using Windows.UI.ViewManagement;
@@ -27,7 +26,7 @@ namespace TodoApp.UWP
             ApplicationView.PreferredLaunchViewSize = new Size(450, 800);
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
 
-            _viewModel = new TodoListViewModel(this, TodoService.Value);
+            _viewModel = new TodoListViewModel(this, App.TodoService);
             DataContext = _viewModel;
         }
 

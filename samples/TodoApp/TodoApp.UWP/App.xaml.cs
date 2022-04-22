@@ -1,7 +1,9 @@
-﻿using System;
-// Copyright (c) Microsoft Corporation. All Rights Reserved.
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using System;
+using TodoApp.Data;
+using TodoApp.Data.Services;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.UI.Xaml;
@@ -15,6 +17,8 @@ namespace TodoApp.UWP
     /// </summary>
     public sealed partial class App : Application
     {
+        public static ITodoService TodoService { get; } = new RemoteTodoService();
+
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().

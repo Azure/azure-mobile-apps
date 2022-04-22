@@ -5,7 +5,6 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using TodoApp.Data;
 using TodoApp.Data.MVVM;
 
 namespace TodoApp.WPF
@@ -20,7 +19,7 @@ namespace TodoApp.WPF
         public MainWindow()
         {
             InitializeComponent();
-            _viewModel = new TodoListViewModel(App.Current as IMVVMHelper, TodoService.Value);
+            _viewModel = new TodoListViewModel(App.Current as IMVVMHelper, App.TodoService);
             DataContext = _viewModel;
         }
 

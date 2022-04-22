@@ -19,6 +19,7 @@ using AlertDialog = Android.App.AlertDialog;
 using ProgressBar = Android.Widget.ProgressBar;
 using EditText = Android.Widget.EditText;
 using FloatingActionButton = Google.Android.Material.FloatingActionButton.FloatingActionButton;
+using TodoApp.Data.Services;
 
 namespace TodoApp.Android
 {
@@ -29,7 +30,8 @@ namespace TodoApp.Android
         private FloatingActionButton addItemButton;
         private ProgressBar isBusyIndicator;
         private TodoAdapter todoAdapter;
-        private readonly ITodoService todoService = TodoService.Value;
+
+        public static ITodoService TodoService { get; } = new RemoteTodoService();
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -91,8 +93,8 @@ namespace TodoApp.Android
             SetIsBusy(true);
             try
             {
-                await todoService.RefreshItemsAsync();
-                var items = await todoService.GetItemsAsync();
+                await TodoService.RefreshItemsAsync();
+                var items = await TodoService.GetItemsAsync();
                 RunOnUiThread(() => todoAdapter.RefreshItems(items));
             }
             catch (Exception error)
@@ -125,7 +127,7 @@ namespace TodoApp.Android
                 var item = new TodoItem { Title = control.Text, IsComplete = false };
                 try
                 {
-                    await todoService.SaveItemAsync(item);
+                    await TodoService.SaveItemAsync(item);
                     RunOnUiThread(() => todoAdapter.AddItem(item));
                 }
                 catch (Exception error)
@@ -160,7 +162,7 @@ namespace TodoApp.Android
             item.IsComplete = isChecked;
             try
             {
-                await todoService.SaveItemAsync(item);
+                await TodoService.SaveItemAsync(item);
                 RunOnUiThread(() => todoAdapter.ReplaceItem(item));
             }
             catch (Exception error)

@@ -4,7 +4,9 @@
 using System;
 using System.Threading.Tasks;
 using System.Windows;
+using TodoApp.Data;
 using TodoApp.Data.MVVM;
+using TodoApp.Data.Services;
 
 namespace TodoApp.WPF
 {
@@ -13,6 +15,8 @@ namespace TodoApp.WPF
     /// </summary>
     public partial class App : Application, IMVVMHelper
     {
+        public static ITodoService TodoService { get; } = new RemoteTodoService();
+
         #region IMVVMHelper
         /// <summary>
         /// Runs the associated code on the UI thread so that the UI can

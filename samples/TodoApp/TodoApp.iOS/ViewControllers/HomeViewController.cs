@@ -9,6 +9,7 @@ using TodoApp.Data;
 using TodoApp.Data.Models;
 using TodoApp.iOS.DataSources;
 using UIKit;
+using TodoApp.Data.Services;
 
 namespace TodoApp.iOS.ViewControllers
 {
@@ -17,12 +18,13 @@ namespace TodoApp.iOS.ViewControllers
         protected UIBarButtonItem addItemButton;
         protected UITableView tableView;
         protected TodoItemsTableSource tableSource;
-        protected ITodoService service = TodoService.Value;
+
+        public ITodoService TodoService { get; } = new RemoteTodoService();
 
         public HomeViewController()
         {
             Title = "Todo Items";
-            service.TodoItemsUpdated += OnTodoItemsUpdated;
+            TodoService.TodoItemsUpdated += OnTodoItemsUpdated;
         }
 
         public override async void ViewDidLoad()
@@ -61,8 +63,8 @@ namespace TodoApp.iOS.ViewControllers
         public async Task RefreshListAsync()
         {
             tableView.RefreshControl?.BeginRefreshing();
-            await service.RefreshItemsAsync();
-            tableSource.ReplaceAllItems(await service.GetItemsAsync());
+            await TodoService.RefreshItemsAsync();
+            tableSource.ReplaceAllItems(await TodoService.GetItemsAsync());
             tableView.RefreshControl?.EndRefreshing();
             tableView.ReloadData();
         }
@@ -96,7 +98,7 @@ namespace TodoApp.iOS.ViewControllers
         public async Task OnRowSelectedAsync(TodoItem item)
         {
             item.IsComplete = !item.IsComplete;
-            await service.SaveItemAsync(item);
+            await TodoService.SaveItemAsync(item);
         }
 
         /// <summary>
@@ -106,7 +108,7 @@ namespace TodoApp.iOS.ViewControllers
         {
             var newItemTitle = await ShowAddItemDialogAsync();
             var newItem = new TodoItem { Title = newItemTitle };
-            await service.SaveItemAsync(newItem);
+            await TodoService.SaveItemAsync(newItem);
         }
 
         /// <summary>
