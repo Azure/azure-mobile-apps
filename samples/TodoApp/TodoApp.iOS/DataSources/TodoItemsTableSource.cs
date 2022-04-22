@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Foundation;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Foundation;
-using TodoApp.Data;
-using TodoApp.Data.Extensions;
 using TodoApp.Data.Models;
 using TodoApp.iOS.ViewControllers;
 using UIKit;

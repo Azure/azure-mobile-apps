@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using TodoApp.Data;
 using TodoApp.Data.MVVM;
+using TodoApp.Data.Services;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 
@@ -12,10 +13,12 @@ namespace TodoApp.Forms
 {
     public partial class App : Application, IMVVMHelper
     {
+        public ITodoService TodoService { get; } = new RemoteTodoService();
+
         public App()
         {
             InitializeComponent();
-            MainPage = new NavigationPage(new MainPage(this, TodoService.Value));
+            MainPage = new NavigationPage(new MainPage(this, TodoService));
         }
 
         #region IMVVMHelper
