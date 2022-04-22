@@ -11,6 +11,24 @@ namespace TodoApp.Data.Extensions
     public static class CollectionExtensions
     {
         /// <summary>
+        /// Adds an item within a collection only if there are no items identified by the match function
+        /// </summary>
+        /// <typeparam name="T">The type of the collection model.</typeparam>
+        /// <param name="collection">The collection.</param>
+        /// <param name="match">The match function</param>
+        /// <param name="item">The model item to add.</param>
+        public static bool AddIfMissing<T>(this Collection<T> collection, Func<T, bool> match, T item)
+        {
+            var itemsInCollection = collection.Where(match).ToArray();
+            if (itemsInCollection.Length == 0)
+            {
+                collection.Add(item);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Replace an item within a collection based on a match function.
         /// </summary>
         /// <typeparam name="T">The type of the collection model.</typeparam>
