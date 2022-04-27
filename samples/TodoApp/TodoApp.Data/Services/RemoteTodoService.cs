@@ -43,6 +43,27 @@ namespace TodoApp.Data.Services
         public event EventHandler<TodoServiceEventArgs> TodoItemsUpdated;
 
         /// <summary>
+        /// When using authentication, the token requestor to use.
+        /// </summary>
+        public Func<Task<AuthenticationToken>> TokenRequestor;
+
+        /// <summary>
+        /// Creates a new <see cref="RemoteTodoService"/> with no authentication.
+        /// </summary>
+        public RemoteTodoService()
+        {
+            TokenRequestor = null; // no authentication
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="RemoteTodoService"/> with authentication.
+        /// </summary>
+        public RemoteTodoService(Func<Task<AuthenticationToken>> tokenRequestor)
+        {
+            TokenRequestor = tokenRequestor;
+        }
+
+        /// <summary>
         /// Initialize the connection to the remote table.
         /// </summary>
         /// <returns></returns>
@@ -65,7 +86,9 @@ namespace TodoApp.Data.Services
                 }
 
                 // Initialize the client.
-                _client = new DatasyncClient(Constants.ServiceUri);
+                _client = TokenRequestor == null 
+                    ? new DatasyncClient(Constants.ServiceUri)
+                    : new DatasyncClient(Constants.ServiceUri, new GenericAuthenticationProvider(TokenRequestor));
                 _table = _client.GetRemoteTable<TodoItem>();
 
                 // Set _initialied to true to prevent duplication of locking.
