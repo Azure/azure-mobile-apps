@@ -43,7 +43,7 @@ namespace TodoApp.Data.MVVM
         /// </summary>
         public async void OnActivated()
         {
-            await RefreshItemsAsync().ConfigureAwait(false);
+            await RefreshItemsAsync();
             _service.TodoItemsUpdated += OnTodoItemsUpdated;
         }
 
@@ -67,14 +67,14 @@ namespace TodoApp.Data.MVVM
         /// <returns>A task that completes when the sync is done.</returns>
         public virtual async Task RefreshItemsAsync()
         {
-            await SetRefreshing(true).ConfigureAwait(false);
+            await SetRefreshing(true);
             try
             {
                 // Do any database service refreshing needed
-                await _service.RefreshItemsAsync().ConfigureAwait(false);
+                await _service.RefreshItemsAsync();
 
                 // Get the current list of items.
-                var items = await _service.GetItemsAsync().ConfigureAwait(false);
+                var items = await _service.GetItemsAsync();
 
                 // Clear the list and then add each item from the service in turn.
                 // This has to be done via the UI thread.
@@ -85,15 +85,15 @@ namespace TodoApp.Data.MVVM
                     {
                         Items.Add(item);
                     }
-                }).ConfigureAwait(false);
+                });
             }
             catch (Exception ex)
             {
-                await _helper.DisplayErrorAlertAsync("RefreshItems", ex.Message).ConfigureAwait(false);
+                await _helper.DisplayErrorAlertAsync("RefreshItems", ex.Message);
             }
             finally
             {
-                await SetRefreshing(false).ConfigureAwait(false);
+                await SetRefreshing(false);
             }
         }
 
@@ -109,11 +109,11 @@ namespace TodoApp.Data.MVVM
             {
                 var item = Items.Single(m => m.Id == itemId);
                 item.IsComplete = isComplete;
-                await _service.SaveItemAsync(item).ConfigureAwait(false);
+                await _service.SaveItemAsync(item);
             }
             catch (Exception ex)
             {
-                await _helper.DisplayErrorAlertAsync("UpdateItem", ex.Message).ConfigureAwait(false);
+                await _helper.DisplayErrorAlertAsync("UpdateItem", ex.Message);
             }
         }
 
@@ -127,11 +127,11 @@ namespace TodoApp.Data.MVVM
             try
             {
                 var item = new TodoItem { Title = text };
-                await _service.SaveItemAsync(item).ConfigureAwait(false);
+                await _service.SaveItemAsync(item);
             }
             catch (Exception ex)
             {
-                await _helper.DisplayErrorAlertAsync("UpdateItem", ex.Message).ConfigureAwait(false);
+                await _helper.DisplayErrorAlertAsync("UpdateItem", ex.Message);
             }
         }
 
@@ -157,7 +157,7 @@ namespace TodoApp.Data.MVVM
                         Items.ReplaceIf(m => m.Id == e.Item.Id, e.Item);
                         break;
                 }
-            }).ConfigureAwait(false);
+            });
         }
 
         /// <summary>
