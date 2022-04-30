@@ -3,11 +3,11 @@
 
 namespace TodoApp.Data
 {
-    internal static class Constants
+    public static class Constants
     {
         /// <summary>
         /// The base URI for the Datasync service.
         /// </summary>
-        internal static string ServiceUri = "https://APPSERVICENAME.azurewebsites.net";
+        public static string ServiceUri = "https://APPSERVICENAME.azurewebsites.net";
     }
 }
