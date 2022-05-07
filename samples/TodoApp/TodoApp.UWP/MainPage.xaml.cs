@@ -22,7 +22,10 @@ namespace TodoApp.UWP
 
         public MainPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
+
+            ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(450, 800));
+
             ApplicationView.PreferredLaunchViewSize = new Size(450, 800);
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
 

@@ -41,10 +41,10 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBox x:Name="textboxControl" Background="Transparent" BorderBrush="Indigo" FontSize="20" PlaceholderText="Enter new todo item" />
-            <Button Grid.Column="1" Margin="4" Click="AddItemClickHandler">
+            <Button Grid.Column="1" Margin="4" Click="AddItemClickHandler" Background="#FFD0D0D0">
                 <Image Width="24" Height="24" Source="/Assets/additem.png"/>
             </Button>
-            <Button Grid.Column="2" Margin="4" Click="RefreshItemsClickHandler">
+            <Button Grid.Column="2" Margin="4" Click="RefreshItemsClickHandler" Background="#FFD0D0D0">
                 <Image Width="24" Height="24" Source="/Assets/refresh.png"/>
             </Button>
         </Grid>
