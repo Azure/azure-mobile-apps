@@ -146,5 +146,19 @@
                 "[resourceId('Microsoft.Web/sites', variables('websiteName'))]"
             ]            
         }      
-    ]
+    ],
+    "outputs": {
+        "backendUrl": {
+            "type": "string",
+            "value": "[concat('https://', variables('websiteName'), '.azurewebsites.net')]"
+        },
+        "sqlUsername": {
+            "type": "string",
+            "value": "[parameters('sqlAdministratorLogin')]"
+        },
+        "sqlPassword": {
+            "type": "string",
+            "value": "[parameters('sqlPassword')]"
+        }
+    }
 }
