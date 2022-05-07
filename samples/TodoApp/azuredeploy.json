@@ -39,7 +39,7 @@
                 "description": "The admin user of the SQL Server"
             }
         },
-        "sqlAdministratorLoginPassword": {
+        "sqlPassword": {
             "type": "secureString",
             "metadata": {
                 "description": "The password of the admin user of the SQL Server"
@@ -67,7 +67,7 @@
             "location": "[parameters('location')]",
             "properties": {
                 "administratorLogin": "[parameters('sqlAdministratorLogin')]",
-                "administratorLoginPassword": "[parameters('sqlAdministratorLoginPassword')]",
+                "administratorLoginPassword": "[parameters('sqlPassword')]",
                 "version": "12.0"
             }
         },
@@ -137,7 +137,7 @@
             "name": "[format('{0}/{1}', variables('websiteName'), 'connectionstrings')]",
             "properties": {
                 "DefaultConnection": {
-                    "value": "[format('Data Source=tcp:{0},1433;Initial Catalog={1};User Id={2}@{3};Password={4};', reference(resourceId('Microsoft.Sql/servers', variables('sqlserverName'))).fullyQualifiedDomainName, variables('databaseName'), parameters('sqlAdministratorLogin'), reference(resourceId('Microsoft.Sql/servers', variables('sqlserverName'))).fullyQualifiedDomainName, parameters('sqlAdministratorLoginPassword'))]",
+                    "value": "[format('Data Source=tcp:{0},1433;Initial Catalog={1};User Id={2}@{3};Password={4};', reference(resourceId('Microsoft.Sql/servers', variables('sqlserverName'))).fullyQualifiedDomainName, variables('databaseName'), parameters('sqlAdministratorLogin'), reference(resourceId('Microsoft.Sql/servers', variables('sqlserverName'))).fullyQualifiedDomainName, parameters('sqlPassword'))]",
                     "type": "SQLAzure"
                 }
             },
@@ -146,5 +146,19 @@
                 "[resourceId('Microsoft.Web/sites', variables('websiteName'))]"
             ]            
         }      
-    ]
+    ],
+    "outputs": {
+        "backendUrl": {
+            "type": "string",
+            "value": "[concat('https://', variables('websiteName'), '.azurewebsites.net')]"
+        },
+        "sqlUsername": {
+            "type": "string",
+            "value": "[parameters('sqlAdministratorLogin')]"
+        },
+        "sqlPassword": {
+            "type": "string",
+            "value": "[parameters('sqlPassword')]"
+        }
+    }
 }
