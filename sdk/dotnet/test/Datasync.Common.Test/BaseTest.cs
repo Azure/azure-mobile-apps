@@ -10,6 +10,7 @@ using Microsoft.Datasync.Client.Authentication;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Table;
+using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -186,6 +187,34 @@ namespace Datasync.Common.Test
                 OfflineStore = store
             };
             return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, options);
+        }
+
+        /// <summary>
+        /// Get a datasync client that is connected to the integration movie service.
+        /// </summary>
+        /// <param name="authProvider">... with the provided authentication provider</param>
+        /// <returns>A datasync client</returns>
+        protected DatasyncClient GetMovieClientWithIdGenerator(AuthenticationProvider authProvider = null, IOfflineStore store = null)
+        {
+            var options = new DatasyncClientOptions
+            {
+                HttpPipeline = BuildHandlers(authProvider, MovieServer.CreateHandler()),
+                OfflineStore = store,
+                IdGenerator = MyIdGenerator
+            };
+            return authProvider == null ? new DatasyncClient(Endpoint, options) : new DatasyncClient(Endpoint, options);
+        }
+
+        /// <summary>
+        /// Custom Id Generator
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        protected string MyIdGenerator(string tableName)
+        {
+            Arguments.IsNotNullOrWhitespace(tableName, nameof(tableName));
+            // user code for custom id generation
+            return tableName + "_id";
         }
 
         /// <summary>
