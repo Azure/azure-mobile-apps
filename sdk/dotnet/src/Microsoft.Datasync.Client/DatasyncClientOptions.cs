@@ -4,6 +4,7 @@
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 
@@ -44,5 +45,12 @@ namespace Microsoft.Datasync.Client
         /// to do telemetry easily without being too obtrusive.  We'd prefer it if you didn't change this.
         /// </summary>
         public string UserAgent { get; set; } = $"Datasync/{Platform.AssemblyVersion} ({Platform.UserAgentDetails})";
+
+#nullable enable
+        /// <summary>
+        /// The id generator to use for customize id. By default, if id is empty is used Guid.NewGuid().ToString("N").
+        /// </summary>
+        public Func<string, string>? IdGenerator { get; set; }
+#nullable disable
     }
 }

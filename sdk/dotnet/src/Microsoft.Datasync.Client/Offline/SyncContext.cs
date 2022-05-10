@@ -48,6 +48,14 @@ namespace Microsoft.Datasync.Client.Offline
         private readonly AsyncLockDictionary tableLock = new();
 
         /// <summary>
+        /// The Id generator to use for item.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+#nullable enable
+        private Func<string, string>? IdGenerator;
+#nullable disable
+
+        /// <summary>
         /// Coordinates all the requests for offline operations.
         /// </summary>
         internal SyncContext(DatasyncClient client, IOfflineStore store)
@@ -58,6 +66,7 @@ namespace Microsoft.Datasync.Client.Offline
             ServiceClient = client;
             OfflineStore = store;
             PushContext = this;
+            IdGenerator = client.ClientOptions.IdGenerator;
         }
 
         /// <summary>
@@ -184,7 +193,7 @@ namespace Microsoft.Datasync.Client.Offline
             string itemId = ServiceSerializer.GetId(instance, allowDefault: true);
             if (itemId == null)
             {
-                itemId = Guid.NewGuid().ToString("N");
+                itemId = IdGenerator?.Invoke(tableName) ?? Guid.NewGuid().ToString("N");
                 instance = (JObject)instance.DeepClone();
                 instance[SystemProperties.JsonIdProperty] = itemId;
             }
