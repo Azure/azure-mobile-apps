@@ -24,6 +24,14 @@ namespace Microsoft.Datasync.Client.Table
         private readonly SyncContext _context;
 
         /// <summary>
+        /// The Id generator to use for item.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+#nullable enable
+        public Func<string, string>? IdGenerator;
+#nullable disable
+
+        /// <summary>
         /// Creates a new <see cref="RemoteTable"/> instance to perform
         /// untyped (JSON) requests to an offline table.
         /// </summary>
@@ -42,6 +50,7 @@ namespace Microsoft.Datasync.Client.Table
             ServiceClient = serviceClient;
             TableName = tableName;
             _context = serviceClient.SyncContext;
+            IdGenerator = serviceClient.ClientOptions.IdGenerator;
         }
 
         #region IOfflineTable
@@ -96,7 +105,7 @@ namespace Microsoft.Datasync.Client.Table
             string id = ServiceSerializer.GetId(instance, allowDefault: true);
             if (id == null)
             {
-                id = Guid.NewGuid().ToString("N");
+                id = IdGenerator?.Invoke(TableName) ?? Guid.NewGuid().ToString("N");
                 instance = (JObject)instance.DeepClone();
                 instance[SystemProperties.JsonIdProperty] = id;
             }
