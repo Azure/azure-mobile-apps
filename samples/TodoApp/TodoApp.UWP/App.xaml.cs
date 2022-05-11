@@ -17,8 +17,6 @@ namespace TodoApp.UWP
     /// </summary>
     public sealed partial class App : Application
     {
-        public static ITodoService TodoService { get; } = new RemoteTodoService();
-
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -27,7 +25,11 @@ namespace TodoApp.UWP
         {
             InitializeComponent();
             Suspending += OnSuspending;
+
+            TodoService = new RemoteTodoService();
         }
+
+        public ITodoService TodoService { get; }
 
         /// <summary>
         /// Invoked when the application is launched normally by the end user.  Other entry points

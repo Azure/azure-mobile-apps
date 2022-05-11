@@ -29,7 +29,7 @@ namespace TodoApp.UWP
             ApplicationView.PreferredLaunchViewSize = new Size(450, 800);
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
 
-            _viewModel = new TodoListViewModel(this, App.TodoService);
+            _viewModel = new TodoListViewModel(this, (Application.Current as App)?.TodoService);
             DataContext = _viewModel;
         }
 
