@@ -31,7 +31,7 @@ namespace TodoApp.Android
         private ProgressBar isBusyIndicator;
         private TodoAdapter todoAdapter;
 
-        public static ITodoService TodoService { get; } = new RemoteTodoService();
+        public static ITodoService TodoService { get; set; }
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -45,6 +45,9 @@ namespace TodoApp.Android
             addItemButton = FindViewById<FloatingActionButton>(Resource.Id.add_item_button);
             isBusyIndicator = FindViewById<ProgressBar>(Resource.Id.busy_indicator);
 
+            // Set up the TodoService
+            TodoService = new RemoteTodoService();
+            
             // Set up the List Adapter
             todoAdapter = new TodoAdapter(this);
             itemList.SetAdapter(todoAdapter);
