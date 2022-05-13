@@ -13,11 +13,12 @@ namespace TodoApp.Forms
 {
     public partial class App : Application, IMVVMHelper
     {
-        public ITodoService TodoService { get; } = new RemoteTodoService();
+        public ITodoService TodoService { get; }
 
         public App()
         {
             InitializeComponent();
+            TodoService = new RemoteTodoService();
             MainPage = new NavigationPage(new MainPage(this, TodoService));
         }
 
