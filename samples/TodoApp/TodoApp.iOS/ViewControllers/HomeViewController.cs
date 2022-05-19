@@ -19,11 +19,12 @@ namespace TodoApp.iOS.ViewControllers
         protected UITableView tableView;
         protected TodoItemsTableSource tableSource;
 
-        public ITodoService TodoService { get; } = new RemoteTodoService();
+        public ITodoService TodoService { get; }
 
         public HomeViewController()
         {
             Title = "Todo Items";
+            TodoService = new RemoteTodoService();
             TodoService.TodoItemsUpdated += OnTodoItemsUpdated;
         }
 
