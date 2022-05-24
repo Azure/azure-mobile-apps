@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Globalization;
 using System.Linq;
 
 namespace Microsoft.Datasync.Client.Serialization
@@ -124,7 +125,7 @@ namespace Microsoft.Datasync.Client.Serialization
                 return null;
             }
             // Throw an error if the service returned a bad date format.
-            return DateTimeOffset.Parse(updatedAt);
+            return DateTimeOffset.Parse(updatedAt, CultureInfo.InvariantCulture);
         }
 
         /// <summary>
