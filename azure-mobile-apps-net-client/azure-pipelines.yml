@@ -1,0 +1,155 @@
+trigger:
+  - master
+  - refs/tags/*
+
+pr:
+  - master
+
+variables:
+  AREA_PATH: 'DevDiv\Xamarin SDK'
+  BASE_VERSION: 4.2.0
+  PREVIEW_LABEL: 'preview'
+  BUILD_NUMBER: $[counter(format('{0}_{1}_{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['Build.SourceBranch']), 1)]
+  NUGET_VERSION: $[format('{0}-{1}.{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['BUILD_NUMBER'])]
+
+resources:
+  repositories:
+    - repository: internal-templates
+      type: github
+      name: xamarin/yaml-templates
+      endpoint: xamarin
+    - repository: components
+      type: github
+      name: xamarin/XamarinComponents
+      endpoint: xamarin
+
+stages:
+  - stage: build
+    displayName: Build
+    dependsOn: []
+    jobs:
+      - template: .ci/build.yml@components
+        parameters:
+          publishJob: windows
+          areaPath: $(AREA_PATH)
+          validPackagePrefixes:
+            - Microsoft.Azure.Mobile.Client
+          preBuildSteps:
+            - pwsh: |
+                $pr = "pr." + $env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER
+                $nuget = $env:BASE_VERSION + "-" + $pr + "." + $env:BUILD_NUMBER
+                Write-Host "Preview label: $pr"
+                Write-Host "NuGet version: $nuget"
+                Write-Host "##vso[task.setvariable variable=PREVIEW_LABEL]$pr"
+                Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$nuget"
+              displayName: Use a special preview label for PRs
+              condition: eq(variables['Build.Reason'], 'PullRequest')
+            - pwsh: |
+                $tagVersion = $env:BUILD_SOURCEBRANCHNAME
+                Write-Host "Tag version: $tagVersion"
+                Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$tagVersion"
+              displayName: Override version for tags
+              condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+            - pwsh: |
+                Write-Host "##vso[build.updatebuildnumber]$env:NUGET_VERSION"
+              displayName: Update the build number with a more readable one
+
+  - ${{ if eq(variables['System.TeamProject'], 'devdiv') }}:
+    - stage: signing
+      displayName: Signing
+      dependsOn: [ 'build' ]
+      jobs:
+        - template: sign-artifacts/jobs/v2.yml@internal-templates
+          parameters:
+            codeSignOverride: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+
+  - stage: e2etests
+    displayName: Device End-to-End Tests
+    dependsOn: [ ]
+    jobs:
+      - template: .ci/build.yml@components
+        parameters:
+          name: e2etests_ios
+          dependsOn: [ ] # temporary until tests support parallel runs
+          runChecks: false
+          displayName: iOS
+          windowsImage: ''
+          xcode: '12'
+          areaPath: $(AREA_PATH)
+          verbosity: diagnostic
+          cakeFile: e2etests/build.cake
+          cakeTarget: test-ios-emu
+          cakeExtraArgs: --ios-device="`"iPhone 11`"" --ios-runtime="`"com.apple.CoreSimulator.SimRuntime.iOS-14-0`""
+
+      - template: .ci/build.yml@components
+        parameters:
+          name: e2etests_android_api_23
+          dependsOn: [ 'e2etests_ios' ] # temporary until tests support parallel runs
+          runChecks: false
+          displayName: Android API 23
+          windowsImage: ''
+          macosImage: 'macos-10.14'
+          xcode: '11.3.1'
+          areaPath: $(AREA_PATH)
+          verbosity: diagnostic
+          cakeFile: e2etests/build.cake
+          cakeTarget: test-android-emu
+          cakeExtraArgs: --avd-target="`"system-images;android-23;google_apis;x86`""
+          preBuildSteps:
+            - bash: sh -c "echo \"y\" | $ANDROID_HOME/tools/bin/sdkmanager \"system-images;android-23;google_apis;x86\""
+              displayName: Install the Android emulators
+
+      - template: .ci/build.yml@components
+        parameters:
+          name: e2etests_android_api_26
+          dependsOn: [ 'e2etests_android_api_23' ] # temporary until tests support parallel runs
+          runChecks: false
+          displayName: Android API 26
+          windowsImage: ''
+          macosImage: 'macos-10.14'
+          xcode: '11.3.1'
+          areaPath: $(AREA_PATH)
+          verbosity: diagnostic
+          cakeFile: e2etests/build.cake
+          cakeTarget: test-android-emu
+          cakeExtraArgs: --avd-target="`"system-images;android-26;google_apis;x86`""
+          preBuildSteps:
+            - bash: sh -c "echo \"y\" | $ANDROID_HOME/tools/bin/sdkmanager \"system-images;android-26;google_apis;x86\""
+              displayName: Install the Android emulators
+
+      - template: .ci/build.yml@components
+        parameters:
+          name: e2etests_android_api_29
+          dependsOn: [ 'e2etests_android_api_26' ] # temporary until tests support parallel runs
+          runChecks: false
+          displayName: Android API 29
+          windowsImage: ''
+          macosImage: 'macos-10.14'
+          xcode: '11.3.1'
+          areaPath: $(AREA_PATH)
+          verbosity: diagnostic
+          cakeFile: e2etests/build.cake
+          cakeTarget: test-android-emu
+          cakeExtraArgs: --avd-target="`"system-images;android-29;google_apis;x86`""
+          preBuildSteps:
+            - bash: sh -c "echo \"y\" | $ANDROID_HOME/tools/bin/sdkmanager \"system-images;android-29;google_apis;x86\""
+              displayName: Install the Android emulators
+
+      - template: .ci/build.yml@components	
+        parameters:	
+          name: e2etests_android_api_30	
+          dependsOn: [ 'e2etests_android_api_29' ] # temporary until tests support parallel runs	
+          runChecks: false	
+          displayName: Android API 30	
+          windowsImage: ''	
+          macosImage: 'macos-10.14'	
+          xcode: '11.3.1'	
+          areaPath: $(AREA_PATH)	
+          verbosity: diagnostic	
+          cakeFile: e2etests/build.cake	
+          cakeTarget: test-android-emu	
+          cakeExtraArgs: --avd-target="`"system-images;android-30;google_apis;x86`""	
+          preBuildSteps:	
+            - bash: sh -c "echo \"y\" | $ANDROID_HOME/tools/bin/sdkmanager \"system-images;android-30;google_apis;x86\""	
+              displayName: Install the Android emulators
+              

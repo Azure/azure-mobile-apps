@@ -1,0 +1,38 @@
+<Project Sdk="MSBuild.Sdk.Extras/2.1.2">
+  <Import Project="..\..\build\Microsoft.Azure.Mobile.Client.Build.props" />
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net461;monoandroid90;monoandroid10.0;xamarin.ios10</TargetFrameworks>
+    <PackageTitle>Azure Mobile SQLiteStore</PackageTitle>
+    <Title>Azure Mobile SQLiteStore</Title>
+    <Authors>Microsoft</Authors>
+    <Product>$(AssemblyName) ($(TargetFramework))</Product>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/Azure/azure-mobile-apps-net-client</PackageProjectUrl>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Description>This library provides features for creating offline sync-enabled Windows and Xamarin mobile apps that connect to Azure Mobile Apps. It provides an implementation of a local store based on SQLite. To learn more about Azure Mobile, go to http://azure.microsoft.com/mobile. </Description>
+    <Summary>Azure Mobile Apps offline store for SQLite</Summary>
+    <PackageReleaseNotes>https://github.com/Azure/azure-mobile-apps-net-client/blob/master/CHANGELOG.md</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/Azure/azure-mobile-apps-net-client</RepositoryUrl>
+    <PackageTags>microsoft;windows;azure;mobile;apps;services;windowsazureofficial</PackageTags>
+    <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <DebugType>portable</DebugType>
+    <RootNamespace>Microsoft.WindowsAzure.MobileServices.SQLiteStore</RootNamespace>
+    <Company>Microsoft</Company>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Azure.Mobile.Client\Microsoft.Azure.Mobile.Client.csproj" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.0.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\images\icon.png" PackagePath="icon.png" Pack="True" />
+    <None Include="..\..\LICENSE.txt" PackagePath="LICENSE.txt" Pack="True" />
+    <Compile Update="Properties\Resources.Designer.cs" AutoGen="True" DesignTime="True" DependentUpon="Resources.resx" />
+    <EmbeddedResource Update="Properties\Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
+  </ItemGroup>
+</Project>
