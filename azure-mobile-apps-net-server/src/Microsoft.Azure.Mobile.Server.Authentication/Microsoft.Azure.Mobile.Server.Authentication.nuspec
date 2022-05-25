@@ -1,0 +1,27 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Microsoft.Azure.Mobile.Server.Authentication</id>
+    <version>$version$$prerelease$</version>
+    <title>Azure Mobile .NET Server Authentication</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft mobile-center</owners>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkID=331327</licenseUrl>    
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</iconUrl>
+    <projectUrl>https://github.com/azure/azure-mobile-apps-net-server</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>This package is part of the Azure Mobile .NET Server SDK and provides authentication features. To learn more about Azure Mobile, go to http://azure.microsoft.com/mobile.</description>
+    <releaseNotes>
+      Breaking Changes
+        Version 2.0.0 : ProviderCredentials.Claims is no longer available. Use ProviderCredentials.UserClaims instead
+    </releaseNotes>
+    <copyright>&#169; Microsoft Corporation. All rights reserved.</copyright>
+    <tags>microsoft azure mobile server appservice windowsazureofficial aspnet webapi aspnetwebapi owin app service api apps</tags>
+    <dependencies>
+      <dependency id="System.IdentityModel.Tokens.Jwt" version="(4.0.3,)" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="**\Microsoft.Azure.Mobile.Server.Authentication.resources.dll" target="lib\net46" />
+  </files>
+</package>

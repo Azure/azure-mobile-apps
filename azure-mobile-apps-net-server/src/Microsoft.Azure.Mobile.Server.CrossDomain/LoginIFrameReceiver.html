@@ -1,0 +1,12 @@
+﻿<!DOCTYPE html>
+<html>
+<body>
+    <script type="text/javascript">
+        var recipientOrigin = "{0}";
+
+        window.transferLoginResult = function (envelope) {{
+            window.parent.postMessage(JSON.stringify(envelope), recipientOrigin);
+        }}
+    </script>
+</body>
+</html>

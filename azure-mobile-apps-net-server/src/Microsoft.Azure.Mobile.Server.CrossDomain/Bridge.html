@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html>
+<body>
+    <script type="text/javascript">
+        var allowedOrigin = "{0}";
+
+        function handleMessage(evt) {{
+            var sourceWindow = evt.source;
+
+            if (allowedOrigin.indexOf("file:") === 0) {{
+                // Technically we could postMessage to "*", but that would not be secure, so we just don't support it.
+                throw new Error("Filesystem URLs are not supported for cross-domain calls. Please serve your page from a http:// or https:// URL instead.");
+            }}
+
+            if (evt.origin !== allowedOrigin) {{
+                // This is either not a message intended for us, or it would violate the CORS whitelist,
+                // so ensure the request never goes to the server.
+                return;
+            }}
+
+            var envelope = JSON.parse(evt.data),
+                request = envelope.contents;
+
+            ajaxRequest(request, function(response) {{
+                var replyContents = {{
+                    status: response.status,
+                    statusText: response.statusText,
+                    responseText: response.responseText
+                }},
+                    replyEnvelope = {{ messageId: envelope.messageId, contents: replyContents }};
+                sourceWindow.postMessage(JSON.stringify(replyEnvelope), allowedOrigin);
+            }});
+        }}
+
+        function ajaxRequest(request, callback) {{
+            var headers = request.headers || {{}},
+                url = request.url.replace(/#.*$/, ""), // Strip hash part of URL for consistency across browsers
+                httpMethod = request.type ? request.type.toUpperCase() : "GET",
+                xhr = new XMLHttpRequest(),
+                needsHttpMethodOverride = !(httpMethod === "GET" || httpMethod === "POST");
+
+            xhr.onreadystatechange = function () {{
+                if (xhr.readyState === 4) {{
+                    callback(xhr);
+                }}
+            }};
+
+            if (needsHttpMethodOverride) {{
+                headers["X-HTTP-Method-Override"] = httpMethod;
+                httpMethod = "POST";
+            }}
+
+            xhr.open(httpMethod, url);
+
+            for (var key in headers) {{
+                if (request.headers.hasOwnProperty(key)) {{
+                    xhr.setRequestHeader(key, request.headers[key]);
+                }}
+            }}
+
+            xhr.send(request.data);
+        }};
+
+        if (window.addEventListener) {{
+            window.addEventListener('message', handleMessage, false);
+        }} else {{
+            // For IE8
+            window.attachEvent('onmessage', handleMessage);
+        }}
+    </script>
+</body>
+</html>

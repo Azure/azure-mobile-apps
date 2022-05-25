@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build;UnitTests;NugetPack" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">  
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <Platform Condition="'$(Platform)' == ''">Any CPU</Platform>
+    <OutputPath Condition="'$(OutputPath)' == ''">$(MSBuildProjectDirectory)\build_output\</OutputPath>
+    <OutputPathBin>$(OutputPath)\Bin\</OutputPathBin>
+    <OutputPathPackages>$(OutputPath)\Packages\</OutputPathPackages>
+    <OutputPathTests>$(OutputPath)\TestResults\</OutputPathTests>
+    <NuGetExe>tools\NuGet.exe</NuGetExe>
+    <Prerelease>-alpha</Prerelease>
+    <BuildNumber Condition="'$(BUILD_NUMBER)' != ''">-$(BUILD_NUMBER)</BuildNumber>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Package Include="src/Microsoft.Azure.Mobile.Server/Microsoft.Azure.Mobile.Server.csproj"/>
+    <Package Include="src/Microsoft.Azure.Mobile.Server.Authentication/Microsoft.Azure.Mobile.Server.Authentication.csproj"/>
+    <Package Include="src/Microsoft.Azure.Mobile.Server.CrossDomain/Microsoft.Azure.Mobile.Server.CrossDomain.csproj"/>
+    <Package Include="src/Microsoft.Azure.Mobile.Server.Entity/Microsoft.Azure.Mobile.Server.Entity.csproj"/>
+    <Package Include="src/Microsoft.Azure.Mobile.Server.Home/Microsoft.Azure.Mobile.Server.Home.csproj"/>
+    <Package Include="src/Microsoft.Azure.Mobile.Server.Login/Microsoft.Azure.Mobile.Server.Login.csproj"/>
+    <Package Include="src/Microsoft.Azure.Mobile.Server.Notifications/Microsoft.Azure.Mobile.Server.Notifications.csproj"/>
+    <Package Include="src/Microsoft.Azure.Mobile.Server.QuickStart/Microsoft.Azure.Mobile.Server.QuickStart.csproj"/>
+    <Package Include="src/Microsoft.Azure.Mobile.Server.Storage/Microsoft.Azure.Mobile.Server.Storage.csproj"/>
+    <Package Include="src/Microsoft.Azure.Mobile.Server.Swagger/Microsoft.Azure.Mobile.Server.Swagger.csproj"/>
+    <Package Include="src/Microsoft.Azure.Mobile.Server.Tables/Microsoft.Azure.Mobile.Server.Tables.csproj"/>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Build Include="ServerSDK.sln" />
+    <Build Include="Templates.sln" />
+  </ItemGroup>
+  
+  <Target Name="DownloadNuGet">
+    <DownloadNuGet OutputFileName="$(NuGetExe)" MinimumVersion="2.7.0" />
+  </Target>
+  
+  <Target Name="RestorePackages" DependsOnTargets="DownloadNuGet">
+    <Message Text="Restoring NuGet packages..." Importance="High" />
+    <Exec Command='"$(NuGetExe)" restore ServerSDK.sln -PackagesDirectory packages -NonInteractive -Config .nuget\nuget.config' />  
+  </Target>
+  
+  <Target Name="Build" DependsOnTargets="RestorePackages">
+    <!-- Read the (eventual) nuget version from AssemblyInfo.cs. This is used for template generation --> 
+    <ParseNugetVersion AssemblyInfoFile="src\Common\CommonAssemblyInfo.cs">
+      <Output TaskParameter="NugetVersion" PropertyName="NugetVersion" />
+    </ParseNugetVersion>
+    
+    <MSBuild Projects="@(Build)"
+             BuildInParallel="True"
+             Properties="OutputPath=$(OutputPathBin);Configuration=$(Configuration);Platform=$(Platform);RunXunitTests=false;NugetVersion=$(NugetVersion)" />
+  </Target>
+  
+  <UsingTask TaskName="Xunit.Runner.MSBuild.xunit"
+             AssemblyFile="packages\xunit.runner.msbuild.2.1.0\build\portable-net45+win8+wp8+wpa81\xunit.runner.msbuild.dll" />
+  
+  <Target Name="UnitTests">
+    <ItemGroup>
+      <TestAssemblies Include="$(OutputPathBin)Microsoft.Azure.Mobile.Server*.Test.dll"/>      
+    </ItemGroup>  
+    
+    <MakeDir Directories="$(OutputPathTests)" />
+
+    <xunit Assemblies="@(TestAssemblies)" ParallelizeAssemblies="true" ParallelizeTestCollections="false" Xml="$(OutputPathTests)results.xml" Html="$(OutputPathTests)results.html" />
+  </Target>
+  
+  <Target Name="NugetPack" DependsOnTargets="DownloadNuGet">
+    <MakeDir Directories="$(OutputPathPackages)\Prerelease" />
+    <MakeDir Directories="$(OutputPathPackages)\Release" />
+    <!-- Build two sets of packages so we can be prepared to release without needing to re-build -->
+    <Message Text="Building release and prerelease NuGet packages for %(Package.Identity)" Importance="High" />
+    <Exec Command='"$(NuGetExe)" pack %(Package.Identity) -BasePath $(OutputPathBin) -Symbols -OutputDirectory $(OutputPathPackages)\Release -Prop OutputPath=$(OutputPathBin) -IncludeReferencedProjects -Properties prerelease=' />
+    <Exec Command='"$(NuGetExe)" pack %(Package.Identity) -BasePath $(OutputPathBin) -OutputDirectory $(OutputPathPackages)\Prerelease -Prop OutputPath=$(OutputPathBin) -IncludeReferencedProjects -Properties prerelease=$(Prerelease)$(BuildNumber)' />
+  </Target>
+
+  <UsingTask TaskName="DownloadNuGet" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+    <ParameterGroup>
+      <OutputFileName ParameterType="System.String" Required="true" />
+      <MinimumVersion ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Diagnostics" />
+      <Using Namespace="System.Net" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+                Version minimumRequiredVersion;
+                
+                if (!Version.TryParse(MinimumVersion, out minimumRequiredVersion))
+                {
+                    Log.LogError("MinimumVersion '{0}' is not a valid Version.", MinimumVersion);
+                }
+        
+                try
+                {
+                    OutputFileName = Path.GetFullPath(OutputFileName);
+                    
+                    if (File.Exists(OutputFileName))
+                    {
+                        // If NuGet.exe exists but is less than the minimum required version, delete it so that the
+                        // latest version will be downloaded.
+                        FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(OutputFileName);
+                        
+                        string toParse;
+                        
+                        if (versionInfo != null && versionInfo.ProductVersion != null)
+                        {
+                            toParse = versionInfo.ProductVersion;
+                        }
+                        else
+                        {
+                            toParse = null;
+                        }
+                        
+                        Version current;
+                        Version parsed;
+                        
+                        if (toParse != null && Version.TryParse(toParse, out parsed))
+                        {
+                            current = parsed;
+                        }
+                        else
+                        {
+                            // Treat a missing or invalid version like V0.0 (which will trigger a delete and download).
+                            current = new Version(0, 0);
+                        }
+                        
+                        if (current < minimumRequiredVersion)
+                        {
+                            File.Delete(OutputFileName);
+                        }
+                    }
+                    
+                    if (!File.Exists(OutputFileName))
+                    {
+                        Log.LogMessage("Downloading latest version of NuGet.exe...");
+                        Directory.CreateDirectory(Path.GetDirectoryName(OutputFileName));
+                        WebClient webClient = new WebClient();
+                        
+                        // Get the latest nuget client. Some build machines were having issues with the version from nuget.org/nuget.exe
+                        webClient.DownloadFile("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", OutputFileName);
+                    }
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Log.LogErrorFromException(ex);
+                    return false;
+                }
+            ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+<UsingTask TaskName="ParseNugetVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+    <ParameterGroup>
+      <AssemblyInfoFile ParameterType="System.String" Required="true" />
+      <NugetVersion ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+                AssemblyInfoFile = Path.GetFullPath(AssemblyInfoFile);
+                var lines = File.ReadAllLines(AssemblyInfoFile);
+                var assemblyInfo = lines.Single (l => l.Contains("AssemblyInformational"));
+                var firstIndex = assemblyInfo.IndexOf("\"") + 1;
+                var lastIndex = assemblyInfo.LastIndexOf("\"");
+                NugetVersion = assemblyInfo.Substring(firstIndex, lastIndex-firstIndex);
+            ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+</Project>

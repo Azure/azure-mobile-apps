@@ -1,0 +1,87 @@
+﻿<#@ template hostspecific="true" language="C#" #>
+<# string NugetVersion = this.Host.ResolveParameterValue("", "", "NugetVersion"); #>
+<#@ output extension=".vstemplate" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
+    <TemplateData>
+        <ProjectType>VisualBasic</ProjectType>
+        <ProjectSubType>Web</ProjectSubType>
+        <TemplateGroupID>Web</TemplateGroupID>
+        <TemplateID>Microsoft.WAP.VisualBasic.WebApiApplication.v5</TemplateID>
+        <SortOrder>51</SortOrder>
+        <RequiredFrameworkVersion>4.5</RequiredFrameworkVersion>
+        <CreateNewFolder>true</CreateNewFolder>
+        <DefaultName>MvcApplication</DefaultName>
+        <ProvideDefaultName>true</ProvideDefaultName>
+        <LocationField>Enabled</LocationField>
+        <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
+        <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    </TemplateData>
+    <TemplateContent>
+        <CustomParameters>
+            <CustomParameter Name="$language$" Value="VB" />
+            <CustomParameter Name="$languageext$" Value="vb" />
+            <CustomParameter Name="$globalclassname$" Value="WebApiApplication" />
+            <CustomParameter Name="$safecontextclassname$" Value="MobileServiceContext" />
+            <CustomParameter Name="$safeinitializerclassname$" Value="MobileServiceInitializer" />
+        </CustomParameters>
+        <Project File="MobileAppsApplication.vbproj" ReplaceParameters="true">
+            <Folder Name="My Project" TargetFolderName="My Project">
+                <ProjectItem ReplaceParameters="true" TargetFileName="Application.myapp">Application.myapp</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="Application.Designer.vb">Application.Designer.vb</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="AssemblyInfo.vb">AssemblyInfo.vb</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="Resources.resx">Resources.resx</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="Resources.Designer.vb">Resources.Designer.vb</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="Settings.settings">Settings.settings</ProjectItem>
+                <ProjectItem ReplaceParameters="true" TargetFileName="Settings.Designer.vb">Settings.Designer.vb</ProjectItem>
+            </Folder>
+            <Folder Name="App_Data" TargetFolderName="App_Data" />
+            <Folder Name="App_Start" TargetFolderName="App_Start">
+                <ProjectItem ReplaceParameters="true" TargetFileName="Startup.MobileApp.vb">Startup.MobileApp.vb</ProjectItem>
+            </Folder>
+            <Folder Name="Controllers" TargetFolderName="Controllers">
+                <ProjectItem ReplaceParameters="true" TargetFileName="TodoItemController.vb">TodoItemController.vb</ProjectItem>
+				<ProjectItem ReplaceParameters="true" TargetFileName="ValuesController.vb">ValuesController.vb</ProjectItem>
+            </Folder>
+            <Folder Name="DataObjects" TargetFolderName="DataObjects">
+                <ProjectItem ReplaceParameters="true" TargetFileName="TodoItem.vb">TodoItem.vb</ProjectItem>
+            </Folder>
+            <Folder Name="Models" TargetFolderName="Models">
+                <ProjectItem ReplaceParameters="true" TargetFileName="$safecontextclassname$.vb">$safecontextclassname$.vb</ProjectItem>
+            </Folder>
+            <ProjectItem ReplaceParameters="true" TargetFileName="Web.config">Web.config</ProjectItem>
+            <ProjectItem ReplaceParameters="true" TargetFileName="Web.Debug.config">Web.Debug.config</ProjectItem>
+            <ProjectItem ReplaceParameters="true" TargetFileName="Web.Release.config">Web.Release.config</ProjectItem>
+			<ProjectItem ReplaceParameters="true" TargetFileName="Startup.vb">Startup.vb</ProjectItem>
+        </Project>
+    </TemplateContent>
+    <WizardExtension>
+        <Assembly>NuGet.VisualStudio.Interop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</Assembly>
+        <FullClassName>NuGet.VisualStudio.TemplateWizard</FullClassName>
+    </WizardExtension>
+    <WizardData>
+        <packages repository="registry" keyName="MicrosoftAzureMobileAppsV2" isPreunzipped="true" SkipAssemblyReferences="true">
+<#
+var nugetPackages = this.GetQuickStartTemplates();
+foreach(var nugetPackage in nugetPackages)
+{
+#>
+            <package id="<#= nugetPackage.Id #>" version="<#= nugetPackage.Version #>" targetFramework="<#= nugetPackage.TargetFramework #>" />
+<#
+}
+#>
+            <package id="Microsoft.Azure.Mobile.Server" version="<#= NugetVersion#>" targetFramework="net46" />
+            <package id="Microsoft.Azure.Mobile.Server.Tables" version="<#= NugetVersion#>" targetFramework="net46" />
+            <package id="Microsoft.Azure.Mobile.Server.Entity" version="<#= NugetVersion#>" targetFramework="net46" />
+            <package id="Microsoft.Azure.Mobile.Server.Quickstart" version="<#= NugetVersion#>" targetFramework="net46" />
+            <package id="Microsoft.Azure.Mobile.Server.Home" version="<#= NugetVersion#>" targetFramework="net46" />
+            <package id="Microsoft.Azure.Mobile.Server.Notifications" version="<#= NugetVersion#>" targetFramework="net46" />
+            <package id="Microsoft.Azure.Mobile.Server.CrossDomain" version="<#= NugetVersion#>" targetFramework="net46" />
+            <package id="Microsoft.Azure.Mobile.Server.Authentication" version="<#= NugetVersion#>" targetFramework="net46" />
+            <package id="Microsoft.Owin.Host.SystemWeb" version="<#= this.GetVersion(nugetPackages, "Microsoft.Owin")#>" targetFramework="net45" />
+        </packages>
+    </WizardData>
+</VSTemplate>
+<#@ include file="..\..\..\FindDependentNugets.tt" #>

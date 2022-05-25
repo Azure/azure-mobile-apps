@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Microsoft.Azure.Mobile.Server.Notifications</id>
+    <version>$version$$prerelease$</version>
+    <title>(DEPRECATED) Azure Mobile .NET Server Notifications</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft mobile-center</owners>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkID=331327</licenseUrl>    
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</iconUrl>
+    <projectUrl>https://github.com/azure/azure-mobile-apps-net-server</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>This package is part of the Azure Mobile .NET Server SDK. Use it to register push notifications with Azure Notification Hubs. To learn more about Azure Mobile, go to http://azure.microsoft.com/mobile.</description>
+    <releaseNotes>
+      Breaking Changes
+        Version 2.0.0 : This package is deprecated &amp; will not receive major updates. Please use App Service Push instead.
+    </releaseNotes>
+    <copyright>&#169; Microsoft Corporation. All rights reserved.</copyright>
+    <tags>microsoft azure mobile server appservice windowsazureofficial aspnet webapi aspnetwebapi owin app service api apps</tags>    
+  </metadata>
+  <files>
+    <file src="**\Microsoft.Azure.Mobile.Server.Notifications.resources.dll" target="lib\net46" />
+  </files>
+</package>

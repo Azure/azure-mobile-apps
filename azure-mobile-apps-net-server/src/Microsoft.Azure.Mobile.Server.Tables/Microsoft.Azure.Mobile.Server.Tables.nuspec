@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Microsoft.Azure.Mobile.Server.Tables</id>
+    <version>$version$$prerelease$</version>
+    <title>Azure Mobile .NET Server Tables</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft mobile-center</owners>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkID=331327</licenseUrl>    
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</iconUrl>
+    <projectUrl>https://github.com/azure/azure-mobile-apps-net-server</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>This package is part of the Azure Mobile .NET Server SDK and provides features for the /tables endpoint. To learn more about Azure Mobile, go to http://azure.microsoft.com/mobile.</description>
+    <releaseNotes></releaseNotes>
+    <copyright>&#169; Microsoft Corporation. All rights reserved.</copyright>
+    <tags>microsoft azure mobile server tables windowsazureofficial aspnet webapi aspnetwebapi owin app service api apps table</tags>    
+  </metadata>
+  <files>
+    <file src="**\Microsoft.Azure.Mobile.Server.Tables.resources.dll" target="lib\net46" />
+  </files>
+</package>

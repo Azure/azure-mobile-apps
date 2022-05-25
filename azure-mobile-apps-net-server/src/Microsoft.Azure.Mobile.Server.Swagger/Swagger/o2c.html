@@ -1,0 +1,55 @@
+﻿<!--
+ Copyright 2015 SmartBear Software
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+ This file is a modified version of the file at: https://github.com/swagger-api/swagger-ui/blob/36c5fd89d410f820d2f282e778725968459bb622/dist/o2c.html
+ Additions and changes to this file are surrounded by '<AzureMobile>' and '</AzureMobile>' comments.
+-->
+
+<script>
+    // <AzureMobile>
+    var tokenAsJson = null;
+    var qp = {};
+
+    var i = location.href.indexOf('#token=');
+    if (i > 0) {
+        tokenAsJson = decodeURIComponent(location.href.substring(i + 7));
+    }
+    else {
+        i = location.href.indexOf('#error=');
+        if (i > 0) {
+            error = decodeURIComponent(location.href.substring(i + 7));
+        }
+    }
+
+    if (tokenAsJson !== null) {
+        try {
+            qp.access_token = JSON.parse(tokenAsJson).authenticationToken;
+            // parse the token to get the idp
+            var base64Url = qp.access_token.split('.')[1];
+            var base64 = base64Url.replace('-', '+').replace('_', '/');
+            var parsedJwt = JSON.parse(window.atob(base64));
+            qp.state = parsedJwt.idp;
+        }
+        catch (e) {
+            qp.error = e;
+        }
+    }
+    // </AzureMobile>
+
+    if (window.opener.swaggerUi.tokenUrl)
+        window.opener.processOAuthCode(qp);
+    else
+        window.opener.onOAuthComplete(qp);
+
+    window.close();
+</script>

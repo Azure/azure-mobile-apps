@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Microsoft.Azure.Mobile.Server.Quickstart</id>
+    <version>$version$$prerelease$</version>
+    <title>Azure Mobile .NET Server Quickstart</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft mobile-center</owners>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkID=331327</licenseUrl>    
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</iconUrl>
+    <projectUrl>https://github.com/azure/azure-mobile-apps-net-server</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>This is the Azure Mobile Apps .NET Server SDK quickstart package, which references all other server SDK packages. To learn more about Azure Mobile, go to http://azure.microsoft.com/mobile.</description>
+    <releaseNotes>
+      Breaking Changes
+        Version 2.0.0 : UseDefaultConfiguration() does not enable Push registration endpoint
+    </releaseNotes>
+    <copyright>&#169; Microsoft Corporation. All rights reserved.</copyright>
+    <tags>microsoft azure mobile server appservice windowsazureofficial aspnet webapi aspnetwebapi owin app service api apps</tags>    
+  </metadata>
+  <files>
+    <file src="**\Microsoft.Azure.Mobile.Server.Quickstart.resources.dll" target="lib\net46" />
+  </files>
+</package>

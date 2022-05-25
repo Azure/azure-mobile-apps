@@ -1,0 +1,63 @@
+<!-- See http://msdn.microsoft.com/en-us/library/bb514188.aspx for details -->
+<Dictionary>
+  <Words>
+    <Unrecognized>
+    </Unrecognized>
+    <Recognized>
+      <Word>aad</Word>
+      <Word>api</Word>
+      <Word>autofac</Word>
+      <Word>api</Word>
+      <Word>apis</Word>
+      <Word>auth</Word>
+      <Word>bson</Word>
+      <Word>cors</Word>
+      <Word>ctor</Word>
+      <Word>deserializes</Word>
+      <Word>dto</Word>
+      <Word>edm</Word>
+      <Word>guid</Word>
+      <Word>hashset</Word>
+      <Word>infos</Word>
+      <Word>iss</Word>
+      <Word>jwt</Word>
+      <Word>loc</Word>
+      <Word>mpns</Word>
+      <Word>mvc</Word>
+      <Word>nullables</Word>
+      <Word>nuget</Word>
+      <Word>OWIN</Word>
+      <Word>queryables</Word>
+      <Word>realtime</Word>
+      <Word>rel</Word>
+      <Word>rev</Word>
+      <Word>rfc</Word>
+      <Word>src</Word>
+      <Word>swashbuckle</Word>
+      <Word>unregistrations</Word>
+      <Word>utils</Word>
+      <Word>Encryptor</Word>
+      <Word>SID</Word>
+      <Word>quickstart</Word>
+      <Word>uid</Word>
+      <Word>zumo</Word>
+    </Recognized>
+    <Deprecated />
+    <Compound>
+      <Term CompoundAlternate="CheckIns">checkins</Term>
+      <Term CompoundAlternate="FxCop">fxcop</Term>
+      <Term CompoundAlternate="ETag">etag</Term>
+      <Term CompoundAlternate="ETags">etags</Term>
+    </Compound>
+    <DiscreteExceptions>
+      <Term>RunTime</Term>
+    </DiscreteExceptions>
+  </Words>
+  <Acronyms>
+    <CasingExceptions>
+      <Acronym>Backend</Acronym>
+      <Acronym>SID</Acronym>
+      <Acronym>SSO</Acronym>
+    </CasingExceptions>
+  </Acronyms>
+</Dictionary>

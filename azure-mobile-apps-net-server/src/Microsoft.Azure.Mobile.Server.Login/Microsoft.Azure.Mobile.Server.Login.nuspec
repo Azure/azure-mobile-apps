@@ -1,0 +1,24 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Microsoft.Azure.Mobile.Server.Login</id>
+    <version>$version$$prerelease$</version>
+    <title>Microsoft Azure Mobile App .NET Server Login Extension</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft mobile-center</owners>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkID=331327</licenseUrl>    
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</iconUrl>
+    <projectUrl>https://github.com/azure/azure-mobile-apps-net-server</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>This package contains classes for issuing App Service Authentication tokens. For more information, check out http://azure.microsoft.com/mobile.</description>
+    <releaseNotes></releaseNotes>
+    <copyright>&#169; Microsoft Corporation. All rights reserved.</copyright>
+    <tags>microsoft azure mobile server authentication appservice windowsazureofficial aspnet webapi aspnetwebapi owin app service api apps login custom auth</tags>
+    <dependencies>
+      <dependency id="System.IdentityModel.Tokens.Jwt" version="(4.0.3,5.0)" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="**\Microsoft.Azure.Mobile.Server.Login.resources.dll" target="lib\net46" />
+  </files>
+</package>

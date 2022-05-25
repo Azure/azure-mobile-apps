@@ -1,0 +1,83 @@
+﻿<#@ template language="C#" HostSpecific="True" #>
+<#@ output extension="cs" #>
+<#@ assembly name="System.ComponentModel.DataAnnotations" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data.Entity" #>
+<#@ assembly name="System.Data.Linq" #>
+<#@ assembly name="EnvDTE" #>
+<#@ ScaffoldingAssembly Processor="ScaffoldingAssemblyLoader" #>
+<#@ import namespace="Microsoft.AspNet.Scaffolding.Core.Metadata" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
+<#@ parameter type="System.String" name="ControllerName" #>
+<#@ parameter type="System.String" name="Namespace" #>
+<#@ parameter type="System.String" name="ContextTypeName" #>
+<#@ parameter type="System.String" name="ModelTypeName" #>
+<#@ parameter type="Microsoft.AspNet.Scaffolding.Core.Metadata.ModelMetadata" name="ModelMetadata" #>
+<#@ parameter type="System.Collections.Generic.HashSet<System.String>" name="RequiredNamespaces" #>
+<#
+var routePrefix = "tables/";
+var controllerSuffix = "Controller";
+if(ControllerName.EndsWith(controllerSuffix)){
+    routePrefix += ControllerName.Substring(0, ControllerName.LastIndexOf(controllerSuffix));
+} else {
+    routePrefix += "?";
+}
+#>
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web.Http;
+using System.Web.Http.Controllers;
+using System.Web.Http.OData;
+using Microsoft.Azure.Mobile.Server;
+<# foreach (var namespaceName in RequiredNamespaces) { #>
+using <#= namespaceName #>;
+<# } #>
+
+namespace <#= Namespace #>
+{
+<#
+    var entitySetName = ModelMetadata.EntitySetName;
+#>
+    public class <#= ControllerName #> : TableController<<#= ModelTypeName #>>
+    {
+        protected override void Initialize(HttpControllerContext controllerContext)
+        {
+            base.Initialize(controllerContext);
+            <#= ContextTypeName #> context = new <#= ContextTypeName #>();
+            DomainManager = new EntityDomainManager<<#= ModelTypeName #>>(context, Request);
+        }
+
+        // GET <#= routePrefix #>
+        public IQueryable<<#= ModelTypeName #>> GetAll<#= entitySetName #>()
+        {
+            return Query(); 
+        }
+
+        // GET <#= routePrefix #>/48D68C86-6EA6-4C25-AA33-223FC9A27959
+        public SingleResult<<#= ModelTypeName #>> Get<#= ModelTypeName #>(string id)
+        {
+            return Lookup(id);
+        }
+
+        // PATCH <#= routePrefix #>/48D68C86-6EA6-4C25-AA33-223FC9A27959
+        public Task<<#= ModelTypeName #>> Patch<#= ModelTypeName #>(string id, Delta<<#= ModelTypeName #>> patch)
+        {
+             return UpdateAsync(id, patch);
+        }
+
+        // POST <#= routePrefix #>
+        public async Task<IHttpActionResult> Post<#= ModelTypeName #>(<#= ModelTypeName #> item)
+        {
+            <#= ModelTypeName #> current = await InsertAsync(item);
+            return CreatedAtRoute("Tables", new { id = current.Id }, current);
+        }
+
+        // DELETE <#= routePrefix #>/48D68C86-6EA6-4C25-AA33-223FC9A27959
+        public Task Delete<#= ModelTypeName #>(string id)
+        {
+             return DeleteAsync(id);
+        }
+    }
+}

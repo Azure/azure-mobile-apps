@@ -1,0 +1,21 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Microsoft.Azure.Mobile.Server.Home</id>
+    <version>$version$$prerelease$</version>
+    <title>Azure Mobile .NET Server Home</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft mobile-center</owners>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkID=331327</licenseUrl>    
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</iconUrl>
+    <projectUrl>https://github.com/azure/azure-mobile-apps-net-server</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>This package is part of the Azure Mobile .NET Server SDK and provides the default Azure Mobile homepage at the root of your site. To learn more about Azure Mobile, go to http://azure.microsoft.com/mobile.</description>
+    <releaseNotes></releaseNotes>
+    <copyright>&#169; Microsoft Corporation. All rights reserved.</copyright>
+    <tags>microsoft azure mobile server appservice windowsazureofficial aspnet webapi aspnetwebapi owin app service api apps</tags>    
+  </metadata>
+  <files>
+    <file src="**\Microsoft.Azure.Mobile.Server.Home.resources.dll" target="lib\net46" />
+  </files>
+</package>

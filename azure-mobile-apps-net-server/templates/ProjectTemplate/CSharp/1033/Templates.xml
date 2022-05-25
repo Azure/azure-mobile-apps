@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<TemplateDefinition Name="Microsoft Azure Mobile App" Order="2005">
+    <UI>
+        <Template Name="Azure Mobile App" BaseTemplateID="Microsoft.WAP.CSharp.MobileApp.v1.0" Order="3000">
+            <Icon>CSProject.ico</Icon>
+            <PreviewImage>CSProject.ico</PreviewImage>
+            <Summary>A project template for creating an ASP.NET Web API-based mobile backend for a Microsoft Azure Mobile App.</Summary>
+            <Description>A project template for creating an ASP.NET Web API-based mobile backend for a Microsoft Azure Mobile App.</Description>
+            <Options>
+                <TemplateReferences>
+                    <WebAPI Required="true"/>
+                </TemplateReferences>
+                <AzureResources>
+                    <AzureWebsite/>
+                </AzureResources>
+            </Options>
+            <UIFilters>MobileApps</UIFilters>
+        </Template>
+    </UI>
+
+    <BaseTemplates>
+        <BaseTemplate ID="Microsoft.WAP.CSharp.MobileApp.v1.0"
+                      VSTemplatePath="MobileAppsApplication.cshtml.vstemplate">
+            <ApplyRules>
+                <RunRule RuleID="global.WebForms" Option="WebForms" />
+                <RunRule RuleID="global.WebApiWithWebForms" Option="WebForms" />
+            </ApplyRules>
+            <!-- This needs to run last since it applies an XDT and avoids the other rules replacing web.config -->
+            <ApplyRules>
+               <RunRule RuleID="WebFormsPackages15" />
+            </ApplyRules>
+        </BaseTemplate>
+    </BaseTemplates>
+
+    <Rules>
+        <Rule ID="WebFormsPackages15">
+            <AddNugetPackages NugetPackageKey="__NugetRepoKey__" SkipAssemblyReferences="false" IsPreUnzipped="true">
+                <Package ID="Microsoft.Net.Compilers" Version="__MicrosoftNetCompilersPackageVersion__" />
+                <Package ID="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" Version="__MicrosoftCodeDomProvidersPackageVersion__" />
+            </AddNugetPackages>
+        </Rule>
+    </Rules>
+</TemplateDefinition>

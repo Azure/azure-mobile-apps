@@ -1,0 +1,4 @@
+﻿<#@ Template Language="C#" HostSpecific="True"  #>
+<#@ parameter type="System.String" name="EntityTypeNamePluralized" #>
+<#@ parameter type="System.String" name="EntityTypeName" #>
+Public Property <#= EntityTypeNamePluralized #> As System.Data.Entity.DbSet(Of <#= EntityTypeName #>)

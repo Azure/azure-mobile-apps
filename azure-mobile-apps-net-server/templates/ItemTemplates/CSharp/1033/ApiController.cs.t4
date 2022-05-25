@@ -1,0 +1,26 @@
+﻿<#@ template language="C#" HostSpecific="True" #>
+<#@ output extension="cs" #>
+<#@ parameter type="System.String" name="ControllerName" #>
+<#@ parameter type="System.String" name="Namespace" #>
+<#
+var controllerSuffix = "Controller";
+var controllerPrefix = "?";
+if(ControllerName.EndsWith(controllerSuffix)){
+    controllerPrefix = ControllerName.Substring(0, ControllerName.LastIndexOf(controllerSuffix));
+}
+#>
+using System.Web.Http;
+using Microsoft.Azure.Mobile.Server.Config;
+
+namespace <#= Namespace #>
+{
+    [MobileAppController]
+    public class <#= ControllerName #> : ApiController
+    {
+        // GET api/<#= controllerPrefix #>
+        public string Get()
+        {
+            return "Hello from custom controller!";
+        }
+    }
+}

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Copyright 2014 Clarius Consulting SA
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <PropertyGroup>
+        <_ProgramFiles>$([System.Environment]::GetEnvironmentVariable('ProgramFiles(x86)'))</_ProgramFiles>
+        <TextTransformPath Condition="'$(TextTransformPath)' == ''">$(CommonProgramFiles)\Microsoft Shared\TextTemplating\10.0\TextTransform.exe</TextTransformPath>
+        <!-- Initial default value -->
+        <_TransformExe>$(TextTransformPath)</_TransformExe>
+        <!-- If explicit VS version, override default -->
+        <_TransformExe Condition="'$(VisualStudioVersion)' != ''">$(CommonProgramFiles)\Microsoft Shared\TextTemplating\$(VisualStudioVersion)\TextTransform.exe</_TransformExe>
+        <!-- Cascading probing if file not found -->
+        <_TransformExe Condition="!Exists('$(_TransformExe)')">$(CommonProgramFiles)\Microsoft Shared\TextTemplating\10.0\TextTransform.exe</_TransformExe>
+        <_TransformExe Condition="!Exists('$(_TransformExe)')">$(CommonProgramFiles)\Microsoft Shared\TextTemplating\11.0\TextTransform.exe</_TransformExe>
+        <_TransformExe Condition="!Exists('$(_TransformExe)')">$(CommonProgramFiles)\Microsoft Shared\TextTemplating\12.0\TextTransform.exe</_TransformExe>
+        <!-- Future proof 'til VS2013+2 -->
+        <_TransformExe Condition="!Exists('$(_TransformExe)')">$(CommonProgramFiles)\Microsoft Shared\TextTemplating\13.0\TextTransform.exe</_TransformExe>
+        <_TransformExe Condition="!Exists('$(_TransformExe)')">$(CommonProgramFiles)\Microsoft Shared\TextTemplating\14.0\TextTransform.exe</_TransformExe>
+        <_TransformExe Condition="!Exists('$(_TransformExe)')">$(ProgramFiles)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\TextTransform.exe</_TransformExe>
+    </PropertyGroup>
+
+    <Target Name="TransformOnBuild" AfterTargets="AfterBuild">
+
+        <Error Text="Failed to find TextTransform.exe tool at '$(_TransformExe)."
+                Condition="!Exists('$(_TransformExe)')"/>
+
+        <ItemGroup>
+            <_TextTransform Include="@(None)"
+                            Condition="'%(None.Generator)' == 'CustomTextTemplatingFilePreprocessor' Or '%(None.Generator)' == 'TextTemplatingFileGenerator'" />
+        </ItemGroup>
+
+        <!-- Perform task batching for each file -->
+        <Exec Command="&quot;$(_TransformExe)&quot; &quot;@(_TextTransform)&quot; %(_TextTransform.AdditionalArgs)"
+              Condition="'%(Identity)' != ''"/>
+
+    </Target>
+</Project>

@@ -1,0 +1,85 @@
+﻿<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Xml" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Xml" #>
+<#@ import namespace="System.IO" #>
+<#+
+public List<NugetPackage> GetQuickStartTemplates()
+{
+    var quickstart = new List<NugetPackage>();
+    string srcDirectory = this.Host.ResolveParameterValue("", "", "srcDirectory");
+    quickstart.AddRange(NugetPackage.ReadPackageConfig(Path.Combine(srcDirectory, "Microsoft.Azure.Mobile.Server", "packages.config")));
+    quickstart.AddRange(NugetPackage.ReadPackageConfig(Path.Combine(srcDirectory, "Microsoft.Azure.Mobile.Server.Entity", "packages.config")));
+    quickstart.AddRange(NugetPackage.ReadPackageConfig(Path.Combine(srcDirectory, "Microsoft.Azure.Mobile.Server.Tables", "packages.config")));
+    quickstart.AddRange(NugetPackage.ReadPackageConfig(Path.Combine(srcDirectory, "Microsoft.Azure.Mobile.Server.Home", "packages.config")));
+    quickstart.AddRange(NugetPackage.ReadPackageConfig(Path.Combine(srcDirectory, "Microsoft.Azure.Mobile.Server.Authentication", "packages.config")));
+    quickstart.AddRange(NugetPackage.ReadPackageConfig(Path.Combine(srcDirectory, "Microsoft.Azure.Mobile.Server.Notifications", "packages.config")));
+    quickstart.AddRange(NugetPackage.ReadPackageConfig(Path.Combine(srcDirectory, "Microsoft.Azure.Mobile.Server.Quickstart", "packages.config")));
+    quickstart.AddRange(NugetPackage.ReadPackageConfig(Path.Combine(srcDirectory, "Microsoft.Azure.Mobile.Server.CrossDomain", "packages.config")));
+
+    return quickstart.Distinct().ToList();
+}
+
+public string GetVersion(List<NugetPackage> nugetPackages, string id)
+{
+    var package = nugetPackages.Where(nugetPackage => string.CompareOrdinal(nugetPackage.Id, id) == 0).FirstOrDefault();
+    return package.Version;
+}
+
+public string GetHintPath(List<NugetPackage> nugetPackages, string id, string targetFramework=null)
+{
+    var package = nugetPackages.Where(nugetPackage => string.CompareOrdinal(nugetPackage.Id, id) == 0).FirstOrDefault();
+    return string.Format(@"..\packages\{0}.{1}\lib\{2}", package.Id, package.Version, targetFramework == null ? package.TargetFramework : targetFramework);
+}
+
+public class NugetPackage : IEquatable<NugetPackage>
+{
+    public NugetPackage(string packageId, string version, string targetFramework)
+    {
+        this.Id = packageId;
+        this.Version = version;
+        this.TargetFramework = targetFramework;
+    }
+
+    public string Id { get; private set; }
+
+    public string Version { get; private set; }
+
+    public string TargetFramework { get; private set; }
+
+    bool IEquatable<NugetPackage>.Equals(NugetPackage other)
+    {
+        if (other == null)
+        {
+            return false;
+        }
+
+        return string.CompareOrdinal(this.Id, other.Id) == 0 && string.CompareOrdinal(this.Version, other.Version) == 0 && string.CompareOrdinal(this.TargetFramework, other.TargetFramework) == 0;
+    }
+
+    public override int GetHashCode()
+    {
+        return this.Id.GetHashCode();
+    }
+
+    public static List<NugetPackage> ReadPackageConfig(string file)
+    {
+        var doc = new XmlDocument();
+        doc.Load(file);
+
+        var references = new List<NugetPackage>();
+        foreach (XmlNode package in doc.SelectSingleNode("/packages").ChildNodes)
+        {
+            XmlAttribute developmentDependency = package.Attributes["developmentDependency"];
+            if (developmentDependency == null || string.CompareOrdinal(developmentDependency.Value, "true") != 0)
+            {
+                references.Add(new NugetPackage(package.Attributes["id"].Value, package.Attributes["version"].Value, package.Attributes["targetFramework"].Value));
+            }
+        }
+
+        return references;
+    }
+}
+#>
