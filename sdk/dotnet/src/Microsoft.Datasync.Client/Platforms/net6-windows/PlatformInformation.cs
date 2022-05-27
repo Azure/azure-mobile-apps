@@ -2,9 +2,8 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Utils;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using Windows.ApplicationModel;
+using System;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.Datasync.Client.Platforms
 {
@@ -18,9 +17,9 @@ namespace Microsoft.Datasync.Client.Platforms
         /// </summary>
         public IOSInformation OS => new OSInformation
         {
-            Architecture = Package.Current.Id.Architecture.ToString(),
+            Architecture = RuntimeInformation.OSArchitecture.ToString(),
             Name = "Windows",
-            Version = System.Environment.OSVersion.VersionString
+            Version = Environment.OSVersion.VersionString
         };
 
         /// <summary>

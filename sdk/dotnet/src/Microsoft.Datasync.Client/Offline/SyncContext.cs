@@ -50,7 +50,6 @@ namespace Microsoft.Datasync.Client.Offline
         /// <summary>
         /// The Id generator to use for item.
         /// </summary>
-        /// <param name="tableName">The name of the table.</param>
 #nullable enable
         private Func<string, string>? IdGenerator;
 #nullable disable
@@ -358,7 +357,6 @@ namespace Microsoft.Datasync.Client.Offline
         /// Pushes items in the operations queue for the named table to the remote service.
         /// </summary>
         /// <param name="tableName">The name of the offline table.</param>
-        /// <param
         /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
         /// <returns>A task that completes when the push operation has finished.</returns>
         public Task PushItemsAsync(string tableName, CancellationToken cancellationToken = default)

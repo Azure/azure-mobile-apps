@@ -26,7 +26,6 @@ namespace Microsoft.Datasync.Client.Table
         /// <summary>
         /// The Id generator to use for item.
         /// </summary>
-        /// <param name="tableName">The name of the table.</param>
 #nullable enable
         public Func<string, string>? IdGenerator;
 #nullable disable
@@ -77,7 +76,6 @@ namespace Microsoft.Datasync.Client.Table
         /// Execute a query against an offline table.
         /// </summary>
         /// <param name="query">The query to execute.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the results when the query finishes.</returns>
         public IAsyncEnumerable<JObject> GetAsyncItems(string query)
             => new FuncAsyncPageable<JObject>(nextLink => GetNextPageAsync(query, nextLink));

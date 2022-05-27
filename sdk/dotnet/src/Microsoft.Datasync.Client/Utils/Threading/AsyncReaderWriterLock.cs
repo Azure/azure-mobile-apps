@@ -19,7 +19,7 @@ namespace Microsoft.Datasync.Client.Utils
         private int readersWaiting;
 
         /// <summary>
-        /// If <c>-1</c>, then a write lock is in place; if <c>&ge;0</c>, then the number of read locks.
+        /// If <c>-1</c>, then a write lock is in place; if greater than 0, then the number of read locks.
         /// </summary>
         private int lockStatus; // -1 means write lock, >=0 no. of read locks
 

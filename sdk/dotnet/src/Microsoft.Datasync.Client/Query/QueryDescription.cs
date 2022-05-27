@@ -69,7 +69,7 @@ namespace Microsoft.Datasync.Client.Query
         public int? Top { get; set; }
 
         /// <summary>
-        /// Creates a copy of a <see cref="QueryDescription."/>
+        /// Creates a copy of a <see cref="QueryDescription"/>.
         /// </summary>
         /// <returns>The cloned copy.</returns>
         public QueryDescription Clone() => new(TableName)
@@ -91,16 +91,6 @@ namespace Microsoft.Datasync.Client.Query
         /// <param name="query">The OData query string.</param>
         /// <returns>The <see cref="QueryDescription"/> for the query.</returns>
         public static QueryDescription Parse(string tableName, string query = null)
-            => Parse(tableName, query ?? string.Empty, null);
-
-        /// <summary>
-        /// Parses an OData query and creates a <see cref="QueryDescription"/> instance.
-        /// </summary>
-        /// <param name="tableName">The name of the table for the query.</param>
-        /// <param name="query">The OData query string.</param>
-        /// <param name="uriPath">The path within the URI.</param>
-        /// <returns>The <see cref="QueryDescription"/> for the query.</returns>
-        private static QueryDescription Parse(string tableName, string query, string uriPath)
         {
             bool includeTotalCount = false;
             int? top = null, skip = null;
@@ -108,6 +98,7 @@ namespace Microsoft.Datasync.Client.Query
             QueryNode filter = null;
             IList<OrderByNode> orderings = null;
 
+            query ??= string.Empty;
             IDictionary<string, string> parameters = query.Split('&')
                 .Select(part => part.Split(new[] { '=' }, 2))
                 .ToDictionary(x => Uri.UnescapeDataString(x[0]), x => x.Length > 1 ? Uri.UnescapeDataString(x[1]) : string.Empty);

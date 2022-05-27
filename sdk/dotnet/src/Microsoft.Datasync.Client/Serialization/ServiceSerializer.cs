@@ -186,7 +186,7 @@ namespace Microsoft.Datasync.Client.Serialization
         /// <summary>
         /// Returns a table name for a type, accounting for table renaming via the <see cref="DataTableAttribute"/> and the <see cref="JsonContainerAttribute"/>.
         /// </summary>
-        /// <typeparam name="T">The type for which to return the table name.</param>
+        /// <typeparam name="T">The type for which to return the table name.</typeparam>
         /// <returns>The table name.</returns>
         public string ResolveTableName<T>()
             => SerializerSettings.ContractResolver.ResolveTableName(typeof(T));

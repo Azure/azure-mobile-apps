@@ -3,6 +3,7 @@
 
 using Microsoft.Datasync.Client.Utils;
 using Microsoft.Maui.Storage;
+using System.Runtime.Versioning;
 
 namespace Microsoft.Datasync.Client.Platforms
 {
@@ -20,7 +21,7 @@ namespace Microsoft.Datasync.Client.Platforms
         /// <summary>
         /// Creates a new <see cref="ApplicationStorage"/> instance.
         /// </summary>
-        /// <param name="storagePrefix">The optional storage prefix.</param>
+        /// <param name="containerName">The optional storage prefix.</param>
         internal ApplicationStorage(string containerName = "")
         {
             SharedContainerName = string.IsNullOrWhiteSpace(containerName) ? "ms-datasync-client" : containerName;

@@ -51,9 +51,8 @@ namespace Microsoft.Datasync.Client.Query.OData
         /// Converts the given value to the Edm OData form, or returns null
         /// if the value is not of a known type.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="value">The value to serialize</param>
+        /// <returns>The oData representation of the value</returns>
         public static string ToODataString(object value)
         {
             long handle = (long)value.GetType().TypeHandle.Value;

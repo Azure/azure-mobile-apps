@@ -108,7 +108,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <summary>
         /// Checks if there are any unhandled sync errors or handler errors recorded for this batch.
         /// </summary>
-        /// <param name="syncErrors">List of all sync errors.</param>
+        /// <param name="errors">List of all sync errors.</param>
         /// <returns><c>true</c> if there are any errors to be concerned with.</returns>
         public bool HasErrors(IEnumerable<TableOperationError> errors)
             => errors?.Any(e => !e.Handled) == true || OtherErrors.Count > 0;

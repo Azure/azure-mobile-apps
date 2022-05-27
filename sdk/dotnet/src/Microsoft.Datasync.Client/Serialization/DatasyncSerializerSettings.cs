@@ -42,7 +42,7 @@ namespace Microsoft.Datasync.Client.Serialization
         /// The contract resolver to use.
         /// </summary>
         /// <remarks>
-        /// The normal contract resolver requires that the object implement <see cref="IContractResolver"/>,
+        /// The normal contract resolver requires that the object implement <c>IContractResolver</c>,
         /// but we require a <see cref="DatasyncContractResolver"/>, so we must check for this.
         /// </remarks>
         [ExcludeFromCodeCoverage]
