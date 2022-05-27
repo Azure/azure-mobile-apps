@@ -1,7 +1,7 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.23">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;monoandroid12.0;xamarin.ios10</TargetFrameworks>
+		<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-windows;netstandard2.0;monoandroid12.0;xamarin.ios10</TargetFrameworks>
 		<TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);uap10.0</TargetFrameworks>
 	</PropertyGroup>
 
@@ -37,10 +37,18 @@
 		<PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
 	</ItemGroup>
 
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net6.0-android'))">
+		<Compile Include="Platforms\net6-android\*.cs" />
+	</ItemGroup>
+
 	<!-- iOS Platform Support -->
 	<ItemGroup Condition="$(TargetFramework.StartsWith('xamarin.ios'))">
 		<Compile Include="Platforms\ios\*.cs" />
 		<PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net6.0-ios'))">
+		<Compile Include="Platforms\net6-ios\*.cs" />
 	</ItemGroup>
 
 	<!-- UWP/UAP/Windows Store Platform Support -->
@@ -50,6 +58,10 @@
 	</PropertyGroup>
 	<ItemGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
 		<Compile Include="Platforms\uap\*.cs" />
+	</ItemGroup>
+
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net6.0-windows'))">
+		<Compile Include="Platforms\net6-windows\*.cs" />
 	</ItemGroup>
 
 	<!-- .NET Standard 2.1 Platform Support -->
