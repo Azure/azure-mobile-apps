@@ -201,7 +201,7 @@ namespace Microsoft.Datasync.Client.Query
         /// </summary>
         /// <typeparam name="TKey">The type of the member being ordered by.</typeparam>
         /// <param name="keySelector">The expression selecting the member to order by.</param>
-        /// <returns>The composed query object.</returns
+        /// <returns>The composed query object.</returns>
         public ITableQuery<T> ThenByDescending<TKey>(Expression<Func<T, TKey>> keySelector)
         {
             Query = ((IOrderedQueryable<T>)Query).ThenByDescending(keySelector);
@@ -268,7 +268,7 @@ namespace Microsoft.Datasync.Client.Query
                 {
                     throw new ArgumentException($"Parameter '{param.Key}' is invalid", nameof(parameters));
                 }
-               Parameters[param.Key] = param.Value;
+                Parameters[param.Key] = param.Value;
             });
             return this;
         }

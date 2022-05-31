@@ -20,7 +20,7 @@ namespace Microsoft.Datasync.Client
         /// <summary>
         /// Creates a new <see cref="GenericAuthenticationProvider"/> by specifying a function for the token requester.
         /// </summary>
-        /// <param name="tokenRequestor">The token requester</param>
+        /// <param name="asyncTokenRequestor">The token requester</param>
         /// <param name="headerName">The name of the header</param>
         /// <param name="authenticationType">The authentication type (if specified)</param>
         public GenericAuthenticationProvider(Func<Task<AuthenticationToken>> asyncTokenRequestor, string headerName = "Authorization", string authenticationType = null)

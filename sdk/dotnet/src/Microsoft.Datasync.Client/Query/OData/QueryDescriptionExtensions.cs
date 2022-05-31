@@ -59,7 +59,7 @@ namespace Microsoft.Datasync.Client.Query.OData
             {
                 foreach (var kv in parameters)
                 {
-                    queryFragments.Add($"{Uri.EscapeUriString(kv.Key)}={Uri.EscapeUriString(kv.Value)}");
+                    queryFragments.Add($"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value)}");
                 }
             }
 

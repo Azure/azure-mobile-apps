@@ -31,12 +31,12 @@ namespace Microsoft.Datasync.Client.Offline
         CancelledByOfflineStoreError,
 
         /// <summary>
-        /// The push was aborted because of a <see cref="CancellationToken"/>
+        /// The push was aborted because of a <see cref="System.Threading.CancellationToken"/>
         /// </summary>
         CancelledByToken,
 
         /// <summary>
-        /// The push was aborted by a <see cref="TableOperation"/>.
+        /// The push was aborted by a <see cref="Queue.TableOperation"/>.
         /// </summary>
         CancelledByOperation,
 

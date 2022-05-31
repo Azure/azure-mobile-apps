@@ -145,7 +145,7 @@ namespace Microsoft.Datasync.Client
         public Uri Endpoint { get; }
 
         /// <summary>
-        /// Gets the <see cref="MobileServiceHttpClient"/> associated with the Azure Mobile App.
+        /// Gets the <see cref="ServiceHttpClient"/> associated with the Azure Mobile App.
         /// </summary>
         internal ServiceHttpClient HttpClient { get; }
 

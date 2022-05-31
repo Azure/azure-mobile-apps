@@ -219,8 +219,8 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <summary>
         /// Indicates if this <see cref="TableOperationError"/> is identical to the other one.
         /// </summary>
-        /// <param name="other">The other <see cref="TableOperationError"/>.</param>
-        /// <returns><c>true</c> if the <paramref name="other"/> is identical to this one.</returns>
+        /// <param name="obj">The other <see cref="TableOperationError"/>.</param>
+        /// <returns><c>true</c> if the <paramref name="obj"/> is identical to this one.</returns>
         public override bool Equals(object obj)
             => Equals(obj as TableOperationError);
 

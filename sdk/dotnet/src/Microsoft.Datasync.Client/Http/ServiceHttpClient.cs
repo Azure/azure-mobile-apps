@@ -195,7 +195,7 @@ namespace Microsoft.Datasync.Client.Http
                 }
 
                 JToken description = body["description"];
-                if (description?.Type== JTokenType.String)
+                if (description?.Type == JTokenType.String)
                 {
                     return description.ToString();
                 }
@@ -269,7 +269,7 @@ namespace Microsoft.Datasync.Client.Http
         /// <summary>
         /// Implementation of the <see cref="IDisposable"/> pattern for derived classes to use
         /// </summary>
-        /// <param name="disposing">True if calling from <see cref="Dispose"/> or the finalizer.</param>
+        /// <param name="disposing">True if calling from <see cref="Dispose()"/> or the finalizer.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)

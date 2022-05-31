@@ -64,7 +64,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         }
 
         /// <summary>
-        /// Internal version of the <see cref="ExecuteOperationOnRemoteServiceAsync(DatasyncClient, CancellationToken)"/>, to execute
+        /// Internal version of the <see cref="TableOperation.ExecuteOperationOnRemoteServiceAsync(DatasyncClient, CancellationToken)"/>, to execute
         /// the operation against a remote table.
         /// </summary>
         /// <param name="table">The remote table connection.</param>

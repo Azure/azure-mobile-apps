@@ -38,7 +38,6 @@ namespace Microsoft.Datasync.Client
         /// Execute a query against a remote table.
         /// </summary>
         /// <param name="query">The query to execute.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the results when the query finishes.</returns>
         IAsyncEnumerable<JObject> GetAsyncItems(string query);
 
