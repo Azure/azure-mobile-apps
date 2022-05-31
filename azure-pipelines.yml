@@ -86,7 +86,7 @@ stages:
             workingDirectory: $(netSdkPath)
 
           - pwsh: |
-              dotnet workload restore
+              dotnet workload restore --project .\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj
             displayName: install dotnet workloads
             workingDirectory: $(netSdkPath)
 
