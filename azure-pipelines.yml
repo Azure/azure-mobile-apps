@@ -8,8 +8,18 @@ trigger:
       - '*'
   paths:
     include:
-      - sdk/*
-      - azure-pipelines.yml
+      - '*'
+    exclude:
+      - .github/*
+      - .vscode/*
+      - docs/*
+      - samples/*
+      - .gitignore
+      - CODE_OF_CONDUCT.md
+      - LICENSE.txt
+      - README.md
+      - SECURITY.md
+      - SUPPORT.md
 
 pr:
   branches:
@@ -17,13 +27,21 @@ pr:
       - main
   paths:
     include:
-      - sdk/*
-      - azure-pipelines.yml
-
-#pool:
-#  name: 'VSEngSS-MicroBuild2022-1ES'
+      - '*'
+    exclude:
+      - .github/*
+      - .vscode/*
+      - docs/*
+      - samples/*
+      - .gitignore
+      - CODE_OF_CONDUCT.md
+      - LICENSE.txt
+      - README.md
+      - SECURITY.md
+      - SUPPORT.md
 
 pool:
+#  name: 'VSEngSS-MicroBuild2022-1ES'
   name: 'MAUI-DevDiv'
 
 variables:
@@ -34,6 +52,9 @@ variables:
   PREVIEW_LABEL: 'preview'
   BUILD_NUMBER: $[counter(format('{0}_{1}_{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['Build.SourceBranch']), 1)]
   NUGET_VERSION: $[format('{0}-{1}.{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['BUILD_NUMBER'])]
+  provisionator.path: '$(System.DefaultWorkingDirectory)/eng/provisioning/provisioning.csx'
+  provisionator.vs: '$(System.DefaultWorkingDirectory)/eng/provisioning/vs.csx'
+  provisionator.extraArguments: '--v'
 
 resources:
   repositories:
@@ -49,11 +70,25 @@ stages:
       - job: buildnetsdk
         displayName: Build .NET SDK
         steps:
+          - template: .ci/provision.yml
+            parameters:
+              platform: 'windows'
+
           - template: .ci/prebuild.yml
           
           - pwsh: |
               Get-ChildItem "C:\Program Files (x86)\Android\android-sdk\platforms"
             displayName: Show the Android API levels available on the build machine
+
+          - pwsh: |
+              dotnet tool restore
+            displayName: install dotnet tools
+            workingDirectory: $(netSdkPath)
+
+          - pwsh: |
+              dotnet workload restore
+            displayName: install dotnet workloads
+            workingDirectory: $(netSdkPath)
 
           - task: MSBuild@1
             displayName: 'Build SDK'
