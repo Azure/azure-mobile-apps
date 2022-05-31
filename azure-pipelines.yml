@@ -40,6 +40,7 @@ stages:
           - pwsh: |
               dotnet workload restore
             displayName: Restore MAUI Workloads
+            workingDirectory: $(netSdkPath)
 
           - task: MSBuild@1
             displayName: 'Build SDK'
