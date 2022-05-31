@@ -1,12 +1,30 @@
 trigger:
-  - main
-  - refs/tags/*
+  branches:
+    include:
+      - main
+      - refs/tags/*
+  tags:
+    include:
+      - '*'
+  paths:
+    include:
+      - sdk/*
+      - azure-pipelines.yml
 
 pr:
-  - main
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - sdk/*
+      - azure-pipelines.yml
+
+#pool:
+#  name: 'VSEngSS-MicroBuild2022-1ES'
 
 pool:
-  name: 'VSEngSS-MicroBuild2022-1ES'
+  name: 'MAUI-DevDiv'
 
 variables:
   buildConfiguration: 'Release'
