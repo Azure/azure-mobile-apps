@@ -37,6 +37,10 @@ stages:
               Get-ChildItem "C:\Program Files (x86)\Android\android-sdk\platforms"
             displayName: Show the Android API levels available on the build machine
 
+          - pwsh: |
+              dotnet workload restore
+            displayName: Restore MAUI Workloads
+
           - task: MSBuild@1
             displayName: 'Build SDK'
             inputs:
