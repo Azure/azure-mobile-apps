@@ -158,6 +158,10 @@ stages:
       - job: postbuild_checks
         displayName: 'Run required code checks'
         steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '14.x'
+              
           - pwsh: |
               $repo = "$(Build.Repository.Id)"
               $repo = $repo.Substring($repo.IndexOf("/") + 1)
