@@ -44,6 +44,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiImage Remove="Resources\Images\completed.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AndroidResource Include="Resources\Images\completed.png" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\TodoApp.Data\TodoApp.Data.csproj" />
 	</ItemGroup>
 
