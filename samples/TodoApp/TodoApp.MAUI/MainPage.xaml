@@ -38,6 +38,7 @@
                 <StackLayout Padding="0" Orientation="Horizontal">
                     <Image Style="{StaticResource addItemIcon}"/>
                     <Entry x:Name="addItemEntry" MaxLength="200" Placeholder="Add New Item"
+                           Style="{StaticResource addItemEntry}"
                            ReturnCommand="{Binding AddItemCommand}"
                            ReturnCommandParameter="{Binding Source={x:Reference addItemEntry}}"/>
                 </StackLayout>

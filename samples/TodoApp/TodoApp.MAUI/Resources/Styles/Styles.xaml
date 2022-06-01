@@ -31,7 +31,7 @@
         <Setter Property="Source" Value="additem.png" />
         <Setter Property="WidthRequest" Value="20" />
     </Style>
-    <Style TargetType="Entry">
+    <Style x:Key="addItemEntry" TargetType="Entry">
         <Setter Property="BackgroundColor" Value="White" />
         <Setter Property="ClearButtonVisibility" Value="WhileEditing" />
         <Setter Property="HorizontalOptions" Value="FillAndExpand" />
