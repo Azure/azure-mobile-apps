@@ -40,9 +40,11 @@ Released and supported versions of the library will be distributed by the normal
 | Package | Version | Downloads |
 |---------|---------|-----------|
 | [Microsoft.AspNetCore.Datasync] | ![Core Library Version][v1] | ![Core Library Downloads][d1] |
-| [Microsoft.AspNetCore.Datasync.Abstractions] | ![Abstractions Library Version][v2] | ![Abstractions Library Version][d2] |
-| [Microsoft.AspNetCore.Datasync.EFCore] | ![EFCore Library Version][v3] | ![EFCore Library Version][d3] |
-| [Microsoft.AspNetCore.Datasync.InMemory] | ![InMemory Library Version][v4] | ![InMemory Library Version][d4] |
+| [Microsoft.AspNetCore.Datasync.Abstractions] | ![Abstractions Library Version][v2] | ![Abstractions Library Downloads][d2] |
+| [Microsoft.AspNetCore.Datasync.EFCore] | ![EFCore Library Version][v3] | ![EFCore Library Downloads][d3] |
+| [Microsoft.AspNetCore.Datasync.InMemory] | ![InMemory Library Version][v4] | ![InMemory Library Downloads][d4] |
+| [Microsoft.Datasync.Client] | ![Client Library Version][v5] | ![Client Library Downloads][d5] |
+| [Microsoft.Datasync.Client.SQLiteStore] | ![SQLiteStore Library Version][v6] | ![SQLiteStore Library Downloads][d6] |
 
 ## Templates
 
@@ -83,14 +85,20 @@ This project may contain trademarks or logos for projects, products, or services
 [Microsoft.AspNetCore.Datasync.Abstractions]: https://www.nuget.org/packages/Microsoft.AspNetCore.Datasync.Abstractions
 [Microsoft.AspNetCore.Datasync.EFCore]: https://www.nuget.org/packages/Microsoft.AspNetCore.Datasync.EFCore
 [Microsoft.AspNetCore.Datasync.InMemory]: https://www.nuget.org/packages/Microsoft.AspNetCore.Datasync.InMemory
+[Microsoft.Datasync.Client]: https://www.nuget.org/packages/Microsoft.Datasync.Client
+[Microsoft.Datasync.Client.SQLiteStore]: https://www.nuget.org/packages/Microsoft.Datasync.Client.SQLiteStore
 
 <!-- Images -->
 [v1]: https://badgen.net/nuget/v/Microsoft.AspNetCore.Datasync
 [v2]: https://badgen.net/nuget/v/Microsoft.AspNetCore.Datasync.Abstractions
 [v3]: https://badgen.net/nuget/v/Microsoft.AspNetCore.Datasync.EFCore
 [v4]: https://badgen.net/nuget/v/Microsoft.AspNetCore.Datasync.InMemory
+[v5]: https://badgen.net/nuget/v/Microsoft.Datasync.Client
+[v6]: https://badgen.net/nuget/v/Microsoft.Datasync.Client.SQLiteStore
 
 [d1]: https://badgen.net/nuget/dt/Microsoft.AspNetCore.Datasync
 [d2]: https://badgen.net/nuget/dt/Microsoft.AspNetCore.Datasync.Abstractions
 [d3]: https://badgen.net/nuget/dt/Microsoft.AspNetCore.Datasync.EFCore
 [d4]: https://badgen.net/nuget/dt/Microsoft.AspNetCore.Datasync.InMemory
+[d5]: https://badgen.net/nuget/dt/Microsoft.Datasync.Client
+[d6]: https://badgen.net/nuget/dt/Microsoft.Datasync.Client.SQLiteStore
