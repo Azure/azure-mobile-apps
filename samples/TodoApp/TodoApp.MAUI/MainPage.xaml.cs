@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using System.Diagnostics;
 using TodoApp.Data;
+using TodoApp.Data.Models;
 using TodoApp.Data.MVVM;
 using TodoApp.Data.Services;
 
@@ -9,26 +11,31 @@ namespace TodoApp.MAUI
 {
     public partial class MainPage : ContentPage, IMVVMHelper
     {
-        private readonly MainViewModel model;
-        private readonly ITodoService todoService;
+        private readonly MainViewModel viewModel;
+
+        public ITodoService TodoService { get; }
 
         public MainPage()
         {
             InitializeComponent();
-            todoService = new RemoteTodoService();
-            model = new MainViewModel(this, todoService);
-            BindingContext = model;
+            TodoService = new RemoteTodoService();
+            viewModel = new MainViewModel(this, TodoService);
+            BindingContext = viewModel;
         }
 
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            model.OnActivated();
+            viewModel.OnActivated();
         }
 
         public void OnListItemTapped(object sender, ItemTappedEventArgs e)
         {
-            model.SelectItemCommand.Execute(e.Item);
+            if (e.Item is TodoItem item)
+            {
+                Debug.WriteLine($"[UI] >>> Item clicked: {item.Id}");
+                viewModel.SelectItemCommand.Execute(item);
+            }
             if (sender is ListView itemList)
             {
                 itemList.SelectedItem = null;

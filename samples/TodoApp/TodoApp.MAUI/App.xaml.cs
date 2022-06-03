@@ -27,7 +27,7 @@ namespace TodoApp.MAUI
 #endif
             });
 
-            MainPage = new AppShell();
+            MainPage = new NavigationPage(new MainPage());
         }
     }
 }
