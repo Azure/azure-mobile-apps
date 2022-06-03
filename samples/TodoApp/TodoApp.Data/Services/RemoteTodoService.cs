@@ -5,6 +5,7 @@ using Microsoft.Datasync.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using TodoApp.Data.Models;
@@ -85,10 +86,15 @@ namespace TodoApp.Data.Services
                     return;
                 }
 
+                var options = new DatasyncClientOptions
+                {
+                    HttpPipeline = new HttpMessageHandler[] { new LoggingHandler() }
+                };
+
                 // Initialize the client.
                 _client = TokenRequestor == null 
-                    ? new DatasyncClient(Constants.ServiceUri)
-                    : new DatasyncClient(Constants.ServiceUri, new GenericAuthenticationProvider(TokenRequestor));
+                    ? new DatasyncClient(Constants.ServiceUri, options)
+                    : new DatasyncClient(Constants.ServiceUri, new GenericAuthenticationProvider(TokenRequestor), options);
                 _table = _client.GetRemoteTable<TodoItem>();
 
                 // Set _initialied to true to prevent duplication of locking.
