@@ -12,6 +12,7 @@ Currently, we support:
 
 * ASP.NET Core for .NET 6
 * .NET Standard 2.0 Client (Xamarin, WPF, etc.)
+* .NET 6 MAUI Client (Android, iOS, and Windows)
 
 To get started, take a look at [our documentation](https://azure.github.io/azure-mobile-apps).
 
