@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
-using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Offline;
+using Microsoft.Datasync.Integration.Test.Helpers;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;

@@ -59,7 +59,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 142,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1994, 10, 14, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1994, 10, 14),
                 Title = "The Shawshank Redemption",
                 Year = 1994
             },
@@ -68,7 +68,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 175,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1972, 03, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1972, 03, 24),
                 Title = "The Godfather",
                 Year = 1972
             },
@@ -77,7 +77,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 200,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1974, 12, 20, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1974, 12, 20),
                 Title = "The Godfather: Part II",
                 Year = 1974
             },
@@ -86,7 +86,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 168,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1994, 10, 14, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1994, 10, 14),
                 Title = "Pulp Fiction",
                 Year = 1994
             },
@@ -95,7 +95,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 161,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1967, 12, 29, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1967, 12, 29),
                 Title = "The Good, the Bad and the Ugly",
                 Year = 1966
             },
@@ -104,7 +104,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 96,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1957, 4, 10, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1957, 4, 10),
                 Title = "12 Angry Men",
                 Year = 1957
             },
@@ -113,7 +113,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 152,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2008, 07, 18, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2008, 07, 18),
                 Title = "The Dark Knight",
                 Year = 2008
             },
@@ -122,7 +122,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 195,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1993, 12, 15, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1993, 12, 15),
                 Title = "Schindler's List",
                 Year = 1993
             },
@@ -131,7 +131,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 201,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2003, 12, 17, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2003, 12, 17),
                 Title = "The Lord of the Rings: The Return of the King",
                 Year = 2003
             },
@@ -140,7 +140,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 139,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1999, 10, 15, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1999, 10, 15),
                 Title = "Fight Club",
                 Year = 1999
             },
@@ -149,7 +149,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 127,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1980, 05, 21, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1980, 05, 21),
                 Title = "Star Wars: Episode V - The Empire Strikes Back",
                 Year = 1980
             },
@@ -158,7 +158,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 133,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1975, 11, 21, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1975, 11, 21),
                 Title = "One Flew Over the Cuckoo's Nest",
                 Year = 1975
             },
@@ -167,7 +167,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 178,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2001, 12, 19, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2001, 12, 19),
                 Title = "The Lord of the Rings: The Fellowship of the Ring",
                 Year = 2001
             },
@@ -176,7 +176,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 148,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2010, 07, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2010, 07, 16),
                 Title = "Inception",
                 Year = 2010
             },
@@ -185,7 +185,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 146,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1990, 09, 19, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1990, 09, 19),
                 Title = "Goodfellas",
                 Year = 1990
             },
@@ -194,7 +194,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 121,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1977, 05, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1977, 05, 25),
                 Title = "Star Wars",
                 Year = 1977
             },
@@ -203,7 +203,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 141,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1956, 11, 19, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1956, 11, 19),
                 Title = "Seven Samurai",
                 Year = 1954
             },
@@ -212,7 +212,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 136,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1999, 03, 31, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1999, 03, 31),
                 Title = "The Matrix",
                 Year = 1999
             },
@@ -221,7 +221,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 142,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(1994, 07, 06, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1994, 07, 06),
                 Title = "Forrest Gump",
                 Year = 1994
             },
@@ -230,7 +230,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 130,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2002, 01, 01, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2002, 01, 01),
                 Title = "City of God",
                 Year = 2002
             },
@@ -239,7 +239,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 179,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2002, 12, 18, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2002, 12, 18),
                 Title = "The Lord of the Rings: The Two Towers",
                 Year = 2002
             },
@@ -248,7 +248,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 175,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(1968, 12, 21, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1968, 12, 21),
                 Title = "Once Upon a Time in the West",
                 Year = 1968
             },
@@ -257,7 +257,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 127,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1995, 09, 22, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1995, 09, 22),
                 Title = "Se7en",
                 Year = 1995
             },
@@ -266,7 +266,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 118,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1991, 02, 14, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1991, 02, 14),
                 Title = "The Silence of the Lambs",
                 Year = 1991
             },
@@ -275,7 +275,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 102,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1943, 01, 23, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1943, 01, 23),
                 Title = "Casablanca",
                 Year = 1942
             },
@@ -284,7 +284,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 106,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1995, 08, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1995, 08, 16),
                 Title = "The Usual Suspects",
                 Year = 1995
             },
@@ -293,7 +293,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 115,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1981, 06, 12, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1981, 06, 12),
                 Title = "Raiders of the Lost Ark",
                 Year = 1981
             },
@@ -302,7 +302,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 112,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1955, 01, 13, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1955, 01, 13),
                 Title = "Rear Window",
                 Year = 1954
             },
@@ -311,7 +311,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 109,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1960, 9, 8, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1960, 9, 8),
                 Title = "Psycho",
                 Year = 1960
             },
@@ -320,7 +320,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 130,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1947, 01, 06, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1947, 01, 06),
                 Title = "It's a Wonderful Life",
                 Year = 1946
             },
@@ -329,7 +329,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 110,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1994, 11, 18, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1994, 11, 18),
                 Title = "Léon: The Professional",
                 Year = 1994
             },
@@ -338,7 +338,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 110,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1950, 08, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1950, 08, 25),
                 Title = "Sunset Blvd.",
                 Year = 1950
             },
@@ -347,7 +347,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 113,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2000, 10, 11, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2000, 10, 11),
                 Title = "Memento",
                 Year = 2000
             },
@@ -356,7 +356,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 165,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2012, 07, 20, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2012, 07, 20),
                 Title = "The Dark Knight Rises",
                 Year = 2012
             },
@@ -365,7 +365,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 119,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1999, 02, 12, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1999, 02, 12),
                 Title = "American History X",
                 Year = 1998
             },
@@ -374,7 +374,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 153,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1979, 08, 15, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1979, 08, 15),
                 Title = "Apocalypse Now",
                 Year = 1979
             },
@@ -383,7 +383,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 152,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1991, 07, 03, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1991, 07, 03),
                 Title = "Terminator 2: Judgment Day",
                 Year = 1991
             },
@@ -392,7 +392,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 95,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1964, 01, 29, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1964, 01, 29),
                 Title = "Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb",
                 Year = 1964
             },
@@ -401,7 +401,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 169,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1998, 07, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1998, 07, 24),
                 Title = "Saving Private Ryan",
                 Year = 1998
             },
@@ -410,7 +410,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 117,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1979, 05, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1979, 05, 25),
                 Title = "Alien",
                 Year = 1979
             },
@@ -419,7 +419,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 136,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1959, 09, 26, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1959, 09, 26),
                 Title = "North by Northwest",
                 Year = 1959
             },
@@ -428,7 +428,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 87,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1931, 03, 07, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1931, 03, 07),
                 Title = "City Lights",
                 Year = 1931
             },
@@ -437,7 +437,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 125,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(2001, 07, 20, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2001, 07, 20),
                 Title = "Spirited Away",
                 Year = 2001
             },
@@ -446,7 +446,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 119,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1941, 9, 5, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1941, 9, 5),
                 Title = "Citizen Kane",
                 Year = 1941
             },
@@ -455,7 +455,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 87,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1936, 02, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1936, 02, 25),
                 Title = "Modern Times",
                 Year = 1936
             },
@@ -464,7 +464,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 142,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1980, 05, 23, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1980, 05, 23),
                 Title = "The Shining",
                 Year = 1980
             },
@@ -473,7 +473,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 129,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1958, 07, 21, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1958, 07, 21),
                 Title = "Vertigo",
                 Year = 1958
             },
@@ -482,7 +482,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 116,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1985, 07, 03, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1985, 07, 03),
                 Title = "Back to the Future",
                 Year = 1985
             },
@@ -491,7 +491,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 122,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1999, 10, 01, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1999, 10, 01),
                 Title = "American Beauty",
                 Year = 1999
             },
@@ -500,7 +500,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 117,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1931, 08, 30, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1931, 08, 30),
                 Title = "M",
                 Year = 1931
             },
@@ -509,7 +509,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 149,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2003, 03, 28, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2003, 03, 28),
                 Title = "The Pianist",
                 Year = 2002
             },
@@ -518,7 +518,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 151,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2006, 10, 06, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2006, 10, 06),
                 Title = "The Departed",
                 Year = 2006
             },
@@ -527,7 +527,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 113,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1976, 02, 08, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1976, 02, 08),
                 Title = "Taxi Driver",
                 Year = 1976
             },
@@ -536,7 +536,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 103,
                 Rating = "G",
-                ReleaseDate = new DateTimeOffset(2010, 06, 18, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2010, 06, 18),
                 Title = "Toy Story 3",
                 Year = 2010
             },
@@ -545,7 +545,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 88,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1957, 10, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1957, 10, 25),
                 Title = "Paths of Glory",
                 Year = 1957
             },
@@ -554,7 +554,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 118,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(1999, 02, 12, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1999, 02, 12),
                 Title = "Life Is Beautiful",
                 Year = 1997
             },
@@ -563,7 +563,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 107,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1944, 04, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1944, 04, 24),
                 Title = "Double Indemnity",
                 Year = 1944
             },
@@ -572,7 +572,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 154,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1986, 07, 18, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1986, 07, 18),
                 Title = "Aliens",
                 Year = 1986
             },
@@ -581,7 +581,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 98,
                 Rating = "G",
-                ReleaseDate = new DateTimeOffset(2008, 06, 27, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2008, 06, 27),
                 Title = "WALL-E",
                 Year = 2008
             },
@@ -590,7 +590,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 137,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2006, 03, 23, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2006, 03, 23),
                 Title = "The Lives of Others",
                 Year = 2006
             },
@@ -599,7 +599,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 136,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1972, 02, 02, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1972, 02, 02),
                 Title = "A Clockwork Orange",
                 Year = 1971
             },
@@ -608,7 +608,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 122,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2001, 04, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2001, 04, 24),
                 Title = "Amélie",
                 Year = 2001
             },
@@ -617,7 +617,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 155,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2000, 05, 05, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2000, 05, 05),
                 Title = "Gladiator",
                 Year = 2000
             },
@@ -626,7 +626,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 189,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1999, 12, 10, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1999, 12, 10),
                 Title = "The Green Mile",
                 Year = 1999
             },
@@ -635,7 +635,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 112,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2011, 11, 02, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2011, 11, 02),
                 Title = "The Intouchables",
                 Year = 2011
             },
@@ -644,7 +644,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 227,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1963, 01, 30, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1963, 01, 30),
                 Title = "Lawrence of Arabia",
                 Year = 1962
             },
@@ -653,7 +653,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 129,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1963, 03, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1963, 03, 16),
                 Title = "To Kill a Mockingbird",
                 Year = 1962
             },
@@ -662,7 +662,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 130,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2006, 10, 20, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2006, 10, 20),
                 Title = "The Prestige",
                 Year = 2006
             },
@@ -671,7 +671,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 125,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1941, 3, 7, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1941, 3, 7),
                 Title = "The Great Dictator",
                 Year = 1940
             },
@@ -680,7 +680,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 99,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1992, 10, 23, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1992, 10, 23),
                 Title = "Reservoir Dogs",
                 Year = 1992
             },
@@ -689,7 +689,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 149,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1982, 02, 10, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1982, 02, 10),
                 Title = "Das Boot",
                 Year = 1981
             },
@@ -698,7 +698,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 102,
                 Rating = "NC-17",
-                ReleaseDate = new DateTimeOffset(2000, 10, 27, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2000, 10, 27),
                 Title = "Requiem for a Dream",
                 Year = 2000
             },
@@ -707,7 +707,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 93,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1949, 08, 31, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1949, 08, 31),
                 Title = "The Third Man",
                 Year = 1949
             },
@@ -716,7 +716,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 126,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1948, 01, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1948, 01, 24),
                 Title = "The Treasure of the Sierra Madre",
                 Year = 1948
             },
@@ -725,7 +725,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 108,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2004, 03, 19, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2004, 03, 19),
                 Title = "Eternal Sunshine of the Spotless Mind",
                 Year = 2004
             },
@@ -734,7 +734,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 155,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1990, 02, 23, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1990, 02, 23),
                 Title = "Cinema Paradiso",
                 Year = 1988
             },
@@ -743,7 +743,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 139,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1984, 05, 23, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1984, 05, 23),
                 Title = "Once Upon a Time in America",
                 Year = 1984
             },
@@ -752,7 +752,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 130,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1974, 06, 20, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1974, 06, 20),
                 Title = "Chinatown",
                 Year = 1974
             },
@@ -761,7 +761,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 138,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1997, 09, 19, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1997, 09, 19),
                 Title = "L.A. Confidential",
                 Year = 1997
             },
@@ -770,7 +770,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 89,
                 Rating = "G",
-                ReleaseDate = new DateTimeOffset(1994, 06, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1994, 06, 24),
                 Title = "The Lion King",
                 Year = 1994
             },
@@ -779,7 +779,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 134,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1983, 05, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1983, 05, 25),
                 Title = "Star Wars: Episode VI - Return of the Jedi",
                 Year = 1983
             },
@@ -788,7 +788,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 116,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1987, 06, 26, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1987, 06, 26),
                 Title = "Full Metal Jacket",
                 Year = 1987
             },
@@ -797,7 +797,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 91,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1975, 05, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1975, 05, 25),
                 Title = "Monty Python and the Holy Grail",
                 Year = 1975
             },
@@ -806,7 +806,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 177,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1995, 05, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1995, 05, 24),
                 Title = "Braveheart",
                 Year = 1995
             },
@@ -815,7 +815,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 103,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1952, 04, 11, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1952, 04, 11),
                 Title = "Singin' in the Rain",
                 Year = 1952
             },
@@ -824,7 +824,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 120,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2003, 11, 21, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2003, 11, 21),
                 Title = "Oldboy",
                 Year = 2003
             },
@@ -833,7 +833,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 120,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1959, 03, 29, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1959, 03, 29),
                 Title = "Some Like It Hot",
                 Year = 1959
             },
@@ -842,7 +842,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 160,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1984, 09, 19, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1984, 09, 19),
                 Title = "Amadeus",
                 Year = 1984
             },
@@ -851,7 +851,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 114,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1927, 03, 13, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1927, 03, 13),
                 Title = "Metropolis",
                 Year = 1927
             },
@@ -860,7 +860,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 88,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1951, 12, 26, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1951, 12, 26),
                 Title = "Rashomon",
                 Year = 1950
             },
@@ -869,7 +869,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 93,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1949, 12, 13, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1949, 12, 13),
                 Title = "Bicycle Thieves",
                 Year = 1948
             },
@@ -878,7 +878,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 141,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1968, 4, 6, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1968, 4, 6),
                 Title = "2001: A Space Odyssey",
                 Year = 1968
             },
@@ -887,7 +887,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 131,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1992, 08, 07, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1992, 08, 07),
                 Title = "Unforgiven",
                 Year = 1992
             },
@@ -896,7 +896,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 138,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1951, 1, 15, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1951, 1, 15),
                 Title = "All About Eve",
                 Year = 1950
             },
@@ -905,7 +905,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 125,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1960, 9, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1960, 9, 16),
                 Title = "The Apartment",
                 Year = 1960
             },
@@ -914,7 +914,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 127,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1989, 05, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1989, 05, 24),
                 Title = "Indiana Jones and the Last Crusade",
                 Year = 1989
             },
@@ -923,7 +923,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 129,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1974, 01, 10, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1974, 01, 10),
                 Title = "The Sting",
                 Year = 1973
             },
@@ -932,7 +932,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 129,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1980, 12, 19, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1980, 12, 19),
                 Title = "Raging Bull",
                 Year = 1980
             },
@@ -941,7 +941,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 161,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1957, 12, 14, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1957, 12, 14),
                 Title = "The Bridge on the River Kwai",
                 Year = 1957
             },
@@ -950,7 +950,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 131,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1988, 07, 15, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1988, 07, 15),
                 Title = "Die Hard",
                 Year = 1988
             },
@@ -959,7 +959,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 116,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1958, 2, 6, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1958, 2, 6),
                 Title = "Witness for the Prosecution",
                 Year = 1957
             },
@@ -968,7 +968,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 140,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2005, 06, 15, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2005, 06, 15),
                 Title = "Batman Begins",
                 Year = 2005
             },
@@ -977,7 +977,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 123,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2011, 03, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2011, 03, 16),
                 Title = "A Separation",
                 Year = 2011
             },
@@ -986,7 +986,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 89,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1988, 04, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1988, 04, 16),
                 Title = "Grave of the Fireflies",
                 Year = 1988
             },
@@ -995,7 +995,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 118,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2007, 01, 19, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2007, 01, 19),
                 Title = "Pan's Labyrinth",
                 Year = 2006
             },
@@ -1004,7 +1004,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 156,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2004, 09, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2004, 09, 16),
                 Title = "Downfall",
                 Year = 2004
             },
@@ -1013,7 +1013,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 129,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1939, 10, 19, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1939, 10, 19),
                 Title = "Mr. Smith Goes to Washington",
                 Year = 1939
             },
@@ -1022,7 +1022,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 75,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1961, 09, 13, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1961, 09, 13),
                 Title = "Yojimbo",
                 Year = 1961
             },
@@ -1031,7 +1031,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 172,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1963, 7, 4, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1963, 7, 4),
                 Title = "The Great Escape",
                 Year = 1963
             },
@@ -1040,7 +1040,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 132,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1967, 5, 10, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1967, 5, 10),
                 Title = "For a Few Dollars More",
                 Year = 1965
             },
@@ -1049,7 +1049,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 102,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2001, 01, 19, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2001, 01, 19),
                 Title = "Snatch.",
                 Year = 2000
             },
@@ -1058,7 +1058,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 153,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2009, 08, 21, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2009, 08, 21),
                 Title = "Inglourious Basterds",
                 Year = 2009
             },
@@ -1067,7 +1067,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 108,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1954, 06, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1954, 06, 24),
                 Title = "On the Waterfront",
                 Year = 1954
             },
@@ -1076,7 +1076,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 124,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1980, 10, 10, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1980, 10, 10),
                 Title = "The Elephant Man",
                 Year = 1980
             },
@@ -1085,7 +1085,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 96,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1958, 10, 13, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1958, 10, 13),
                 Title = "The Seventh Seal",
                 Year = 1957
             },
@@ -1094,7 +1094,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 81,
                 Rating = "G",
-                ReleaseDate = new DateTimeOffset(1995, 11, 22, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1995, 11, 22),
                 Title = "Toy Story",
                 Year = 1995
             },
@@ -1103,7 +1103,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 100,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1941, 10, 18, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1941, 10, 18),
                 Title = "The Maltese Falcon",
                 Year = 1941
             },
@@ -1112,7 +1112,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 170,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1995, 12, 15, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1995, 12, 15),
                 Title = "Heat",
                 Year = 1995
             },
@@ -1121,7 +1121,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 75,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1927, 02, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1927, 02, 24),
                 Title = "The General",
                 Year = 1926
             },
@@ -1130,7 +1130,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 116,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2009, 01, 09, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2009, 01, 09),
                 Title = "Gran Torino",
                 Year = 2008
             },
@@ -1139,7 +1139,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 130,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1940, 04, 12, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1940, 04, 12),
                 Title = "Rebecca",
                 Year = 1940
             },
@@ -1148,7 +1148,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 117,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1982, 06, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1982, 06, 25),
                 Title = "Blade Runner",
                 Year = 1982
             },
@@ -1157,7 +1157,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 143,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2012, 05, 04, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2012, 05, 04),
                 Title = "The Avengers",
                 Year = 2012
             },
@@ -1166,7 +1166,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 91,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1959, 06, 22, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1959, 06, 22),
                 Title = "Wild Strawberries",
                 Year = 1957
             },
@@ -1175,7 +1175,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 98,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1996, 04, 05, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1996, 04, 05),
                 Title = "Fargo",
                 Year = 1996
             },
@@ -1184,7 +1184,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 68,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1921, 2, 6, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1921, 2, 6),
                 Title = "The Kid",
                 Year = 1921
             },
@@ -1193,7 +1193,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 170,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1983, 12, 09, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1983, 12, 09),
                 Title = "Scarface",
                 Year = 1983
             },
@@ -1202,7 +1202,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 108,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(1958, 6, 8, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1958, 6, 8),
                 Title = "Touch of Evil",
                 Year = 1958
             },
@@ -1211,7 +1211,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 117,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1998, 03, 06, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1998, 03, 06),
                 Title = "The Big Lebowski",
                 Year = 1998
             },
@@ -1220,7 +1220,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 162,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1985, 06, 01, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1985, 06, 01),
                 Title = "Ran",
                 Year = 1985
             },
@@ -1229,7 +1229,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 182,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1979, 02, 23, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1979, 02, 23),
                 Title = "The Deer Hunter",
                 Year = 1978
             },
@@ -1238,7 +1238,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 126,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1967, 11, 1, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1967, 11, 1),
                 Title = "Cool Hand Luke",
                 Year = 1967
             },
@@ -1247,7 +1247,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 147,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2005, 04, 01, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2005, 04, 01),
                 Title = "Sin City",
                 Year = 2005
             },
@@ -1256,7 +1256,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 72,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1925, 6, 26, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1925, 6, 26),
                 Title = "The Gold Rush",
                 Year = 1925
             },
@@ -1265,7 +1265,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 101,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1951, 06, 30, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1951, 06, 30),
                 Title = "Strangers on a Train",
                 Year = 1951
             },
@@ -1274,7 +1274,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 105,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1934, 02, 23, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1934, 02, 23),
                 Title = "It Happened One Night",
                 Year = 1934
             },
@@ -1283,7 +1283,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 122,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2007, 11, 21, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2007, 11, 21),
                 Title = "No Country for Old Men",
                 Year = 2007
             },
@@ -1292,7 +1292,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 130,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1975, 06, 20, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1975, 06, 20),
                 Title = "Jaws",
                 Year = 1975
             },
@@ -1301,7 +1301,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 107,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1999, 03, 05, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1999, 03, 05),
                 Title = "Lock, Stock and Two Smoking Barrels",
                 Year = 1998
             },
@@ -1310,7 +1310,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 107,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(1999, 08, 06, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1999, 08, 06),
                 Title = "The Sixth Sense",
                 Year = 1999
             },
@@ -1319,7 +1319,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 121,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2005, 02, 04, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2005, 02, 04),
                 Title = "Hotel Rwanda",
                 Year = 2004
             },
@@ -1328,7 +1328,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 85,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1952, 07, 30, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1952, 07, 30),
                 Title = "High Noon",
                 Year = 1952
             },
@@ -1337,7 +1337,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 120,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1986, 12, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1986, 12, 24),
                 Title = "Platoon",
                 Year = 1986
             },
@@ -1346,7 +1346,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 109,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1982, 06, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1982, 06, 25),
                 Title = "The Thing",
                 Year = 1982
             },
@@ -1355,7 +1355,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 110,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1969, 10, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1969, 10, 24),
                 Title = "Butch Cassidy and the Sundance Kid",
                 Year = 1969
             },
@@ -1364,7 +1364,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 101,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1939, 08, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1939, 08, 25),
                 Title = "The Wizard of Oz",
                 Year = 1939
             },
@@ -1373,7 +1373,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 178,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1995, 11, 22, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1995, 11, 22),
                 Title = "Casino",
                 Year = 1995
             },
@@ -1382,7 +1382,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 94,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1996, 07, 19, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1996, 07, 19),
                 Title = "Trainspotting",
                 Year = 1996
             },
@@ -1391,7 +1391,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 111,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(2003, 10, 10, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2003, 10, 10),
                 Title = "Kill Bill: Vol. 1",
                 Year = 2003
             },
@@ -1400,7 +1400,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 140,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2011, 09, 09, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2011, 09, 09),
                 Title = "Warrior",
                 Year = 2011
             },
@@ -1409,7 +1409,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 93,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1977, 04, 20, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1977, 04, 20),
                 Title = "Annie Hall",
                 Year = 1977
             },
@@ -1418,7 +1418,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 101,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1946, 9, 6, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1946, 9, 6),
                 Title = "Notorious",
                 Year = 1946
             },
@@ -1427,7 +1427,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 129,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2009, 08, 13, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2009, 08, 13),
                 Title = "The Secret in Their Eyes",
                 Year = 2009
             },
@@ -1436,7 +1436,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 238,
                 Rating = "G",
-                ReleaseDate = new DateTimeOffset(1940, 01, 17, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1940, 01, 17),
                 Title = "Gone with the Wind",
                 Year = 1939
             },
@@ -1445,7 +1445,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 126,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1998, 01, 09, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1998, 01, 09),
                 Title = "Good Will Hunting",
                 Year = 1997
             },
@@ -1454,7 +1454,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 118,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2010, 12, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2010, 12, 24),
                 Title = "The King's Speech",
                 Year = 2010
             },
@@ -1463,7 +1463,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 129,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1940, 03, 15, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1940, 03, 15),
                 Title = "The Grapes of Wrath",
                 Year = 1940
             },
@@ -1472,7 +1472,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 148,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2007, 09, 21, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2007, 09, 21),
                 Title = "Into the Wild",
                 Year = 2007
             },
@@ -1481,7 +1481,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 94,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1979, 08, 17, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1979, 08, 17),
                 Title = "Life of Brian",
                 Year = 1979
             },
@@ -1490,7 +1490,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 100,
                 Rating = "G",
-                ReleaseDate = new DateTimeOffset(2003, 05, 30, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2003, 05, 30),
                 Title = "Finding Nemo",
                 Year = 2003
             },
@@ -1499,7 +1499,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 132,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2006, 03, 17, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2006, 03, 17),
                 Title = "V for Vendetta",
                 Year = 2005
             },
@@ -1508,7 +1508,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 98,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(2010, 03, 26, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2010, 03, 26),
                 Title = "How to Train Your Dragon",
                 Year = 2010
             },
@@ -1517,7 +1517,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 86,
                 Rating = "G",
-                ReleaseDate = new DateTimeOffset(1988, 04, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1988, 04, 16),
                 Title = "My Neighbor Totoro",
                 Year = 1988
             },
@@ -1526,7 +1526,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 114,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1946, 08, 31, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1946, 08, 31),
                 Title = "The Big Sleep",
                 Year = 1946
             },
@@ -1535,7 +1535,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 105,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1954, 05, 29, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1954, 05, 29),
                 Title = "Dial M for Murder",
                 Year = 1954
             },
@@ -1544,7 +1544,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 212,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1960, 03, 30, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1960, 03, 30),
                 Title = "Ben-Hur",
                 Year = 1959
             },
@@ -1553,7 +1553,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 107,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1984, 10, 26, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1984, 10, 26),
                 Title = "The Terminator",
                 Year = 1984
             },
@@ -1562,7 +1562,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 121,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1976, 11, 27, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1976, 11, 27),
                 Title = "Network",
                 Year = 1976
             },
@@ -1571,7 +1571,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 132,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2005, 01, 28, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2005, 01, 28),
                 Title = "Million Dollar Baby",
                 Year = 2004
             },
@@ -1580,7 +1580,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 108,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2010, 12, 17, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2010, 12, 17),
                 Title = "Black Swan",
                 Year = 2010
             },
@@ -1589,7 +1589,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 93,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1955, 11, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1955, 11, 24),
                 Title = "The Night of the Hunter",
                 Year = 1955
             },
@@ -1598,7 +1598,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 158,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2008, 01, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2008, 01, 25),
                 Title = "There Will Be Blood",
                 Year = 2007
             },
@@ -1607,7 +1607,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 89,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1986, 08, 08, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1986, 08, 08),
                 Title = "Stand by Me",
                 Year = 1986
             },
@@ -1616,7 +1616,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 113,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2002, 01, 30, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2002, 01, 30),
                 Title = "Donnie Darko",
                 Year = 2001
             },
@@ -1625,7 +1625,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 101,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1993, 02, 12, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1993, 02, 12),
                 Title = "Groundhog Day",
                 Year = 1993
             },
@@ -1634,7 +1634,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 125,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1975, 09, 21, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1975, 09, 21),
                 Title = "Dog Day Afternoon",
                 Year = 1975
             },
@@ -1643,7 +1643,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 129,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1996, 01, 05, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1996, 01, 05),
                 Title = "Twelve Monkeys",
                 Year = 1995
             },
@@ -1652,7 +1652,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 154,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2000, 06, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2000, 06, 16),
                 Title = "Amores Perros",
                 Year = 2000
             },
@@ -1661,7 +1661,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 115,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2007, 08, 03, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2007, 08, 03),
                 Title = "The Bourne Ultimatum",
                 Year = 2007
             },
@@ -1670,7 +1670,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 92,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(2009, 04, 09, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2009, 04, 09),
                 Title = "Mary and Max",
                 Year = 2009
             },
@@ -1679,7 +1679,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 99,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1959, 11, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1959, 11, 16),
                 Title = "The 400 Blows",
                 Year = 1959
             },
@@ -1688,7 +1688,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 83,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1967, 03, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1967, 03, 16),
                 Title = "Persona",
                 Year = 1966
             },
@@ -1697,7 +1697,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 106,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1967, 12, 22, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1967, 12, 22),
                 Title = "The Graduate",
                 Year = 1967
             },
@@ -1706,7 +1706,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 191,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1983, 02, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1983, 02, 25),
                 Title = "Gandhi",
                 Year = 1982
             },
@@ -1715,7 +1715,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 85,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1956, 6, 6, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1956, 6, 6),
                 Title = "The Killing",
                 Year = 1956
             },
@@ -1724,7 +1724,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 119,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(2005, 06, 17, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2005, 06, 17),
                 Title = "Howl's Moving Castle",
                 Year = 2004
             },
@@ -1733,7 +1733,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 100,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2012, 01, 20, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2012, 01, 20),
                 Title = "The Artist",
                 Year = 2011
             },
@@ -1742,7 +1742,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 98,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1987, 09, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1987, 09, 25),
                 Title = "The Princess Bride",
                 Year = 1987
             },
@@ -1751,7 +1751,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 120,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2012, 10, 12, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2012, 10, 12),
                 Title = "Argo",
                 Year = 2012
             },
@@ -1760,7 +1760,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 120,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2009, 01, 23, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2009, 01, 23),
                 Title = "Slumdog Millionaire",
                 Year = 2008
             },
@@ -1769,7 +1769,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 131,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1966, 06, 22, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1966, 06, 22),
                 Title = "Who's Afraid of Virginia Woolf?",
                 Year = 1966
             },
@@ -1778,7 +1778,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 108,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1956, 07, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1956, 07, 16),
                 Title = "La Strada",
                 Year = 1954
             },
@@ -1787,7 +1787,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 126,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1962, 10, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1962, 10, 24),
                 Title = "The Manchurian Candidate",
                 Year = 1962
             },
@@ -1796,7 +1796,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 134,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1961, 09, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1961, 09, 25),
                 Title = "The Hustler",
                 Year = 1961
             },
@@ -1805,7 +1805,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 135,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2002, 01, 04, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2002, 01, 04),
                 Title = "A Beautiful Mind",
                 Year = 2001
             },
@@ -1814,7 +1814,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 145,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1969, 06, 18, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1969, 06, 18),
                 Title = "The Wild Bunch",
                 Year = 1969
             },
@@ -1823,7 +1823,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 119,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1976, 12, 03, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1976, 12, 03),
                 Title = "Rocky",
                 Year = 1976
             },
@@ -1832,7 +1832,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 160,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1959, 9, 1, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1959, 9, 1),
                 Title = "Anatomy of a Murder",
                 Year = 1959
             },
@@ -1841,7 +1841,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 120,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1953, 8, 10, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1953, 8, 10),
                 Title = "Stalag 17",
                 Year = 1953
             },
@@ -1850,7 +1850,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 122,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1974, 03, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1974, 03, 16),
                 Title = "The Exorcist",
                 Year = 1973
             },
@@ -1859,7 +1859,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 138,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1972, 12, 10, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1972, 12, 10),
                 Title = "Sleuth",
                 Year = 1972
             },
@@ -1868,7 +1868,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 80,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1948, 8, 28, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1948, 8, 28),
                 Title = "Rope",
                 Year = 1948
             },
@@ -1877,7 +1877,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 184,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1975, 12, 18, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1975, 12, 18),
                 Title = "Barry Lyndon",
                 Year = 1975
             },
@@ -1886,7 +1886,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 123,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1962, 4, 22, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1962, 4, 22),
                 Title = "The Man Who Shot Liberty Valance",
                 Year = 1962
             },
@@ -1895,7 +1895,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 112,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2009, 08, 14, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2009, 08, 14),
                 Title = "District 9",
                 Year = 2009
             },
@@ -1904,7 +1904,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 163,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1980, 04, 17, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1980, 04, 17),
                 Title = "Stalker",
                 Year = 1979
             },
@@ -1913,7 +1913,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 101,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2002, 12, 12, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2002, 12, 12),
                 Title = "Infernal Affairs",
                 Year = 2002
             },
@@ -1922,7 +1922,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 118,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1953, 9, 2, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1953, 9, 2),
                 Title = "Roman Holiday",
                 Year = 1953
             },
@@ -1931,7 +1931,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 103,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1998, 06, 05, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1998, 06, 05),
                 Title = "The Truman Show",
                 Year = 1998
             },
@@ -1940,7 +1940,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 111,
                 Rating = "G",
-                ReleaseDate = new DateTimeOffset(2007, 06, 29, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2007, 06, 29),
                 Title = "Ratatouille",
                 Year = 2007
             },
@@ -1949,7 +1949,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 143,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2003, 07, 09, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2003, 07, 09),
                 Title = "Pirates of the Caribbean: The Curse of the Black Pearl",
                 Year = 2003
             },
@@ -1958,7 +1958,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 106,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2008, 12, 12, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2008, 12, 12),
                 Title = "Ip Man",
                 Year = 2008
             },
@@ -1967,7 +1967,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 112,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2007, 05, 23, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2007, 05, 23),
                 Title = "The Diving Bell and the Butterfly",
                 Year = 2007
             },
@@ -1976,7 +1976,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 130,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2011, 07, 15, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2011, 07, 15),
                 Title = "Harry Potter and the Deathly Hallows: Part 2",
                 Year = 2011
             },
@@ -1985,7 +1985,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 99,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1967, 01, 18, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1967, 01, 18),
                 Title = "A Fistful of Dollars",
                 Year = 1964
             },
@@ -1994,7 +1994,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 125,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1951, 12, 1, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1951, 12, 1),
                 Title = "A Streetcar Named Desire",
                 Year = 1951
             },
@@ -2003,7 +2003,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 92,
                 Rating = "G",
-                ReleaseDate = new DateTimeOffset(2001, 11, 02, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2001, 11, 02),
                 Title = "Monsters, Inc.",
                 Year = 2001
             },
@@ -2012,7 +2012,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 133,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1994, 02, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1994, 02, 25),
                 Title = "In the Name of the Father",
                 Year = 1993
             },
@@ -2021,7 +2021,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 127,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2009, 05, 08, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2009, 05, 08),
                 Title = "Star Trek",
                 Year = 2009
             },
@@ -2030,7 +2030,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 84,
                 Rating = "G",
-                ReleaseDate = new DateTimeOffset(1991, 11, 22, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1991, 11, 22),
                 Title = "Beauty and the Beast",
                 Year = 1991
             },
@@ -2039,7 +2039,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 136,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1968, 06, 12, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1968, 06, 12),
                 Title = "Rosemary's Baby",
                 Year = 1968
             },
@@ -2048,7 +2048,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 104,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1950, 10, 13, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1950, 10, 13),
                 Title = "Harvey",
                 Year = 1950
             },
@@ -2056,7 +2056,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 117,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1984, 3, 11, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1984, 3, 11),
                 Title = "Nauticaä of the Valley of the Wind",
                 Year = 1984
             },
@@ -2065,7 +2065,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 109,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2009, 01, 30, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2009, 01, 30),
                 Title = "The Wrestler",
                 Year = 2008
             },
@@ -2074,7 +2074,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 133,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1930, 08, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1930, 08, 24),
                 Title = "All Quiet on the Western Front",
                 Year = 1930
             },
@@ -2083,7 +2083,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 98,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1996, 02, 23, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1996, 02, 23),
                 Title = "La Haine",
                 Year = 1995
             },
@@ -2092,7 +2092,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 133,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1988, 12, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1988, 12, 16),
                 Title = "Rain Man",
                 Year = 1988
             },
@@ -2101,7 +2101,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 66,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1925, 12, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1925, 12, 24),
                 Title = "Battleship Potemkin",
                 Year = 1925
             },
@@ -2110,7 +2110,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 138,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2010, 02, 19, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2010, 02, 19),
                 Title = "Shutter Island",
                 Year = 2010
             },
@@ -2119,7 +2119,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 81,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1929, 6, 3, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1929, 6, 3),
                 Title = "Nosferatu",
                 Year = 1922
             },
@@ -2128,7 +2128,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 103,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2003, 09, 19, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2003, 09, 19),
                 Title = "Spring, Summer, Fall, Winter... and Spring",
                 Year = 2003
             },
@@ -2137,7 +2137,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 96,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1979, 04, 25, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1979, 04, 25),
                 Title = "Manhattan",
                 Year = 1979
             },
@@ -2146,7 +2146,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 138,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2003, 10, 15, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2003, 10, 15),
                 Title = "Mystic River",
                 Year = 2003
             },
@@ -2155,7 +2155,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 102,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1938, 2, 18, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1938, 2, 18),
                 Title = "Bringing Up Baby",
                 Year = 1938
             },
@@ -2164,7 +2164,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 108,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1943, 1, 15, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1943, 1, 15),
                 Title = "Shadow of a Doubt",
                 Year = 1943
             },
@@ -2173,7 +2173,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 125,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2004, 01, 09, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2004, 01, 09),
                 Title = "Big Fish",
                 Year = 2003
             },
@@ -2182,7 +2182,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 124,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1986, 08, 02, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1986, 08, 02),
                 Title = "Castle in the Sky",
                 Year = 1986
             },
@@ -2191,7 +2191,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 151,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1973, 12, 16, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1973, 12, 16),
                 Title = "Papillon",
                 Year = 1973
             },
@@ -2200,7 +2200,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 76,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(1993, 10, 29, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1993, 10, 29),
                 Title = "The Nightmare Before Christmas",
                 Year = 1993
             },
@@ -2209,7 +2209,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 119,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(1987, 06, 03, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1987, 06, 03),
                 Title = "The Untouchables",
                 Year = 1987
             },
@@ -2218,7 +2218,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 127,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(1993, 06, 11, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1993, 06, 11),
                 Title = "Jurassic Park",
                 Year = 1993
             },
@@ -2227,7 +2227,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 115,
                 Rating = "R",
-                ReleaseDate = new DateTimeOffset(2008, 10, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2008, 10, 24),
                 Title = "Let the Right One In",
                 Year = 2008
             },
@@ -2236,7 +2236,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = true,
                 Duration = 109,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1967, 10, 14, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1967, 10, 14),
                 Title = "In the Heat of the Night",
                 Year = 1967
             },
@@ -2245,7 +2245,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 170,
                 Rating = "PG-13",
-                ReleaseDate = new DateTimeOffset(2009, 12, 24, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2009, 12, 24),
                 Title = "3 Idiots",
                 Year = 2009
             },
@@ -2254,7 +2254,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 118,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1944, 9, 23, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1944, 9, 23),
                 Title = "Arsenic and Old Lace",
                 Year = 1944
             },
@@ -2263,7 +2263,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 119,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1956, 3, 13, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1956, 3, 13),
                 Title = "The Searchers",
                 Year = 1956
             },
@@ -2272,7 +2272,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 98,
                 Rating = "PG",
-                ReleaseDate = new DateTimeOffset(2000, 09, 29, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(2000, 09, 29),
                 Title = "In the Mood for Love",
                 Year = 2000
             },
@@ -2281,7 +2281,7 @@ namespace Datasync.Common.Test.TestData
                 BestPictureWinner = false,
                 Duration = 141,
                 Rating = null,
-                ReleaseDate = new DateTimeOffset(1959, 4, 4, 0, 0, 0, TimeSpan.Zero),
+                ReleaseDate = new DateOnly(1959, 4, 4),
                 Title = "Rio Bravo",
                 Year = 1959
             }

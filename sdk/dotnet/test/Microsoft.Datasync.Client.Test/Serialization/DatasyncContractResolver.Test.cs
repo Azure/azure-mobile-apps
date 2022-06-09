@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
-using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Serialization;
 using Newtonsoft.Json;
 using System;
@@ -84,6 +83,11 @@ namespace Microsoft.Datasync.Client.Test.Serialization
         }
 
         #region Test Models
+        public class NoIdEntity
+        {
+            public string StringValue { get; set; }
+        }
+
         [DataTable("nameddatatabletype")]
         public class DataTableType
         {

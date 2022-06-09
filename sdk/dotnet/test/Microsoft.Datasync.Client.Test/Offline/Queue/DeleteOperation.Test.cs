@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Offline.Queue;
+using Microsoft.Datasync.Client.Test.Helpers;
 using Moq;
 using Newtonsoft.Json.Linq;
 using System;

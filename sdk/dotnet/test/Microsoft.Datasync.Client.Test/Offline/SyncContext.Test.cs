@@ -8,6 +8,7 @@ using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
+using Microsoft.Datasync.Client.Test.Helpers;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -24,7 +25,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Offline
 {
     [ExcludeFromCodeCoverage]
-    public class SyncContext_Tests : BaseTest
+    public class SyncContext_Tests : ClientBaseTest
     {
         private readonly DatasyncClient client;
         private readonly MockOfflineStore store;

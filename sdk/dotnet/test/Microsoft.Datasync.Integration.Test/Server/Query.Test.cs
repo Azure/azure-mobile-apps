@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -22,37 +23,3681 @@ namespace Microsoft.Datasync.Integration.Test.Server
     {
         public Query_Tests(ITestOutputHelper logger) : base(logger) { }
 
-        [Theory, ClassData(typeof(QueryTestCases))]
-        public async Task BasicQueryTest(QueryTestCase testcase)
+        [Fact]
+        public async Task Query_Test_001()
         {
-            Dictionary<string, string> headers = new();
-            Utils.AddAuthHeaders(headers, testcase.Username);
+            await BaseQueryTest(
+                "tables/movies",
+                100,
+                "tables/movies?$skip=100",
+                0,
+                new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+            );
+        }
 
-            var response = await MovieServer.SendRequest(HttpMethod.Get, testcase.PathAndQuery, headers);
+        [Fact]
+        public async Task Query_Test_002()
+        {
+            await BaseQueryTest(
+                "tables/movies?$count=true",
+                100,
+                "tables/movies?$count=true&$skip=100",
+                Movies.Count,
+                new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+            );
+        }
 
-            // Response has the right Status Code
-            await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
+        [Fact]
+        public async Task Query_Test_003()
+        {
+            await BaseQueryTest(
+                "tables/movies?$count=true&$filter=((year div 1000.5) eq 2) and (rating eq 'R')",
+                2,
+                null,
+                2,
+                new[] { "id-061", "id-173" }
+            );
+        }
 
-            // Response payload can be decoded
-            var result = response.DeserializeContent<PageOfItems<ClientMovie>>();
-            Assert.NotNull(result);
+        [Fact]
+        public async Task Query_Test_004()
+        {
+            await BaseQueryTest(
+                "tables/movies?$count=true&$filter=((year sub 1900) ge 80) and ((year add 10) le 2000) and (duration le 120)",
+                13,
+                null,
+                13,
+                new[] { "id-026", "id-047", "id-081", "id-103", "id-121" }
+            );
+        }
 
-            // Payload has the right content
-            Assert.Equal(testcase.ItemCount, result!.Items!.Length);
-            Assert.Equal(testcase.NextLinkQuery, result.NextLink == null ? null : Uri.UnescapeDataString(result.NextLink.PathAndQuery).TrimStart('/'));
-            Assert.Equal(testcase.TotalCount, result.Count);
+        [Fact]
+        public async Task Query_Test_005()
+        {
+            await BaseQueryTest(
+                "tables/movies?$count=true&$filter=(year div 1000.5) eq 2",
+                6,
+                null,
+                6,
+                new[] { "id-012", "id-042", "id-061", "id-173", "id-194" }
+                );
+        }
 
-            // The first n items must match what is expected
-            Assert.True(result.Items.Length >= testcase.FirstItems.Length);
-            Assert.Equal(testcase.FirstItems, result.Items.Take(testcase.FirstItems.Length).Select(m => m.Id).ToArray());
-            for (int idx = 0; idx < testcase.FirstItems.Length; idx++)
-            {
-                var expected = MovieServer.GetMovieById(testcase.FirstItems[idx])!;
-                var actual = result.Items[idx];
+        [Fact]
+        public async Task Query_Test_006()
+        {
+            await BaseQueryTest(
+                "tables/movies?$count=true&$filter=(year ge 1930 and year le 1940) or (year ge 1950 and year le 1960)",
+                46,
+                null,
+                46,
+                new[] { "id-005", "id-016", "id-027", "id-028", "id-031" }
+                );
+        }
 
-                Assert.Equal<IMovie>(expected, actual);
-                AssertEx.SystemPropertiesMatch(expected, actual);
-            }
+        [Fact]
+        public async Task Query_Test_007()
+        {
+            await BaseQueryTest(
+                "tables/movies?$count=true&$filter=(year sub 1900) ge 80",
+                100,
+                "tables/movies?$count=true&$filter=(year sub 1900) ge 80&$skip=100",
+                138,
+                new[] { "id-000", "id-003", "id-006", "id-007", "id-008" }
+                );
+        }
+
+        [Fact]
+        public async Task Query_Test_008()
+        {
+            await BaseQueryTest(
+                "tables/movies?$count=true&$filter=bestPictureWinner eq false",
+				100, 
+                "tables/movies?$count=true&$filter=bestPictureWinner eq false&$skip=100",
+				210, 
+                new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_009()
+        {
+            await BaseQueryTest(
+                "tables/movies?$count=true&$filter=bestPictureWinner eq true and ceiling(duration div 60.0) eq 2",
+				11,
+				null,
+				11,
+				new[] { "id-023", "id-024", "id-112", "id-135", "id-142" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_010()
+        {
+            await BaseQueryTest(
+                "tables/movies?$count=true&$filter=bestPictureWinner eq true and floor(duration div 60.0) eq 2",
+				21,
+				null,
+				21,
+				new[] { "id-001", "id-011", "id-018", "id-048", "id-051" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_011()
+        {
+            await BaseQueryTest(
+                "tables/movies?$count=true&$filter=bestPictureWinner eq true and round(duration div 60.0) eq 2",
+				24,
+				null,
+				24,
+				new[] { "id-011", "id-018", "id-023", "id-024", "id-048" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_012()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=bestPictureWinner eq true",
+				38,
+				null,
+				38,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_013()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=bestPictureWinner ne false",
+				38,
+				null,
+				38,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_014()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=bestPictureWinner ne true",
+				100, 
+                "tables/movies?$count=true&$filter=bestPictureWinner ne true&$skip=100",
+				210,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_015()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=ceiling(duration div 60.0) eq 2",
+				100, 
+                "tables/movies?$count=true&$filter=ceiling(duration div 60.0) eq 2&$skip=100",
+				124,
+				new[] { "id-005", "id-023", "id-024", "id-025", "id-026" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_016()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=day(releaseDate) eq 1",
+				7,
+				null,
+				7,
+				new[] { "id-019", "id-048", "id-129", "id-131", "id-132" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_017()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=duration ge 60",
+				100, 
+                "tables/movies?$count=true&$filter=duration ge 60&$skip=100",
+				Movies.Count,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_018()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=endswith(title, 'er')",
+				12,
+				null,
+				12,
+				new[] { "id-001", "id-052", "id-121", "id-130", "id-164" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_019()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=endswith(tolower(title), 'er')",
+				12,
+				null,
+				12,
+				new[] { "id-001", "id-052", "id-121", "id-130", "id-164" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_020()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=endswith(toupper(title), 'ER')",
+				12,
+				null,
+				12,
+				new[] { "id-001", "id-052", "id-121", "id-130", "id-164" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_021()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=floor(duration div 60.0) eq 2",
+				100,
+				"tables/movies?$count=true&$filter=floor(duration div 60.0) eq 2&$skip=100",
+				120,
+				new[] { "id-000", "id-001", "id-003", "id-004", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_022()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=month(releaseDate) eq 11",
+				14,
+				null,
+				14,
+				new[] { "id-011", "id-016", "id-030", "id-064", "id-085" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_023()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=not(bestPictureWinner eq false)",
+				38,
+				null,
+				38,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_024()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=not(bestPictureWinner eq true)",
+				100,
+				"tables/movies?$count=true&$filter=not(bestPictureWinner eq true)&$skip=100",
+				210,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_025()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=not(bestPictureWinner ne false)",
+				100,
+				"tables/movies?$count=true&$filter=not(bestPictureWinner ne false)&$skip=100",
+				210,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_026()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=not(bestPictureWinner ne true)",
+				38,
+				null,
+				38,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_027()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=rating eq 'R'",
+				95,
+				null,
+				95,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-007" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_028()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=rating ne 'PG-13'",
+				100,
+				"tables/movies?$count=true&$filter=rating ne 'PG-13'&$skip=100",
+				220,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_029()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=rating eq null",
+				74,
+				null,
+				74,
+				new[] { "id-004", "id-005", "id-011", "id-016", "id-031" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_030()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=releaseDate eq cast(1994-10-14T00:00:00.000Z,Edm.DateTimeOffset)",
+				2,
+				null,
+				2,
+				new[] { "id-000", "id-003" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_031()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=releaseDate ge cast(1999-12-31T00:00:00.000Z,Edm.DateTimeOffset)",
+				69,
+				null,
+				69,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_032()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=releaseDate gt cast(1999-12-31T00:00:00.000Z,Edm.DateTimeOffset)",
+				69,
+				null,
+				69,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_033()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=releaseDate le cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)",
+				100,
+				"tables/movies?$count=true&$filter=releaseDate le cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)&$skip=100",
+				179,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_034()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=releaseDate lt cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)",
+				100,
+				"tables/movies?$count=true&$filter=releaseDate lt cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)&$skip=100",
+				179,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_035()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=round(duration div 60.0) eq 2",
+				100,
+				"tables/movies?$count=true&$filter=round(duration div 60.0) eq 2&$skip=100", 
+				Movies.MovieList.Count(x => Math.Round(x.Duration / 60.0) == 2.0),
+				new[] { "id-000", "id-005", "id-009", "id-010", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_036()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=startswith(rating, 'PG')",
+				68,
+				null,
+				68,
+				new[] { "id-006", "id-008", "id-010", "id-012", "id-013" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_037()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=startswith(tolower(title), 'the')",
+				63,
+				null,
+				63,
+				new[] { "id-000", "id-001", "id-002", "id-004", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_038()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=startswith(toupper(title), 'THE')",
+				63,
+				null,
+				63,
+				new[] { "id-000", "id-001", "id-002", "id-004", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_039()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=year eq 1994",
+				5,
+				null,
+				5,
+				new[] { "id-000", "id-003", "id-018", "id-030", "id-079" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_040()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=year ge 2000 and year le 2009",
+				55,
+				null,
+				55,
+				new[] { "id-006", "id-008", "id-012", "id-019", "id-020" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_041()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=year ge 2000",
+				69,
+				null,
+				69,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_042()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=year gt 1999 and year lt 2010",
+				55,
+				null,
+				55,
+				new[] { "id-006", "id-008", "id-012", "id-019", "id-020" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_043()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=year gt 1999",
+				69,
+				null,
+				69,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_044()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=year le 2000",
+				100,
+				"tables/movies?$count=true&$filter=year le 2000&$skip=100",
+				185,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_045()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=year lt 2001",
+				100,
+				"tables/movies?$count=true&$filter=year lt 2001&$skip=100",
+				185,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_046()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$filter=year(releaseDate) eq 1994",
+				6,
+				null,
+				6,
+				new[] { "id-000", "id-003", "id-018", "id-030", "id-079" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_047()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=bestPictureWinner asc",
+				100,
+				"tables/movies?$count=true&$orderby=bestPictureWinner asc&$skip=100",
+				Movies.Count,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_048()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=bestPictureWinner desc",
+				100,
+				"tables/movies?$count=true&$orderby=bestPictureWinner desc&$skip=100",
+				Movies.Count,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_049()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=duration asc",
+				100,
+				"tables/movies?$count=true&$orderby=duration asc&$skip=100",
+				Movies.Count,
+				new[] { "id-227", "id-125", "id-133", "id-107", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_050()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=duration desc",
+				100,
+				"tables/movies?$count=true&$orderby=duration desc&$skip=100",
+				Movies.Count,
+				new[] { "id-153", "id-065", "id-165", "id-008", "id-002" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_051()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=rating asc",
+				100,
+				"tables/movies?$count=true&$orderby=rating asc&$skip=100",
+				Movies.Count,
+				new[] { "id-004", "id-005", "id-011", "id-016", "id-031" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_052()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=rating desc",
+				100,
+				"tables/movies?$count=true&$orderby=rating desc&$skip=100",
+				Movies.Count,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-007" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_053()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=releaseDate asc",
+				100,
+				"tables/movies?$count=true&$orderby=releaseDate asc&$skip=100",
+				Movies.Count,
+				new[] { "id-125", "id-133", "id-227", "id-118", "id-088" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_054()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=releaseDate desc",
+				100,
+				"tables/movies?$count=true&$orderby=releaseDate desc&$skip=100",
+				Movies.Count,
+				new[] { "id-188", "id-033", "id-122", "id-186", "id-064" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_055()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=title asc",
+				100,
+				"tables/movies?$count=true&$orderby=title asc&$skip=100",
+				Movies.Count,
+				new[] { "id-005", "id-091", "id-243", "id-194", "id-060" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_056()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=title desc",
+				100,
+				"tables/movies?$count=true&$orderby=title desc&$skip=100",
+				Movies.Count,
+				new[] { "id-107", "id-100", "id-123", "id-190", "id-149" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_057()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=year asc",
+				100,
+				"tables/movies?$count=true&$orderby=year asc&$skip=100",
+				Movies.Count,
+				new[] { "id-125", "id-229", "id-133", "id-227", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_058()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=year asc,title asc",
+				100,
+				"tables/movies?$count=true&$orderby=year asc,title asc&$skip=100",
+				Movies.Count,
+				new[] { "id-125", "id-229", "id-227", "id-133", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_059()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=year asc,title desc",
+				100,
+				"tables/movies?$count=true&$orderby=year asc,title desc&$skip=100",
+				Movies.Count,
+				new[] { "id-125", "id-229", "id-133", "id-227", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_060()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=year desc",
+				100,
+				"tables/movies?$count=true&$orderby=year desc&$skip=100",
+				Movies.Count,
+				new[] { "id-033", "id-122", "id-188", "id-064", "id-102" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_061()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=year desc,title asc",
+				100,
+				"tables/movies?$count=true&$orderby=year desc,title asc&$skip=100",
+				Movies.Count,
+				new[] { "id-188", "id-122", "id-033", "id-102", "id-213" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_062()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$orderby=year desc,title desc",
+				100,
+				"tables/movies?$count=true&$orderby=year desc,title desc&$skip=100",
+				Movies.Count,
+				new[] { "id-033", "id-122", "id-188", "id-149", "id-064" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_063()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=((year div 1000.5) eq 2) and (rating eq 'R')",
+				2,
+				null,
+				2,
+				new[] { "id-061", "id-173" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_064()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=((year sub 1900) ge 80) and ((year add 10) le 2000) and (duration le 120)",
+				13,
+				null,
+				13,
+				new[] { "id-026", "id-047", "id-081", "id-103", "id-121" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_065()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=(year div 1000.5) eq 2",
+				6,
+				null,
+				6,
+				new[] { "id-012", "id-042", "id-061", "id-173", "id-194" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_066()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=(year ge 1930 and year le 1940) or (year ge 1950 and year le 1960)",
+				46,
+				null,
+				46,
+				new[] { "id-005", "id-016", "id-027", "id-028", "id-031" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_067()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=(year sub 1900) ge 80",
+				100,
+				"tables/movies?$count=true&$filter=(year sub 1900) ge 80&$skip=100&$top=25",
+				138,
+				new[] { "id-000", "id-003", "id-006", "id-007", "id-008" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_068()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=bestPictureWinner eq false",
+				100,
+				"tables/movies?$count=true&$filter=bestPictureWinner eq false&$skip=100&$top=25",
+				210,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_069()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=bestPictureWinner eq true and ceiling(duration div 60.0) eq 2",
+				11,
+				null,
+				11,
+				new[] { "id-023", "id-024", "id-112", "id-135", "id-142" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_070()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=bestPictureWinner eq true and floor(duration div 60.0) eq 2",
+				21,
+				null,
+				21,
+				new[] { "id-001", "id-011", "id-018", "id-048", "id-051" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_071()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=bestPictureWinner eq true and round(duration div 60.0) eq 2",
+				24,
+				null,
+				24,
+				new[] { "id-011", "id-018", "id-023", "id-024", "id-048" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_072()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=bestPictureWinner eq true",
+				38,
+				null,
+				38,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_073()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=bestPictureWinner ne false",
+				38,
+				null,
+				38,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_074()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=bestPictureWinner ne true",
+				100,
+				"tables/movies?$count=true&$filter=bestPictureWinner ne true&$skip=100&$top=25",
+				210,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_075()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=ceiling(duration div 60.0) eq 2",
+				100,
+				"tables/movies?$count=true&$filter=ceiling(duration div 60.0) eq 2&$skip=100&$top=25",
+				124,
+				new[] { "id-005", "id-023", "id-024", "id-025", "id-026" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_076()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=day(releaseDate) eq 1",
+				7,
+				null,
+				7,
+				new[] { "id-019", "id-048", "id-129", "id-131", "id-132" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_077()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=duration ge 60",
+				100,
+				"tables/movies?$count=true&$filter=duration ge 60&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_078()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=endswith(title, 'er')",
+				12,
+				null,
+				12,
+				new[] { "id-001", "id-052", "id-121", "id-130", "id-164" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_079()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=endswith(tolower(title), 'er')",
+				12,
+				null,
+				12,
+				new[] { "id-001", "id-052", "id-121", "id-130", "id-164" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_080()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=endswith(toupper(title), 'ER')",
+				12,
+				null,
+				12,
+				new[] { "id-001", "id-052", "id-121", "id-130", "id-164" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_081()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=floor(duration div 60.0) eq 2",
+				100,
+				"tables/movies?$count=true&$filter=floor(duration div 60.0) eq 2&$skip=100&$top=25",
+				120,
+				new[] { "id-000", "id-001", "id-003", "id-004", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_082()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=month(releaseDate) eq 11",
+				14,
+				null,
+				14,
+				new[] { "id-011", "id-016", "id-030", "id-064", "id-085" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_083()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=not(bestPictureWinner eq false)",
+				38,
+				null,
+				38,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_084()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=not(bestPictureWinner eq true)",
+				100,
+				"tables/movies?$count=true&$filter=not(bestPictureWinner eq true)&$skip=100&$top=25",
+				210,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_085()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=not(bestPictureWinner ne false)",
+				100,
+				"tables/movies?$count=true&$filter=not(bestPictureWinner ne false)&$skip=100&$top=25",
+				210,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_086()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=not(bestPictureWinner ne true)",
+				38,
+				null,
+				38,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_087()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=rating eq 'R'",
+				95,
+				null,
+				95,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-007" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_088()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=rating ne 'PG-13'",
+				100,
+				"tables/movies?$count=true&$filter=rating ne 'PG-13'&$skip=100&$top=25",
+				220,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_089()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=rating eq null",
+				74,
+				null,
+				74,
+				new[] { "id-004", "id-005", "id-011", "id-016", "id-031" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_090()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=releaseDate eq cast(1994-10-14T00:00:00.000Z,Edm.DateTimeOffset)",
+				2,
+				null,
+				2,
+				new[] { "id-000", "id-003" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_091()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=releaseDate ge cast(1999-12-31T00:00:00.000Z,Edm.DateTimeOffset)",
+				69,
+				null,
+				69,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_092()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=releaseDate gt cast(1999-12-31T00:00:00.000Z,Edm.DateTimeOffset)",
+				69,
+				null,
+				69,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_093()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=releaseDate le cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)",
+				100,
+				"tables/movies?$count=true&$filter=releaseDate le cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)&$skip=100&$top=25",
+				179,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_094()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=releaseDate lt cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)",
+				100,
+				"tables/movies?$count=true&$filter=releaseDate lt cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)&$skip=100&$top=25",
+				179,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_095()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=round(duration div 60.0) eq 2",
+				100,
+				"tables/movies?$count=true&$filter=round(duration div 60.0) eq 2&$skip=100&$top=25",
+				186,
+				new[] { "id-000", "id-005", "id-009", "id-010", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_096()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=startswith(rating, 'PG')",
+				68,
+				null,
+				68,
+				new[] { "id-006", "id-008", "id-010", "id-012", "id-013" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_097()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=startswith(tolower(title), 'the')",
+				63,
+				null,
+				63,
+				new[] { "id-000", "id-001", "id-002", "id-004", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_098()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=startswith(toupper(title), 'THE')",
+				63,
+				null,
+				63,
+				new[] { "id-000", "id-001", "id-002", "id-004", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_099()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=year eq 1994",
+				5,
+				null,
+				5,
+				new[] { "id-000", "id-003", "id-018", "id-030", "id-079" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_100()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=year ge 2000 and year le 2009",
+				55,
+				null,
+				55,
+				new[] { "id-006", "id-008", "id-012", "id-019", "id-020" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_101()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=year ge 2000",
+				69,
+				null,
+				69,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_102()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=year gt 1999 and year lt 2010",
+				55,
+				null,
+				55,
+				new[] { "id-006", "id-008", "id-012", "id-019", "id-020" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_103()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=year gt 1999",
+				69,
+				null,
+				69,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_104()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=year le 2000",
+				100,
+				"tables/movies?$count=true&$filter=year le 2000&$skip=100&$top=25",
+				185,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_105()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=year lt 2001",
+				100,
+				"tables/movies?$count=true&$filter=year lt 2001&$skip=100&$top=25",
+				185,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_106()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$filter=year(releaseDate) eq 1994",
+				6,
+				null,
+				6,
+				new[] { "id-000", "id-003", "id-018", "id-030", "id-079" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_107()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=bestPictureWinner asc",
+				100,
+				"tables/movies?$count=true&$orderby=bestPictureWinner asc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_108()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=bestPictureWinner desc",
+				100,
+				"tables/movies?$count=true&$orderby=bestPictureWinner desc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_109()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=duration asc",
+				100,
+				"tables/movies?$count=true&$orderby=duration asc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-227", "id-125", "id-133", "id-107", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_110()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=duration desc",
+				100,
+				"tables/movies?$count=true&$orderby=duration desc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-153", "id-065", "id-165", "id-008", "id-002" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_111()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=rating asc",
+				100,
+				"tables/movies?$count=true&$orderby=rating asc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-004", "id-005", "id-011", "id-016", "id-031" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_112()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=rating desc",
+				100,
+				"tables/movies?$count=true&$orderby=rating desc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-007" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_113()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=releaseDate asc",
+				100,
+				"tables/movies?$count=true&$orderby=releaseDate asc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-125", "id-133", "id-227", "id-118", "id-088" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_114()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=releaseDate desc",
+				100,
+				"tables/movies?$count=true&$orderby=releaseDate desc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-188", "id-033", "id-122", "id-186", "id-064" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_115()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=title asc",
+				100,
+				"tables/movies?$count=true&$orderby=title asc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-005", "id-091", "id-243", "id-194", "id-060" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_116()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=title desc",
+				100,
+				"tables/movies?$count=true&$orderby=title desc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-107", "id-100", "id-123", "id-190", "id-149" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_117()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=year asc",
+				100,
+				"tables/movies?$count=true&$orderby=year asc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-125", "id-229", "id-133", "id-227", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_118()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=year asc,title asc",
+				100,
+				"tables/movies?$count=true&$orderby=year asc,title asc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-125", "id-229", "id-227", "id-133", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_119()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=year asc,title desc",
+				100,
+				"tables/movies?$count=true&$orderby=year asc,title desc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-125", "id-229", "id-133", "id-227", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_120()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=year desc",
+				100,
+				"tables/movies?$count=true&$orderby=year desc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-033", "id-122", "id-188", "id-064", "id-102" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_121()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=year desc,title asc",
+				100,
+				"tables/movies?$count=true&$orderby=year desc,title asc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-188", "id-122", "id-033", "id-102", "id-213" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_122()
+        {
+            await BaseQueryTest(
+				"tables/movies?$count=true&$top=125&$orderby=year desc,title desc",
+				100,
+				"tables/movies?$count=true&$orderby=year desc,title desc&$skip=100&$top=25",
+				Movies.Count,
+				new[] { "id-033", "id-122", "id-188", "id-149", "id-064" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_123()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=((year div 1000.5) eq 2) and (rating eq 'R')",
+				2,
+				null,
+				0,
+				new[] { "id-061", "id-173" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_124()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=((year sub 1900) ge 80) and ((year add 10) le 2000) and (duration le 120)",
+				13,
+				null,
+				0,
+				new[] { "id-026", "id-047", "id-081", "id-103", "id-121" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_125()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=(year div 1000.5) eq 2",
+				6,
+				null,
+				0,
+				new[] { "id-012", "id-042", "id-061", "id-173", "id-194" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_126()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=(year ge 1930 and year le 1940) or (year ge 1950 and year le 1960)",
+				46,
+				null,
+				0,
+				new[] { "id-005", "id-016", "id-027", "id-028", "id-031" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_127()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=(year sub 1900) ge 80",
+				100,
+				"tables/movies?$filter=(year sub 1900) ge 80&$skip=100",
+				0,
+				new[] { "id-000", "id-003", "id-006", "id-007", "id-008" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_128()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=bestPictureWinner eq false",
+				100,
+				"tables/movies?$filter=bestPictureWinner eq false&$skip=100",
+				0,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_129()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=bestPictureWinner eq true and ceiling(duration div 60.0) eq 2",
+				11,
+				null,
+				0,
+				new[] { "id-023", "id-024", "id-112", "id-135", "id-142" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_130()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=bestPictureWinner eq true and floor(duration div 60.0) eq 2",
+				21,
+				null,
+				0,
+				new[] { "id-001", "id-011", "id-018", "id-048", "id-051" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_131()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=bestPictureWinner eq true and round(duration div 60.0) eq 2",
+				24,
+				null,
+				0,
+				new[] { "id-011", "id-018", "id-023", "id-024", "id-048" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_132()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=bestPictureWinner eq true",
+				38,
+				null,
+				0,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_133()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=bestPictureWinner ne false",
+				38,
+				null,
+				0,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_134()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=bestPictureWinner ne true",
+				100,
+				"tables/movies?$filter=bestPictureWinner ne true&$skip=100",
+				0,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_135()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=ceiling(duration div 60.0) eq 2",
+				100,
+				"tables/movies?$filter=ceiling(duration div 60.0) eq 2&$skip=100",
+				0,
+				new[] { "id-005", "id-023", "id-024", "id-025", "id-026" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_136()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=day(releaseDate) eq 1",
+				7,
+				null,
+				0,
+				new[] { "id-019", "id-048", "id-129", "id-131", "id-132" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_137()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=duration ge 60",
+				100,
+				"tables/movies?$filter=duration ge 60&$skip=100",
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_138()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=endswith(title, 'er')",
+				12,
+				null,
+				0,
+				new[] { "id-001", "id-052", "id-121", "id-130", "id-164" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_139()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=endswith(tolower(title), 'er')",
+				12,
+				null,
+				0,
+				new[] { "id-001", "id-052", "id-121", "id-130", "id-164" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_140()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=endswith(toupper(title), 'ER')",
+				12,
+				null,
+				0,
+				new[] { "id-001", "id-052", "id-121", "id-130", "id-164" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_141()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=floor(duration div 60.0) eq 2",
+				100,
+				"tables/movies?$filter=floor(duration div 60.0) eq 2&$skip=100",
+				0,
+				new[] { "id-000", "id-001", "id-003", "id-004", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_142()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=month(releaseDate) eq 11",
+				14,
+				null,
+				0,
+				new[] { "id-011", "id-016", "id-030", "id-064", "id-085" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_143()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=not(bestPictureWinner eq false)",
+				38,
+				null,
+				0,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_144()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=not(bestPictureWinner eq true)",
+				100,
+				"tables/movies?$filter=not(bestPictureWinner eq true)&$skip=100",
+				0,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_145()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=not(bestPictureWinner ne false)",
+				100,
+				"tables/movies?$filter=not(bestPictureWinner ne false)&$skip=100",
+				0,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_146()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=not(bestPictureWinner ne true)",
+				38,
+				null,
+				0,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_147()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=rating eq 'R'",
+				95,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-007" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_148()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=rating ne 'PG-13'",
+				100,
+				"tables/movies?$filter=rating ne 'PG-13'&$skip=100",
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_149()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=rating eq null",
+				74,
+				null,
+				0,
+				new[] { "id-004", "id-005", "id-011", "id-016", "id-031" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_150()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=releaseDate eq cast(1994-10-14T00:00:00.000Z,Edm.DateTimeOffset)",
+				2,
+				null,
+				0,
+				new[] { "id-000", "id-003" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_151()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=releaseDate ge cast(1999-12-31T00:00:00.000Z,Edm.DateTimeOffset)",
+				69,
+				null,
+				0,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_152()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=releaseDate gt cast(1999-12-31T00:00:00.000Z,Edm.DateTimeOffset)",
+				69,
+				null,
+				0,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_153()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=releaseDate le cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)",
+				100,
+				"tables/movies?$filter=releaseDate le cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)&$skip=100",
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_154()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=releaseDate lt cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)",
+				100,
+				"tables/movies?$filter=releaseDate lt cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)&$skip=100",
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_155()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=round(duration div 60.0) eq 2",
+				100,
+				"tables/movies?$filter=round(duration div 60.0) eq 2&$skip=100",
+				0,
+				new[] { "id-000", "id-005", "id-009", "id-010", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_156()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=startswith(rating, 'PG')",
+				68,
+				null,
+				0,
+				new[] { "id-006", "id-008", "id-010", "id-012", "id-013" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_157()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=startswith(tolower(title), 'the')",
+				63,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-004", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_158()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=startswith(toupper(title), 'THE')",
+				63,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-004", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_159()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year eq 1994",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-003", "id-018", "id-030", "id-079" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_160()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year ge 2000 and year le 2009",
+				55,
+				null,
+				0,
+				new[] { "id-006", "id-008", "id-012", "id-019", "id-020" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_161()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year ge 2000",
+				69,
+				null,
+				0,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_162()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year gt 1999 and year lt 2010",
+				55,
+				null,
+				0,
+				new[] { "id-006", "id-008", "id-012", "id-019", "id-020" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_163()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year gt 1999",
+				69,
+				null,
+				0,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_164()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year le 2000",
+				100,
+				"tables/movies?$filter=year le 2000&$skip=100",
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_165()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year lt 2001",
+				100,
+				"tables/movies?$filter=year lt 2001&$skip=100",
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_166()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year(releaseDate) eq 1994",
+				6,
+				null,
+				0,
+				new[] { "id-000", "id-003", "id-018", "id-030", "id-079" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_167()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=bestPictureWinner asc",
+				100,
+				"tables/movies?$orderby=bestPictureWinner asc&$skip=100",
+				0,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_168()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=bestPictureWinner desc",
+				100,
+				"tables/movies?$orderby=bestPictureWinner desc&$skip=100",
+				0,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_169()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=duration asc",
+				100,
+				"tables/movies?$orderby=duration asc&$skip=100",
+				0,
+				new[] { "id-227", "id-125", "id-133", "id-107", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_170()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=duration desc",
+				100,
+				"tables/movies?$orderby=duration desc&$skip=100",
+				0,
+				new[] { "id-153", "id-065", "id-165", "id-008", "id-002" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_171()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=rating asc",
+				100,
+				"tables/movies?$orderby=rating asc&$skip=100",
+				0,
+				new[] { "id-004", "id-005", "id-011", "id-016", "id-031" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_172()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=rating desc",
+				100,
+				"tables/movies?$orderby=rating desc&$skip=100",
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-007" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_173()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=releaseDate asc",
+				100,
+				"tables/movies?$orderby=releaseDate asc&$skip=100",
+				0,
+				new[] { "id-125", "id-133", "id-227", "id-118", "id-088" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_174()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=releaseDate desc",
+				100,
+				"tables/movies?$orderby=releaseDate desc&$skip=100",
+				0,
+				new[] { "id-188", "id-033", "id-122", "id-186", "id-064" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_175()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=title asc",
+				100,
+				"tables/movies?$orderby=title asc&$skip=100",
+				0,
+				new[] { "id-005", "id-091", "id-243", "id-194", "id-060" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_176()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=title desc",
+				100,
+				"tables/movies?$orderby=title desc&$skip=100",
+				0,
+				new[] { "id-107", "id-100", "id-123", "id-190", "id-149" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_177()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=year asc",
+				100,
+				"tables/movies?$orderby=year asc&$skip=100",
+				0,
+				new[] { "id-125", "id-229", "id-133", "id-227", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_178()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=year asc,title asc",
+				100,
+				"tables/movies?$orderby=year asc,title asc&$skip=100",
+				0,
+				new[] { "id-125", "id-229", "id-227", "id-133", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_179()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=year asc,title desc",
+				100,
+				"tables/movies?$orderby=year asc,title desc&$skip=100",
+				0,
+				new[] { "id-125", "id-229", "id-133", "id-227", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_180()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=year desc",
+				100,
+				"tables/movies?$orderby=year desc&$skip=100",
+				0,
+				new[] { "id-033", "id-122", "id-188", "id-064", "id-102" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_181()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=year desc,title asc",
+				100,
+				"tables/movies?$orderby=year desc,title asc&$skip=100",
+				0,
+				new[] { "id-188", "id-122", "id-033", "id-102", "id-213" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_182()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=year desc,title desc",
+				100,
+				"tables/movies?$orderby=year desc,title desc&$skip=100",
+				0,
+				new[] { "id-033", "id-122", "id-188", "id-149", "id-064" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_183()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=((year div 1000.5) eq 2) and (rating eq 'R')&$skip=5",
+				0,
+				null,
+				0, Array.Empty<string>());
+        }
+
+        [Fact]
+        public async Task Query_Test_184()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=((year sub 1900) ge 80) and ((year add 10) le 2000) and (duration le 120)&$skip=5",
+				8,
+				null,
+				0,
+				new[] { "id-142", "id-143", "id-162", "id-166", "id-172" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_185()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=(year div 1000.5) eq 2&$skip=5",
+				1,
+				null,
+				0,
+				new[] { "id-216" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_186()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=(year ge 1930 and year le 1940) or (year ge 1950 and year le 1960)&$skip=5",
+				41,
+				null,
+				0,
+				new[] { "id-040", "id-041", "id-044", "id-046", "id-049" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_187()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=(year sub 1900) ge 80&$skip=5",
+				100,
+				"tables/movies?$filter=(year sub 1900) ge 80&$skip=105",
+				0,
+				new[] { "id-009", "id-010", "id-012", "id-013", "id-014" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_188()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=bestPictureWinner eq false&$skip=5",
+				100,
+				"tables/movies?$filter=bestPictureWinner eq false&$skip=105",
+				0,
+				new[] { "id-009", "id-010", "id-012", "id-013", "id-014" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_189()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=bestPictureWinner eq true and ceiling(duration div 60.0) eq 2&$skip=5",
+				6,
+				null,
+				0,
+				new[] { "id-150", "id-155", "id-186", "id-189", "id-196" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_190()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=bestPictureWinner eq true and floor(duration div 60.0) eq 2&$skip=5",
+				16,
+				null,
+				0,
+				new[] { "id-062", "id-083", "id-087", "id-092", "id-093" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_191()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=bestPictureWinner eq true and round(duration div 60.0) eq 2&$skip=5",
+				19,
+				null,
+				0,
+				new[] { "id-092", "id-093", "id-094", "id-096", "id-112" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_192()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=bestPictureWinner eq true&$skip=5",
+				33,
+				null,
+				0,
+				new[] { "id-018", "id-023", "id-024", "id-048", "id-051" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_193()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=bestPictureWinner ne false&$skip=5",
+				33,
+				null,
+				0,
+				new[] { "id-018", "id-023", "id-024", "id-048", "id-051" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_194()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=bestPictureWinner ne true&$skip=5",
+				100,
+				"tables/movies?$filter=bestPictureWinner ne true&$skip=105",
+				0,
+				new[] { "id-009", "id-010", "id-012", "id-013", "id-014" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_195()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=ceiling(duration div 60.0) eq 2&$skip=5",
+				100,
+				"tables/movies?$filter=ceiling(duration div 60.0) eq 2&$skip=105",
+				0,
+				new[] { "id-027", "id-028", "id-030", "id-031", "id-032" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_196()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=day(releaseDate) eq 1&$skip=5",
+				2,
+				null,
+				0,
+				new[] { "id-197", "id-215" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_197()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=duration ge 60&$skip=5",
+				100,
+				"tables/movies?$filter=duration ge 60&$skip=105",
+				0,
+				new[] { "id-005", "id-006", "id-007", "id-008", "id-009" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_198()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=endswith(title, 'er')&$skip=5",
+				7,
+				null,
+				0,
+				new[] { "id-170", "id-193", "id-197", "id-205", "id-217" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_199()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=endswith(tolower(title), 'er')&$skip=5",
+				7,
+				null,
+				0,
+				new[] { "id-170", "id-193", "id-197", "id-205", "id-217" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_200()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=endswith(toupper(title), 'ER')&$skip=5",
+				7,
+				null,
+				0,
+				new[] { "id-170", "id-193", "id-197", "id-205", "id-217" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_201()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=floor(duration div 60.0) eq 2&$skip=5",
+				100,
+				"tables/movies?$filter=floor(duration div 60.0) eq 2&$skip=105",
+				0,
+				new[] { "id-009", "id-010", "id-011", "id-012", "id-013" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_202()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=month(releaseDate) eq 11&$skip=5",
+				9,
+				null,
+				0,
+				new[] { "id-115", "id-131", "id-136", "id-146", "id-167" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_203()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=not(bestPictureWinner eq false)&$skip=5",
+				33,
+				null,
+				0,
+				new[] { "id-018", "id-023", "id-024", "id-048", "id-051" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_204()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=not(bestPictureWinner eq true)&$skip=5",
+				100,
+				"tables/movies?$filter=not(bestPictureWinner eq true)&$skip=105",
+				0,
+				new[] { "id-009", "id-010", "id-012", "id-013", "id-014" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_205()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=not(bestPictureWinner ne false)&$skip=5",
+				100,
+				"tables/movies?$filter=not(bestPictureWinner ne false)&$skip=105",
+				0,
+				new[] { "id-009", "id-010", "id-012", "id-013", "id-014" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_206()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=not(bestPictureWinner ne true)&$skip=5",
+				33,
+				null,
+				0,
+				new[] { "id-018", "id-023", "id-024", "id-048", "id-051" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_207()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=rating eq null&$skip=5",
+				69,
+				null,
+				0,
+				new[] { "id-040", "id-041", "id-044", "id-046", "id-049" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_208()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=rating eq 'R'&$skip=5",
+				90,
+				null,
+				0,
+				new[] { "id-009", "id-014", "id-017", "id-019", "id-022" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_209()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=rating ne 'PG-13'&$skip=5",
+				100,
+				"tables/movies?$filter=rating ne 'PG-13'&$skip=105",
+				0,
+				new[] { "id-005", "id-007", "id-009", "id-010", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_210()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=releaseDate eq cast(1994-10-14T00:00:00.000Z,Edm.DateTimeOffset)&$skip=5",
+				0,
+				null,
+				0, Array.Empty<string>());
+        }
+
+        [Fact]
+        public async Task Query_Test_211()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=releaseDate ge cast(1999-12-31T00:00:00.000Z,Edm.DateTimeOffset)&$skip=5",
+				64,
+				null,
+				0,
+				new[] { "id-020", "id-032", "id-033", "id-042", "id-050" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_212()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=releaseDate gt cast(1999-12-31T00:00:00.000Z,Edm.DateTimeOffset)&$skip=5",
+				64,
+				null,
+				0,
+				new[] { "id-020", "id-032", "id-033", "id-042", "id-050" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_213()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=releaseDate le cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)&$skip=5",
+				100,
+				"tables/movies?$filter=releaseDate le cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)&$skip=105",
+				0,
+				new[] { "id-005", "id-007", "id-009", "id-010", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_214()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=releaseDate lt cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)&$skip=5",
+				100,
+				"tables/movies?$filter=releaseDate lt cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)&$skip=105",
+				0,
+				new[] { "id-005", "id-007", "id-009", "id-010", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_215()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=round(duration div 60.0) eq 2&$skip=5",
+				100,
+				"tables/movies?$filter=round(duration div 60.0) eq 2&$skip=105",
+				0,
+				new[] { "id-013", "id-014", "id-015", "id-016", "id-017" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_216()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=startswith(rating, 'PG')&$skip=5",
+				63,
+				null,
+				0,
+				new[] { "id-015", "id-018", "id-020", "id-021", "id-024" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_217()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=startswith(tolower(title), 'the')&$skip=5",
+				58,
+				null,
+				0,
+				new[] { "id-008", "id-012", "id-017", "id-020", "id-023" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_218()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=startswith(toupper(title), 'THE')&$skip=5",
+				58,
+				null,
+				0,
+				new[] { "id-008", "id-012", "id-017", "id-020", "id-023" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_219()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year eq 1994&$skip=5",
+				0,
+				null,
+				0, Array.Empty<string>());
+        }
+
+        [Fact]
+        public async Task Query_Test_220()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year ge 2000 and year le 2009&$skip=5",
+				50,
+				null,
+				0,
+				new[] { "id-032", "id-042", "id-050", "id-051", "id-058" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_221()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year ge 2000&$skip=5",
+				64,
+				null,
+				0,
+				new[] { "id-020", "id-032", "id-033", "id-042", "id-050" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_222()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year gt 1999 and year lt 2010&$skip=5",
+				50,
+				null,
+				0,
+				new[] { "id-032", "id-042", "id-050", "id-051", "id-058" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_223()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year gt 1999&$skip=5",
+				64,
+				null,
+				0,
+				new[] { "id-020", "id-032", "id-033", "id-042", "id-050" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_224()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year le 2000&$skip=5",
+				100,
+				"tables/movies?$filter=year le 2000&$skip=105",
+				0,
+				new[] { "id-005", "id-007", "id-009", "id-010", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_225()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year lt 2001&$skip=5",
+				100,
+				"tables/movies?$filter=year lt 2001&$skip=105",
+				0,
+				new[] { "id-005", "id-007", "id-009", "id-010", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_226()
+        {
+            await BaseQueryTest(
+				"tables/movies?$filter=year(releaseDate) eq 1994&$skip=5",
+				1,
+				null,
+				0,
+				new[] { "id-217" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_227()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=bestPictureWinner asc&$skip=5",
+				100,
+				"tables/movies?$orderby=bestPictureWinner asc&$skip=105",
+				0,
+				new[] { "id-009", "id-010", "id-012", "id-013", "id-014" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_228()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=bestPictureWinner desc&$skip=5",
+				100,
+				"tables/movies?$orderby=bestPictureWinner desc&$skip=105",
+				0,
+				new[] { "id-018", "id-023", "id-024", "id-048", "id-051" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_229()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=duration asc&$skip=5",
+				100,
+				"tables/movies?$orderby=duration asc&$skip=105",
+				0,
+				new[] { "id-238", "id-201", "id-115", "id-229", "id-181" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_230()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=duration desc&$skip=5",
+				100,
+				"tables/movies?$orderby=duration desc&$skip=105",
+				0,
+				new[] { "id-007", "id-183", "id-063", "id-202", "id-130" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_231()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=rating asc&$skip=5",
+				100,
+				"tables/movies?$orderby=rating asc&$skip=105",
+				0,
+				new[] { "id-040", "id-041", "id-044", "id-046", "id-049" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_232()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=rating desc&$skip=5",
+				100,
+				"tables/movies?$orderby=rating desc&$skip=105",
+				0,
+				new[] { "id-009", "id-014", "id-017", "id-019", "id-022" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_233()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=releaseDate asc&$skip=5",
+				100,
+				"tables/movies?$orderby=releaseDate asc&$skip=105",
+				0,
+				new[] { "id-229", "id-224", "id-041", "id-049", "id-135" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_234()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=releaseDate desc&$skip=5",
+				100,
+				"tables/movies?$orderby=releaseDate desc&$skip=105",
+				0,
+				new[] { "id-149", "id-213", "id-102", "id-155", "id-169" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_235()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=title asc&$skip=5",
+				100,
+				"tables/movies?$orderby=title asc&$skip=105",
+				0,
+				new[] { "id-214", "id-102", "id-215", "id-039", "id-057" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_236()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=title desc&$skip=5",
+				100,
+				"tables/movies?$orderby=title desc&$skip=105",
+				0,
+				new[] { "id-058", "id-046", "id-160", "id-092", "id-176" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_237()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=year asc&$skip=5",
+				100,
+				"tables/movies?$orderby=year asc&$skip=105",
+				0,
+				new[] { "id-088", "id-224", "id-041", "id-049", "id-135" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_238()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=year asc,title asc&$skip=5",
+				100,
+				"tables/movies?$orderby=year asc,title asc&$skip=105",
+				0,
+				new[] { "id-088", "id-224", "id-041", "id-049", "id-135" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_239()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=year asc,title desc&$skip=5",
+				100,
+				"tables/movies?$orderby=year asc,title desc&$skip=105",
+				0,
+				new[] { "id-088", "id-224", "id-049", "id-041", "id-135" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_240()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=year desc&$skip=5",
+				100,
+				"tables/movies?$orderby=year desc&$skip=105",
+				0,
+				new[] { "id-149", "id-186", "id-213", "id-013", "id-053" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_241()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=year desc,title asc&$skip=5",
+				100,
+				"tables/movies?$orderby=year desc,title asc&$skip=105",
+				0,
+				new[] { "id-186", "id-064", "id-149", "id-169", "id-161" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_242()
+        {
+            await BaseQueryTest(
+				"tables/movies?$orderby=year desc,title desc&$skip=5",
+				100,
+				"tables/movies?$orderby=year desc,title desc&$skip=105",
+				0,
+				new[] { "id-186", "id-213", "id-102", "id-053", "id-155" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_243()
+        {
+            await BaseQueryTest(
+				"tables/movies?$skip=0",
+				100,
+				"tables/movies?$skip=100",
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_244()
+        {
+            await BaseQueryTest(
+				"tables/movies?$skip=100",
+				100,
+				"tables/movies?$skip=200",
+				0,
+				new[] { "id-100", "id-101", "id-102", "id-103", "id-104" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_245()
+        {
+            await BaseQueryTest(
+				"tables/movies?$skip=200",
+				48,
+				null,
+				0,
+				new[] { "id-200", "id-201", "id-202", "id-203", "id-204" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_246()
+        {
+            await BaseQueryTest(
+				"tables/movies?$skip=300",
+				0,
+				null,
+				0, Array.Empty<string>());
+        }
+
+        [Fact]
+        public async Task Query_Test_247()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=((year div 1000.5) eq 2) and (rating eq 'R')",
+				2,
+				null,
+				0,
+				new[] { "id-061", "id-173" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_248()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=((year sub 1900) ge 80) and ((year add 10) le 2000) and (duration le 120)",
+				5,
+				null,
+				0,
+				new[] { "id-026", "id-047", "id-081", "id-103", "id-121" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_249()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=(year div 1000.5) eq 2",
+				5,
+				null,
+				0,
+				new[] { "id-012", "id-042", "id-061", "id-173", "id-194" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_250()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=(year ge 1930 and year le 1940) or (year ge 1950 and year le 1960)",
+				5,
+				null,
+				0,
+				new[] { "id-005", "id-016", "id-027", "id-028", "id-031" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_251()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=(year sub 1900) ge 80",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-003", "id-006", "id-007", "id-008" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_252()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=bestPictureWinner eq false",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_253()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=bestPictureWinner eq true and ceiling(duration div 60.0) eq 2",
+				5,
+				null,
+				0,
+				new[] { "id-023", "id-024", "id-112", "id-135", "id-142" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_254()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=bestPictureWinner eq true and floor(duration div 60.0) eq 2",
+				5,
+				null,
+				0,
+				new[] { "id-001", "id-011", "id-018", "id-048", "id-051" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_255()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=bestPictureWinner eq true and round(duration div 60.0) eq 2",
+				5,
+				null,
+				0,
+				new[] { "id-011", "id-018", "id-023", "id-024", "id-048" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_256()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=bestPictureWinner eq true",
+				5,
+				null,
+				0,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_257()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=bestPictureWinner ne false",
+				5,
+				null,
+				0,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_258()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=bestPictureWinner ne true",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_259()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=ceiling(duration div 60.0) eq 2",
+				5,
+				null,
+				0,
+				new[] { "id-005", "id-023", "id-024", "id-025", "id-026" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_260()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=day(releaseDate) eq 1",
+				5,
+				null,
+				0,
+				new[] { "id-019", "id-048", "id-129", "id-131", "id-132" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_261()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=duration ge 60",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_262()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=endswith(title, 'er')",
+				5,
+				null,
+				0,
+				new[] { "id-001", "id-052", "id-121", "id-130", "id-164" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_263()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=endswith(tolower(title), 'er')",
+				5,
+				null,
+				0,
+				new[] { "id-001", "id-052", "id-121", "id-130", "id-164" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_264()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=endswith(toupper(title), 'ER')",
+				5,
+				null,
+				0,
+				new[] { "id-001", "id-052", "id-121", "id-130", "id-164" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_265()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=floor(duration div 60.0) eq 2",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-003", "id-004", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_266()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=month(releaseDate) eq 11",
+				5,
+				null,
+				0,
+				new[] { "id-011", "id-016", "id-030", "id-064", "id-085" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_267()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=not(bestPictureWinner eq false)",
+				5,
+				null,
+				0,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_268()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=not(bestPictureWinner eq true)",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_269()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=not(bestPictureWinner ne false)",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_270()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=not(bestPictureWinner ne true)",
+				5,
+				null,
+				0,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_271()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=rating eq 'R'",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-007" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_272()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=rating ne 'PG-13'",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_273()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=rating eq null",
+				5,
+				null,
+				0,
+				new[] { "id-004", "id-005", "id-011", "id-016", "id-031" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_274()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=releaseDate eq cast(1994-10-14T00:00:00.000Z,Edm.DateTimeOffset)",
+				2,
+				null,
+				0,
+				new[] { "id-000", "id-003" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_275()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=releaseDate ge cast(1999-12-31T00:00:00.000Z,Edm.DateTimeOffset)",
+				5,
+				null,
+				0,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_276()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=releaseDate gt cast(1999-12-31T00:00:00.000Z,Edm.DateTimeOffset)",
+				5,
+				null,
+				0,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_277()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=releaseDate le cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_278()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=releaseDate lt cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset)",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_279()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=round(duration div 60.0) eq 2",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-005", "id-009", "id-010", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_280()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=startswith(rating, 'PG')",
+				5,
+				null,
+				0,
+				new[] { "id-006", "id-008", "id-010", "id-012", "id-013" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_281()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=startswith(tolower(title), 'the')",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-004", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_282()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=startswith(toupper(title), 'THE')",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-004", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_283()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=year eq 1994",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-003", "id-018", "id-030", "id-079" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_284()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=year ge 2000 and year le 2009",
+				5,
+				null,
+				0,
+				new[] { "id-006", "id-008", "id-012", "id-019", "id-020" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_285()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=year ge 2000",
+				5,
+				null,
+				0,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_286()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=year gt 1999 and year lt 2010",
+				5,
+				null,
+				0,
+				new[] { "id-006", "id-008", "id-012", "id-019", "id-020" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_287()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=year gt 1999",
+				5,
+				null,
+				0,
+				new[] { "id-006", "id-008", "id-012", "id-013", "id-019" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_288()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=year le 2000",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_289()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=year lt 2001",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-004" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_290()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$filter=year(releaseDate) eq 1994",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-003", "id-018", "id-030", "id-079" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_291()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=bestPictureWinner asc",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-003", "id-004", "id-005", "id-006" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_292()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=bestPictureWinner desc",
+				5,
+				null,
+				0,
+				new[] { "id-001", "id-002", "id-007", "id-008", "id-011" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_293()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=duration asc",
+				5,
+				null,
+				0,
+				new[] { "id-227", "id-125", "id-133", "id-107", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_294()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=duration desc",
+				5,
+				null,
+				0,
+				new[] { "id-153", "id-065", "id-165", "id-008", "id-002" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_295()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=rating asc",
+				5,
+				null,
+				0,
+				new[] { "id-004", "id-005", "id-011", "id-016", "id-031" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_296()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=rating desc",
+				5,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-007" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_297()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=releaseDate asc",
+				5,
+				null,
+				0,
+				new[] { "id-125", "id-133", "id-227", "id-118", "id-088" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_298()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=releaseDate desc",
+				5,
+				null,
+				0,
+				new[] { "id-188", "id-033", "id-122", "id-186", "id-064" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_299()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=title asc",
+				5,
+				null,
+				0,
+				new[] { "id-005", "id-091", "id-243", "id-194", "id-060" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_300()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=title desc",
+				5,
+				null,
+				0,
+				new[] { "id-107", "id-100", "id-123", "id-190", "id-149" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_301()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=year asc",
+				5,
+				null,
+				0,
+				new[] { "id-125", "id-229", "id-133", "id-227", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_302()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=year asc,title asc",
+				5,
+				null,
+				0,
+				new[] { "id-125", "id-229", "id-227", "id-133", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_303()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=year asc,title desc",
+				5,
+				null,
+				0,
+				new[] { "id-125", "id-229", "id-133", "id-227", "id-118" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_304()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=year desc",
+				5,
+				null,
+				0,
+				new[] { "id-033", "id-122", "id-188", "id-064", "id-102" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_305()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=year desc,title asc",
+				5,
+				null,
+				0,
+				new[] { "id-188", "id-122", "id-033", "id-102", "id-213" }
+			);
+        }
+
+        [Fact]
+        public async Task Query_Test_306()
+        {
+            await BaseQueryTest(
+				"tables/movies?$top=5&$orderby=year desc,title desc",
+				5,
+				null,
+				0,
+				new[] { "id-033", "id-122", "id-188", "id-149", "id-064" }
+			);
+        }
+
+        [Fact]
+		public async Task Query_AuthTest_001()
+        {
+			await BaseQueryTest(
+				"tables/movies_rated",
+				95,
+				null,
+				0,
+				new[] { "id-000", "id-001", "id-002", "id-003", "id-007" },
+				"success"
+			);
         }
 
         /// <summary>
@@ -228,5 +3873,52 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 AssertEx.SystemPropertiesMatch(expected, actual);
             }
         }
-    }
+
+        #region Base Tests
+        /// <summary>
+        /// This is the base test for the individual query tests.
+        /// </summary>
+        /// <param name="testcase">The test case being executed.</param>
+        /// <returns>A task that completes when the test is complete.</returns>
+        public async Task BaseQueryTest(string pathAndQuery, int itemCount, string? nextLinkQuery, long totalCount, string[] firstItems, string? username = null)
+        {
+            Dictionary<string, string> headers = new();
+            Utils.AddAuthHeaders(headers, username);
+
+            var response = await MovieServer.SendRequest(HttpMethod.Get, pathAndQuery, headers);
+
+            // Response has the right Status Code
+            await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
+
+            // Response payload can be decoded
+            var result = response.DeserializeContent<PageOfItems<ClientMovie>>();
+            Assert.NotNull(result);
+
+            // Payload has the right content
+            Assert.Equal(itemCount, result!.Items!.Length);
+            Assert.Equal(nextLinkQuery, result.NextLink == null ? null : Uri.UnescapeDataString(result.NextLink.PathAndQuery).TrimStart('/'));
+            Assert.Equal(totalCount, result.Count);
+
+            // The first n items must match what is expected
+            Assert.True(result.Items.Length >= firstItems.Length);
+            Assert.Equal(firstItems, result.Items.Take(firstItems.Length).Select(m => m.Id).ToArray());
+            for (int idx = 0; idx < firstItems.Length; idx++)
+            {
+                var expected = MovieServer.GetMovieById(firstItems[idx])!;
+                var actual = result.Items[idx];
+
+                Assert.Equal<IMovie>(expected, actual);
+                AssertEx.SystemPropertiesMatch(expected, actual);
+            }
+        }
+        #endregion
+
+        #region Models
+        public class ClientObject
+        {
+            [JsonExtensionData]
+            public Dictionary<string, object>? Data { get; set; }
+        }
+		#endregion
+	}
 }

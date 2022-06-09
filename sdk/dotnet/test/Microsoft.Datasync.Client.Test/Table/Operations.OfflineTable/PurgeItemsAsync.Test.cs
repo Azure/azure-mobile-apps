@@ -4,6 +4,7 @@
 using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Offline.Queue;
+using Microsoft.Datasync.Client.Test.Helpers;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;

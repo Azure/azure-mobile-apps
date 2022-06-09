@@ -4,6 +4,7 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Table;
+using Microsoft.Datasync.Client.Test.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;

@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test;
 using Datasync.Common.Test.Mocks;
 using Datasync.Common.Test.Models;
+using Microsoft.Datasync.Client.Test.Helpers;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -11,7 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTableOfT
 {
     [ExcludeFromCodeCoverage]
-    public class BaseOperationTest : BaseTest
+    public class BaseOperationTest : ClientBaseTest
     {
         protected readonly MockOfflineStore store;
         protected readonly IOfflineTable<ClientMovie> table;
