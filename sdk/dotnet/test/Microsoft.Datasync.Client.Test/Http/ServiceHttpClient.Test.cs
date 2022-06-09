@@ -3,8 +3,8 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Mocks;
-using Datasync.Common.Test.TestData;
 using Microsoft.Datasync.Client.Http;
+using Microsoft.Datasync.Client.Test.Helpers;
 using Microsoft.Datasync.Client.Utils;
 using System;
 using System.Diagnostics.CodeAnalysis;

@@ -4,7 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
-namespace Datasync.Common.Test.TestData
+namespace Microsoft.Datasync.Client.Test.Helpers
 {
     [ExcludeFromCodeCoverage]
     public class EndpointTestCase

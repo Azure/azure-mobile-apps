@@ -264,22 +264,87 @@ namespace Microsoft.Datasync.Client.Test.Query
         }
 
         [Theory]
-        [ClassData(typeof(LinqTestCases))]
-        public void ODataExpressionParser_Roundtrips(LinqTestCase testcase)
+        [InlineData("")]
+        [InlineData("$count=true")]
+		[InlineData("$orderby=bestPictureWinner")]
+		[InlineData("$orderby=bestPictureWinner desc")]
+		[InlineData("$orderby=rating desc,title desc")]
+		[InlineData("$skip=100")]
+		[InlineData("$top=100")]
+		[InlineData("$skip=100&$top=50")]
+		[InlineData("$filter=bestPictureWinner")]
+		[InlineData("$filter=not(bestPictureWinner)")]
+		[InlineData("$filter=(bestPictureWinner eq true)")]
+		[InlineData("$filter=(bestPictureWinner eq false)")]
+		[InlineData("$filter=(bestPictureWinner ne true)")]
+		[InlineData("$filter=(bestPictureWinner ne false)")]
+		[InlineData("$filter=not((bestPictureWinner eq true))")]
+		[InlineData("$filter=not((bestPictureWinner ne true))")]
+		[InlineData("$filter=not((bestPictureWinner eq false))")]
+		[InlineData("$filter=not((bestPictureWinner ne false))")]
+		[InlineData("$filter=(duration eq 100)")]
+		[InlineData("$filter=(duration lt 100)")]
+		[InlineData("$filter=(duration le 100)")]
+		[InlineData("$filter=(duration gt 90)")]
+		[InlineData("$filter=(duration ge 90)")]
+		[InlineData("$filter=(duration ne 100)")]
+		[InlineData("$filter=not((duration eq 100))")]
+		[InlineData("$filter=not((duration lt 100))")]
+		[InlineData("$filter=not((duration le 100))")]
+		[InlineData("$filter=not((duration gt 90))")]
+		[InlineData("$filter=not((duration ge 90))")]
+		[InlineData("$filter=not((duration ne 100))")]
+		[InlineData($"$filter=(releaseDate eq cast(1994-10-14T00:00:00.000Z,Edm.DateTimeOffset))")]
+		[InlineData($"$filter=(releaseDate gt cast(1999-12-31T00:00:00.000Z,Edm.DateTimeOffset))")]
+		[InlineData($"$filter=(releaseDate ge cast(1999-12-31T00:00:00.000Z,Edm.DateTimeOffset))")]
+		[InlineData($"$filter=(releaseDate lt cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset))")]
+		[InlineData($"$filter=(releaseDate le cast(2000-01-01T00:00:00.000Z,Edm.DateTimeOffset))")]
+		[InlineData("$filter=(title eq 'The Godfather')")]
+		[InlineData("$filter=(title ne 'The Godfather')")]
+		[InlineData("$filter=(rating ne null)")]
+		[InlineData("$filter=(rating eq null)")]
+		[InlineData("$filter=((year gt 1929) and (year lt 1940))")]
+		[InlineData("$filter=((year ge 1930) and (year le 1939))")]
+		[InlineData("$filter=((year gt 2000) or (year lt 1940))")]
+		[InlineData("$filter=((year gt 2000) or not(bestPictureWinner))")]
+		[InlineData("$filter=(((year ge 1930) and (year le 1940)) or ((year ge 1950) and (year le 1960)))")]
+		[InlineData("$filter=((year sub 1900) gt 80)")]
+		[InlineData("$filter=((year add duration) lt 2100)")]
+		[InlineData("$filter=((year sub 1900) lt duration)")]
+		[InlineData("$filter=((duration mul 2) lt 180)")]
+		[InlineData("$filter=((year div 1000.5) eq 2.0)")]
+		[InlineData("$filter=((duration mod 2) eq 1)")]
+		[InlineData("$filter=((((year sub 1900) ge 80) and ((year add 10) le 2000)) and (duration le 120))")]
+		[InlineData("$filter=(day(releaseDate) eq 1)")]
+		[InlineData("$filter=(month(releaseDate) eq 11)")]
+		[InlineData("$filter=(year(releaseDate) ne year)")]
+		[InlineData("$filter=endswith(title,'er')")]
+		[InlineData("$filter=endswith(tolower(title),'er')")]
+		[InlineData("$filter=endswith(toupper(title),'ER')")]
+		[InlineData("$filter=startswith(rating,'PG')")]
+		[InlineData("$filter=startswith(tolower(rating),'pg')")]
+		[InlineData("$filter=startswith(toupper(rating),'PG')")]
+		[InlineData("$filter=(indexof(rating,'-') gt 0)")]
+		[InlineData("$filter=contains(rating,'PG')")]
+		[InlineData("$filter=(substring(rating,0,2) eq 'PG')")]
+		[InlineData("$filter=(length(trim(title)) gt 10)")]
+		[InlineData("$filter=(concat(title,rating) eq 'Fight ClubR')")]
+		[InlineData("$filter=(round((duration div 60.0)) eq 2.0)")]
+		[InlineData("$filter=(ceiling((duration div 60.0)) eq 2.0)")]
+		[InlineData("$filter=(floor((duration div 60.0)) eq 2.0)")]
+		[InlineData("$filter=(not(bestPictureWinner) and (round((duration div 60.0)) eq 2.0))")]
+		[InlineData("$filter=(not(bestPictureWinner) and (ceiling((duration div 60.0)) eq 2.0))")]
+		[InlineData("$filter=(not(bestPictureWinner) and (floor((duration div 60.0)) eq 2.0))")]
+		[InlineData("$filter=(year lt 1990.5f)")]
+        public void ODataExpressionParser_Roundtrips(string original)
         {
-            if (testcase.ODataString.Contains("__includedeleted"))
-            {
-                return;     // We don't support parameters in the ODataString conversion, so skip this test case.
-            }
-
-            var query = QueryDescription.Parse("movies", testcase.ODataString);
+            var query = QueryDescription.Parse("movies", original);
             Assert.NotNull(query);
 
             // Numbers are converted to LONG during the conversion, which isn't an issue.  We translate [0-9]+L to [0-9]+
-            var odataString = query.ToODataString();
-            odataString = Regex.Replace(odataString, "([0-9]+)L", "$1");
+            string odataString = Regex.Replace(query.ToODataString(), "([0-9]+)L", "$1");
 
-            Assert.Equal(testcase.ODataString, odataString);
+            Assert.Equal(original, odataString);
         }
     }
 }

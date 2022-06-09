@@ -4,9 +4,9 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Mocks;
 using Datasync.Common.Test.Models;
-using Datasync.Common.Test.TestData;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Serialization;
+using Microsoft.Datasync.Client.Test.Helpers;
 using Moq;
 using System;
 using System.Collections.Generic;

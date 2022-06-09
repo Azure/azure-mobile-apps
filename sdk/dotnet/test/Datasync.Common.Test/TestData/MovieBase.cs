@@ -1,16 +1,17 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test.Models;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Datasync.Common.Test.Models
+namespace Datasync.Common.Test.TestData
 {
     /// <summary>
     /// The base class for the Movie data.  This implements <see cref="IMovie"/>
     /// </summary>
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class MovieBase : IMovie
+    public class MovieBase
     {
         /// <summary>
         /// True if the movie won the oscar for Best Picture
@@ -30,7 +31,7 @@ namespace Datasync.Common.Test.Models
         /// <summary>
         /// The release date of the movie.
         /// </summary>
-        public DateTimeOffset ReleaseDate { get; set; }
+        public DateOnly ReleaseDate { get; set; }
 
         /// <summary>
         /// The title of the movie.
@@ -51,7 +52,7 @@ namespace Datasync.Common.Test.Models
             other.BestPictureWinner = BestPictureWinner;
             other.Duration = Duration;
             other.Rating = Rating;
-            other.ReleaseDate = ReleaseDate;
+            other.ReleaseDate = new DateTimeOffset(ReleaseDate.Year, ReleaseDate.Month, ReleaseDate.Day, 0, 0, 0, TimeSpan.Zero);
             other.Title = Title;
             other.Year = Year;
         }

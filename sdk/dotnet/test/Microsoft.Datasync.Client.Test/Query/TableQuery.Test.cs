@@ -576,22 +576,29 @@ namespace Microsoft.Datasync.Client.Test.Query
             Assert.Throws<ArgumentException>(() => query.WithParameters(sut));
         }
 
-        [Theory]
-        [ClassData(typeof(LinqTestCases))]
+        [Fact]
         [Trait("Method", "ToODataString")]
-        internal void LinqODataWithSelectConversions(LinqTestCase testcase)
+        public void LinqODataWithSelectConversions()
         {
             // Arrange
             var client = GetMockClient();
             var table = new RemoteTable<ClientMovie>("movies", client);
             var query = new TableQuery<ClientMovie>(table);
+            DateTimeOffset dto1 = new(1994, 10, 14, 0, 0, 0, TimeSpan.Zero);
+            const string dts1 = "1994-10-14T00:00:00.000Z";
 
             // Need to make sure the $select statement is added in the right spot.
-            var expected = NormalizeQueryString(testcase.ODataString + "&$select=id,title");
+            var expected = NormalizeQueryString($"__includedeleted=true&$count=true&$filter=(updatedAt gt cast({dts1},Edm.DateTimeOffset))&$orderby=updatedAt&$skip=25&$select=id,title");
 
             // Act
-            var actualODataString = (testcase.LinqExpression.Invoke(query).Select(m => new SelectResult { Id = m.Id, Title = m.Title }) as TableQuery<SelectResult>)?.ToODataString();
-            var actual = NormalizeQueryString(Uri.UnescapeDataString(actualODataString));
+            TableQuery<SelectResult> tableQuery = query
+                .Where(x => x.UpdatedAt > dto1)
+                .IncludeDeletedItems()
+                .OrderBy(x => x.UpdatedAt)
+                .IncludeTotalCount()
+                .Skip(25)
+                .Select(m => new SelectResult { Id = m.Id, Title = m.Title }) as TableQuery<SelectResult>;
+            var actual = NormalizeQueryString(Uri.UnescapeDataString(tableQuery.ToODataString()));
 
             // Assert
             Assert.Equal(expected, actual);
