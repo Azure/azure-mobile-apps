@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Query.Linq.Nodes;
 using Microsoft.Datasync.Client.Query.OData;

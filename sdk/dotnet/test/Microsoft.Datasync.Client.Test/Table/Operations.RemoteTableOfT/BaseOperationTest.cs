@@ -3,7 +3,7 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Mocks;
-using Datasync.Common.Test.Models;
+using Microsoft.Datasync.Client.Test.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
 {
     [ExcludeFromCodeCoverage]
-    public class BaseOperationTest : BaseTest
+    public class BaseOperationTest : ClientBaseTest
     {
         protected readonly IdEntity payload = new() { Id = "db0ec08d-46a9-465d-9f5e-0066a3ee5b5f", StringValue = "test" };
         protected const string sJsonPayload = "{\"id\":\"db0ec08d-46a9-465d-9f5e-0066a3ee5b5f\",\"stringValue\":\"test\"}";

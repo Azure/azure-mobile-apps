@@ -5,6 +5,7 @@ using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.Datasync.Client;
+using Microsoft.Datasync.Integration.Test.Helpers;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Threading.Tasks;

@@ -60,5 +60,15 @@ namespace Microsoft.AspNetCore.Datasync.Test.Converters
 
             Assert.ThrowsAny<JsonException>(() => JsonConvert.DeserializeObject<DTOIdEntity>(json, _settings));
         }
+
+        #region Models
+        public class DTOIdEntity
+        {
+            public string Id { get; set; }
+            public string Version { get; set; }
+            public DateTimeOffset? UpdatedAt { get; set; }
+            public long Number { get; set; }
+        }
+        #endregion
     }
 }

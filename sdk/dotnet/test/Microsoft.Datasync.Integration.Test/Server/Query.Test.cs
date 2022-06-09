@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -3911,5 +3912,13 @@ namespace Microsoft.Datasync.Integration.Test.Server
             }
         }
         #endregion
-    }
+
+        #region Models
+        public class ClientObject
+        {
+            [JsonExtensionData]
+            public Dictionary<string, object>? Data { get; set; }
+        }
+		#endregion
+	}
 }

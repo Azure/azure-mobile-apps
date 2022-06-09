@@ -1,15 +1,18 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test.Models;
+using Microsoft.AspNetCore.Datasync.InMemory;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.Json;
 
-namespace Microsoft.AspNetCore.Datasync.EFCore.Test
+namespace Datasync.Common.Test.Models
 {
-    [ExcludeFromCodeCoverage]
-    public class EFMovie : EntityTableData, IMovie, IEquatable<IMovie>
+    [ExcludeFromCodeCoverage(Justification = "Test suite")]
+    public class InMemoryMovie : InMemoryTableData, IMovie, IEquatable<IMovie>
     {
         /// <summary>
         /// True if the movie won the oscar for Best Picture
@@ -19,26 +22,34 @@ namespace Microsoft.AspNetCore.Datasync.EFCore.Test
         /// <summary>
         /// The running time of the movie
         /// </summary>
+        [Required]
+        [Range(60, 360)]
         public int Duration { get; set; }
 
         /// <summary>
         /// The MPAA rating for the movie, if available.
         /// </summary>
+        [RegularExpression("^(G|PG|PG-13|R|NC-17)$")]
         public string Rating { get; set; }
 
         /// <summary>
         /// The release date of the movie.
         /// </summary>
+        [Required]
         public DateTimeOffset ReleaseDate { get; set; }
 
         /// <summary>
         /// The title of the movie.
         /// </summary>
+        [Required]
+        [StringLength(60, MinimumLength = 2)]
         public string Title { get; set; } = "";
 
         /// <summary>
         /// The year that the movie was released.
         /// </summary>
+        [Required]
+        [Range(1920, 2030)]
         public int Year { get; set; }
 
         /// <summary>
@@ -59,7 +70,7 @@ namespace Microsoft.AspNetCore.Datasync.EFCore.Test
         /// Clones this movie into another new movie.
         /// </summary>
         /// <returns>The new movie</returns>
-        public EFMovie Clone() => new()
+        public InMemoryMovie Clone() => new()
         {
             Id = this.Id,
             Deleted = this.Deleted,
@@ -72,5 +83,15 @@ namespace Microsoft.AspNetCore.Datasync.EFCore.Test
             Title = this.Title,
             Year = this.Year
         };
+
+        /// <summary>
+        /// Converts this object to a dictionary.
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<string, object> ToDictionary()
+        {
+            string json = JsonSerializer.Serialize(this);
+            return JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+        }
     }
 }

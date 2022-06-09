@@ -5,6 +5,7 @@ using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
+using Microsoft.Datasync.Client.Test.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -15,7 +16,7 @@ using Xunit;
 namespace Microsoft.Datasync.Client.Test.Query
 {
     [ExcludeFromCodeCoverage]
-    public class TableQuery_Tests : BaseTest
+    public class TableQuery_Tests : ClientBaseTest
     {
         [Fact]
         [Trait("Method", "Ctor")]
@@ -750,5 +751,13 @@ namespace Microsoft.Datasync.Client.Test.Query
             var actual = query.ToODataString();
             Assert.Equal("$orderby=releaseDate&foo=bar", actual);
         }
+
+        #region Models
+        public class SelectResult
+        {
+            public string Id { get; set; }
+            public string Title { get; set; }
+        }
+        #endregion
     }
 }

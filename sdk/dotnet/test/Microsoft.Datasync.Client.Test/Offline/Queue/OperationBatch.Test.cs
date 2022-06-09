@@ -3,10 +3,10 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Mocks;
-using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Table;
+using Microsoft.Datasync.Client.Test.Helpers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
