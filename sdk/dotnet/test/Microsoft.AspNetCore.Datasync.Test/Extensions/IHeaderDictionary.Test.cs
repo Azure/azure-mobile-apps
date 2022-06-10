@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Extensions
@@ -14,6 +15,11 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
     {
         private readonly byte[] testVersion = new byte[] { 0x01, 0x00, 0x42, 0x22, 0x47, 0x8F };
         private readonly string testETag = "\"AQBCIkeP\"";
+
+        public IHeaderDictionary_Tests()
+        {
+            System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-us");
+        }
 
         [Fact]
         public void AddFromEntity_NoAdds_WhenNullEntity()
