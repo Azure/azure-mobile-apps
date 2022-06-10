@@ -1,0 +1,22 @@
+{
+    "name": "azure-mobile-apps-node-server",
+    "version": "1.0.0",
+    "description": "The TODO backend for Azure Mobile Apps Quickstarts",
+    "main": "server.js",
+    "private": true,
+    "author": "Microsoft",
+    "license": "MIT",
+    "engines": {
+        "node": ">=12"
+    },
+    "scripts": {
+        "start": "node ./server.js"
+    },
+    "dependencies": {
+        "azure-mobile-apps": "^4.0.2",
+        "express": "^4.17.1"
+    },
+    "devDependencies": {
+        "sqlite3": "^5.0.0"
+    }
+}
