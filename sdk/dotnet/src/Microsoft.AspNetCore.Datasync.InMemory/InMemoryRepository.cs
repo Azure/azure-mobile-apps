@@ -98,6 +98,14 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         }
 
         /// <summary>
+        /// Returns an unexecuted <see cref="IQueryable{T}"/> that represents the data store as a whole.
+        /// This is adjusted by the <see cref="TableController{TEntity}"/> to account for filtering and
+        /// paging requests.
+        /// </summary>
+        /// <returns>An <see cref="IQueryable{T}"/> for the entities in the data store.</returns>
+        public Task<IQueryable<TEntity>> AsQueryableAsync() => Task.FromResult(AsQueryable());
+
+        /// <summary>
         /// Create a new entity within the backend data store.  If the entity does not
         /// have an ID, one is created. After completion, the system properties will be
         /// filled with new values and the item will be marked as not deleted.
