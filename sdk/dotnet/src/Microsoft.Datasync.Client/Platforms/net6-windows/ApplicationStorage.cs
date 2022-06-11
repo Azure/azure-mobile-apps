@@ -2,37 +2,39 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Utils;
-using Microsoft.Maui.Storage;
-using System.Runtime.Versioning;
+using Windows.Foundation.Collections;
+using Windows.Storage;
 
 namespace Microsoft.Datasync.Client.Platforms
 {
     /// <summary>
-    /// Implementation of the <see cref="IApplicationStorage"/> interface for
-    /// Android devices.
+    /// An implementation of the <see cref="IApplicationStorage"/> interface for
+    /// UWP/UAP/Windows Storage platform.
     /// </summary>
     internal class ApplicationStorage : IApplicationStorage
     {
+        internal ApplicationStorage(string containerName = "")
+        {
+            SharedContainerName = string.IsNullOrWhiteSpace(containerName) ? "ms-datasync-client" : containerName;
+            Preferences = ApplicationData.Current.LocalSettings.CreateContainer(SharedContainerName, ApplicationDataCreateDisposition.Always).Values;
+        }
+
         /// <summary>
-        /// The storage prefix.
+        /// The name of the shared container for preferences.
         /// </summary>
         private string SharedContainerName { get; }
 
         /// <summary>
-        /// Creates a new <see cref="ApplicationStorage"/> instance.
+        /// The set of properties for the preference storage.
         /// </summary>
-        /// <param name="containerName">The optional storage prefix.</param>
-        internal ApplicationStorage(string containerName = "")
-        {
-            SharedContainerName = string.IsNullOrWhiteSpace(containerName) ? "ms-datasync-client" : containerName;
-        }
+        private IPropertySet Preferences { get; }
 
         /// <summary>
         /// Clear all the values within the store.
         /// </summary>
         public void ClearValues()
         {
-            Preferences.Clear(SharedContainerName);
+            Preferences.Clear();
         }
 
         /// <summary>
@@ -41,7 +43,7 @@ namespace Microsoft.Datasync.Client.Platforms
         /// <param name="key">The key</param>
         public void RemoveValue(string key)
         {
-            if (Preferences.ContainsKey(key, SharedContainerName))
+            if (Preferences.ContainsKey(key))
             {
                 Preferences.Remove(key);
             }
@@ -55,7 +57,7 @@ namespace Microsoft.Datasync.Client.Platforms
         /// <param name="value">The value to store</param>
         public void SetValue(string key, string value)
         {
-            Preferences.Set(key, value, SharedContainerName);
+            Preferences[key] = value;
         }
 
         /// <summary>
@@ -66,11 +68,12 @@ namespace Microsoft.Datasync.Client.Platforms
         /// <returns>True if the key was found</returns>
         public bool TryGetValue(string key, out string value)
         {
-            if (Preferences.ContainsKey(key, SharedContainerName))
+            if (Preferences.TryGetValue(key, out object prefValue))
             {
-                value = Preferences.Get(key, null, SharedContainerName);
+                value = prefValue.ToString();
                 return value != null;
             }
+
             value = null;
             return false;
         }
