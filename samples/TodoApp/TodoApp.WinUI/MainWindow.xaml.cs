@@ -27,17 +27,11 @@ namespace TodoApp.WinUI
         public MainWindow()
         {
             this.InitializeComponent();
-            this.Activated += OnActivated;
             ResizeWindow(this, 480, 800);
 
             _service = new RemoteTodoService();
             _viewModel = new TodoListViewModel(this, _service);
             mainContainer.DataContext = _viewModel;
-        }
-
-        private void OnActivated(object sender, WindowActivatedEventArgs e)
-        {
-            _viewModel.OnActivated();
         }
 
         private static void ResizeWindow(Window window, int width, int height)
@@ -70,6 +64,12 @@ namespace TodoApp.WinUI
         #endregion
 
         #region Event Handlers
+
+        protected void GridLoadedEventHandler(object sender, RoutedEventArgs e) 
+        {
+            _viewModel.OnActivated();
+        }
+        
         protected void TextboxKeyDownHandler(object sender, KeyRoutedEventArgs e)
         {
             if (e.Key == VirtualKey.Enter)
