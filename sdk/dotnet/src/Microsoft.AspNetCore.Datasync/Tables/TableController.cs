@@ -298,7 +298,7 @@ namespace Microsoft.AspNetCore.Datasync
             Logger?.LogInformation("Query: {QueryString}", Request.QueryString);
             await AuthorizeRequest(TableOperation.Query, null, token).ConfigureAwait(false);
 
-            var dataset = await Repository.AsQueryableAsync();
+            var dataset = await Repository.AsQueryableAsync().ConfigureAwait(false);
             dataset = dataset
                 .ApplyDataView(AccessControlProvider.GetDataView())
                 .ApplyDeletedView(Request, Options.EnableSoftDelete);
