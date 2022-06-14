@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Extensions
@@ -88,7 +89,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             // Assert
             Assert.False(headers.ContainsKey("ETag"));
             Assert.Single(headers["Last-Modified"]);
-            Assert.Equal("Wed, 30 Jan 2019 13:30:15 GMT", headers["Last-Modified"][0]);
+            Assert.Equal(DateTimeOffset.Parse("2019-01-30T13:30:15Z").ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern), headers["Last-Modified"][0]);
         }
 
         [Fact]
@@ -105,7 +106,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             Assert.Single(headers["ETag"]);
             Assert.Equal(testETag, headers["ETag"][0]);
             Assert.Single(headers["Last-Modified"]);
-            Assert.Equal("Wed, 30 Jan 2019 13:30:15 GMT", headers["Last-Modified"][0]);
+            Assert.Equal(DateTimeOffset.Parse("2019-01-30T13:30:15Z").ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern), headers["Last-Modified"][0]);
         }
 
         [Fact]
@@ -127,7 +128,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             Assert.Single(headers["ETag"]);
             Assert.Equal(testETag, headers["ETag"][0]);
             Assert.Single(headers["Last-Modified"]);
-            Assert.Equal("Wed, 30 Jan 2019 13:30:15 GMT", headers["Last-Modified"][0]);
+            Assert.Equal(DateTimeOffset.Parse("2019-01-30T13:30:15Z").ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern), headers["Last-Modified"][0]);
         }
 
         [Fact]
@@ -148,7 +149,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             Assert.Single(headers["ETag"]);
             Assert.Equal(testETag, headers["ETag"][0]);
             Assert.Single(headers["Last-Modified"]);
-            Assert.Equal("Wed, 30 Jan 2019 13:30:15 GMT", headers["Last-Modified"][0]);
+            Assert.Equal(DateTimeOffset.Parse("2019-01-30T13:30:15Z").ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern), headers["Last-Modified"][0]);
         }
     }
 }
