@@ -85,7 +85,6 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         /// as a whole. This is adjusted by the <see cref="TableController{TEntity}"/> to account
         /// for the filtering and paging requested.
         /// </summary>
-        /// <param name="token">A cancellation token</param>
         /// <returns>An <see cref="IQueryable{T}"/> for the entities in the data store</returns>
         public IQueryable<TEntity> AsQueryable()
         {
@@ -98,11 +97,11 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         }
 
         /// <summary>
-        /// Returns an unexecuted <see cref="IQueryable{T}"/> that represents the data store as a whole.
-        /// This is adjusted by the <see cref="TableController{TEntity}"/> to account for filtering and
-        /// paging requests.
+        /// Returns an unexecuted <see cref="IQueryable{T}"/> that represents the data store
+        /// as a whole. This is adjusted by the <see cref="TableController{TEntity}"/> to account
+        /// for the filtering and paging requested.
         /// </summary>
-        /// <returns>An <see cref="IQueryable{T}"/> for the entities in the data store.</returns>
+        /// <returns>An <see cref="IQueryable{T}"/> for the entities in the data store</returns>
         public Task<IQueryable<TEntity>> AsQueryableAsync() => Task.FromResult(AsQueryable());
 
         /// <summary>

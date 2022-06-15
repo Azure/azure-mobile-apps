@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Datasync
         /// paging requests.
         /// </summary>
         /// <returns>An <see cref="IQueryable{T}"/> for the entities in the data store.</returns>
-        Task<IQueryable<TEntity>> AsQueryableAsync();
+        async Task<IQueryable<TEntity>> AsQueryableAsync() { return await Task.FromResult(AsQueryable()); }
 
         /// <summary>
         /// Creates an entity within the data store. After completion, the system properties
