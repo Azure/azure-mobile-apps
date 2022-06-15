@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
                 if (entity.UpdatedAt != default)
                 {
                     headers.Remove(HeaderNames.LastModified);
-                    headers.Add(HeaderNames.LastModified, entity.UpdatedAt.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern));
+                    headers.Add(HeaderNames.LastModified, entity.UpdatedAt.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern, CultureInfo.InvariantCulture));
                 }
             }
         }

@@ -124,7 +124,7 @@ namespace Datasync.Common.Test
         /// <param name="response">The response to check.</param>
         public static void ResponseHasConditionalHeaders(ITableData expected, HttpResponseMessage response)
         {
-            var lastModified = expected.UpdatedAt.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern);
+            var lastModified = expected.UpdatedAt.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern, CultureInfo.InvariantCulture);
             HasHeader(response, HeaderNames.ETag, expected.GetETag());
             HasHeader(response, HeaderNames.LastModified, lastModified);
         }
