@@ -64,6 +64,12 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
         }
 
         [Fact]
+        public async void AsQueryableAsync_ReturnsQueryable()
+        {
+            Assert.IsAssignableFrom<IQueryable<InMemoryMovie>>(await repository.AsQueryableAsync());
+        }
+
+        [Fact]
         public void AsQueryable_CanRetrieveSingleItems()
         {
             var id = Movies.GetRandomId();
