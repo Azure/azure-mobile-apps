@@ -113,12 +113,14 @@ namespace Microsoft.Datasync.Client.Query.OData
                     string ch = (char)value == '\'' ? "''" : ((char)value).ToString();
                     return $"'{ch}'";
                 case ConstantType.Decimal:
-                    return $"{value}M";
+                    string m = ((decimal)value).ToString("G", CultureInfo.InvariantCulture);
+                    return $"{m}M";
                 case ConstantType.Double:
-                    string d = ((double)value).ToString("G");
+                    string d = ((double)value).ToString("G", CultureInfo.InvariantCulture);
                     return (d.Contains("E") || d.Contains(".")) ? d : $"{d}.0";
                 case ConstantType.Float:
-                    return $"{value}f";
+                    string f = ((float)value).ToString("G", CultureInfo.InvariantCulture);
+                    return $"{f}f";
                 case ConstantType.Int:
                 case ConstantType.Short:
                 case ConstantType.UnsignedShort:
