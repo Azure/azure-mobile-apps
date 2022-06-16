@@ -3,20 +3,17 @@
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/azure/azure-mobile-apps/tree/main/LICENSE.txt)
 [![Build Status](https://dev.azure.com/devdiv/DevDiv/_apis/build/status/Xamarin/Components/Azure.azure-mobile-apps?repoName=Azure%2Fazure-mobile-apps&branchName=main)](https://dev.azure.com/devdiv/DevDiv/_build/latest?definitionId=14830&repoName=Azure%2Fazure-mobile-apps&branchName=main) [![Join the chat at https://gitter.im/azure-mobile-apps/community](https://badges.gitter.im/azure-mobile-apps/community.svg)](https://gitter.im/azure-mobile-apps/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![NuGet Version][v1]](https://www.nuget.org/packages?q=Microsoft+Datasync)
 
-Azure Mobile Apps is a set of client and server libraries for adding authenticated data access and offline synchronization to your mobile applications.
-
-> **UPDATE**<br/>
-> We are currently updating the Azure Mobile Apps libraries to ASP.NET Core, and will be updating the supported environments soon.
+Azure Mobile Apps (also known as the Microsoft Datasync Framework) is a set of client and server libraries for adding authenticated data access and offline synchronization to your mobile applications.
 
 Currently, we support:
 
-* ASP.NET Core for .NET 6
-* .NET Standard 2.0 Client (Xamarin, WPF, etc.)
-* .NET 6 MAUI Client (Android, iOS, and Windows)
+* ASP.NET Core for .NET 6.
+* .NET Standard 2.0 Client - Xamarin (Native and Forms), UWP, WPF.
+* .NET 6 Client - MAUI and Windows App SDK (WinUI3).
 
-To get started, take a look at [our documentation](https://azure.github.io/azure-mobile-apps).
+To get started, take a look at [our documentation](https://docs.microsoft.com/en-us/azure/developer/mobile-apps/azure-mobile-apps/overview).
 
-The following libraries have been archived and can be considered deprecated (links take you to the archive)
+The following libraries have been archived and can be considered retired (links take you to the archive)
 
 * Android Client
 * iOS Client
@@ -24,11 +21,6 @@ The following libraries have been archived and can be considered deprecated (lin
 * Apache Cordova Client
 * Node Server
 * .NET Framework Server
-
-> **What does deprecation mean?**<br/>
-> The libraries that have been deprecated are still available in [the archive](https://github.com/azure/azure-mobile-apps/tree/archive), and documentation is available in [the documentation](https://azure.github.io/azure-mobile-apps/), but no further work will be done on these libraries, and any issues opened on these libraries will be closed as "won't fix".  The libraries are open-source, and you are welcome to fork them to adjust as you see fit.
->
-> Note that the ASP.NET Core service uses OData v4 (with a backwards compatibility module for OData v3).  This means that older clients (such as those in the deprecation list) will not work in every situation, and additional configuration is required to support authentication.
 
 ## Libraries
 
@@ -67,7 +59,7 @@ The Datasync Server template will be released to NuGet at the same time as the n
 
 ## Documentation
 
-You can find the latest documentation on [docs.microsoft.com](https://docs.microsoft.com/azure/developer/mobile-apps/azure-mobile-apps/overview), and pre-release documentation in our docs directory.
+You can find the latest documentation on [docs.microsoft.com](https://docs.microsoft.com/azure/developer/mobile-apps/azure-mobile-apps/overview).  Additional information will be added to the repository Wiki when appropriate.
 
 ## Contributing
 
