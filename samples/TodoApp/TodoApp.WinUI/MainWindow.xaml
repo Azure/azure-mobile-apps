@@ -20,10 +20,9 @@
 
         <ProgressBar
             x:Name="isRefreshingControl"
-            IsEnabled="{Binding IsRefreshing}" Visibility="{Binding Path=IsRefreshing, Converter={StaticResource vis}}"
-            IsIndeterminate="True"
-            Maximum="100"
-            Minimum="0"/>
+            IsEnabled="{Binding IsRefreshing}" 
+            IsIndeterminate="True" 
+            Visibility="{Binding Path=IsRefreshing, Converter={StaticResource vis}}"/>
 
         <ListView x:Name="itemListControl" Grid.Row="1" Margin="10" ItemsSource="{Binding Items}" ScrollViewer.VerticalScrollBarVisibility="Auto">
             <ListView.ItemTemplate>
