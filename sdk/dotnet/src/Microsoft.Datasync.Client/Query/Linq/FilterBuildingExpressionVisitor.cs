@@ -21,6 +21,10 @@ namespace Microsoft.Datasync.Client.Query.Linq
     internal sealed class FilterBuildingExpressionVisitor
     {
         private static readonly MethodInfo concatMethod = typeof(string).GetRuntimeMethod("Concat", new Type[] { typeof(string), typeof(string) });
+        private static readonly MethodInfo startsWithMethod = typeof(string).GetRuntimeMethod("StartsWith", new Type[] { typeof(string), typeof(StringComparison) });
+        private static readonly MethodInfo endsWithMethod = typeof(string).GetRuntimeMethod("EndsWith", new Type[] { typeof(string), typeof(StringComparison) });
+        private static readonly MethodInfo equals1Method = typeof(string).GetRuntimeMethod("Equals", new Type[] { typeof(string) });
+        private static readonly MethodInfo equals2Method = typeof(string).GetRuntimeMethod("Equals", new Type[] { typeof(string), typeof(StringComparison) });
         private static readonly MethodInfo toStringMethod = typeof(object).GetTypeInfo().GetDeclaredMethod("ToString");
 
         /// <summary>
@@ -229,6 +233,52 @@ namespace Microsoft.Datasync.Client.Query.Linq
         /// <returns>The visited node</returns>
         internal Expression VisitMethodCallExpression(MethodCallExpression node)
         {
+            var baseDefinition = node.Method.GetRuntimeBaseDefinition();
+            //
+            // string.StartsWith(string, StringComparison)
+            //
+            if (baseDefinition.Equals(startsWithMethod) && node.Arguments.Count == 2 && node.Arguments[1].Type == typeof(StringComparison))
+            {
+                var callNode = new FunctionCallNode("startswith");
+                FilterExpression.Push(callNode);
+                VisitStringComparisonExpression(callNode, node);
+                return node;
+            }
+            //
+            // string.EndsWith(string, StringComparison)
+            //
+            if (baseDefinition.Equals(endsWithMethod) && node.Arguments.Count == 2 && node.Arguments[1].Type == typeof(StringComparison))
+            {
+                var callNode = new FunctionCallNode("endswith");
+                FilterExpression.Push(callNode);
+                VisitStringComparisonExpression(callNode, node);
+                return node;
+            }
+            //
+            // string.Equals(string)
+            //
+            if (baseDefinition.Equals(equals1Method) && node.Arguments.Count == 1)
+            {
+                var equalityNode = new BinaryOperatorNode(BinaryOperatorKind.Equal);
+                FilterExpression.Push(equalityNode);
+                Visit(node.Object);
+                Visit(node.Arguments[0]);
+                SetChildren(equalityNode);
+                return node;
+            }
+            //
+            // string.Equals(string, StringComparison)
+            //
+            if (baseDefinition.Equals(equals2Method) && node.Arguments.Count == 2 && node.Arguments[1].Type == typeof(StringComparison))
+            {
+                var equalityNode = new BinaryOperatorNode(BinaryOperatorKind.Equal);
+                FilterExpression.Push(equalityNode);
+                VisitStringComparisonExpression(equalityNode, node);
+                return node;
+            }
+            //
+            // Anything in the MethodNames table (which has a direct relationship to the OData representation)
+            //
             var key = new MemberInfoKey(node.Method);
             if (MethodNames.TryGetValue(key, out string methodName, out bool isStatic))
             {
@@ -239,16 +289,80 @@ namespace Microsoft.Datasync.Client.Query.Linq
                     Visit(argument);
                 }
                 SetChildren(fnCallNode);
+                return node;
             }
-            else if (node.Method.GetRuntimeBaseDefinition().Equals(toStringMethod))
+            //
+            // string.ToString()
+            //
+            if (baseDefinition.Equals(toStringMethod))
             {
                 Visit(node.Object);
+                return node;
             }
-            else
+            //         
+            // Default case
+            //
+            throw new NotSupportedException($"'{node}' is not supported in a 'Where' clause");
+        }
+
+        /// <summary>
+        /// Process a two-argument string-expression (startsWith, endsWith)
+        /// </summary>
+        /// <param name="node">The node to visit</param>
+        /// <returns>The visited node</returns>
+        internal Expression VisitStringComparisonExpression(QueryNode queryNode, MethodCallExpression node)
+        {
+            StringComparison comparison = GetStringComparisonFromExpression(node.Arguments[1]);
+            switch (comparison)
             {
-                throw new NotSupportedException($"'{node}' is not supported in a 'Where' clause");
+                case StringComparison.Ordinal:
+                case StringComparison.InvariantCulture:
+                    Visit(node.Object);
+                    Visit(node.Arguments[0]);
+                    SetChildren(queryNode);
+                    return node;
+
+                case StringComparison.OrdinalIgnoreCase:
+                case StringComparison.InvariantCultureIgnoreCase:
+                    var arg1 = new FunctionCallNode("tolower");
+                    FilterExpression.Push(arg1);
+                    Visit(node.Object);
+                    SetChildren(arg1);
+
+                    var arg2 = new FunctionCallNode("tolower");
+                    FilterExpression.Push(arg2);
+                    Visit(node.Arguments[0]);
+                    SetChildren(arg2);
+
+                    SetChildren(queryNode);
+                    return node;
+
+                default:
+                    throw new NotSupportedException($"'{node}' is not using a supported StringComparison value");
             }
-            return node;
+        }
+
+        /// <summary>
+        /// When there is a StringComparison node, find it's value.  The backend doesn't
+        /// support StringComparison, so remove it from the stack.
+        /// </summary>
+        /// <param name="node">The expression.</param>
+        /// <returns>The StringComparison value.</returns>
+        internal StringComparison GetStringComparisonFromExpression(Expression node)
+        {
+            // Get the StringComparison argument by visiting the node.
+            // Don't leave it on the stack!
+            Visit(node);
+            QueryNode comparisonNode = FilterExpression.Pop();
+
+            // We expect it to be a constant node of type StringComparison
+            if (comparisonNode is not ConstantNode ccn || ccn.Value.GetType() != typeof(StringComparison))
+            {
+                throw new NotSupportedException($"'{node}' must have a constant StringComparison value");
+            }
+
+            // If it is, then return the value.
+            return (StringComparison)ccn.Value;
         }
 
         /// <summary>
