@@ -1,7 +1,7 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.44">
 
 	<PropertyGroup>
-		<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-windows10.0.19041.0;netstandard2.0;monoandroid12.0;xamarin.ios10</TargetFrameworks>
+		<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst;net6.0-windows10.0.19041.0;netstandard2.0;monoandroid12.0;xamarin.ios10</TargetFrameworks>
 		<TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);uap10.0</TargetFrameworks>
 	</PropertyGroup>
 
@@ -60,6 +60,11 @@
 
 	<ItemGroup Condition="$(TargetFramework.StartsWith('net6.0-ios'))">
 		<Compile Include="Platforms\net6-ios\*.cs" />
+	</ItemGroup>
+
+	<!-- Mac Platform Support -->
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net6.0-mac'))">
+		<Compile Include="Platforms\net6-mac\*.cs" />
 	</ItemGroup>
 
 	<!-- UWP/UAP/Windows Store Platform Support -->

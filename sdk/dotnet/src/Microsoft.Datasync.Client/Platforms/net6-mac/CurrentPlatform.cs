@@ -7,7 +7,7 @@ using System;
 namespace Microsoft.Datasync.Client.Platforms
 {
     /// <summary>
-    /// The iOS-specific implementation of the <see cref="IPlatform"/> interface.
+    /// The Android-specific implementation of the <see cref="IPlatform"/> interface.
     /// </summary>
     internal class CurrentPlatform : IPlatform
     {
