@@ -4,24 +4,20 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
-using System;
+using LiteDB;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace Microsoft.AspNetCore.Datasync.InMemory.Test
+namespace Microsoft.AspNetCore.Datasync.LiteDb.Test
 {
-    [SuppressMessage("Design", "RCS1090:Add call to 'ConfigureAwait' (or vice versa).", Justification = "Test suite")]
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class InMemoryRepository_Tests
+    public class LiteDbRepository_Tests : IDisposable
     {
         #region Test Artifacts
         /// <summary>
         /// A basic movie without any adornment that does not exist in the movie data. Tests must clone this
         /// object and then adjust.
         /// </summary>
-        private readonly InMemoryMovie blackPantherMovie = new()
+        private readonly LiteDbMovie blackPantherMovie = new()
         {
             BestPictureWinner = true,
             Duration = 134,
@@ -31,42 +27,38 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
             Year = 2018
         };
 
-        private readonly InMemoryRepository<InMemoryMovie> repository;
+        private readonly string dbFilename;
+        private readonly LiteDatabase database;
+        private readonly ILiteCollection<LiteDbMovie> collection;
+        private readonly LiteDbRepository<LiteDbMovie> repository;
         #endregion
 
-        public InMemoryRepository_Tests()
+        public LiteDbRepository_Tests()
         {
-            repository = new InMemoryRepository<InMemoryMovie>(Movies.OfType<InMemoryMovie>());
+            dbFilename = Path.GetTempFileName();
+            database = new LiteDatabase($"Filename={dbFilename};Connection=direct;InitialSize=0");
+
+            collection = database.GetCollection<LiteDbMovie>("litedbmovies");
+            foreach (var movie in Movies.OfType<LiteDbMovie>())
+            {
+                movie.UpdatedAt = DateTimeOffset.Now;
+                movie.Version = Guid.NewGuid().ToByteArray();
+                collection.Insert(movie);
+            }
+
+            repository = new LiteDbRepository<LiteDbMovie>(database);
         }
 
-        [Fact]
-        public void Ctor_Empty()
+        public void Dispose()
         {
-            var repository = new InMemoryRepository<InMemoryMovie>();
-
-            Assert.NotNull(repository);
-            Assert.NotNull(repository.Entities);
-            Assert.Empty(repository.Entities);
-        }
-
-        [Fact]
-        public void Ctor_Seeded()
-        {
-            Assert.NotNull(repository);
-            Assert.NotNull(repository.Entities);
-            Assert.NotEmpty(repository.Entities);
+            database.Dispose();
+            File.Delete(dbFilename);
         }
 
         [Fact]
         public void AsQueryable_ReturnsQueryable()
         {
-            Assert.IsAssignableFrom<IQueryable<InMemoryMovie>>(repository.AsQueryable());
-        }
-
-        [Fact]
-        public async void AsQueryableAsync_ReturnsQueryable()
-        {
-            Assert.IsAssignableFrom<IQueryable<InMemoryMovie>>(await repository.AsQueryableAsync());
+            Assert.IsAssignableFrom<IQueryable<LiteDbMovie>>(repository.AsQueryable());
         }
 
         [Fact]
@@ -75,8 +67,8 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
             var id = Movies.GetRandomId();
 
             var actual = repository.AsQueryable().Single(m => m.Id == id);
+            var expected = collection.FindById(id);
 
-            var expected = repository.GetEntity(id);
             Assert.Equal<IMovie>(expected, actual);
             Assert.Equal<ITableData>(expected, actual);
         }
@@ -86,13 +78,6 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
         {
             var ratedMovies = repository.AsQueryable().Where(m => m.Rating == "R").ToList();
             Assert.Equal(95, ratedMovies.Count);
-        }
-
-        [Fact]
-        public async Task CreateAsync_Throws_OnForcedException()
-        {
-            repository.ThrowException = new DatasyncException("test exception");
-            await Assert.ThrowsAsync<DatasyncException>(() => repository.CreateAsync(blackPantherMovie));
         }
 
         [Fact]
@@ -136,10 +121,10 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
 
             var ex = await Assert.ThrowsAsync<ConflictException>(() => repository.CreateAsync(item));
 
-            var entity = repository.GetEntity(id);
+            var entity = collection.FindById(id);
             Assert.NotSame(entity, ex.Payload);
-            Assert.Equal<IMovie>(entity, ex.Payload as IMovie);
-            Assert.Equal<ITableData>(entity, ex.Payload as ITableData);
+            Assert.Equal(entity, (IMovie)ex.Payload);
+            Assert.Equal(entity, (ITableData)ex.Payload);
         }
 
         [Fact]
@@ -176,30 +161,22 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
 
             await repository.CreateAsync(item);
 
-            var entity = repository.GetEntity(item.Id);
+            var entity = collection.FindById(item.Id);
             Assert.NotSame(entity, item);
-        }
-
-        [Fact]
-        public async Task DeleteAsync_Throws_OnForcedException()
-        {
-            repository.ThrowException = new DatasyncException("test exception");
-            var id = Movies.GetRandomId();
-            await Assert.ThrowsAsync<DatasyncException>(() => repository.DeleteAsync(id));
         }
 
         [Fact]
         public async Task DeleteAsync_Throws_OnNullId()
         {
             await Assert.ThrowsAsync<BadRequestException>(() => repository.DeleteAsync(null));
-            Assert.Equal(Movies.Count, repository.Entities.Count);
+            Assert.Equal(Movies.Count, collection.Count());
         }
 
         [Fact]
         public async Task DeleteAsync_Throws_OnEmptyId()
         {
             await Assert.ThrowsAsync<BadRequestException>(() => repository.DeleteAsync(""));
-            Assert.Equal(Movies.Count, repository.Entities.Count);
+            Assert.Equal(Movies.Count, collection.Count());
         }
 
         [Theory]
@@ -210,7 +187,7 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
         public async Task DeleteAsync_Throws_WhenNotFound(string id)
         {
             await Assert.ThrowsAsync<NotFoundException>(() => repository.DeleteAsync(id));
-            Assert.Equal(Movies.Count, repository.Entities.Count);
+            Assert.Equal(Movies.Count, collection.Count());
         }
 
         [Fact]
@@ -221,11 +198,11 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
 
             var ex = await Assert.ThrowsAsync<PreconditionFailedException>(() => repository.DeleteAsync(id, version));
 
-            var entity = repository.GetEntity(id);
-            Assert.Equal(Movies.Count, repository.Entities.Count);
+            var entity = collection.FindById(id);
+            Assert.Equal(Movies.Count, collection.Count());
             Assert.NotSame(entity, ex.Payload);
-            Assert.Equal<IMovie>(entity, ex.Payload as IMovie);
-            Assert.Equal<ITableData>(entity, ex.Payload as ITableData);
+            Assert.Equal(entity, (IMovie)ex.Payload);
+            Assert.Equal(entity, (ITableData)ex.Payload);
         }
 
         [Fact]
@@ -235,7 +212,7 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
 
             await repository.DeleteAsync(id);
 
-            var entity = repository.GetEntity(id);
+            var entity = collection.FindById(id);
             Assert.Null(entity);
         }
 
@@ -246,7 +223,7 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
 
             await repository.DeleteAsync(id);
 
-            var entity = repository.GetEntity(id);
+            var entity = collection.FindById(id);
             Assert.Null(entity);
         }
 
@@ -254,24 +231,16 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
         public async Task DeleteAsync_Throws_WhenEntityVersionNull()
         {
             var id = Movies.GetRandomId();
-            var entity = repository.GetEntity(id);
+            var entity = collection.FindById(id);
             var version = Guid.NewGuid().ToByteArray();
             entity.Version = null;
 
             var ex = await Assert.ThrowsAsync<PreconditionFailedException>(() => repository.DeleteAsync(id, version));
 
-            entity = repository.GetEntity(id);
+            entity = collection.FindById(id);
             Assert.NotNull(entity);
             Assert.NotNull(ex.Payload);
             Assert.NotSame(entity, ex.Payload);
-        }
-
-        [Fact]
-        public async Task ReadAsync_Throws_OnForcedException()
-        {
-            repository.ThrowException = new DatasyncException("test exception");
-            var id = Movies.GetRandomId();
-            await Assert.ThrowsAsync<DatasyncException>(() => repository.ReadAsync(id));
         }
 
         [Fact]
@@ -281,7 +250,7 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
 
             var actual = await repository.ReadAsync(id);
 
-            var expected = repository.GetEntity(id);
+            var expected = collection.FindById(id);
             Assert.NotSame(expected, actual);
             Assert.Equal<IMovie>(expected, actual);
             Assert.Equal<ITableData>(expected, actual);
@@ -296,7 +265,7 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
         [Fact]
         public async Task ReadAsync_Throws_OnEmptyId()
         {
-             await Assert.ThrowsAsync<BadRequestException>(() => repository.ReadAsync(""));
+            await Assert.ThrowsAsync<BadRequestException>(() => repository.ReadAsync(""));
         }
 
         [Theory]
@@ -309,15 +278,6 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
             var actual = await repository.ReadAsync(id);
 
             Assert.Null(actual);
-        }
-
-        [Fact]
-        public async Task ReplaceAsync_Throws_OnForcedException()
-        {
-            repository.ThrowException = new DatasyncException("test exception");
-            var item = blackPantherMovie.Clone();
-            item.Id = Movies.GetRandomId();
-            await Assert.ThrowsAsync<DatasyncException>(() => repository.ReplaceAsync(item));
         }
 
         [Fact]
@@ -359,23 +319,23 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
 
             var ex = await Assert.ThrowsAsync<PreconditionFailedException>(() => repository.ReplaceAsync(entity, version));
 
-            var expected = repository.GetEntity(entity.Id);
+            var expected = collection.FindById(entity.Id);
             Assert.NotSame(expected, ex.Payload);
-            Assert.Equal<IMovie>(expected, ex.Payload as IMovie);
-            Assert.Equal<ITableData>(expected, ex.Payload as ITableData);
+            Assert.Equal(expected, (IMovie)ex.Payload);
+            Assert.Equal(expected, (ITableData)ex.Payload);
         }
 
         [Fact]
         public async Task ReplaceAsync_Replaces_OnVersionMatch()
         {
-            var original = repository.GetEntity(Movies.GetRandomId()).Clone();
+            var original = collection.FindById(Movies.GetRandomId()).Clone();
             var entity = blackPantherMovie.Clone();
             entity.Id = original.Id;
             var version = original.Version.ToArray();
 
             await repository.ReplaceAsync(entity, version);
 
-            var expected = repository.GetEntity(entity.Id);
+            var expected = collection.FindById(entity.Id);
             Assert.NotSame(expected, entity);
             Assert.Equal<IMovie>(expected, entity);
             AssertEx.SystemPropertiesChanged(original, entity);
@@ -386,11 +346,11 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
         {
             var entity = blackPantherMovie.Clone();
             entity.Id = Movies.GetRandomId();
-            var original = repository.GetEntity(entity.Id).Clone();
+            var original = collection.FindById(entity.Id).Clone();
 
             await repository.ReplaceAsync(entity);
 
-            var expected = repository.GetEntity(entity.Id);
+            var expected = collection.FindById(entity.Id);
             Assert.NotSame(expected, entity);
             Assert.Equal<IMovie>(expected, entity);
             AssertEx.SystemPropertiesChanged(original, entity);
@@ -401,14 +361,14 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
         {
             var replacement = blackPantherMovie.Clone();
             replacement.Id = Movies.GetRandomId();
-            var original = repository.GetEntity(replacement.Id);
+            var original = collection.FindById(replacement.Id);
             original.Version = null;
             var version = Guid.NewGuid().ToByteArray();
 
             var ex = await Assert.ThrowsAsync<PreconditionFailedException>(() => repository.ReplaceAsync(replacement, version));
 
             Assert.NotSame(original, ex.Payload);
-            Assert.Equal<IMovie>(original, ex.Payload as IMovie);
+            Assert.Equal(original, ex.Payload as IMovie);
         }
     }
 }

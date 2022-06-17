@@ -213,7 +213,11 @@ namespace Microsoft.Datasync.Client.SQLiteStore
                 {
                     throw new InvalidOperationException($"Column '{prop.Name}' is not defined on table '{tableName}'");
                 }
-                columns.Add(column);
+                
+                if (column != null)
+                {
+                    columns.Add(column);
+                }
             }
 
             if (columns.Count == 0)

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Description>A LiteDb-based repository for use with the ASP.NET Core Datasync framework.</Description>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
+		<LangVersion>10.0</LangVersion>
+		<NeutralLanguage>en</NeutralLanguage>
+		<PackageId>Microsoft.AspNetCore.Datasync.LiteDb</PackageId>
+		<PackageTags>microsoft;aspnetcore;cloud;datasync;webapi</PackageTags>
+		<ProductName>Microsoft.AspNetCore.Datasync.LiteDb</ProductName>
+		<ProjectUrl>https://github.com/Azure/azure-mobile-apps</ProjectUrl>
+		<RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
+		<RootNamespace>Microsoft.AspNetCore.Datasync.LiteDb</RootNamespace>
+		<TargetFramework>net6.0</TargetFramework>
+	</PropertyGroup>
+
+	<Import Project="..\..\Shared.Build.props" />
+
+	<ItemGroup>
+		<ProjectReference Include="..\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="LiteDB" Version="5.0.12" />
+	</ItemGroup>
+</Project>
+

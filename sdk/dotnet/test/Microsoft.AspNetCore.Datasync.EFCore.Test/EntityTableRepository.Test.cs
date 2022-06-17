@@ -75,6 +75,14 @@ namespace Microsoft.AspNetCore.Datasync.EFCore.Test
         }
 
         [Fact]
+        public async void AsQueryableAsync_Returns_IQueryable()
+        {
+            var actual = await repository.AsQueryableAsync();
+            Assert.IsAssignableFrom<IQueryable<EFMovie>>(actual);
+            Assert.Equal(Movies.Count, actual.Count());
+        }
+
+        [Fact]
         public async Task CreateAsync_Throws_OnNullEntity()
         {
             var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => repository.CreateAsync(null));

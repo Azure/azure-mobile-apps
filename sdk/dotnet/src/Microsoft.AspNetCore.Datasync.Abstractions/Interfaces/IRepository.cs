@@ -24,6 +24,14 @@ namespace Microsoft.AspNetCore.Datasync
         IQueryable<TEntity> AsQueryable();
 
         /// <summary>
+        /// Returns an unexecuted <see cref="IQueryable{T}"/> that represents the data store as a whole.
+        /// This is adjusted by the <see cref="TableController{TEntity}"/> to account for filtering and
+        /// paging requests.
+        /// </summary>
+        /// <returns>An <see cref="IQueryable{T}"/> for the entities in the data store.</returns>
+        async Task<IQueryable<TEntity>> AsQueryableAsync() { return await Task.FromResult(AsQueryable()); }
+
+        /// <summary>
         /// Creates an entity within the data store. After completion, the system properties
         /// within the entity have been updated with new values.
         /// </summary>

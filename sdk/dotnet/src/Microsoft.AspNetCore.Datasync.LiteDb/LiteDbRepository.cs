@@ -1,71 +1,38 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Newtonsoft.Json;
+using LiteDB;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.AspNetCore.Datasync.InMemory
+namespace Microsoft.AspNetCore.Datasync.LiteDb
 {
     /// <summary>
     /// A test repository that implements the <see cref="IRepository{TEntity}"/> interface for
     /// Azure Mobile Apps, but stores data in a local repository.
     /// </summary>
     /// <typeparam name="TEntity">The type of entity to store</typeparam>
-    public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : InMemoryTableData
+    public class LiteDbRepository<TEntity> : IRepository<TEntity> where TEntity : LiteDbTableData
     {
-        private readonly Dictionary<string, TEntity> _store = new();
         private readonly object writeLock = new();
+        private readonly LiteDatabase connection;
+        private readonly ILiteCollection<TEntity> collection;
 
         /// <summary>
-        /// Creates a new <see cref="InMemoryRepository{TEntity}"/>, potentially seeded with
-        /// some data.
+        /// Creates a new <see cref="LiteDbRepository{TEntity}"/>, using the provided database
+        /// connection.
         /// </summary>
-        /// <param name="seedEntities">A list of entities to use to seed the store.</param>
-        public InMemoryRepository(IEnumerable<TEntity> seedEntities = null)
+        /// <param name="databaseConnection">The database connection.</param>
+        /// <param name="collectionName">The name of the collection (optional - uses the entity name by default).</param>
+        public LiteDbRepository(LiteDatabase databaseConnection, string collectionName = null)
         {
-            if (seedEntities != null)
-            {
-                foreach (var entity in seedEntities)
-                {
-                    CreateEntity(entity);
-                }
-            }
-        }
+            collectionName ??= typeof(TEntity).Name.ToLowerInvariant() + 's';
 
-        #region Internal Properties and Methods for testing
-        /// <summary>
-        /// Used for testing the explicit actions in the <see cref="TableController{TEntity}"/> when a data
-        /// store error occurs.  When set, any calls will fail with this error.
-        /// </summary>
-        internal Exception ThrowException { get; set; }
-
-        /// <summary>
-        /// Used in assertions to get an entity from the store.  Returns null if the entity does not exist.
-        /// </summary>
-        /// <param name="id">The id to retrieve.</param>
-        /// <returns>The entity, or null if it doesn't exist.</returns>
-        internal TEntity GetEntity(string id) => _store.ContainsKey(id) ? _store[id] : null;
-
-        /// <summary>
-        /// Used in assertions to get the full list of entities from the store.
-        /// </summary>
-        internal List<TEntity> Entities { get => _store.Values.ToList(); }
-        #endregion
-
-        #region Private Methods
-        /// <summary>
-        /// Disconnects the entity from the store by making a "true copy" of the entity provided.
-        /// </summary>
-        /// <param name="entity">The entity to disconnect</param>
-        /// <returns>The disconnected entity</returns>
-        private static TEntity Disconnect(TEntity entity)
-        {
-            string json = JsonConvert.SerializeObject(entity);
-            return JsonConvert.DeserializeObject<TEntity>(json);
+            connection = databaseConnection ?? throw new ArgumentNullException(nameof(databaseConnection));
+            collection = connection.GetCollection<TEntity>(collectionName);
+            collection.EnsureIndex(x => x.UpdatedAt);
         }
 
         /// <summary>
@@ -77,7 +44,6 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
             entity.UpdatedAt = DateTimeOffset.UtcNow;
             entity.Version = Guid.NewGuid().ToByteArray();
         }
-        #endregion
 
         #region IRepository<TEntity> Interface
         /// <summary>
@@ -85,24 +51,11 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         /// as a whole. This is adjusted by the <see cref="TableController{TEntity}"/> to account
         /// for the filtering and paging requested.
         /// </summary>
+        /// <remarks>We provide an "IEnumerable" instead that iterates over the entire collection.</remarks>
+        /// <param name="token">A cancellation token</param>
         /// <returns>An <see cref="IQueryable{T}"/> for the entities in the data store</returns>
         public IQueryable<TEntity> AsQueryable()
-        {
-            if (ThrowException != null)
-            {
-                throw ThrowException;
-            }
-
-            return _store.Values.AsQueryable();
-        }
-
-        /// <summary>
-        /// Returns an unexecuted <see cref="IQueryable{T}"/> that represents the data store
-        /// as a whole. This is adjusted by the <see cref="TableController{TEntity}"/> to account
-        /// for the filtering and paging requested.
-        /// </summary>
-        /// <returns>An <see cref="IQueryable{T}"/> for the entities in the data store</returns>
-        public Task<IQueryable<TEntity>> AsQueryableAsync() => Task.FromResult(AsQueryable());
+            => collection.FindAll().AsQueryable();
 
         /// <summary>
         /// Create a new entity within the backend data store.  If the entity does not
@@ -115,11 +68,6 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         /// <exception cref="RepositoryException">if a backend data store error occurred.</exception>
         public Task CreateAsync(TEntity entity, CancellationToken token = default)
         {
-            if (ThrowException != null)
-            {
-                throw ThrowException;
-            }
-
             CreateEntity(entity);
             return Task.CompletedTask;
         }
@@ -136,11 +84,6 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         /// <exception cref="RepositoryException">if a backend data store error occurred.</exception>
         public Task DeleteAsync(string id, byte[] version = null, CancellationToken token = default)
         {
-            if (ThrowException != null)
-            {
-                throw ThrowException;
-            }
-
             DeleteEntity(id, version);
             return Task.CompletedTask;
         }
@@ -158,17 +101,12 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         /// <exception cref="RepositoryException">if a backend data store error occurred.</exception>
         public Task<TEntity> ReadAsync(string id, CancellationToken token = default)
         {
-            if (ThrowException != null)
-            {
-                throw ThrowException;
-            }
-
             if (string.IsNullOrEmpty(id))
             {
                 throw new BadRequestException();
             }
 
-            TEntity entity = _store.ContainsKey(id) ? Disconnect(_store[id]) : null;
+            TEntity entity = collection.FindById(id);
             return Task.FromResult(entity);
         }
 
@@ -185,11 +123,6 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         /// <exception cref="RepositoryException">if a backend data store error occurred.</exception>
         public Task ReplaceAsync(TEntity entity, byte[] version = null, CancellationToken token = default)
         {
-            if (ThrowException != null)
-            {
-                throw ThrowException;
-            }
-
             ReplaceEntity(entity, version);
             return Task.CompletedTask;
         }
@@ -217,12 +150,13 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
 
             lock (writeLock)
             {
-                if (_store.ContainsKey(entity.Id))
+                TEntity existingEntity = collection.FindById(entity.Id);
+                if (existingEntity != null)
                 {
-                    throw new ConflictException(Disconnect(_store[entity.Id]));
+                    throw new ConflictException(existingEntity);
                 }
                 UpdateEntity(entity);
-                _store[entity.Id] = Disconnect(entity);
+                collection.Insert(entity);
             }
         }
 
@@ -243,16 +177,17 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
 
             lock (writeLock)
             {
-                if (!_store.ContainsKey(id))
+                TEntity existingEntity = collection.FindById(id);
+                if (existingEntity == null)
                 {
                     throw new NotFoundException();
                 }
-                TEntity existing = _store[id];
-                if (version != null && existing.Version?.SequenceEqual(version) != true)
+
+                if (version != null && existingEntity.Version?.SequenceEqual(version) != true)
                 {
-                    throw new PreconditionFailedException(Disconnect(existing));
+                    throw new PreconditionFailedException(existingEntity);
                 }
-                _store.Remove(id);
+                collection.Delete(id);
             }
         }
 
@@ -278,18 +213,18 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
 
             lock (writeLock)
             {
-                if (!_store.ContainsKey(entity.Id))
+                TEntity existingEntity = collection.FindById(entity.Id);
+                if (existingEntity == null)
                 {
                     throw new NotFoundException();
                 }
 
-                TEntity existing = _store[entity.Id];
-                if (version != null && existing.Version?.SequenceEqual(version) != true)
+                if (version != null && existingEntity.Version?.SequenceEqual(version) != true)
                 {
-                    throw new PreconditionFailedException(Disconnect(existing));
+                    throw new PreconditionFailedException(existingEntity);
                 }
                 UpdateEntity(entity);
-                _store[entity.Id] = Disconnect(entity);
+                collection.Update(entity);
             }
         }
         #endregion
