@@ -9,8 +9,7 @@
 dotnet workload restore --project .\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj
 
 # Build
-msbuild ./Datasync.Framework.sln
-
+msbuild -property:Configuration=Release ./Datasync.Framework.sln
 # Test
-vstest.console --collect:"Code Coverage" **\Microsoft.*.Test.dll
+vstest.console --collect:"Code Coverage" .\test\**\bin\Release\**\Microsoft.*.Test.dll
 
