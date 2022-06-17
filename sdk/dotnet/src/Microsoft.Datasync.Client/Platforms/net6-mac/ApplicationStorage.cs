@@ -8,7 +8,7 @@ namespace Microsoft.Datasync.Client.Platforms
 {
     /// <summary>
     /// Implementation of the <see cref="IApplicationStorage"/> interface for
-    /// iOS devices.
+    /// Mac Catalyst devices.
     /// </summary>
     internal class ApplicationStorage : IApplicationStorage
     {
