@@ -300,8 +300,8 @@ namespace Microsoft.Datasync.Integration.Test.Server
             await AssertResponseWithLoggingAsync(HttpStatusCode.Gone, response);
         }
 
-        [Theory, CombinatorialData]
-        public async Task SoftDeletePatch_CanUndeleteDeletedItem([CombinatorialValues("soft", "soft_logged")] string table)
+        [Fact]
+        public async Task SoftDeletePatch_CanUndeleteDeletedItem()
         {
             var id = GetRandomId();
             await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id);
@@ -313,7 +313,7 @@ namespace Microsoft.Datasync.Integration.Test.Server
                 new PatchOperation("replace", "deleted", false)
             };
 
-            var response = await MovieServer.SendPatch($"tables/{table}/{id}", patchDoc);
+            var response = await MovieServer.SendPatch($"tables/soft/{id}", patchDoc);
             await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
             var result = response.DeserializeContent<ClientMovie>();
             var stored = MovieServer.GetMovieById(id);
