@@ -1240,6 +1240,86 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
         }
 
         [Fact]
+        public async Task ToAsyncEnumerable_Linq_where_162()
+        {
+            await RunLinqTest(
+                m => m.Where(x => x.Title.Equals("The Godfather")),
+                1,
+                new string[] { "id-001" }
+            );
+        }
+
+        [Fact]
+        public async Task ToAsyncEnumerable_Linq_where_163()
+        {
+            await RunLinqTest(
+                m => m.Where(x => !x.Title.Equals("The Godfather")),
+                247,
+                new string[] { "id-000", "id-002", "id-003", "id-004", "id-005" }
+            );
+        }
+
+        [Fact]
+        public async Task ToAsyncEnumerable_Linq_where_164()
+        {
+            await RunLinqTest(
+                m => m.Where(x => x.Title.Equals("The Godfather", StringComparison.Ordinal)),
+                1,
+                new string[] { "id-001" }
+            );
+        }
+
+        [Fact]
+        public async Task ToAsyncEnumerable_Linq_where_165()
+        {
+            await RunLinqTest(
+                m => m.Where(x => !x.Title.Equals("The Godfather", StringComparison.Ordinal)),
+                247,
+                new string[] { "id-000", "id-002", "id-003", "id-004", "id-005" }
+            );
+        }
+
+        [Fact]
+        public async Task ToAsyncEnumerable_Linq_where_166()
+        {
+            await RunLinqTest(
+                m => m.Where(x => x.Rating.StartsWith("PG", StringComparison.InvariantCulture)),
+                68,
+                new string[] { "id-006", "id-008", "id-010", "id-012", "id-013" }
+            );
+        }
+
+        [Fact]
+        public async Task ToAsyncEnumerable_Linq_where_167()
+        {
+            await RunLinqTest(
+                m => m.Where(x => x.Rating.StartsWith("pg", StringComparison.InvariantCultureIgnoreCase)),
+                68,
+                new string[] { "id-006", "id-008", "id-010", "id-012", "id-013" }
+            );
+        }
+
+        [Fact]
+        public async Task ToAsyncEnumerable_Linq_where_168()
+        {
+            await RunLinqTest(
+                m => m.Where(x => x.Title.EndsWith("er", StringComparison.InvariantCulture)),
+                12,
+                new string[] { "id-001", "id-052", "id-121", "id-130", "id-164" }
+            );
+        }
+
+        [Fact]
+        public async Task ToAsyncEnumerable_Linq_where_169()
+        {
+            await RunLinqTest(
+                m => m.Where(x => x.Title.EndsWith("eR", StringComparison.InvariantCultureIgnoreCase)),
+                12,
+                new string[] { "id-001", "id-052", "id-121", "id-130", "id-164" }
+            );
+        }
+
+        [Fact]
         public async Task ToAsyncEnumerable_Linq_sync_1()
         {
             var dt = new DateTimeOffset(1994, 10, 14, 0, 0, 0, TimeSpan.Zero);
