@@ -46,6 +46,7 @@
 	<ItemGroup Condition="$(TargetFramework.StartsWith('monoandroid'))">
 		<Compile Include="Platforms\android\*.cs" />
 		<PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
+		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$(TargetFramework.StartsWith('net6.0-android'))">
@@ -56,6 +57,7 @@
 	<ItemGroup Condition="$(TargetFramework.StartsWith('xamarin.ios'))">
 		<Compile Include="Platforms\ios\*.cs" />
 		<PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
+		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$(TargetFramework.StartsWith('net6.0-ios'))">
@@ -75,6 +77,7 @@
 	<ItemGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
 		<Compile Include="Platforms\uap\*.cs" />
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
+		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$(TargetFramework.StartsWith('net6.0-windows'))">
@@ -85,6 +88,7 @@
 	<ItemGroup Condition="$(TargetFramework.StartsWith('netstandard2.0'))">
 		<Compile Include="Platforms\netstandard\*.cs" />
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
+		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
 	</ItemGroup>
 
 	<!-- Common package requirements -->

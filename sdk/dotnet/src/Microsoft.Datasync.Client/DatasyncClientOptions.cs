@@ -15,6 +15,13 @@ namespace Microsoft.Datasync.Client
     /// </summary>
     public class DatasyncClientOptions
     {
+        private int _parallelOperations = 1;
+
+        /// <summary>
+        /// The maximum number of threads that can be requested.
+        /// </summary>
+        public const int MAX_PARALLEL_OPERATIONS = 8;
+
         /// <summary>
         /// The HTTP Pipeline to use.  This can be null.  If set, it must
         /// be an ordered set of <see cref="DelegatingHandler"/> objects,
@@ -34,6 +41,24 @@ namespace Microsoft.Datasync.Client
         /// The offline store to use for offline table storage.
         /// </summary>
         public IOfflineStore OfflineStore { get; set; }
+
+        /// <summary>
+        /// The number of parallel operations that can occur when running the 
+        /// push operation queue.  By default, we do this serially (i.e. one
+        /// thread).
+        /// </summary>
+        public int ParallelOperations
+        {
+            get => _parallelOperations;
+            set
+            {
+                if (value <= 0 || value > MAX_PARALLEL_OPERATIONS)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(ParallelOperations));
+                }
+                _parallelOperations = value;
+            }
+        }
 
         /// <summary>
         /// The serializer settings to use for this connection.
