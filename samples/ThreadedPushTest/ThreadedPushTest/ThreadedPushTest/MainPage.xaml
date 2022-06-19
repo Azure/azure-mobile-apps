@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ThreadedPushTest.MainPage">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style x:Key="headerFrame" TargetType="Frame">
+                <Setter Property="BackgroundColor" Value="#2196F3"/>
+                <Setter Property="Padding" Value="24"/>
+                <Setter Property="CornerRadius" Value="0"/>
+            </Style>
+            <Style x:Key="headerLabel" TargetType="Label">
+                <Setter Property="HorizontalTextAlignment" Value="Center"/>
+                <Setter Property="TextColor" Value="White"/>
+                <Setter Property="FontSize" Value="36"/>
+            </Style>
+            <Style x:Key="formLayout" TargetType="StackLayout">
+                <Setter Property="Margin" Value="10,5,10,5"/>
+                <Setter Property="HorizontalOptions" Value="FillAndExpand"/>
+                <Setter Property="Orientation" Value="Horizontal"/>
+            </Style>
+            <Style x:Key="formLabel" TargetType="Label">
+                <Setter Property="FontSize" Value="Medium"/>
+                <Setter Property="VerticalTextAlignment" Value="Center"/>
+                <Setter Property="HorizontalOptions" Value="StartAndExpand"/>
+            </Style>
+            <Style x:Key="startButton" TargetType="Button">
+                <Setter Property="HorizontalOptions" Value="Center"/>
+                <Setter Property="BorderColor" Value="DarkGreen"/>
+                <Setter Property="BorderWidth" Value="1"/>
+                <Setter Property="BackgroundColor" Value="LightGreen"/>
+            </Style>
+            <Style x:Key="itemsEntry" TargetType="Entry">
+                <Setter Property="Keyboard" Value="Numeric"/>
+                <Setter Property="MaxLength" Value="5"/>
+                <Setter Property="HorizontalOptions" Value="End"/>
+            </Style>
+            <Style x:Key="logMessages" TargetType="Label">
+                <Setter Property="HorizontalOptions" Value="StartAndExpand"/>
+                <Setter Property="VerticalOptions" Value="FillAndExpand"/>
+                <Setter Property="FontSize" Value="Small"/>
+                <Setter Property="Padding" Value="10"/>
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <StackLayout VerticalOptions="Start">
+        <Frame Style="{StaticResource headerFrame}">
+            <Label Style="{StaticResource headerLabel}">Datasync Push Threaded Tests</Label>
+        </Frame>
+        
+        <StackLayout Style="{StaticResource formLayout}">
+            <Label Style="{StaticResource formLabel}">Items to insert</Label>
+            <Entry 
+                x:Name="itemsEntry" 
+                Style="{StaticResource itemsEntry}" 
+                IsEnabled="{Binding ControlsAreEnabled}"
+                Text="10000" />
+        </StackLayout>
+        <StackLayout Style="{StaticResource formLayout}">
+            <Label Style="{StaticResource formLabel}">Operation Threads</Label>
+            <Entry 
+                x:Name="threadsEntry" 
+                Style="{StaticResource itemsEntry}"
+                IsEnabled="{Binding ControlsAreEnabled}"
+                MaxLength="1" 
+                Text="1" />
+        </StackLayout>
+
+        <Button 
+            x:Name="startButton" 
+            Style="{StaticResource startButton}" 
+            IsEnabled="{Binding ControlsAreEnabled}" Text="Start"/>
+
+        <Label
+            x:Name="logMessages"
+            Style="{StaticResource logMessages}"
+            Text="{Binding LogMessages}"/>
+    </StackLayout>
+</ContentPage>
