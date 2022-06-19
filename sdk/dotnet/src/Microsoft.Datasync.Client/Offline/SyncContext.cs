@@ -50,9 +50,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <summary>
         /// The Id generator to use for item.
         /// </summary>
-#nullable enable
-        private Func<string, string>? IdGenerator;
-#nullable disable
+        private readonly Func<string, string> IdGenerator;
 
         /// <summary>
         /// Coordinates all the requests for offline operations.
@@ -360,7 +358,17 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
         /// <returns>A task that completes when the push operation has finished.</returns>
         public Task PushItemsAsync(string tableName, CancellationToken cancellationToken = default)
-            => PushItemsAsync(new string[] { tableName }, cancellationToken);
+            => PushItemsAsync(tableName, null, cancellationToken);
+
+        /// <summary>
+        /// Pushes items in the operations queue for the named table to the remote service.
+        /// </summary>
+        /// <param name="tableName">The name of the offline table.</param>
+        /// <param name="options">The push options to use for this operation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+        /// <returns>A task that completes when the push operation has finished.</returns>
+        public Task PushItemsAsync(string tableName, PushOptions options, CancellationToken cancellationToken = default)
+            => PushItemsAsync(new string[] { tableName }, options, cancellationToken);
 
         /// <summary>
         /// Pushes items in the operations queue for the list of tables to the remote service.
@@ -369,30 +377,66 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the push operation has finished.</returns>
         /// <exception cref="PushFailedException">if the push operation failed.</exception>
-        public async Task PushItemsAsync(string[] tableNames, CancellationToken cancellationToken = default)
+        public Task PushItemsAsync(string[] tableNames, CancellationToken cancellationToken = default)
+            => PushItemsAsync(tableNames, null, cancellationToken);
+
+        /// <summary>
+        /// Pushes items in the operations queue for the list of tables to the remote service.
+        /// </summary>
+        /// <param name="tableNames">The list of table names to push.</param>
+        /// <param name="options">The push options to use for this operation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the push operation has finished.</returns>
+        /// <exception cref="PushFailedException">if the push operation failed.</exception>
+        public async Task PushItemsAsync(string[] tableNames, PushOptions options, CancellationToken cancellationToken = default)
         {
             EnsureContextIsInitialized();
 
             var batch = new OperationBatch(this);
             cancellationToken.Register(() => batch.Abort(PushStatus.CancelledByToken));
 
-            // Main Push Operations Loop
-            try
+            // Process the queue - only use the QueueHandler (new logic) if maxThreads > 1
+            var maxThreads = GetMaximumParallelOperations(options);
+            if (maxThreads == 1)
             {
-                TableOperation operation = await OperationsQueue.PeekAsync(0, tableNames, cancellationToken).ConfigureAwait(false);
-                while (operation != null)
+                try
+                {
+                    TableOperation operation = await OperationsQueue.PeekAsync(0, tableNames, cancellationToken).ConfigureAwait(false);
+                    while (operation != null)
+                    {
+                        _ = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
+                        if (batch.AbortReason.HasValue)
+                        {
+                            break;
+                        }
+                        operation = await OperationsQueue.PeekAsync(operation.Sequence, tableNames, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    batch.OtherErrors.Add(ex);
+                }
+            } 
+            else
+            {
+                QueueHandler queueHandler = new(maxThreads, async (operation) =>
                 {
                     _ = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
-                    if (batch.AbortReason.HasValue)
+                });
+                try
+                {
+                    TableOperation operation = await OperationsQueue.PeekAsync(0, tableNames, cancellationToken).ConfigureAwait(false);
+                    while (operation != null)
                     {
-                        break;
+                        queueHandler.Enqueue(operation);
+                        operation = await OperationsQueue.PeekAsync(operation.Sequence, tableNames, cancellationToken).ConfigureAwait(false);
                     }
-                    operation = await OperationsQueue.PeekAsync(operation.Sequence, tableNames, cancellationToken).ConfigureAwait(false);
+                    await queueHandler.WhenComplete();
                 }
-            }
-            catch (Exception ex)
-            {
-                batch.OtherErrors.Add(ex);
+                catch (Exception ex)
+                {
+                    batch.OtherErrors.Add(ex);
+                }
             }
 
             // If there were errors, then create a push failed exception.
@@ -687,6 +731,17 @@ namespace Microsoft.Datasync.Client.Offline
             byte[] hashBytes = md5.ComputeHash(bytes);
             return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLower();
         }
+
+        /// <summary>
+        /// Obtains the maximum number of parallel operations allowed, based on the passed in 
+        /// <see cref="PushOptions"/> and/or the global options.
+        /// </summary>
+        /// <param name="options">The <see cref="PushOptions"/> for this operation, or null.</param>
+        /// <returns>The maximum number of parallel operations allowed.</returns>
+        internal int GetMaximumParallelOperations(PushOptions options)
+            => (options == null || options.ParallelOperations == 0)
+            ? ServiceClient.ClientOptions.ParallelOperations
+            : options.ParallelOperations;
 
         /// <summary>
         /// Determines if the table is dirty (i.e. has pending operations)

@@ -1050,6 +1050,49 @@ namespace Microsoft.Datasync.Client.Test.Offline
             Assert.Equal($"\"{item.Version}\"", request.Headers.IfMatch.FirstOrDefault()?.Tag);
         }
 
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(4)]
+        [Trait("Method", "PushItemsAsync")]
+        public async Task PushItemsAsync_SingleTable_HandlesDeleteOperation_MultiOperation(int nThreads)
+        {
+            var context = await GetSyncContext();
+            var options = new PushOptions { ParallelOperations = nThreads };
+            int nItems = 10;
+
+            // Create a list of ten movies
+            List<ClientMovie> movies = new();
+            for (int i = 0; i < nItems; i++)
+            {
+                var movie = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "abc123" };
+                movies.Add(movie);
+
+                // Add Movie to the store
+                var jMovie = (JObject)client.Serializer.Serialize(movie);
+                store.Upsert("movies", new[] { jMovie });
+
+                // Add a mock result
+                MockHandler.AddResponse(HttpStatusCode.NoContent);
+
+                // Delete the item from the store
+                await context.DeleteItemAsync("movies", jMovie);
+            }
+
+            await context.PushItemsAsync("movies", options);
+
+            Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
+            Assert.Equal(nItems, MockHandler.Requests.Count);
+
+            foreach (var movie in movies)
+            {
+                var request = MockHandler.Requests.SingleOrDefault(r => r.RequestUri.PathAndQuery == $"/tables/movies/{movie.Id}");
+                Assert.NotNull(request);
+                Assert.Equal(HttpMethod.Delete, request.Method);
+                Assert.Equal($"\"{movie.Version}\"", request.Headers.IfMatch.FirstOrDefault()?.Tag);
+            }           
+        }
+
         [Fact]
         [Trait("Method", "PushItemsAsync")]
         public async Task PushItemsAsync_AllTables_HandlesDeleteOperation_WithoutVersion()
