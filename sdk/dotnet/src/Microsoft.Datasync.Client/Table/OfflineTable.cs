@@ -140,6 +140,15 @@ namespace Microsoft.Datasync.Client.Table
             => _context.PushItemsAsync(TableName, cancellationToken);
 
         /// <summary>
+        /// Pushes items in the operations queue for this table to the remote service.
+        /// </summary>
+        /// <param name="options">The push operation options.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        public Task PushItemsAsync(PushOptions options, CancellationToken cancellationToken = default)
+            => _context.PushItemsAsync(TableName, options, cancellationToken);
+
+        /// <summary>
         /// Replaces an item into the remote table.
         /// </summary>
         /// <param name="instance">The instance to replace into the table.</param>
