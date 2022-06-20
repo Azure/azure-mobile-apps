@@ -1,0 +1,9 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:views="using:TodoApp.AvaloniaUI.Views"
+        x:Class="TodoApp.AvaloniaUI.Views.MainWindow"
+		Width="400" Height="850"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="TodoApp.AvaloniaUI"
+		Content="{Binding TodoList}">
+</Window>
