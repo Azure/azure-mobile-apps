@@ -34,6 +34,7 @@ namespace Microsoft.Datasync.Client.Table
 
             ServiceClient = serviceClient;
             TableName = tableName;
+            TableEndpoint = ServiceClient.ClientOptions.TableEndpointResolver?.Invoke(tableName) ?? $"/tables/{tableName.ToLowerInvariant()}";
         }
 
         #region IRemoteTable
@@ -48,6 +49,11 @@ namespace Microsoft.Datasync.Client.Table
         public string TableName { get; }
 
         /// <summary>
+        /// The endpoint to the table.
+        /// </summary>
+        public string TableEndpoint { get; }
+
+        /// <summary>
         /// Deletes an item from the remote table.
         /// </summary>
         /// <param name="instance">The instance to delete from the table.</param>
@@ -59,7 +65,7 @@ namespace Microsoft.Datasync.Client.Table
             ServiceRequest request = new()
             {
                 Method = HttpMethod.Delete,
-                UriPathAndQuery = CreateUriPath(TableName, id),
+                UriPathAndQuery = $"{TableEndpoint}/{id}",
                 EnsureResponseContent = false,
                 RequestHeaders = GetConditionalHeaders(instance)
             };
@@ -86,7 +92,7 @@ namespace Microsoft.Datasync.Client.Table
             ServiceRequest request = new()
             {
                 Method = HttpMethod.Get,
-                UriPathAndQuery = CreateUriPath(TableName, id),
+                UriPathAndQuery = $"{TableEndpoint}/{id}",
                 EnsureResponseContent = true
             };
             return SendRequestAsync(request, cancellationToken);
@@ -104,7 +110,7 @@ namespace Microsoft.Datasync.Client.Table
             ServiceRequest request = new()
             {
                 Method = HttpMethod.Post,
-                UriPathAndQuery = CreateUriPath(TableName),
+                UriPathAndQuery = TableEndpoint,
                 EnsureResponseContent = true,
                 Content = instance.ToString(Formatting.None)
             };
@@ -123,7 +129,7 @@ namespace Microsoft.Datasync.Client.Table
             ServiceRequest request = new()
             {
                 Method = HttpMethod.Put,
-                UriPathAndQuery = CreateUriPath(TableName, id),
+                UriPathAndQuery = $"{TableEndpoint}/{id}",
                 EnsureResponseContent = true,
                 Content = instance.ToString(Formatting.None),
                 RequestHeaders = GetConditionalHeaders(instance)
@@ -146,7 +152,7 @@ namespace Microsoft.Datasync.Client.Table
             ServiceRequest request = new()
             {
                 Method = ServiceRequest.PATCH,
-                UriPathAndQuery = CreateUriPath(TableName, id),
+                UriPathAndQuery = $"{TableEndpoint}/{id}",
                 EnsureResponseContent = true,
                 Content = "{\"deleted\":false}",
                 RequestHeaders = GetConditionalHeaders(instance)
@@ -168,7 +174,7 @@ namespace Microsoft.Datasync.Client.Table
             ServiceRequest request = new()
             {
                 Method = HttpMethod.Get,
-                UriPathAndQuery = requestUri ?? CreateUriPath(TableName) + queryString,
+                UriPathAndQuery = requestUri ?? TableEndpoint + queryString,
                 EnsureResponseContent = true
             };
             var response = await SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
@@ -190,14 +196,6 @@ namespace Microsoft.Datasync.Client.Table
             }
             return result;
         }
-
-        /// <summary>
-        /// Creates the relevant URI path from the list of segments.
-        /// </summary>
-        /// <param name="segments">The list of segments comprising the path</param>
-        /// <returns>The URI Path.</returns>
-        protected static string CreateUriPath(params string[] segments)
-            => "/tables/" + string.Join("/", segments.Select(segment => Uri.EscapeDataString(segment)).ToArray());
 
         /// <summary>
         /// Gets the conditional headers for the request to the remote service.
