@@ -11,7 +11,7 @@ using TodoApp.Data.Models;
 
 namespace TodoApp.AvaloniaUI.ViewModels
 {
-    public class TodoListViewModel : ViewModelBase, IActivatableViewModel
+    public class TodoListViewModel : ViewModelBase
     {
         private readonly ITodoService _service;
         private bool _isRefreshing;
@@ -22,8 +22,7 @@ namespace TodoApp.AvaloniaUI.ViewModels
             _service = service;
 
             Debug.WriteLine("CTOR[TodoListViewModel]");
-            Activator = new ViewModelActivator();
-            this.WhenActivated(OnActivated);
+            Task.Run(async () => await OnActivated());
         }
 
         /// <summary>
@@ -49,17 +48,14 @@ namespace TodoApp.AvaloniaUI.ViewModels
             set => this.RaiseAndSetIfChanged(ref _addItemTitle, value);
         }
 
-        public ViewModelActivator Activator { get; }
-
         /// <summary>
         /// External event handler for when the page is first displayed.
         /// </summary>
-        public async void OnActivated(CompositeDisposable disposables)
+        public async Task OnActivated()
         {
             Debug.WriteLine("In OnActivated");
             await RefreshItemsAsync();
             _service.TodoItemsUpdated += OnTodoItemsUpdated;
-            Disposable.Create(() => { /* deactivation */ }).DisposeWith(disposables);
         }
 
         /// <summary>
@@ -139,7 +135,7 @@ namespace TodoApp.AvaloniaUI.ViewModels
         /// </summary>
         /// <param name="sender">The service that sent the event</param>
         /// <param name="e">The event arguments</param>
-        private void OnTodoItemsUpdated(object sender, TodoServiceEventArgs e)
+        private void OnTodoItemsUpdated(object? sender, TodoServiceEventArgs e)
         {
             switch (e.Action)
             {
