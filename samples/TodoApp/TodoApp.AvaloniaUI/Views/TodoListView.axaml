@@ -23,11 +23,20 @@
 			<TextBox
 				HorizontalAlignment="Stretch"
 				Margin="4"
-				AcceptsReturn="True"
 				Text="{Binding AddItemTitle}"
 				Watermark="What do you want to do?" />
 
-			<Button Grid.Column="1">+</Button>
+			<Button Grid.Column="1" Command="{Binding AddItemAsync^}">
+				<Panel>
+					<Image Source="/Assets/additem.png" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+				</Panel>
+			</Button>
+
+			<Button Grid.Column="2" Command="{Binding RefreshItemsAsync^}">
+				<Panel>
+					<Image Source="/Assets/refresh.png" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+				</Panel>
+			</Button>
 		</Grid>
 	</Grid>
 </UserControl>

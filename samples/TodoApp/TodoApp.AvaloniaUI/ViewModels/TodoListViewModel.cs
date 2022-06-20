@@ -3,7 +3,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using TodoApp.Data;
 using TodoApp.Data.Extensions;
