@@ -13,8 +13,8 @@ namespace TodoApp.AvaloniaUI.ViewModels
     public class TodoListViewModel : ViewModelBase
     {
         private readonly ITodoService _service;
-        private bool _isRefreshing;
-        private string _addItemTitle = "";
+        private bool _isRefreshing, _isShowingDialog;
+        private string _addItemTitle = "", _dialogTitle = "", _dialogMessage = "";
 
         public TodoListViewModel(ITodoService service)
         {
@@ -39,12 +39,39 @@ namespace TodoApp.AvaloniaUI.ViewModels
         }
 
         /// <summary>
+        /// True if the UI is showing a dialog.
+        /// </summary>
+        public bool IsShowingDialog
+        {
+            get => _isShowingDialog;
+            set => this.RaiseAndSetIfChanged(ref _isShowingDialog, value);
+        }
+
+        /// <summary>
         /// The text in the Add Item box.
         /// </summary>
         public string AddItemTitle
         {
             get => _addItemTitle;
             set => this.RaiseAndSetIfChanged(ref _addItemTitle, value);
+        }
+
+        /// <summary>
+        /// The dialog title
+        /// </summary>
+        public string DialogTitle
+        {
+            get => _dialogTitle;
+            set => this.RaiseAndSetIfChanged(ref _dialogTitle, value);
+        }
+
+        /// <summary>
+        /// The dialog message
+        /// </summary>
+        public string DialogMessage
+        {
+            get => _dialogMessage;
+            set => this.RaiseAndSetIfChanged(ref _dialogMessage, value);
         }
 
         /// <summary>
@@ -82,7 +109,7 @@ namespace TodoApp.AvaloniaUI.ViewModels
             }
             catch (Exception ex)
             {
-                await DisplayErrorAlertAsync("RefreshItems", ex.Message);
+                DisplayErrorAlert("RefreshItems", ex.Message);
             }
             finally
             {
@@ -106,7 +133,7 @@ namespace TodoApp.AvaloniaUI.ViewModels
             }
             catch (Exception ex)
             {
-                await DisplayErrorAlertAsync("UpdateItem", ex.Message);
+                DisplayErrorAlert("UpdateItem", ex.Message);
             }
         }
 
@@ -125,7 +152,7 @@ namespace TodoApp.AvaloniaUI.ViewModels
             }
             catch (Exception ex)
             {
-                await DisplayErrorAlertAsync("UpdateItem", ex.Message);
+                DisplayErrorAlert("UpdateItem", ex.Message);
             }
             finally
             {
@@ -155,10 +182,18 @@ namespace TodoApp.AvaloniaUI.ViewModels
             }
         }
 
-        public async Task DisplayErrorAlertAsync(string title, string message)
+        public void DisplayErrorAlert(string title, string message)
         {
             Debug.WriteLine($"Error: {title} {message}");
-            throw new NotImplementedException();
+            DialogTitle = title;
+            DialogMessage = message;
+            IsShowingDialog = true;
+        }
+
+        public void RemoveDialog()
+        {
+            Debug.WriteLine($"Removing error dialog");
+            IsShowingDialog = false;
         }
     }
 }

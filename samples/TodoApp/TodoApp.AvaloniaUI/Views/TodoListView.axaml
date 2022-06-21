@@ -4,11 +4,55 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="850"
              x:Class="TodoApp.AvaloniaUI.Views.TodoListView">
+	<UserControl.Styles>
+		<Style Selector="Border.dialogBox">
+			<Setter Property="Background" Value="#40000000"/>
+			<Setter Property="BorderBrush" Value="#808080"/>
+			<Setter Property="BorderThickness" Value="1"/> 
+			<Setter Property="CornerRadius" Value="4" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+			<Setter Property="BoxShadow" Value="5 5 10 3 #C0C0C0"/>
+		</Style>
+		<Style Selector="StackPanel.dialogBox">
+			<Setter Property="Background" Value="Azure"/> 
+			<Setter Property="Width" Value="250"/>
+			<Setter Property="Orientation" Value="Vertical"/>
+		</Style>
+		<Style Selector="TextBlock.dialogTitle">
+			<Setter Property="Padding" Value="4"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+			<Setter Property="FontSize" Value="16"/>
+		</Style>
+		<Style Selector="TextBlock.dialogMessage">
+			<Setter Property="Padding" Value="4"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+			<Setter Property="FontSize" Value="14"/>
+		</Style>
+		<Style Selector="Button.dialogButton">
+			<Setter Property="Padding" Value="4"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+		</Style>
+		<Style Selector="Image.button">
+			<Setter Property="Height" Value="20"/>
+			<Setter Property="Width" Value="20"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+		</Style>
+		<Style Selector="Label.header">
+			<Setter Property="FontSize" Value="24"/>
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+			<Setter Property="Padding" Value="16"/>
+		</Style>
+		<Style Selector="StackPanel.header">
+			<Setter Property="Background" Value="#0078d4"/>
+		</Style>
+	</UserControl.Styles>
+	
 	<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RowDefinitions="Auto,*,Auto">
-		<StackPanel Background="#0078d4">
-			<Label Padding="16" Foreground="White"
-				HorizontalContentAlignment="Center" 
-				FontSize="24">TodoApp for AvaloniaUI</Label>
+		<StackPanel Classes="header">
+			<Label Classes="header">TodoApp for AvaloniaUI</Label>
 		</StackPanel>
 		
 		<ItemsControl Grid.Row="1" Items="{Binding Items}">
@@ -28,15 +72,26 @@
 
 			<Button Grid.Column="1" Command="{Binding AddItemAsync^}">
 				<Panel>
-					<Image Source="/Assets/additem.png" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+					<Image Classes="button" Source="/Assets/additem.png"/>
 				</Panel>
 			</Button>
 
 			<Button Grid.Column="2" Command="{Binding RefreshItemsAsync^}">
 				<Panel>
-					<Image Source="/Assets/refresh.png" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+					<Image Classes="button" Source="/Assets/refresh.png"/>
 				</Panel>
 			</Button>
 		</Grid>
+
+		<!-- Overlay for the pop-up panel -->
+		<DockPanel Grid.RowSpan="3">
+			<Border Classes="dialogBox" IsVisible="{Binding IsShowingDialog}">
+				<StackPanel Classes="dialogBox">
+					<TextBlock Classes="dialogTitle" Text="{Binding DialogTitle}"/>
+					<TextBlock Classes="dialogMessage" Text="{Binding DialogMessage}" TextWrapping="Wrap"/>
+					<Button Classes="dialogButton" Command="{Binding RemoveDialog}">OK</Button>
+				</StackPanel>
+			</Border>
+		</DockPanel>
 	</Grid>
 </UserControl>
