@@ -63,7 +63,7 @@ namespace TodoApp.AvaloniaUI.ViewModels
         /// <returns>A task that completes when the sync is done.</returns>
         public async Task RefreshItemsAsync()
         {
-            Debug.WriteLine("In RefreshItemsAsync");
+            Debug.WriteLine("RefreshItemsAsync");
             IsRefreshing = true;
             try
             {
@@ -96,12 +96,12 @@ namespace TodoApp.AvaloniaUI.ViewModels
         /// <param name="itemId">The Id of the item to update</param>
         /// <param name="isComplete">The new value of the completion flag.</param>
         /// <returns>A task that completes when the update is done.</returns>
-        public virtual async Task UpdateItemAsync(string itemId, bool isComplete)
+        public virtual async Task UpdateItemAsync(string itemId)
         {
             try
             {
                 var item = Items.Single(m => m.Id == itemId);
-                item.IsComplete = isComplete;
+                Debug.WriteLine($"Item = {item.Id} / title = \"{item.Title}\" iscomplete = {item.IsComplete}");
                 await _service.SaveItemAsync(item);
             }
             catch (Exception ex)
@@ -113,10 +113,11 @@ namespace TodoApp.AvaloniaUI.ViewModels
         /// <summary>
         /// Command for adding an item.
         /// </summary>
-        /// <param name="text">The value of the text box.</param>
         /// <returns>A task that completes when the addition is done.</returns>
-        public virtual async Task AddItemAsync(string text)
+        public virtual async Task AddItemAsync()
         {
+            string text = AddItemTitle;
+            Debug.WriteLine($"Calling AddItemAsync with text = {text}");
             try
             {
                 var item = new TodoItem { Title = text };
@@ -125,6 +126,10 @@ namespace TodoApp.AvaloniaUI.ViewModels
             catch (Exception ex)
             {
                 await DisplayErrorAlertAsync("UpdateItem", ex.Message);
+            }
+            finally
+            {
+                AddItemTitle = "";
             }
         }
 

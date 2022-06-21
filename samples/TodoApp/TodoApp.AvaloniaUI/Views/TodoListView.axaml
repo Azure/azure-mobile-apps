@@ -14,7 +14,7 @@
 		<ItemsControl Grid.Row="1" Items="{Binding Items}">
 			<ItemsControl.ItemTemplate>
 				<DataTemplate>
-					<CheckBox Margin="6" IsChecked="{Binding IsComplete}" Content="{Binding Title}"/>
+					<CheckBox Margin="6" IsChecked="{Binding IsComplete}" Content="{Binding Title}" Command="{Binding UpdateItemAsync^}" CommandParameter="{Binding Id}"/>
 				</DataTemplate>
 			</ItemsControl.ItemTemplate>
 		</ItemsControl>
