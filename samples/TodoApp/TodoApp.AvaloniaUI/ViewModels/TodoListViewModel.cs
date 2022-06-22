@@ -1,10 +1,9 @@
-﻿using ReactiveUI;
+﻿using DynamicData;
+using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using TodoApp.Data;
 using TodoApp.Data.Extensions;
@@ -12,7 +11,7 @@ using TodoApp.Data.Models;
 
 namespace TodoApp.AvaloniaUI.ViewModels
 {
-    public class TodoListViewModel : ViewModelBase, IActivatableViewModel
+    public class TodoListViewModel : ViewModelBase
     {
         private readonly ITodoService _service;
         private bool _isRefreshing, _isShowingDialog;
@@ -22,24 +21,10 @@ namespace TodoApp.AvaloniaUI.ViewModels
         {
             _service = service;
 
-            Debug.WriteLine("CTOR[TodoListViewModel]");
-            Activator = new ViewModelActivator();
-            this.WhenActivated((CompositeDisposable disposables) =>
-            {
-                Task.Run(async () => await OnActivated());
-                Disposable.Create(() => { /* handle deactivation */ }).DisposeWith(disposables);
-            });
-
             AddItemCommand = ReactiveCommand.CreateFromTask(() => AddItemAsync());
             RefreshItemsCommand = ReactiveCommand.CreateFromTask(() => RefreshItemsAsync());
             UpdateItemCommand = ReactiveCommand.CreateFromTask((string id) => UpdateItemAsync(id));
         }
-
-        /// <summary>
-        /// The handler for the IActivatableViewModel
-        /// </summary>
-        public ViewModelActivator Activator { get; }
-
 
         /// <summary>
         /// The list of items.
@@ -109,9 +94,8 @@ namespace TodoApp.AvaloniaUI.ViewModels
         /// <summary>
         /// External event handler for when the page is first displayed.
         /// </summary>
-        public async Task OnActivated()
+        public override async Task OnActivated()
         {
-            Debug.WriteLine("In OnActivated");
             await RefreshItemsAsync();
             _service.TodoItemsUpdated += OnTodoItemsUpdated;
         }
@@ -122,7 +106,6 @@ namespace TodoApp.AvaloniaUI.ViewModels
         /// <returns>A task that completes when the sync is done.</returns>
         public async Task RefreshItemsAsync()
         {
-            Debug.WriteLine("RefreshItemsAsync");
             IsRefreshing = true;
             try
             {
@@ -156,7 +139,6 @@ namespace TodoApp.AvaloniaUI.ViewModels
             try
             {
                 var item = Items.Single(m => m.Id == itemId);
-                Debug.WriteLine($"Item = {item.Id} / title = \"{item.Title}\" iscomplete = {item.IsComplete}");
                 await _service.SaveItemAsync(item);
             }
             catch (Exception ex)
@@ -171,11 +153,9 @@ namespace TodoApp.AvaloniaUI.ViewModels
         /// <returns>A task that completes when the addition is done.</returns>
         public virtual async Task AddItemAsync()
         {
-            string text = AddItemTitle;
-            Debug.WriteLine($"Calling AddItemAsync with text = {text}");
             try
             {
-                var item = new TodoItem { Title = text };
+                var item = new TodoItem { Title = AddItemTitle };
                 await _service.SaveItemAsync(item);
             }
             catch (Exception ex)
@@ -210,17 +190,23 @@ namespace TodoApp.AvaloniaUI.ViewModels
             }
         }
 
+        /// <summary>
+        /// Displays the alert dialog.
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="message"></param>
         public void DisplayErrorAlert(string title, string message)
         {
-            Debug.WriteLine($"Error: {title} {message}");
             DialogTitle = title;
             DialogMessage = message;
             IsShowingDialog = true;
         }
 
+        /// <summary>
+        /// Removes the alert dialog.
+        /// </summary>
         public void RemoveDialog()
         {
-            Debug.WriteLine($"Removing error dialog");
             IsShowingDialog = false;
         }
     }
