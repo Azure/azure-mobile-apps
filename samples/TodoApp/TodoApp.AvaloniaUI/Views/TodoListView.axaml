@@ -58,7 +58,7 @@
 		<ListBox Grid.Row="1" Items="{Binding Items}" Margin="6">
 			<ListBox.ItemTemplate>
 				<DataTemplate>
-					<CheckBox IsChecked="{Binding IsComplete}" Content="{Binding Title}" Command="{Binding UpdateItemCommand}" CommandParameter="{Binding Id}"/>
+					<CheckBox IsChecked="{Binding IsComplete, Mode=TwoWay}" Content="{Binding Title}" Command="{Binding Path=DataContext.UpdateItemCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Id}"/>
 				</DataTemplate>
 			</ListBox.ItemTemplate>
 		</ListBox>
