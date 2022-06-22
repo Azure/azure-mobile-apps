@@ -1,0 +1,42 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<Style Selector="Border.dialogBox">
+		<Setter Property="Background" Value="#40000000"/>
+		<Setter Property="BorderBrush" Value="#808080"/>
+		<Setter Property="BorderThickness" Value="1"/>
+		<Setter Property="CornerRadius" Value="4" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="HorizontalAlignment" Value="Center" />
+		<Setter Property="BoxShadow" Value="5 5 10 3 #C0C0C0"/>
+	</Style>
+	<Style Selector="StackPanel.dialogBox">
+		<Setter Property="Background" Value="Azure"/>
+		<Setter Property="Width" Value="250"/>
+		<Setter Property="Orientation" Value="Vertical"/>
+	</Style>
+	<Style Selector="TextBlock.dialogTitle">
+		<Setter Property="Padding" Value="4"/>
+		<Setter Property="HorizontalAlignment" Value="Center"/>
+		<Setter Property="FontSize" Value="16"/>
+	</Style>
+	<Style Selector="TextBlock.dialogMessage">
+		<Setter Property="Padding" Value="4"/>
+		<Setter Property="HorizontalAlignment" Value="Center"/>
+		<Setter Property="FontSize" Value="14"/>
+	</Style>
+	<Style Selector="Button.dialogButton">
+		<Setter Property="Padding" Value="4"/>
+		<Setter Property="HorizontalAlignment" Value="Center"/>
+	</Style>
+	<Style Selector="Image.button">
+		<Setter Property="Height" Value="20"/>
+		<Setter Property="Width" Value="20"/>
+		<Setter Property="VerticalAlignment" Value="Center"/>
+		<Setter Property="HorizontalAlignment" Value="Center"/>
+	</Style>
+	<Style Selector="ListBox.itemlist">
+		<Setter Property="Background" Value="White"/>
+		<Setter Property="Foreground" Value="Black"/>
+		<Setter Property="Margin" Value="6"/>
+	</Style>
+</Styles>

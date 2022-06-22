@@ -4,6 +4,22 @@
         x:Class="TodoApp.AvaloniaUI.Views.MainWindow"
 		Width="400" Height="850"
         Icon="/Assets/avalonia-logo.ico"
-        Title="TodoApp.AvaloniaUI"
-		Content="{Binding TodoList}">
+        Title="TodoApp for Avalonia">
+	<Window.Styles>
+		<Style Selector="Label.header">
+			<Setter Property="FontSize" Value="24"/>
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+			<Setter Property="Padding" Value="16"/>
+		</Style>
+		<Style Selector="StackPanel.header">
+			<Setter Property="Background" Value="#0078d4"/>
+		</Style>
+	</Window.Styles>
+	<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RowDefinitions="Auto,*">
+		<StackPanel Classes="header">
+			<Label Classes="header">TodoApp for Avalonia</Label>
+		</StackPanel>
+		<UserControl Content="{Binding TodoList}" Grid.Row="1"/>
+	</Grid>
 </Window>

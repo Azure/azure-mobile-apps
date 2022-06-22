@@ -5,57 +5,11 @@
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="850"
              x:Class="TodoApp.AvaloniaUI.Views.TodoListView">
 	<UserControl.Styles>
-		<Style Selector="Border.dialogBox">
-			<Setter Property="Background" Value="#40000000"/>
-			<Setter Property="BorderBrush" Value="#808080"/>
-			<Setter Property="BorderThickness" Value="1"/> 
-			<Setter Property="CornerRadius" Value="4" />
-			<Setter Property="VerticalAlignment" Value="Center" />
-			<Setter Property="HorizontalAlignment" Value="Center" />
-			<Setter Property="BoxShadow" Value="5 5 10 3 #C0C0C0"/>
-		</Style>
-		<Style Selector="StackPanel.dialogBox">
-			<Setter Property="Background" Value="Azure"/> 
-			<Setter Property="Width" Value="250"/>
-			<Setter Property="Orientation" Value="Vertical"/>
-		</Style>
-		<Style Selector="TextBlock.dialogTitle">
-			<Setter Property="Padding" Value="4"/>
-			<Setter Property="HorizontalAlignment" Value="Center"/>
-			<Setter Property="FontSize" Value="16"/>
-		</Style>
-		<Style Selector="TextBlock.dialogMessage">
-			<Setter Property="Padding" Value="4"/>
-			<Setter Property="HorizontalAlignment" Value="Center"/>
-			<Setter Property="FontSize" Value="14"/>
-		</Style>
-		<Style Selector="Button.dialogButton">
-			<Setter Property="Padding" Value="4"/>
-			<Setter Property="HorizontalAlignment" Value="Center"/>
-		</Style>
-		<Style Selector="Image.button">
-			<Setter Property="Height" Value="20"/>
-			<Setter Property="Width" Value="20"/>
-			<Setter Property="VerticalAlignment" Value="Center"/>
-			<Setter Property="HorizontalAlignment" Value="Center"/>
-		</Style>
-		<Style Selector="Label.header">
-			<Setter Property="FontSize" Value="24"/>
-			<Setter Property="Foreground" Value="White"/>
-			<Setter Property="HorizontalContentAlignment" Value="Center"/>
-			<Setter Property="Padding" Value="16"/>
-		</Style>
-		<Style Selector="StackPanel.header">
-			<Setter Property="Background" Value="#0078d4"/>
-		</Style>
+		<StyleInclude Source="/Assets/Styles.axaml"/>
 	</UserControl.Styles>
 	
-	<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RowDefinitions="Auto,*,Auto">
-		<StackPanel Classes="header">
-			<Label Classes="header">TodoApp for AvaloniaUI</Label>
-		</StackPanel>
-		
-		<ListBox Grid.Row="1" Items="{Binding Items}" Margin="6">
+	<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RowDefinitions="*,Auto">
+		<ListBox Classes="itemlist" Items="{Binding Items}">
 			<ListBox.ItemTemplate>
 				<DataTemplate>
 					<CheckBox IsChecked="{Binding IsComplete, Mode=TwoWay}" Content="{Binding Title}" Command="{Binding Path=DataContext.UpdateItemCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Id}"/>
@@ -63,7 +17,7 @@
 			</ListBox.ItemTemplate>
 		</ListBox>
 
-		<Grid Grid.Row="2" Margin="4" ColumnDefinitions="*,Auto,Auto">
+		<Grid Grid.Row="1" Margin="4" ColumnDefinitions="*,Auto,Auto">
 			<TextBox
 				HorizontalAlignment="Stretch"
 				Margin="4"

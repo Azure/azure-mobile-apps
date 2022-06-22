@@ -3,7 +3,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using TodoApp.AvaloniaUI.ViewModels;
 using TodoApp.AvaloniaUI.Views;
-using TodoApp.Data.Services;
 
 namespace TodoApp.AvaloniaUI
 {
@@ -20,11 +19,9 @@ namespace TodoApp.AvaloniaUI
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                var service = new RemoteTodoService();
-
                 desktop.MainWindow = new MainWindow
                 {
-                    DataContext = new MainWindowViewModel(service),
+                    DataContext = new MainWindowViewModel(),
                 };
             }
         }
