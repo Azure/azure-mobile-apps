@@ -21,6 +21,11 @@ namespace TodoApp.AvaloniaUI.ViewModels
             _service = service;
 
             Debug.WriteLine("CTOR[TodoListViewModel]");
+
+            AddItemCommand = ReactiveCommand.CreateFromTask(() => AddItemAsync());
+            RefreshItemsCommand = ReactiveCommand.CreateFromTask(() => RefreshItemsAsync());
+            UpdateItemCommand = ReactiveCommand.CreateFromTask((string id) => UpdateItemAsync(id));
+
             Task.Run(async () => await OnActivated());
         }
 
@@ -28,6 +33,21 @@ namespace TodoApp.AvaloniaUI.ViewModels
         /// The list of items.
         /// </summary>
         public ObservableCollection<TodoItem> Items { get; } = new ObservableCollection<TodoItem>();
+
+        /// <summary>
+        /// Command for the Add Item button.
+        /// </summary>
+        public ReactiveCommand<Unit, Unit> AddItemCommand { get; } 
+
+        /// <summary>
+        /// Command for the Refresh Items button.
+        /// </summary>
+        public ReactiveCommand<Unit, Unit> RefreshItemsCommand { get; }
+
+        /// <summary>
+        /// Command for updating an item.
+        /// </summary>
+        public ReactiveCommand<string, Unit> UpdateItemCommand { get; }
 
         /// <summary>
         /// True if the service is refreshing the data.
@@ -101,11 +121,7 @@ namespace TodoApp.AvaloniaUI.ViewModels
                 var items = await _service.GetItemsAsync();
 
                 Items.Clear();
-                foreach (var item in items)
-                {
-                    Items.Add(item);
-                    Debug.WriteLine($"Adding item {item.Id}:{item.Title}");
-                }
+                Items.AddRange(items);
             }
             catch (Exception ex)
             {

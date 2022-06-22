@@ -58,7 +58,7 @@
 		<ItemsControl Grid.Row="1" Items="{Binding Items}">
 			<ItemsControl.ItemTemplate>
 				<DataTemplate>
-					<CheckBox Margin="6" IsChecked="{Binding IsComplete}" Content="{Binding Title}" Command="{Binding UpdateItemAsync^}" CommandParameter="{Binding Id}"/>
+					<CheckBox Margin="6" IsChecked="{Binding IsComplete}" Content="{Binding Title}" Command="{Binding UpdateItemCommand}" CommandParameter="{Binding Id}"/>
 				</DataTemplate>
 			</ItemsControl.ItemTemplate>
 		</ItemsControl>
@@ -70,13 +70,13 @@
 				Text="{Binding AddItemTitle}"
 				Watermark="What do you want to do?" />
 
-			<Button Grid.Column="1" Command="{Binding AddItemAsync^}">
+			<Button Grid.Column="1" Command="{Binding AddItemCommand}">
 				<Panel>
 					<Image Classes="button" Source="/Assets/additem.png"/>
 				</Panel>
 			</Button>
 
-			<Button Grid.Column="2" Command="{Binding RefreshItemsAsync^}">
+			<Button Grid.Column="2" Command="{Binding RefreshItemsCommand}">
 				<Panel>
 					<Image Classes="button" Source="/Assets/refresh.png"/>
 				</Panel>
