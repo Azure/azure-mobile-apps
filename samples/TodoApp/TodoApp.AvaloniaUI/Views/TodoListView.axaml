@@ -55,13 +55,13 @@
 			<Label Classes="header">TodoApp for AvaloniaUI</Label>
 		</StackPanel>
 		
-		<ItemsControl Grid.Row="1" Items="{Binding Items}">
-			<ItemsControl.ItemTemplate>
+		<ListBox Grid.Row="1" Items="{Binding Items}" Margin="6">
+			<ListBox.ItemTemplate>
 				<DataTemplate>
-					<CheckBox Margin="6" IsChecked="{Binding IsComplete}" Content="{Binding Title}" Command="{Binding UpdateItemCommand}" CommandParameter="{Binding Id}"/>
+					<CheckBox IsChecked="{Binding IsComplete}" Content="{Binding Title}" Command="{Binding UpdateItemCommand}" CommandParameter="{Binding Id}"/>
 				</DataTemplate>
-			</ItemsControl.ItemTemplate>
-		</ItemsControl>
+			</ListBox.ItemTemplate>
+		</ListBox>
 
 		<Grid Grid.Row="2" Margin="4" ColumnDefinitions="*,Auto,Auto">
 			<TextBox

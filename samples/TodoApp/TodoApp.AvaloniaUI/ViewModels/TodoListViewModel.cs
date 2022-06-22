@@ -3,6 +3,8 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using TodoApp.Data;
 using TodoApp.Data.Extensions;
@@ -10,7 +12,7 @@ using TodoApp.Data.Models;
 
 namespace TodoApp.AvaloniaUI.ViewModels
 {
-    public class TodoListViewModel : ViewModelBase
+    public class TodoListViewModel : ViewModelBase, IActivatableViewModel
     {
         private readonly ITodoService _service;
         private bool _isRefreshing, _isShowingDialog;
@@ -21,13 +23,23 @@ namespace TodoApp.AvaloniaUI.ViewModels
             _service = service;
 
             Debug.WriteLine("CTOR[TodoListViewModel]");
+            Activator = new ViewModelActivator();
+            this.WhenActivated((CompositeDisposable disposables) =>
+            {
+                Task.Run(async () => await OnActivated());
+                Disposable.Create(() => { /* handle deactivation */ }).DisposeWith(disposables);
+            });
 
             AddItemCommand = ReactiveCommand.CreateFromTask(() => AddItemAsync());
             RefreshItemsCommand = ReactiveCommand.CreateFromTask(() => RefreshItemsAsync());
             UpdateItemCommand = ReactiveCommand.CreateFromTask((string id) => UpdateItemAsync(id));
-
-            Task.Run(async () => await OnActivated());
         }
+
+        /// <summary>
+        /// The handler for the IActivatableViewModel
+        /// </summary>
+        public ViewModelActivator Activator { get; }
+
 
         /// <summary>
         /// The list of items.
