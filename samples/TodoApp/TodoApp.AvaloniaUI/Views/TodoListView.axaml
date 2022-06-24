@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="850"
+             x:Class="TodoApp.AvaloniaUI.Views.TodoListView">
+	<UserControl.Styles>
+		<StyleInclude Source="/Assets/Styles.axaml"/>
+	</UserControl.Styles>
+	
+	<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RowDefinitions="*,Auto">
+		<ListBox Classes="itemlist" Items="{Binding Items}">
+			<ListBox.ItemTemplate>
+				<DataTemplate>
+					<CheckBox IsChecked="{Binding IsComplete, Mode=TwoWay}" Content="{Binding Title}" Command="{Binding Path=DataContext.UpdateItemCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" CommandParameter="{Binding Id}"/>
+				</DataTemplate>
+			</ListBox.ItemTemplate>
+		</ListBox>
+
+		<Grid Grid.Row="1" Margin="4" ColumnDefinitions="*,Auto,Auto">
+			<TextBox
+				HorizontalAlignment="Stretch"
+				Margin="4"
+				Text="{Binding AddItemTitle}"
+				Watermark="What do you want to do?" />
+
+			<Button Grid.Column="1" Command="{Binding AddItemCommand}">
+				<Panel>
+					<Image Classes="button" Source="/Assets/additem.png"/>
+				</Panel>
+			</Button>
+
+			<Button Grid.Column="2" Command="{Binding RefreshItemsCommand}">
+				<Panel>
+					<Image Classes="button" Source="/Assets/refresh.png"/>
+				</Panel>
+			</Button>
+		</Grid>
+
+		<!-- Overlay for the pop-up panel -->
+		<DockPanel Grid.RowSpan="3">
+			<Border Classes="dialogBox" IsVisible="{Binding IsShowingDialog}">
+				<StackPanel Classes="dialogBox">
+					<TextBlock Classes="dialogTitle" Text="{Binding DialogTitle}"/>
+					<TextBlock Classes="dialogMessage" Text="{Binding DialogMessage}" TextWrapping="Wrap"/>
+					<Button Classes="dialogButton" Command="{Binding RemoveDialog}">OK</Button>
+				</StackPanel>
+			</Border>
+		</DockPanel>
+	</Grid>
+</UserControl>
