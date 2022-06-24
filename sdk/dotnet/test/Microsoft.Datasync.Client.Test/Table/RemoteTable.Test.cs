@@ -58,5 +58,24 @@ namespace Microsoft.Datasync.Client.Test.Table
             var client = GetMockClient();
             Assert.Throws<ArgumentNullException>(() => new RemoteTable("movies", null));
         }
+
+        [Fact]
+        [Trait("Method", "TableEndpoint")]
+        public void TableEndpoint_ReturnsDefaultValue()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable("foo") as RemoteTable;
+            Assert.Equal("/tables/foo", table.TableEndpoint);
+        }
+
+        [Fact]
+        [Trait("Method", "TableEndpoint")]
+        public void TableEndpoint_UsesTableResolver()
+        {
+            var client = GetMockClient();
+            client.ClientOptions.TableEndpointResolver = (tableName) => $"/api/{tableName}";
+            var table = client.GetRemoteTable("foo") as RemoteTable;
+            Assert.Equal("/api/foo", table.TableEndpoint);
+        }
     }
 }

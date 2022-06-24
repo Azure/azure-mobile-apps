@@ -5,10 +5,12 @@ using Datasync.Common.Test;
 using Microsoft.Datasync.Client.Table;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 
 namespace Microsoft.Datasync.Client.Test.Helpers
 {
+    [ExcludeFromCodeCoverage]
     public class ClientBaseTest : BaseTest
     {
         /// <summary>
