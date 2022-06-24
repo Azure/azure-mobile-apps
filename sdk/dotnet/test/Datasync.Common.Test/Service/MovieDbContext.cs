@@ -30,6 +30,11 @@ namespace Datasync.Common.Test.Service
         public DbSet<EFMovie> Movies => Set<EFMovie>();
 
         /// <summary>
+        /// The set of kitchen sink values
+        /// </summary>
+        public DbSet<KitchenSink> KitchenSinks => Set<KitchenSink>();
+
+        /// <summary>
         /// Get a cloned copy of the movie by ID, or null if it doesn't exist.
         /// </summary>
         /// <param name="id">The ID of the movie</param>
