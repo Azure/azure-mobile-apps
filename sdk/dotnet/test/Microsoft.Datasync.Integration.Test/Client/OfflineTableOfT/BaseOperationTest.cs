@@ -77,7 +77,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Deleted, actual.Deleted);
             AssertVersionMatches(expected.Version, actual.Version);
-            Assert.Equal(expected.UpdatedAt.ToUnixTimeMilliseconds(), actual.UpdatedAt?.ToUnixTimeMilliseconds());
+            Assert.Equal(expected.UpdatedAt.ToUnixTimeMilliseconds(), actual.UpdatedAt.ToUnixTimeMilliseconds());
         }
 
         protected static void AssertSystemPropertiesMatch(EFMovie expected, JObject actual)

@@ -21,13 +21,13 @@ namespace Microsoft.Datasync.Client
         /// If set to true, the item is deleted.
         /// </summary>
         [JsonProperty("deleted")]
-        public bool? Deleted { get; set; }
+        public bool Deleted { get; set; } = false;
 
         /// <summary>
         /// The last time that the record was updated.
         /// </summary>
         [JsonProperty("updatedAt")]
-        public DateTimeOffset? UpdatedAt { get; set; }
+        public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.MinValue;
 
         /// <summary>
         /// The opaque version string.  This changes when the

@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Datasync
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
                 DateFormatHandling = DateFormatHandling.IsoDateFormat,
-                NullValueHandling = NullValueHandling.Ignore,
+                NullValueHandling = NullValueHandling.Include,
                 DefaultValueHandling = DefaultValueHandling.Include,
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             };
@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Datasync
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
-                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                    options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
                     options.SerializerSettings.DefaultValueHandling = DefaultValueHandling.Include;
                     options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
 

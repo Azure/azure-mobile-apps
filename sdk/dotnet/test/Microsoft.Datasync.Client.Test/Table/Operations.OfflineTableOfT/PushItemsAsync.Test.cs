@@ -145,7 +145,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTableOfT
 
             Assert.True(store.TableMap["movies"].ContainsKey(item.Id));
             var storedItem = store.TableMap["movies"][item.Id];
-            Assert.Equal(storedItem.Value<DateTime>("updatedAt").Ticks, returnedItem.UpdatedAt?.Ticks);
+            Assert.Equal(storedItem.Value<DateTime>("updatedAt").Ticks, returnedItem.UpdatedAt.Ticks);
             Assert.Equal(storedItem.Value<string>("version"), returnedItem.Version);
         }
 
