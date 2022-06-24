@@ -49,6 +49,7 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb.Test
             repository = new LiteDbRepository<LiteDbMovie>(database);
         }
 
+        [SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize", Justification = "Test Case - no inherited classes")]
         public void Dispose()
         {
             database.Dispose();
@@ -78,13 +79,6 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb.Test
         {
             var ratedMovies = repository.AsQueryable().Where(m => m.Rating == "R").ToList();
             Assert.Equal(95, ratedMovies.Count);
-        }
-
-        [Fact]
-        public async Task CreateAsync_Throws_OnNullEntity()
-        {
-            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => repository.CreateAsync(null));
-            Assert.Equal("entity", ex.ParamName);
         }
 
         [Fact]
@@ -278,12 +272,6 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb.Test
             var actual = await repository.ReadAsync(id);
 
             Assert.Null(actual);
-        }
-
-        [Fact]
-        public async Task ReplaceAsync_Throws_OnNullEntity()
-        {
-            await Assert.ThrowsAsync<ArgumentNullException>(() => repository.ReplaceAsync(null));
         }
 
         [Theory]
