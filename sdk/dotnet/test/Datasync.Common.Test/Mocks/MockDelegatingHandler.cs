@@ -23,6 +23,9 @@ namespace Datasync.Common.Test.Mocks
     [ExcludeFromCodeCoverage]
     public class MockDelegatingHandler : DelegatingHandler
     {
+        // For manipulating the request/response link - we need to surround it with a lock
+        private SemaphoreSlim requestLock = new SemaphoreSlim(1, 1);
+
         /// <summary>
         /// Used for serializing objects to be returned as responses.
         /// </summary>
@@ -48,7 +51,9 @@ namespace Datasync.Common.Test.Mocks
         /// </summary>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
         {
+            await requestLock.WaitAsync(token).ConfigureAwait(false);
             Requests.Add(await CloneRequest(request).ConfigureAwait(false));
+            requestLock.Release();
             return Responses[Requests.Count - 1];
         }
 

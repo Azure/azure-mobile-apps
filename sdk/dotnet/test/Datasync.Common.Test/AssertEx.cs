@@ -147,7 +147,24 @@ namespace Datasync.Common.Test
             foreach (JProperty expectedProp in expected.Properties().Where(prop => DoCheck(prop)))
             {
                 JProperty actualProp = actual.Properties().SingleOrDefault(ap => ap.Name == expectedProp.Name);
-                Assert.Equal(expectedProp.Value, actualProp.Value);
+                // The deleted and updatedAt fields can be null, but will have a default value.
+                if (expectedProp.Name == "deleted" && expectedProp.Value.Value<bool>() == false)
+                {
+                    Assert.Null(actualProp);
+                }
+                else if (expectedProp.Name == "updatedAt" && DateTimeOffset.Parse(expectedProp.Value.Value<string>()) == DateTimeOffset.MinValue)
+                {
+                    // actualProp can either be null or min value
+                    if (actualProp != null)
+                    {
+                        Assert.Equal(DateTimeOffset.MinValue, DateTimeOffset.Parse(expectedProp.Value.Value<string>()));
+                    }
+                    // It's ok for actualProp to be null too!
+                }
+                else
+                {
+                    Assert.Equal(expectedProp.Value, actualProp.Value);
+                }
             }
         }
 
@@ -196,7 +213,7 @@ namespace Datasync.Common.Test
         public static void SystemPropertiesMatch(ITableData expected, DatasyncClientData actual)
         {
             Assert.Equal(expected.Id, actual.Id);
-            Assert.Equal(expected.UpdatedAt.ToUniversalTime().ToString(format), actual.UpdatedAt?.ToUniversalTime().ToString(format));
+            Assert.Equal(expected.UpdatedAt.ToUniversalTime().ToString(format), actual.UpdatedAt.ToUniversalTime().ToString(format));
             Assert.Equal(expected.Deleted, actual.Deleted);
             Assert.Equal(Convert.ToBase64String(expected.Version), actual.Version);
         }

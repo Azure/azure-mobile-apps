@@ -1227,7 +1227,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             Assert.True(store.TableMap["movies"].ContainsKey(item.Id));
             var storedItem = store.TableMap["movies"][item.Id];
-            Assert.Equal(storedItem.Value<DateTime>("updatedAt").Ticks, returnedItem.UpdatedAt?.Ticks);
+            Assert.Equal(storedItem.Value<DateTime>("updatedAt").Ticks, returnedItem.UpdatedAt.Ticks);
             Assert.Equal(storedItem.Value<string>("version"), returnedItem.Version);
         }
 
@@ -1257,7 +1257,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             Assert.True(store.TableMap["movies"].ContainsKey(item.Id));
             var storedItem = store.TableMap["movies"][item.Id];
-            Assert.Equal(storedItem.Value<DateTime>("updatedAt").Ticks, returnedItem.UpdatedAt?.Ticks);
+            Assert.Equal(storedItem.Value<DateTime>("updatedAt").Ticks, returnedItem.UpdatedAt.Ticks);
             Assert.Equal(storedItem.Value<string>("version"), returnedItem.Version);
         }
 
@@ -1495,7 +1495,8 @@ namespace Microsoft.Datasync.Client.Test.Offline
             Assert.Equal(HttpMethod.Put, request.Method);
             Assert.Equal($"/tables/movies/{itemToUpdate.Id}", request.RequestUri.PathAndQuery);
             Assert.Equal("\"1\"", request.Headers.IfMatch.First().Tag);
-            var requestObj = JObject.Parse(await request.Content.ReadAsStringAsync());
+            var content = await request.Content.ReadAsStringAsync();
+            var requestObj = JObject.Parse(content);
             AssertEx.JsonEqual(mInstance, requestObj);
 
             Assert.Equal(PushStatus.Complete, ex.PushResult.Status);

@@ -14,7 +14,7 @@ namespace Datasync.Common.Test.Models
     public class PageOfItems<T> where T : class
     {
         public T[] Items { get; set; }
-        public long Count { get; set; }
+        public long? Count { get; set; }
         public Uri NextLink { get; set; }
     }
 
@@ -26,7 +26,7 @@ namespace Datasync.Common.Test.Models
     public class StringNextLinkPage<T> where T : class
     {
         public T[] Items { get; set; }
-        public long Count { get; set; }
+        public long? Count { get; set; }
         public string NextLink { get; set; }
     }
 
@@ -38,6 +38,6 @@ namespace Datasync.Common.Test.Models
     public class V2PageOfItems<T> where T : class
     {
         public T[] Results { get; set; }
-        public long Count { get; set; }
+        public long? Count { get; set; }
     }
 }
