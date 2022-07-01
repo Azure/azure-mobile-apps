@@ -64,6 +64,13 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Test
         }
 
         [Fact]
+        public void AsQueryable_CanThrow()
+        {
+            repository.ThrowException = new ApplicationException();
+            Assert.Throws<ApplicationException>(() => repository.AsQueryable());
+        }
+
+        [Fact]
         public async void AsQueryableAsync_ReturnsQueryable()
         {
             Assert.IsAssignableFrom<IQueryable<InMemoryMovie>>(await repository.AsQueryableAsync());

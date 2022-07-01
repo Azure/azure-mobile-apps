@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
-using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync.Converters;
 using Newtonsoft.Json;
 using System;
@@ -14,7 +13,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Converters
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
     public class DateTimeOffsetJsonConverter_Tests
     {
-        private JsonSerializerSettings _settings;
+        private readonly JsonSerializerSettings _settings;
 
         public DateTimeOffsetJsonConverter_Tests()
         {
@@ -39,7 +38,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Converters
         public void Converter_WritesJson()
         {
             string json = "{\"UpdatedAt\":\"2021-08-21T12:30:15.123+00:00\",\"Number\":0}";
-            DTOIdEntity entity = new DTOIdEntity() { UpdatedAt = DateTimeOffset.Parse("2021-08-21T12:30:15.1234567+00:00") };
+            DTOIdEntity entity = new() { UpdatedAt = DateTimeOffset.Parse("2021-08-21T12:30:15.1234567+00:00") };
             string actual = JsonConvert.SerializeObject(entity, _settings);
             Assert.Equal(json, actual);
         }
@@ -48,7 +47,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Converters
         public void Converter_WritesJson_WithTimeZone()
         {
             string json = "{\"UpdatedAt\":\"2021-08-21T12:30:15.123+00:00\",\"Number\":0}";
-            DTOIdEntity entity = new DTOIdEntity() { UpdatedAt = DateTimeOffset.Parse("2021-08-21T20:30:15.1234567+08:00") };
+            DTOIdEntity entity = new() { UpdatedAt = DateTimeOffset.Parse("2021-08-21T20:30:15.1234567+08:00") };
             string actual = JsonConvert.SerializeObject(entity, _settings);
             Assert.Equal(json, actual);
         }

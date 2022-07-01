@@ -34,5 +34,25 @@ namespace Microsoft.AspNetCore.Datasync.Test.Tables
             Assert.NotNull(controller.Repository);
             Assert.Equal(repository, controller.Repository);
         }
+
+        [Fact]
+        public void IsClientSideEvaluationException_Works()
+        {
+            Assert.False(TableController<InMemoryMovie>.IsClientSideEvaluationException(null));
+            Assert.True(TableController<InMemoryMovie>.IsClientSideEvaluationException(new InvalidOperationException()));
+            Assert.True(TableController<InMemoryMovie>.IsClientSideEvaluationException(new NotSupportedException()));
+            Assert.False(TableController<InMemoryMovie>.IsClientSideEvaluationException(new ApplicationException()));
+        }
+
+        [Fact]
+        public void CatchClientSideEvaluationException_RethrowsInnerException()
+        {
+            var repository = new InMemoryRepository<InMemoryMovie>();
+            var controller = new TableController<InMemoryMovie>() { Repository = repository };
+
+            static void evaluator() { throw new ApplicationException(); }
+
+            Assert.Throws<ApplicationException>(() => controller.CatchClientSideEvaluationException(new NotSupportedException(), "foo", evaluator));
+        }
     }
 }

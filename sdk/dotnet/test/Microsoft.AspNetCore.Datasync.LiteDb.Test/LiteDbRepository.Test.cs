@@ -57,6 +57,12 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb.Test
         }
 
         [Fact]
+        public void Ctor_NullConnection_Throws()
+        {
+            Assert.Throws<ArgumentNullException>(() => new LiteDbRepository<LiteDbMovie>(null));
+        }
+
+        [Fact]
         public void AsQueryable_ReturnsQueryable()
         {
             Assert.IsAssignableFrom<IQueryable<LiteDbMovie>>(repository.AsQueryable());
@@ -80,6 +86,14 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb.Test
             var ratedMovies = repository.AsQueryable().Where(m => m.Rating == "R").ToList();
             Assert.Equal(95, ratedMovies.Count);
         }
+
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+        [Fact]
+        public async Task CreateAsync_Throws_Null()
+        {
+            await Assert.ThrowsAsync<ArgumentNullException>(() => repository.CreateAsync(null));
+        }
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
         [Fact]
         public async Task CreateAsync_CreatesNewEntity_WithSpecifiedId()
@@ -273,6 +287,14 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb.Test
 
             Assert.Null(actual);
         }
+
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+        [Fact]
+        public async Task ReplaceAsync_Throws_OnNull()
+        {
+            await Assert.ThrowsAsync<ArgumentNullException>(() => repository.ReplaceAsync(null));
+        }
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
         [Theory]
         [InlineData(null)]

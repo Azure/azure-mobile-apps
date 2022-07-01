@@ -1,13 +1,13 @@
-﻿using AutoMapper;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using AutoMapper;
 using Datasync.Common.Test.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Datasync.Automapper.Test.Helpers
 {
+    [ExcludeFromCodeCoverage]
     public class MapperProfile : Profile
     {
         public MapperProfile()
