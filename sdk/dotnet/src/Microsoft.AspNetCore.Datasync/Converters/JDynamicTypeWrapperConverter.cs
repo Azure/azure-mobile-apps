@@ -28,6 +28,8 @@ namespace Microsoft.AspNetCore.Datasync.Converters
             return typeof(DynamicTypeWrapper).IsAssignableFrom(objectType);
         }
 
+        public override bool CanRead => false;
+
         /// <summary>
         /// Reads the JSON representation of the object.
         /// </summary>
@@ -37,6 +39,7 @@ namespace Microsoft.AspNetCore.Datasync.Converters
         /// <param name="serializer">The calling serializer.</param>
         /// <returns>The object value.</returns>
         [SuppressMessage("General", "RCS1079:Throwing of new NotImplementedException.", Justification = "Only valid in write scenario.")]
+        [ExcludeFromCodeCoverage]
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             throw new NotImplementedException("DynamicTypeWrapper is only valid in write scenario.");
@@ -50,15 +53,7 @@ namespace Microsoft.AspNetCore.Datasync.Converters
         /// <param name="serializer">The calling serializer.</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (serializer is null)
-            {
-                throw new ArgumentNullException(nameof(serializer));
-            }
-
-            if (value is DynamicTypeWrapper dynamicTypeWrapper)
-            {
-                serializer.Serialize(writer, dynamicTypeWrapper.Values);
-            }
+            serializer.Serialize(writer, ((DynamicTypeWrapper)value).Values);
         }
     }
 }

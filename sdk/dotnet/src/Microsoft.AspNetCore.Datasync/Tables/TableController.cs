@@ -115,6 +115,39 @@ namespace Microsoft.AspNetCore.Datasync
         }
 
         /// <summary>
+        /// When doing a query evaluation, certain providers (e.g. Entity Framework) require some things
+        /// to be done client side.  We use a client side evaluator to handle this case when it happens.
+        /// </summary>
+        /// <param name="ex">The exception thrown by the service-side evaluator</param>
+        /// <param name="reason">The reason if the client-side evaluator throws.</param>
+        /// <param name="clientSideEvaluator">The client-side evaluator</param>
+        [NonAction]
+        internal void CatchClientSideEvaluationException(Exception ex, string reason, Action clientSideEvaluator)
+        {
+            if (IsClientSideEvaluationException(ex) || IsClientSideEvaluationException(ex.InnerException))
+            {
+                try
+                {
+                    clientSideEvaluator.Invoke();
+                }
+                catch (Exception err)
+                {
+                    Logger?.LogError("Error while {reason}: {Message}", reason, err.Message);
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Determines if a particular exception indicates a client-side evaluation is required.
+        /// </summary>
+        /// <param name="ex">The exception that was thrown by the service-side evaluator</param>
+        /// <returns>true if a client-side evaluation is required.</returns>
+        [NonAction]
+        internal static bool IsClientSideEvaluationException(Exception ex)
+            => ex != null && (ex is InvalidOperationException || ex is NotSupportedException);
+
+        /// <summary>
         /// Determines if the entity provided is in the view of the data requested.
         /// </summary>
         /// <param name="entity">The entity</param>
@@ -320,24 +353,22 @@ namespace Microsoft.AspNetCore.Datasync
             // Get the actual items needed for the response.
             // Some IQueryable providers cannot execute all queries, so have to revert to client-side evaluation.
             // EF Core, in particular, does not handle this case, so we have to do it for them.
-            IEnumerable<object> results;
-            int resultCount;
+            IEnumerable<object> results = null;
+            int resultCount = 0;
             try
             {
                 results = (IEnumerable<object>)queryOptions.ApplyTo(dataset, querySettings);
                 resultCount = results.Count();
             }
-            catch (Exception ex) when ((ex is InvalidOperationException or NotSupportedException) || (ex.InnerException is InvalidOperationException or NotSupportedException))
-            {
-                var message = ex.InnerException?.Message ?? ex.Message;
-                Logger?.LogWarning("Error while executing query: Possible client-side evaluation ({Message})", message);
-                results = (IEnumerable<object>)queryOptions.ApplyTo(dataset.ToList().AsQueryable(), querySettings);
-                resultCount = results.Count();
-            }
             catch (Exception ex)
             {
-                Logger?.LogError("Error in executing query: {Message}", ex.Message);
-                throw;
+                CatchClientSideEvaluationException(ex, "executing query", () =>
+                {
+                    var message = ex.InnerException?.Message ?? ex.Message;
+                    Logger?.LogWarning("Error while executing query: Possible client-side evaluation ({Message})", message);
+                    results = (IEnumerable<object>)queryOptions.ApplyTo(dataset.ToList().AsQueryable(), querySettings);
+                    resultCount = results.Count();
+                });
             }
 
             // Get the information needed for the nextLink.
@@ -347,27 +378,25 @@ namespace Microsoft.AspNetCore.Datasync
             // Get the total count of items that would be returned.
             // Some IQueryable providers cannot execute all queries, so have to revert to client-side evaluation.
             // EF Core, in particular, does not handle this case, so we have to do it for them.
-            long count;
+            long count = 0;
             try
             {
                 var query = (IQueryable<TEntity>)queryOptions.Filter?.ApplyTo(dataset, new ODataQuerySettings()) ?? dataset;
                 count = query.LongCount();
             }
-            catch (Exception ex) when ((ex is InvalidOperationException or NotSupportedException) || (ex.InnerException is InvalidOperationException or NotSupportedException))
-            {
-                var message = ex.InnerException?.Message ?? ex.Message;
-                Logger?.LogWarning("Error while executing query for long count: Possible client-side evaluation ({Message})", message);
-                var query = (IQueryable<TEntity>)queryOptions.Filter?.ApplyTo(dataset.ToList().AsQueryable(), new ODataQuerySettings()) ?? dataset.ToList().AsQueryable();
-                count = query.LongCount();
-            }
             catch (Exception ex)
             {
-                Logger?.LogError("Error while executing query for long count: {Message}", ex.Message);
-                throw;
+                CatchClientSideEvaluationException(ex, "executing query for long count", () =>
+                {
+                    var message = ex.InnerException?.Message ?? ex.Message;
+                    Logger?.LogWarning("Error while executing query for long count: Possible client-side evaluation ({Message})", message);
+                    var query = (IQueryable<TEntity>)queryOptions.Filter?.ApplyTo(dataset.ToList().AsQueryable(), new ODataQuerySettings()) ?? dataset.ToList().AsQueryable();
+                    count = query.LongCount();
+                });
             }
 
             // Construct the output object.
-            var result = new PagedResult(results) { Count = queryOptions.Count != null ? count : null };
+            var result = new PagedResult(results ?? Array.Empty<object>()) { Count = queryOptions.Count != null ? count : null };
             if (queryOptions.Top != null)
             {
                 result.NextLink = skip >= count || top <= 0 ? null : Request.CreateNextLink(skip, top);

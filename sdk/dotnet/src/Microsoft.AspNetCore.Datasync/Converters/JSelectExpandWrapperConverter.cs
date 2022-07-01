@@ -36,6 +36,8 @@ namespace Microsoft.AspNetCore.Datasync.Converters
             _mapperProvider = mapperProvider ?? throw new ArgumentNullException(nameof(mapperProvider));
         }
 
+        public override bool CanRead => false;
+
         /// <summary>
         /// Determines whether this instance can convert the specified <see cref="ISelectExpandWrapper"/> type.
         /// </summary>
@@ -60,6 +62,7 @@ namespace Microsoft.AspNetCore.Datasync.Converters
         /// <param name="serializer">The calling serializer.</param>
         /// <returns>The object value.</returns>
         [SuppressMessage("General", "RCS1079:Throwing of new NotImplementedException.", Justification = "Only valid in write scenario.")]
+        [ExcludeFromCodeCoverage]
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             throw new NotImplementedException("SelectExpandWrapper is only valid in write scenario.");
@@ -73,15 +76,7 @@ namespace Microsoft.AspNetCore.Datasync.Converters
         /// <param name="serializer">The calling serializer.</param>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (serializer is null)
-            {
-                throw new ArgumentNullException(nameof(serializer));
-            }
-
-            if (value is ISelectExpandWrapper selectExpandWrapper)
-            {
-                serializer.Serialize(writer, selectExpandWrapper.ToDictionary(_mapperProvider));
-            }
+            serializer.Serialize(writer, ((ISelectExpandWrapper)value).ToDictionary(_mapperProvider));
         }
     }
 }

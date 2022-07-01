@@ -39,6 +39,7 @@ namespace Microsoft.AspNetCore.Datasync.Converters
         /// Read a value from JSON and convert it to the <see cref="DateTimeOffset"/> value
         /// </summary>
         [SuppressMessage("General", "RCS1079:Throwing of new NotImplementedException.", Justification = "Only valid in write scenario.")]
+        [ExcludeFromCodeCoverage]
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             throw new NotImplementedException();
@@ -49,14 +50,7 @@ namespace Microsoft.AspNetCore.Datasync.Converters
         /// </summary>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (value is DateTimeOffset output)
-            {
-                writer.WriteValue(output.ToUniversalTime().ToString(format));
-            }
-            else
-            {
-                throw new JsonSerializationException($"Value of type {value.GetType().Name} is not supported here");
-            }
+            writer.WriteValue(((DateTimeOffset)value).ToUniversalTime().ToString(format));
         }
     }
 }
