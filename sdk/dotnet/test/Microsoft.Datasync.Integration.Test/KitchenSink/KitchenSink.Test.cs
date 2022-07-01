@@ -1,4 +1,5 @@
 ﻿using Datasync.Common.Test.Models;
+using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.SQLiteStore;
 using Microsoft.Datasync.Integration.Test.Helpers;
@@ -50,7 +51,7 @@ namespace Microsoft.Datasync.Integration.Test.KitchenSink
             await remoteTable.ReplaceItemAsync(client1dto);
 
             // Finally, download the value on client 2
-            await offlineTable!.PullItemsAsync(pullQuery, new PullOptions());
+            await offlineTable!.PullItemsAsync();
             client2dto = await offlineTable.GetItemAsync(remoteId);
             Assert.NotNull(client2dto);
             // Issue 408 - cannot replace a string with a null.
@@ -70,7 +71,7 @@ namespace Microsoft.Datasync.Integration.Test.KitchenSink
             var itemCount = await table.GetAsyncItems().CountAsync();
             Assert.Equal(0, itemCount);
 
-            await table.PullItemsAsync(table.CreateQuery(), new PullOptions());
+            await table.PullItemsAsync();
 
             itemCount = await table.GetAsyncItems().CountAsync();
             Assert.Equal(Movies.Count, itemCount);

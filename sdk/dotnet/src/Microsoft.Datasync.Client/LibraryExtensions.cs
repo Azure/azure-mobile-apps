@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Offline;
+using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -109,6 +110,7 @@ namespace Microsoft.Datasync.Client
 
             store.DefineTable(tableName, jsonDefinition);
         }
+
         /// <summary>
         /// Pull all items from the remote table to the offline table.
         /// </summary>
@@ -127,5 +129,25 @@ namespace Microsoft.Datasync.Client
         /// <returns>A task that completes when the pull operation is complete.</returns>
         public static Task PullItemsAsync(this IOfflineTable table, PullOptions options, CancellationToken cancellationToken = default)
             => table.PullItemsAsync(string.Empty, options, cancellationToken);
+
+        /// <summary>
+        /// Pull all items matching the OData query string from the remote table to the offline table.
+        /// </summary>
+        /// <param name="table">The table reference.</param>
+        /// <param name="query">The OData query string.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the pull operation is complete.</returns>
+        public static Task PullItemsAsync(this IOfflineTable table, string query, CancellationToken cancellationToken = default)
+            => table.PullItemsAsync(query, new PullOptions(), cancellationToken);
+
+        /// <summary>
+        /// Pull all items matching the LINQ query from the remote table to the offline table.
+        /// </summary>
+        /// <param name="table">The table reference.</param>
+        /// <param name="query">The LINQ query.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the pull operation is complete.</returns>
+        public static Task PullItemsAsync<T, U>(this IOfflineTable<T> table, ITableQuery<U> query, CancellationToken cancellationToken = default)
+            => table.PullItemsAsync(query, new PullOptions(), cancellationToken);
     }
 }
