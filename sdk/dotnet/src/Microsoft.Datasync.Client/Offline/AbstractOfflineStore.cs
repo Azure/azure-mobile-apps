@@ -100,6 +100,13 @@ namespace Microsoft.Datasync.Client.Offline
         public abstract void DefineTable(string tableName, JObject tableDefinition);
 
         /// <summary>
+        /// Determines if a table is defined.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <returns>true if the table is defined.</returns>
+        public abstract bool TableIsDefined(string tableName);
+
+        /// <summary>
         /// Ensures that the store has been initialized.
         /// </summary>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
@@ -108,10 +115,11 @@ namespace Microsoft.Datasync.Client.Offline
         {
             using (await initializationLock.AcquireAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (!Initialized)
-                {
-                    throw new InvalidOperationException("The offline store must be initialized before it can be used.");
-                }
+                await InitializeOfflineStoreAsync(cancellationToken).ConfigureAwait(false);
+                //if (!Initialized)
+                //{
+                //    throw new InvalidOperationException("The offline store must be initialized before it can be used.");
+                //}
             }
         }
 

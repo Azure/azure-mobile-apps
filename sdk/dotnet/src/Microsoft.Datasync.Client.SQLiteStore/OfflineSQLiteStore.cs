@@ -71,12 +71,27 @@ namespace Microsoft.Datasync.Client.SQLiteStore
             Arguments.IsValidTableName(tableName, true, nameof(tableName));
             Arguments.IsNotNull(tableDefinition, nameof(tableDefinition));
 
-            if (Initialized)
+            //if (Initialized)
+            //{
+            //    throw new InvalidOperationException("Cannot define a table after the offline store has been initialized.");
+            //}
+            if (!tableMap.ContainsKey(tableName))
             {
-                throw new InvalidOperationException("Cannot define a table after the offline store has been initialized.");
+                tableMap.Add(tableName, new TableDefinition(tableName, tableDefinition));
             }
-            tableMap.Add(tableName, new TableDefinition(tableName, tableDefinition));
+            //else
+            //{
+            //    throw new InvalidOperationException("Cannot define a table twice");
+            //}
         }
+
+        /// <summary>
+        /// Determines if a table is defined.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <returns>true if the table is defined.</returns>
+        public override bool TableIsDefined(string tableName)
+            => tableMap.ContainsKey(tableName);
 
         /// <summary>
         /// Deletes items from the table where the items are identified by a query.
@@ -180,7 +195,11 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         {
             foreach (var table in tableMap)
             {
-                CreateTableFromDefinition(table.Value);
+                if (!table.Value.IsInDatabase)
+                {
+                    // Do the creation if it hasn't already been done this time round.
+                    CreateTableFromDefinition(table.Value);
+                }
             }
             return Task.CompletedTask;
         }

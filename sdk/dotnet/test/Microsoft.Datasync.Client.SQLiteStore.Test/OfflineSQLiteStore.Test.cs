@@ -47,14 +47,14 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Test
             Assert.NotNull(store.DbConnection.connection);
         }
 
-        [Fact]
-        public async Task DefineTable_Throws_WhenStoreIsInitialized()
-        {
-            var store = new OfflineSQLiteStore(ConnectionString);
-            store.DefineTable(TestTable, IdEntityDefinition);
-            await store.InitializeAsync();
-            Assert.Throws<InvalidOperationException>(() => store.DefineTable("movies", new JObject()));
-        }
+        //[Fact]
+        //public async Task DefineTable_Throws_WhenStoreIsInitialized()
+        //{
+        //    var store = new OfflineSQLiteStore(ConnectionString);
+        //    store.DefineTable(TestTable, IdEntityDefinition);
+        //    await store.InitializeAsync();
+        //    Assert.Throws<InvalidOperationException>(() => store.DefineTable("movies", new JObject()));
+        //}
 
         [Fact]
         public async Task DeleteAsyncByQuery_Throws_WhenStoreIsNotInitialized()
@@ -94,12 +94,12 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Test
             Assert.DoesNotContain(page2.Items, o => o.Value<string>("stringValue") == "item#1");
         }
 
-        [Fact]
-        public async Task DeleteAsyncById_Throws_WhenStoreIsNotInitialized()
-        {
-            var store = new OfflineSQLiteStore(ConnectionString);
-            await Assert.ThrowsAsync<InvalidOperationException>(() => store.DeleteAsync(TestTable, new[] { "id" }));
-        }
+        //[Fact]
+        //public async Task DeleteAsyncById_Throws_WhenStoreIsNotInitialized()
+        //{
+        //    var store = new OfflineSQLiteStore(ConnectionString);
+        //    await Assert.ThrowsAsync<InvalidOperationException>(() => store.DeleteAsync(TestTable, new[] { "id" }));
+        //}
 
         [Fact]
         public async Task DeleteAsyncById_EmptyListOfIds()
