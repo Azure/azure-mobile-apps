@@ -41,9 +41,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Datasync.Client.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Datasync.Client.SQLiteStore.Test", "test\Microsoft.Datasync.Client.SQLiteStore.Test\Microsoft.Datasync.Client.SQLiteStore.Test.csproj", "{759C5212-BE6F-494D-B320-0F03FADC3071}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.LiteDb", "src\Microsoft.AspNetCore.Datasync.LiteDb\Microsoft.AspNetCore.Datasync.LiteDb.csproj", "{6D3D1DB6-33B7-4077-9C58-EF8E2ECA3808}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Datasync.LiteDb", "src\Microsoft.AspNetCore.Datasync.LiteDb\Microsoft.AspNetCore.Datasync.LiteDb.csproj", "{6D3D1DB6-33B7-4077-9C58-EF8E2ECA3808}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.LiteDb.Test", "test\Microsoft.AspNetCore.Datasync.LiteDb.Test\Microsoft.AspNetCore.Datasync.LiteDb.Test.csproj", "{6E13D6AC-BD68-4362-A352-493729091D66}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Datasync.LiteDb.Test", "test\Microsoft.AspNetCore.Datasync.LiteDb.Test\Microsoft.AspNetCore.Datasync.LiteDb.Test.csproj", "{6E13D6AC-BD68-4362-A352-493729091D66}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.Automapper", "src\Microsoft.AspNetCore.Datasync.Automapper\Microsoft.AspNetCore.Datasync.Automapper.csproj", "{21B48FE5-73B5-4380-9FAD-3F0272120110}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.Automapper.Test", "test\Microsoft.AspNetCore.Datasync.Automapper.Test\Microsoft.AspNetCore.Datasync.Automapper.Test.csproj", "{05FD004E-D69F-4E38-A561-B87B27815BF6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,6 +115,14 @@ Global
 		{6E13D6AC-BD68-4362-A352-493729091D66}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6E13D6AC-BD68-4362-A352-493729091D66}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6E13D6AC-BD68-4362-A352-493729091D66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21B48FE5-73B5-4380-9FAD-3F0272120110}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21B48FE5-73B5-4380-9FAD-3F0272120110}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21B48FE5-73B5-4380-9FAD-3F0272120110}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21B48FE5-73B5-4380-9FAD-3F0272120110}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05FD004E-D69F-4E38-A561-B87B27815BF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05FD004E-D69F-4E38-A561-B87B27815BF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05FD004E-D69F-4E38-A561-B87B27815BF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05FD004E-D69F-4E38-A561-B87B27815BF6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -135,6 +147,8 @@ Global
 		{759C5212-BE6F-494D-B320-0F03FADC3071} = {36374470-D235-4CD3-917D-BD036A657F6C}
 		{6D3D1DB6-33B7-4077-9C58-EF8E2ECA3808} = {1675CF58-54FE-474F-80AD-8E494662F2A4}
 		{6E13D6AC-BD68-4362-A352-493729091D66} = {897BFB53-D437-4D6F-A581-DF708C560545}
+		{21B48FE5-73B5-4380-9FAD-3F0272120110} = {1675CF58-54FE-474F-80AD-8E494662F2A4}
+		{05FD004E-D69F-4E38-A561-B87B27815BF6} = {897BFB53-D437-4D6F-A581-DF708C560545}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A0CEDA72-A2EB-4741-98C3-6E5CFA65DF02}
