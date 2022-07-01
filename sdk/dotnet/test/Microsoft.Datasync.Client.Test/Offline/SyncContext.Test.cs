@@ -272,14 +272,6 @@ namespace Microsoft.Datasync.Client.Test.Offline
         #region GetItemAsync
         [Fact]
         [Trait("Method", "GetItemAsync")]
-        public async Task GetItemAsync_Throws_WhenNotInitialized()
-        {
-            var context = new SyncContext(client, store);
-            await Assert.ThrowsAsync<InvalidOperationException>(() => context.GetItemAsync("test", "1234"));
-        }
-
-        [Fact]
-        [Trait("Method", "GetItemAsync")]
         public async Task GetItemAsync_ReturnsNull_ForMissingItem()
         {
             var context = await GetSyncContext();
@@ -303,10 +295,11 @@ namespace Microsoft.Datasync.Client.Test.Offline
         #region GetNextPageAsync
         [Fact]
         [Trait("Method", "GetNextPageAsync")]
-        public async Task GetNextPageAsync_Throws_WhenNotInitialized()
+        public async Task GetNextPageAsync_AutoInitializes_WhenNotInitialized()
         {
             var context = new SyncContext(client, store);
-            await Assert.ThrowsAsync<InvalidOperationException>(() => context.GetNextPageAsync("test", "$count=true"));
+            _ = await context.GetNextPageAsync("test", "$count=true");
+            Assert.True(context.IsInitialized);
         }
 
         [Fact]
@@ -363,11 +356,11 @@ namespace Microsoft.Datasync.Client.Test.Offline
         #region InsertItemAsync
         [Fact]
         [Trait("Method", "InsertItemAsync")]
-        public async Task InsertItemAsync_Throws_WhenNotInitialized()
+        public async Task InsertItemAsync_AutoInitializes_WhenNotInitialized()
         {
             var context = new SyncContext(client, store);
-
-            await Assert.ThrowsAsync<InvalidOperationException>(() => context.InsertItemAsync("test", jsonObject));
+            await context.InsertItemAsync("test", jsonObject);
+            Assert.True(context.IsInitialized);
         }
 
         [Fact]
@@ -1556,11 +1549,12 @@ namespace Microsoft.Datasync.Client.Test.Offline
         #region ReplaceItemAsync
         [Fact]
         [Trait("Method", "ReplaceItemAsync")]
-        public async Task ReplaceItemAsync_Throws_WhenNotInitialized()
+        public async Task ReplaceItemAsync_AutoInitializes_WhenNotInitialized()
         {
             var context = new SyncContext(client, store);
-
-            await Assert.ThrowsAsync<InvalidOperationException>(() => context.ReplaceItemAsync("test", jsonObject));
+            // We don't actually care about this - it's going to throw because it doesn't exist.
+            await Assert.ThrowsAsync<OfflineStoreException>(() => context.ReplaceItemAsync("test", jsonObject));
+            Assert.True(context.IsInitialized);
         }
 
         [Fact]

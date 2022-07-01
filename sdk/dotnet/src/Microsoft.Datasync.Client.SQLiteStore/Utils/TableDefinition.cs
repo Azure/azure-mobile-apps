@@ -20,6 +20,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         public TableDefinition()
         {
             TableName = string.Empty;
+            IsInDatabase = false;
         }
 
         /// <summary>
@@ -43,6 +44,12 @@ namespace Microsoft.Datasync.Client.SQLiteStore
                 Add(column.Name, column);
             }
         }
+
+        /// <summary>
+        /// A flag to indicate whether the database definition has already been done.
+        /// </summary>
+        public bool IsInDatabase { get; set; }
+
 
         public string TableName { get; }
 

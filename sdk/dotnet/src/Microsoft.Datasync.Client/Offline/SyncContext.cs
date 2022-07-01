@@ -137,7 +137,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that returns the response when complete.</returns>
         public async Task DeleteItemAsync(string tableName, JObject instance, CancellationToken cancellationToken = default)
         {
-            EnsureContextIsInitialized();
+            await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
             string itemId = ServiceSerializer.GetId(instance);
             var originalInstance = await GetItemAsync(tableName, itemId, cancellationToken).ConfigureAwait(false);
             if (originalInstance == null)
@@ -158,7 +158,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that returns the item when complete.</returns>
         public async Task<JObject> GetItemAsync(string tableName, string id, CancellationToken cancellationToken = default)
         {
-            EnsureContextIsInitialized();
+            await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
             return await OfflineStore.GetItemAsync(tableName, id, cancellationToken).ConfigureAwait(false);
         }
 
@@ -170,7 +170,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that returns a page of items when complete.</returns>
         public async Task<Page<JObject>> GetNextPageAsync(string tableName, string query, CancellationToken cancellationToken = default)
         {
-            EnsureContextIsInitialized();
+            await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
             var queryDescription = QueryDescription.Parse(tableName, query);
             return await OfflineStore.GetPageAsync(queryDescription, cancellationToken).ConfigureAwait(false);
         }
@@ -184,7 +184,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that returns the inserted data when complete.</returns>
         public async Task InsertItemAsync(string tableName, JObject instance, CancellationToken cancellationToken = default)
         {
-            EnsureContextIsInitialized();
+            await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
 
             // We have to pre-generate the ID when doing offline work.
             string itemId = ServiceSerializer.GetId(instance, allowDefault: true);
@@ -207,7 +207,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that returns the replaced data when complete.</returns>
         public async Task ReplaceItemAsync(string tableName, JObject instance, CancellationToken cancellationToken = default)
         {
-            EnsureContextIsInitialized();
+            await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
 
             string itemId = ServiceSerializer.GetId(instance);
             instance = ServiceSerializer.RemoveSystemProperties(instance, out string version);
@@ -234,7 +234,7 @@ namespace Microsoft.Datasync.Client.Offline
             Arguments.IsValidTableName(tableName, nameof(tableName));
             Arguments.IsNotNull(query, nameof(query));
             Arguments.IsNotNull(options, nameof(options));
-            EnsureContextIsInitialized();
+            await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
 
             var table = ServiceClient.GetRemoteTable(tableName);
             var queryId = options.QueryId ?? GetQueryIdFromQuery(tableName, query);
@@ -321,7 +321,7 @@ namespace Microsoft.Datasync.Client.Offline
             Arguments.IsValidTableName(tableName, nameof(tableName));
             Arguments.IsNotNull(query, nameof(query));
             Arguments.IsNotNull(options, nameof(options));
-            EnsureContextIsInitialized();
+            await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
 
             var queryId = options.QueryId ?? GetQueryIdFromQuery(tableName, query);
             var queryDescription = QueryDescription.Parse(tableName, query);
@@ -390,7 +390,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <exception cref="PushFailedException">if the push operation failed.</exception>
         public async Task PushItemsAsync(string[] tableNames, PushOptions options, CancellationToken cancellationToken = default)
         {
-            EnsureContextIsInitialized();
+            await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
 
             var batch = new OperationBatch(this);
             cancellationToken.Register(() => batch.Abort(PushStatus.CancelledByToken));
@@ -548,7 +548,7 @@ namespace Microsoft.Datasync.Client.Offline
         internal async Task DiscardTableOperationsAsync(string tableName, CancellationToken cancellationToken)
         {
             Arguments.IsValidTableName(tableName, nameof(tableName));
-            EnsureContextIsInitialized();
+            await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
             var query = QueryDescription.Parse(SystemTables.OperationsQueue, $"$filter=(tableName eq '{tableName}')");
             await OperationsQueue.DeleteOperationsAsync(query, cancellationToken).ConfigureAwait(false);
         }
@@ -601,12 +601,14 @@ namespace Microsoft.Datasync.Client.Offline
         /// <summary>
         /// Ensures that the <see cref="SyncContext"/> has been initialized before use.
         /// </summary>
-        /// <exception cref="InvalidOperationException">if the <see cref="SyncContext"/> has not been initialized.</exception>
-        private void EnsureContextIsInitialized()
+        /// <param name="cancellationToken">A cancellation token to use.</param>
+        /// <returns>A task that completes when the context is initialized</returns>
+        private async Task EnsureContextIsInitializedAsync(CancellationToken cancellationToken = default)
         {
+            await InitializeAsync(cancellationToken).ConfigureAwait(false);
             if (!IsInitialized)
             {
-                throw new InvalidOperationException("The synchronization context must be initialized before an offline store can be used.");
+                throw new InvalidOperationException("Store is not initialized");
             }
         }
 
@@ -751,7 +753,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that returns <c>true</c> if the table is dirty, and <c>false</c> otherwise when complete.</returns>
         internal async Task<bool> TableIsDirtyAsync(string tableName, CancellationToken cancellationToken)
         {
-            EnsureContextIsInitialized();
+            await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
             long pendingOperations = await OperationsQueue.CountPendingOperationsAsync(tableName, cancellationToken).ConfigureAwait(false);
             return pendingOperations > 0;
         }

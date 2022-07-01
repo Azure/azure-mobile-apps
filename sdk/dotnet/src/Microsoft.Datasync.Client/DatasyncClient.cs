@@ -200,6 +200,10 @@ namespace Microsoft.Datasync.Client
             {
                 throw new InvalidOperationException("An offline store must be specified before using offline tables.");
             }
+            if (SyncContext.OfflineStore is AbstractOfflineStore store && !store.TableIsDefined(tableName))
+            {
+                store.DefineTable<T>(tableName);
+            }
             return new OfflineTable<T>(tableName, this);
         }
 
@@ -247,30 +251,45 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the pending operations have been pushed.</returns>
         /// <exception cref="InvalidOperationException">if the offline store is not available.</exception>
-        public virtual async Task PushTablesAsync(CancellationToken cancellationToken = default)
-        {
-            if (SyncContext == null)
-            {
-                throw new InvalidOperationException("An offline store must be specified before doing offline operations.");
-            }
-            await SyncContext.PushItemsAsync(Array.Empty<string>(), cancellationToken).ConfigureAwait(false);
-        }
+        public virtual Task PushTablesAsync(CancellationToken cancellationToken = default)
+            => PushTablesAsync(Array.Empty<string>(), null, cancellationToken);
+
+        /// <summary>
+        /// Pushes the pending operations for all tables to the remote service.
+        /// </summary>
+        /// <param name="tables">The list of tables to be pushed.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the pending operations have been pushed.</returns>
+        /// <exception cref="InvalidOperationException">if the offline store is not available.</exception>
+        public virtual Task PushTablesAsync(IEnumerable<string> tables, CancellationToken cancellationToken = default)
+            => PushTablesAsync(tables, null, cancellationToken);
+
+        /// <summary>
+        /// Pushes the pending operations for all tables to the remote service.
+        /// </summary>
+        /// <param name="options">The push operation options.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the pending operations have been pushed.</returns>
+        /// <exception cref="InvalidOperationException">if the offline store is not available.</exception>
+        public virtual Task PushTablesAsync(PushOptions options, CancellationToken cancellationToken = default)
+            => PushTablesAsync(Array.Empty<string>(), options, cancellationToken);
 
         /// <summary>
         /// Pushes the pending operations for a list of tables to the remote service.  You must name the tables
         /// to be pushed.
         /// </summary>
         /// <param name="tables">The list of tables to be pushed.</param>
+        /// <param name="options">The push operation options.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the pending operations have been pushed.</returns>
         /// <exception cref="InvalidOperationException">if the offline store is not available.</exception>
-        public virtual async Task PushTablesAsync(IEnumerable<string> tables, CancellationToken cancellationToken = default)
+        public virtual async Task PushTablesAsync(IEnumerable<string> tables, PushOptions options, CancellationToken cancellationToken = default)
         {
             if (SyncContext == null)
             {
                 throw new InvalidOperationException("An offline store must be specified before doing offline operations.");
             }
-            await SyncContext.PushItemsAsync(tables.ToArray(), cancellationToken).ConfigureAwait(false);
+            await SyncContext.PushItemsAsync(tables.ToArray(), options, cancellationToken).ConfigureAwait(false);
         }
 
         #region IDisposable
