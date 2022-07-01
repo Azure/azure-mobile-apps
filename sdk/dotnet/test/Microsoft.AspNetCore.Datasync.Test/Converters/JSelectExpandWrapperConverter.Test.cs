@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Converters
         [Fact]
         public void JsonConverter_Basics()
         {
-            var converter = new JDynamicTypeWrapperConverter();
+            var converter = new JSelectExpandWrapperConverter();
 
             Assert.False(converter.CanRead);
             Assert.True(converter.CanWrite);

@@ -36,6 +36,8 @@ namespace Microsoft.AspNetCore.Datasync.Converters
             _mapperProvider = mapperProvider ?? throw new ArgumentNullException(nameof(mapperProvider));
         }
 
+        public override bool CanRead => false;
+
         /// <summary>
         /// Determines whether this instance can convert the specified <see cref="ISelectExpandWrapper"/> type.
         /// </summary>
