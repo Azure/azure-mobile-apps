@@ -9,6 +9,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Microsoft.AspNetCore.Datasync.EFCore
 {
+    /// <summary>
+    /// An implementation of an <see cref="IRepository{TEntity}"/> that stores
+    /// data in an Entity Framework configured database.
+    /// </summary>
+    /// <typeparam name="TEntity">The type of entity being stored.</typeparam>
     public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity : EntityTableData
     {
         /// <summary>

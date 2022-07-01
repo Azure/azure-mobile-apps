@@ -6,6 +6,7 @@
         <FirstParty Include="Microsoft.AspNetCore.Datasync.InMemory.dll"/>
         <FirstParty Include="Microsoft.AspNetCore.Datasync.LiteDb.dll"/>
         <FirstParty Include="Microsoft.AspNetCore.Datasync.Abstractions.dll"/>
+        <FirstParty Include="Microsoft.AspNetCore.Datasync.Automapper.dll"/>
         
         <!-- Datasync Client SDK -->
         <FirstParty Include="Microsoft.Datasync.Client.dll"/>
