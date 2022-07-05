@@ -41,9 +41,9 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
         /// to adjust system properties, and only replace operations are allowed.
         /// </summary>
         /// <param name="patch">The patch document</param>
-        internal static bool ModifiesSystemProperties<TEntity>(this JsonPatchDocument<TEntity> patch, TEntity entity, out Dictionary<string, string> validationErrors) where TEntity : class, ITableData
+        internal static bool ModifiesSystemProperties<TEntity>(this JsonPatchDocument<TEntity> patch, TEntity entity, out Dictionary<string, string[]> validationErrors) where TEntity : class, ITableData
         {
-            validationErrors = new Dictionary<string, string>();
+            validationErrors = new Dictionary<string, string[]>();
             bool returnValue = false;
             foreach (var operation in patch.Operations)
             {
@@ -52,8 +52,8 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
                     case OperationType.Replace:
                         if (operation.path.Equals("/id", StringComparison.OrdinalIgnoreCase) && !entity.Id.Equals(operation.value))
                         {
-                            validationErrors.Add("entity.Id", entity.Id);
-                            validationErrors.Add("patch./id", (string)operation.value);
+                            validationErrors.Add("entity.Id", new string[] { entity.Id });
+                            validationErrors.Add("patch./id", new string[] { (string)operation.value });
                             returnValue = true;
                         }
 
@@ -62,8 +62,8 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
                             string stored = entity.GetETag().Trim('"');
                             if (!stored.Equals(operation.value))
                             {
-                                validationErrors.Add("entity.Version", stored);
-                                validationErrors.Add("patch./version", (string)operation.value);
+                                validationErrors.Add("entity.Version", new string[] { stored });
+                                validationErrors.Add("patch./version", new string[] { (string)operation.value });
                                 returnValue = true;
                             }
                         }
@@ -74,8 +74,8 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
                             string dtzval = dt.ToUniversalTime().ToString(timeFormat, CultureInfo.InvariantCulture);
                             if (stored != dtzval)
                             {
-                                validationErrors.Add("entity.UpdatedAt", stored);
-                                validationErrors.Add("patch./updatedAt", dtzval);
+                                validationErrors.Add("entity.UpdatedAt", new string[] { stored });
+                                validationErrors.Add("patch./updatedAt", new string[] { dtzval });
                                 returnValue = true;
                             }
                         }

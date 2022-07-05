@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Datasync.Test.Extensions
             };
 
             // Act
-            var actual = patchDoc.ModifiesSystemProperties(entity, out Dictionary<string, string> validationErrors);
+            var actual = patchDoc.ModifiesSystemProperties(entity, out Dictionary<string, string[]> validationErrors);
 
             // Assert
             Assert.Equal(expected, actual);
