@@ -282,10 +282,10 @@ namespace Microsoft.AspNetCore.Datasync
                 Logger?.LogWarning("Patch({Id}): Item not found (not in view)", id);
                 return NotFound();
             }
-            if (patchDocument.ModifiesSystemProperties(entity, out Dictionary<string, string> systemPropertyValidationErrors))
+            if (patchDocument.ModifiesSystemProperties(entity, out Dictionary<string, string[]> systemPropertyValidationErrors))
             {
                 Logger?.LogWarning("Patch({Id}): Patch document changes system properties (which is disallowed)", id);
-                return BadRequest(systemPropertyValidationErrors);
+                return ValidationProblem(new ValidationProblemDetails(systemPropertyValidationErrors));
             }
             await AuthorizeRequest(TableOperation.Update, entity, token).ConfigureAwait(false);
             if (Options.EnableSoftDelete && entity.Deleted && !patchDocument.Contains("replace", "/deleted", false))
@@ -298,7 +298,7 @@ namespace Microsoft.AspNetCore.Datasync
             patchDocument.ApplyTo(entity);
             if (!TryValidateModel(entity))
             {
-                return BadRequest(ModelState);
+                return ValidationProblem(ModelState);
             }
 
             await AccessControlProvider.PreCommitHookAsync(TableOperation.Update, entity, token).ConfigureAwait(false);
