@@ -6,6 +6,7 @@ using Datasync.Common.Test.Mocks;
 using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Test.Helpers;
 using Microsoft.Datasync.Client.Utils;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -91,6 +92,26 @@ namespace Microsoft.Datasync.Client.Test.Http
             AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "ZUMO-API-VERSION", "3.0.0");
             AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-INSTALLATION-ID", "test-int-id");
             Assert.Equal(testcase.NormalizedEndpoint, client.HttpClient.BaseAddress.ToString());
+        }
+
+        [Fact]
+        [Trait("Method", "Ctor")]
+        public void Ctor_WithoutTimeout_SetsDefaultTimeout()
+        {
+            var options = new DatasyncClientOptions();
+            var client = new WrappedHttpClient(new Uri("http://localhost:8000"), options);
+            Assert.NotNull(client.HttpClient);
+            Assert.Equal(100000, client.HttpClient.Timeout.TotalMilliseconds);
+        }
+
+        [Fact]
+        [Trait("Method", "Ctor")]
+        public void Ctor_WithTimeout_SetsTimeout()
+        {
+            var options = new DatasyncClientOptions { HttpTimeout = TimeSpan.FromMilliseconds(15000) };
+            var client = new WrappedHttpClient(new Uri("http://localhost:8000"), options);
+            Assert.NotNull(client.HttpClient);
+            Assert.Equal(15000, client.HttpClient.Timeout.TotalMilliseconds);
         }
 
         [Fact]
