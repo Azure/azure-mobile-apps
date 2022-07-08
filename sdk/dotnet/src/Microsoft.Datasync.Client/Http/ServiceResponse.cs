@@ -48,7 +48,16 @@ namespace Microsoft.Datasync.Client.Http
             var response = new ServiceResponse(message);
             if (message.Content != null)
             {
-                message.Content.Headers.ToList().ForEach(hdr => response.Headers.Add(hdr.Key, hdr.Value.ToArray()));
+                // Bug #431: On MAUI/iOS, certain headers can appear in both HttpResponseMessage.Headers and
+                // HttpContent.Headers which should never happen.  We protect against that by skipping any
+                // headers that have already been added.
+                message.Content.Headers.ToList().ForEach(hdr =>
+                {
+                    if (!response.Headers.ContainsKey(hdr.Key))
+                    {
+                        response.Headers.Add(hdr.Key, hdr.Value.ToArray());
+                    }
+                });
                 response.Content = await message.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             }
             return response;
