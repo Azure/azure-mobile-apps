@@ -70,7 +70,11 @@ namespace Microsoft.Datasync.Client.Http
                 authenticationProvider.InnerHandler = roothandler;
                 roothandler = authenticationProvider;
             }
-            client = new HttpClient(roothandler) { BaseAddress = Endpoint };
+            client = new HttpClient(roothandler)
+            {
+                BaseAddress = Endpoint,
+                Timeout = clientOptions.HttpTimeout ?? TimeSpan.FromSeconds(100)
+            };
             client.DefaultRequestHeaders.Add(ServiceHeaders.ProtocolVersion, ProtocolVersion);
             if (!string.IsNullOrWhiteSpace(clientOptions.UserAgent))
             {

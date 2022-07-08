@@ -31,6 +31,12 @@ namespace Microsoft.Datasync.Client
         public IEnumerable<HttpMessageHandler> HttpPipeline { get; set; }
 
         /// <summary>
+        /// If set, the timeout to use with <see cref="HttpClient"/> connections.
+        /// If not set, the default of 100,000ms (100 seconds) will be used.
+        /// </summary>
+        public TimeSpan? HttpTimeout { get; set; }
+
+        /// <summary>
         /// The id generator to use for customize id. By default, if id is empty is used Guid.NewGuid().ToString("N").
         /// </summary>
         public Func<string, string> IdGenerator { get; set; }
