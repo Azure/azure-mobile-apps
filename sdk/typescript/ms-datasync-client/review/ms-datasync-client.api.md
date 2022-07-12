@@ -6,9 +6,14 @@
 
 // @public (undocumented)
 export class DatasyncClient {
-    constructor(endpointUrl: string);
-    // (undocumented)
+    constructor(endpoint: string, options?: DatasyncClientOptions);
+    get clientOptions(): DatasyncClientOptions;
     get endpoint(): string;
+}
+
+// @public
+export interface DatasyncClientOptions {
+    installationId?: string;
 }
 
 // (No @packageDocumentation comment for this package)
