@@ -27,5 +27,10 @@
     "include": [
         "src/**/*.ts",
         "test/**/*.ts"
-    ]
+    ],
+    "ts-node": {
+        "compilerOptions": {
+            "module": "CommonJS"
+        }
+    }
 }
