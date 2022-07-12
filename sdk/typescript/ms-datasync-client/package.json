@@ -1,0 +1,41 @@
+{
+  "name": "ms-datasync-client",
+  "version": "5.0.0-alpha.1",
+  "description": "A JavaScript and TypeScript SDK for connecting to a Microsoft Datasync Service (also known as Azure Mobile Apps).",
+  "author": "Microsoft Corporation",
+  "homepage": "https://github.com/azure/azure-mobile-apps",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/azure/azure-mobile-apps/issues"
+  },
+  "sdk-type": "client",
+  "main": "dist/index.js",
+  "module": "dist-esm/src/index.js",
+  "sideEffects": false,
+  "files": [
+    "dist/",
+    "dist-esm/src/",
+    "types/latest/",
+    "types/3.1/",
+    "README.md",
+    "../../../LICENSE.txt"
+  ],
+  "scripts": {
+    "build": "run-s lint build:src build:types",
+    "build:src": "tsc -p .",
+    "build:types": "downlevel-dts types/latest/ types/3.1/",
+    "clean": "rimraf dist dist-esm temp types *.tgz *.log",
+    "lint": "eslint src test --ext .ts"
+  },
+  "dependencies": {
+    "tslib": "^2.2.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.30.6",
+    "@typescript-eslint/parser": "^5.30.6",
+    "eslint": "^8.19.0",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.7.4"
+  }
+}

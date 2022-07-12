@@ -1,0 +1,3 @@
+# Don't lint build output
+dist
+dist-esm
