@@ -8,23 +8,13 @@
 /*eslint @typescript-eslint/no-explicit-any: [ "off" ]*/
 
 /**
- * Determines the class name of an object.
- * 
- * @param value The value to check.
- * @returns The name of the class (converted to lower case).
- */
-function classOf(value: any) {
-    return Object.prototype.toString.call(value).slice(8, -1).toLowerCase();
-}
-
-/**
  * Determines if the provided value is a Date object.
  * 
  * @param value The value to check.
  * @returns True if the value matches the check; false otherwise.
  */
 export function isDate(value: any) {
-    return !isNull(value) && classOf(value) === 'date';
+    return !isNull(value) && (value.name || value.constructor.name) === 'Date';
 }
 
 /**

@@ -5,32 +5,11 @@
  * The options used to configure the DatasyncClient.
  */
 export interface DatasyncClientOptions {
-    // httpPipeline
-
-    // httpTimeout
-
-    // idGenerator
-
-    /**
-     * If set, the installation ID that will be sent to the service with
-     * every single request.  If set to the empty string, no installation
-     * ID will be sent.
-     */
-    installationId?: string,
-
-    // offlineStore
-
-    // parallelOperations
-
-    // serializerSettings
-
-    // tableEndpointResolver
-
-    // userAgent
+    // Custom options go here
 }
 
 const defaultClientOptions: DatasyncClientOptions = {
-
+    // Set up the default client options here.
 };
 
 export class DatasyncClient {
@@ -47,7 +26,7 @@ export class DatasyncClient {
      */
     constructor(endpoint: string, options?: DatasyncClientOptions) {
         this._endpoint = endpoint;
-        this._clientOptions = Object.assign({}, defaultClientOptions, options);
+        this._clientOptions = { ...defaultClientOptions, ...options };
     }
 
     /**
