@@ -1,11 +1,14 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
+import { ServiceClientOptions } from './http';
+
 /**
  * The options used to configure the DatasyncClient.
  */
-export interface DatasyncClientOptions {
-    // Custom options go here
+export interface DatasyncClientOptions extends ServiceClientOptions {
+    /** The installation ID (if any) to send to the service with every request */
+    installationId?: string;
 }
 
 const defaultClientOptions: DatasyncClientOptions = {

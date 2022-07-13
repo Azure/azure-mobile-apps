@@ -37,7 +37,7 @@
     "lint": "eslint src test --ext .ts",
     "pretest": "run-s build",
     "test": "run-s test:node",
-    "test:node": "nyc --reporter=text mocha"
+    "test:node": "nyc --all --reporter=text mocha"
   },
   "dependencies": {
     "tslib": "^2.2.0"

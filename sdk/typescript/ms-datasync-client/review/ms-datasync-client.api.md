@@ -4,6 +4,8 @@
 
 ```ts
 
+/// <reference types="node" />
+
 // @public (undocumented)
 export class DatasyncClient {
     constructor(endpoint: string, options?: DatasyncClientOptions);
@@ -12,8 +14,13 @@ export class DatasyncClient {
 }
 
 // @public
-export interface DatasyncClientOptions {
+export interface DatasyncClientOptions extends ServiceClientOptions {
     installationId?: string;
+}
+
+// @public
+export interface ServiceClientOptions {
+    httpTimeout?: number;
 }
 
 // (No @packageDocumentation comment for this package)
