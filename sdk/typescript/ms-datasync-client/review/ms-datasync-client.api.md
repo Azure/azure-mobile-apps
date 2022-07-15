@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 // @public (undocumented)
 export class DatasyncClient {
     constructor(endpoint: string, options?: DatasyncClientOptions);

@@ -46,10 +46,13 @@
   "devDependencies": {
     "@microsoft/api-extractor": "^7.28.4",
     "@types/chai": "^4.3.1",
+    "@types/chai-as-promised": "^7.1.5",
     "@types/mocha": "^9.1.1",
     "@typescript-eslint/eslint-plugin": "^5.30.6",
     "@typescript-eslint/parser": "^5.30.6",
+    "axios-logger": "^2.6.1",
     "chai": "^4.3.6",
+    "chai-as-promised": "^7.1.1",
     "downlevel-dts": "^0.10.0",
     "eslint": "^8.19.0",
     "mocha": "^10.0.0",
