@@ -98,15 +98,22 @@ export class AxiosClientHandler extends HttpClientHandler {
             headers: this.getRequestHeaders(request),
             data: request.content,
             responseType: 'arraybuffer',
+            validateStatus: null,
             signal: signal
         };
         const axiosResponse = await this._client.request(axiosRequest);
+        let body: string | undefined;
+        try {
+            body = Buffer.from(axiosResponse.data).toString('utf8');
+        } catch {
+            // Do nothing - body is undefined if we can't read from the body.
+        }
         const response = new HttpResponseMessage(
             axiosResponse.status,
             axiosResponse.statusText, 
             request, 
             this.getResponseHeaders(axiosResponse),
-            Buffer.from(axiosResponse.data).toString('utf8')
+            body
         );
         return response;
     }

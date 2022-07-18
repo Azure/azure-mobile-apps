@@ -4,3 +4,4 @@
 export * from './clientModels';
 export * from './clientHandlers';
 export * from './axiosClientHandler';
+export * from './fetchClientHandler';
