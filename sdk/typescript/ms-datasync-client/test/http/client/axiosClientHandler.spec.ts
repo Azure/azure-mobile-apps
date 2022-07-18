@@ -9,6 +9,10 @@ import { AxiosInterceptors, AxiosClientHandler } from '../../../src/http/client/
 
 const baseUrl = 'https://jsonplaceholder.typicode.com';
 
+// NOTE:
+//  jsonplaceholder is not CORS enabled, so you can't just check headers.
+//  We check header availability elsewhere with a real server.
+
 describe('src/http/client/axiosClientHandler', function () {
     this.slow(1000);        // Web calls take longer
 
@@ -21,7 +25,6 @@ describe('src/http/client/axiosClientHandler', function () {
             assert.equal(response.statusCode, 200);
             assert.equal(response.reasonPhrase, "OK");
             assert.strictEqual(response.headers.get('content-type'), 'application/json; charset=utf-8');
-            assert.match(response.headers.get('etag') ?? '', /^W\/"/);
             assert.isDefined(response.content);
             assert.match(response.content ?? '', /^{/);
 
@@ -65,7 +68,6 @@ describe('src/http/client/axiosClientHandler', function () {
             assert.equal(response.statusCode, 201);
             assert.equal(response.reasonPhrase, "Created");
             assert.strictEqual(response.headers.get('content-type'), 'application/json; charset=utf-8');
-            assert.match(response.headers.get('etag') ?? '', /^W\/"/);
             assert.isDefined(response.content);
             assert.match(response.content ?? '', /^{/);
 

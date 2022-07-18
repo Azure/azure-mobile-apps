@@ -100,14 +100,14 @@ export class AxiosClientHandler extends HttpClientHandler {
             responseType: 'arraybuffer',
             signal: signal
         };
-
         const axiosResponse = await this._client.request(axiosRequest);
         const response = new HttpResponseMessage(
-            axiosResponse.status, 
+            axiosResponse.status,
             axiosResponse.statusText, 
             request, 
             this.getResponseHeaders(axiosResponse),
-            axiosResponse.data.toString());
+            Buffer.from(axiosResponse.data).toString('utf8')
+        );
         return response;
     }
 }

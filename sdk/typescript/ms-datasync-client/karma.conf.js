@@ -58,18 +58,18 @@ module.exports = function(config) {
     customLaunchers: {
       ChromeDebugging: {
         base: 'Chrome',
-        flags: [ '--remote-debugging-port=9222' ]
+        flags: [ '--remote-debugging-port=9333' ]
       }
     },
 
     // start these browsers
     // available browser launchers: https://www.npmjs.com/search?q=keywords:karma-launcher
-    browsers: ['ChromeHeadless', 'ChromeDebugging'],
+    browsers: ['ChromeDebugging'],
 
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
-    singleRun: true,
+    singleRun: false,
 
     // Concurrency level
     // how many browser instances should be started simultaneously
