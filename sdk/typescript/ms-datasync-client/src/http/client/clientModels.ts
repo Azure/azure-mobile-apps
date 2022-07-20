@@ -15,19 +15,10 @@ export enum HttpMethod {
 }
 
 /**
- * The list of standard headers.
+ * A type that defines a set of headers.
  */
-export class HttpHeaders {
-    /** The Content-Type header */
-    static ContentType = 'Content-Type';
-}
-
-/**
- * The list of standard content types.
- */
-export class ContentType {
-    /** JSON content */
-    static JSON = 'application/json';
+export interface HttpHeaders {
+    [key: string]: string;
 }
 
 /**
@@ -59,8 +50,17 @@ export class HttpRequestMessage {
         this._requestUri = requestUri;
         this._headers = headers || new Map<string, string>();
         this._content = content;
-        if (typeof content !== 'undefined' && !this._headers.has(HttpHeaders.ContentType)) {
-            this._headers.set(HttpHeaders.ContentType, ContentType.JSON);
+        if (typeof content !== 'undefined') {
+            this.setContentTypeToJson();
+        }
+    }
+
+    /**
+     * Helper method that sets the content type header to the right thing.
+     */
+    private setContentTypeToJson() {
+        if (!this._headers.has('Content-Type')) {
+            this._headers.set('Content-Type', 'application/json; charset=utf-8');
         }
     }
 
@@ -70,10 +70,10 @@ export class HttpRequestMessage {
     get content(): string | undefined { return this._content; }
     set content(value: string | undefined) { 
         this._content = value; 
-        if (typeof value !== 'undefined' && !this._headers.has(HttpHeaders.ContentType)) {
-            this._headers.set(HttpHeaders.ContentType, ContentType.JSON);
-        } else if (typeof value === 'undefined') {
-            this._headers.delete(HttpHeaders.ContentType);
+        if (typeof value !== 'undefined') {
+            this.setContentTypeToJson();
+        } else {
+            this._headers.delete('Content-Type');
         }
     }
 

@@ -11,10 +11,30 @@ import {
     HttpClientHandler
 } from './clientHandlers';
 
+
+/**
+ * Definition of the client option for the FetchClient
+ */
+export interface FetchClientOptions {
+    defaultHeaders?: HttpHeaders
+}
+
 /**
  * An implementation of the HttpClientHandler that uses the WATWG fetch library
  */
 export class FetchClientHandler extends HttpClientHandler {
+    private readonly _options: FetchClientOptions;
+
+    /**
+     * Creates a new FetchClientHandler.
+     * 
+     * @param clientOptions The options for this client.
+     */
+    constructor(clientOptions?: FetchClientOptions) {
+        super();
+        this._options = clientOptions || {};
+    }
+
     /**
      * Converts the request headers into the internal form required by the fetch API.
      * 
@@ -23,7 +43,17 @@ export class FetchClientHandler extends HttpClientHandler {
      */
     private getRequestHeaders(request: HttpRequestMessage): Headers {
         const requestHeaders = new Headers();
+
+        // Append the default request headers if they are defined.
+        if (typeof this._options.defaultHeaders !== 'undefined') {
+            for (const key in this._options.defaultHeaders) {
+                requestHeaders.append(key, this._options.defaultHeaders[key]);
+            }
+        }
+
+        // Append the request headers.
         request.headers.forEach((value, key) => { requestHeaders.append(key, value); });
+
         return requestHeaders;
     }
 

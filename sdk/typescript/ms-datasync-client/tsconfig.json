@@ -3,6 +3,7 @@
     "compilerOptions": {
         "outDir": "./dist-esm",
         "declarationDir": "./types",
+        "resolveJsonModule": true,
         "paths": {
             "ms-datasync-client": [ "./src/index" ]
         }
