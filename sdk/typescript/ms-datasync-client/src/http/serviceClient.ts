@@ -1,23 +1,13 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import { ServiceClientOptions } from './models';
 import { HttpMessageHandler, HttpHeaders } from './client';
-import { _, uuid, validate } from '../utils';
+import { _, validate } from '../utils';
 import { version } from '../../package.json';
-import { configStore } from '../platform';
+import { DatasyncClientOptions } from '../datasyncClientOptions';
 
 function createPipeline(handlers: HttpMessageHandler[]): HttpMessageHandler {
 
-}
-
-/**
- * Returns the installation ID, which is a string that uniquely identifies this app on this device.
- * 
- * @returns The installation ID for this app on this device.
- */
-function getInstallationId() {
-    return configStore.getOrSet('installationId', uuid());
 }
 
 /**
@@ -59,7 +49,7 @@ export class ServiceClient {
     /**
      * The client options to use for this client.
      */
-    private _options: ServiceClientOptions;
+    private _options: DatasyncClientOptions;
 
     /**
      * The default headers to add to every single request.
@@ -71,20 +61,30 @@ export class ServiceClient {
      * @param endpoint 
      * @param clientOptions 
      */
-    public constructor(endpoint: URL, clientOptions: ServiceClientOptions) {
+    public constructor(endpoint: URL, clientOptions: DatasyncClientOptions) {
         validate.isValidEndpoint(endpoint, 'endpoint');
 
         this._endpoint = endpoint;
         this._options = clientOptions;
-        this._installationId = this._options.installationId || getInstallationId();
+        this._installationId = this._options.installationId || '';
         this.rootHandler = createPipeline(this._options.httpPipeline || new Array<HttpMessageHandler>());
         this._headers = { 'ZUMO-API-VERSION': ServiceClient.PROTOCOL_VERSION };
         const userAgent = this._options.userAgent || getUserAgent();
         if (!_.isNullOrWhiteSpace(userAgent)) {
-            this._headers['X-ZUMO-VERSION'] = userAgent;
+            this._headers['X-ZUMO-VERSION'] = userAgent.trim();
         }
         if (!_.isNullOrWhiteSpace(this._installationId)) {
-            this._headers['X-ZUMO-INSTALLATION-ID'] = this._installationId;
+            this._headers['X-ZUMO-INSTALLATION-ID'] = this._installationId.trim();
         }
     }
+
+    /**
+     * The base URL for all requests using this service client.
+     */
+    public get endpoint(): URL { return this._endpoint; }
+
+    /**
+     * The unique identifier for this app on this device.
+     */
+    public get installationId(): string { return this._installationId; }
 }

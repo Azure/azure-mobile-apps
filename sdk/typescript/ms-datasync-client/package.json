@@ -11,6 +11,12 @@
   "sdk-type": "client",
   "main": "dist/index.js",
   "module": "dist-esm/src/index.js",
+  "browser": {
+    "./dist-esm/src/platform/configStore.js": "./dist-esm/src/platform/configStore.browser.js"
+  },
+  "react-native": {
+    "./dist/index.js": "./dist-esm/src/index.js"
+  },
   "sideEffects": false,
   "files": [
     "dist/",
@@ -44,12 +50,14 @@
   "dependencies": {
     "axios": "^0.27.2",
     "cross-fetch": "^3.1.5",
+    "ip6addr": "^0.2.5",
     "tslib": "^2.2.0"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.28.4",
     "@types/chai": "^4.3.1",
     "@types/chai-as-promised": "^7.1.5",
+    "@types/ip6addr": "^0.2.3",
     "@types/mocha": "^9.1.1",
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.30.6",

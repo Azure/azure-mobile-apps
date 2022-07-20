@@ -12,7 +12,7 @@ describe('src/http/client/clientModels', () => {
             const headers = new Map<string, string>([[ 'X-ZUMO-TEST', '1234' ]]);
             const request = new http.HttpRequestMessage(http.HttpMethod.Get, url, "content", headers);
 
-            assert.equal(request.headers.get('Content-Type'), 'application/json');
+            assert.isTrue(request.headers.get('Content-Type')?.startsWith('application/json'));
             assert.equal(request.headers.get('X-ZUMO-TEST'), '1234');
         });
 
@@ -31,7 +31,7 @@ describe('src/http/client/clientModels', () => {
             const request = new http.HttpRequestMessage(http.HttpMethod.Post, url);
             request.content = "something";
 
-            assert.equal(request.headers.get('Content-Type'), 'application/json');
+            assert.isTrue(request.headers.get('Content-Type')?.startsWith('application/json'));
             assert.equal(request.content, "something");
         });
 

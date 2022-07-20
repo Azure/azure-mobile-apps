@@ -3,6 +3,7 @@
 
 import fetch, { Headers } from 'cross-fetch';
 import {  
+    HttpHeaders,
     HttpMethod, 
     HttpRequestMessage, 
     HttpResponseMessage 
@@ -16,7 +17,7 @@ import {
  * Definition of the client option for the FetchClient
  */
 export interface FetchClientOptions {
-    defaultHeaders?: HttpHeaders
+    headers?: HttpHeaders
 }
 
 /**
@@ -45,9 +46,9 @@ export class FetchClientHandler extends HttpClientHandler {
         const requestHeaders = new Headers();
 
         // Append the default request headers if they are defined.
-        if (typeof this._options.defaultHeaders !== 'undefined') {
-            for (const key in this._options.defaultHeaders) {
-                requestHeaders.append(key, this._options.defaultHeaders[key]);
+        if (typeof this._options.headers !== 'undefined') {
+            for (const key in this._options.headers) {
+                requestHeaders.append(key, this._options.headers[key]);
             }
         }
 

@@ -49,6 +49,18 @@ import * as _ from './extensions';
 }
 
 /**
+ * Ensures that the provided value is a valid endpoint for a datasync service.
+ * 
+ * @param value The value to check.
+ * @param name The parameter name. 
+ */
+export function isValidEndpoint(value: URL, name?: string) {
+    if (!_.isValidEndpoint(value)) {
+        throw new TypeError(`${name || 'endpoint' } "{value.href}" is not valid.`);
+    }
+}
+
+/**
  * Ensures that the provided value is a valid ID for a datasync service.
  * 
  * @param value The value to check.

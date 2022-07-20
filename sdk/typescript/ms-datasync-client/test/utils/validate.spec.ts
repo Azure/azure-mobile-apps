@@ -6,17 +6,14 @@ import * as Validate from '../../src/utils/validate';
 
 describe('src/utils/validate', () => {
     describe('#isDate', () => {
-        it('throws when required', () => {
-            assert.throws(() => { Validate.isDate(null); });
-            assert.throws(() => { Validate.isDate(''); });
-            assert.throws(() => { Validate.isDate('foo'); });
-            assert.throws(() => { Validate.isDate(123123); });
-            assert.throws(() => { Validate.isDate('1/1/12'); });
-        });
-        it('passes otherwise', () => {
-            assert.doesNotThrow(() => { Validate.isDate(new Date()); });
-            assert.doesNotThrow(() => { Validate.isDate(new Date('04/28/22')); });
-        });
+        it('throws when null', () => {assert.throws(() => { Validate.isDate(null); }); });
+        it('throws when an empty string', () => {assert.throws(() => { Validate.isDate(''); }); });
+        it('throws when a string', () => {assert.throws(() => { Validate.isDate('foo'); }); });
+        it('throws when a number', () => {assert.throws(() => { Validate.isDate(123123); }); });
+        it('throws when a string that looks like a date', () => {assert.throws(() => { Validate.isDate('1/1/12'); }); });
+
+        it('does not throw when the default date', () => {assert.doesNotThrow(() => { Validate.isDate(new Date()); }); });
+        it('does not throw when a date', () => {assert.doesNotThrow(() => { Validate.isDate(new Date('04/28/22')); }); });
     });
 
     describe('#isInteger', () => {
@@ -95,6 +92,12 @@ describe('src/utils/validate', () => {
             assert.doesNotThrow(() => { Validate.isNumber(0.001); });
             assert.doesNotThrow(() => { Validate.isNumber(NaN); });
         });
+    });
+
+    describe('#isValidEndpoint', () => {
+        it('throws when http domain', () => { assert.throws(() => { Validate.isValidEndpoint(new URL('http://ds.endpoint.com')); }); });
+        it('does not throw when https domain', () => { assert.doesNotThrow(() => { Validate.isValidEndpoint(new URL('https://ds.endpoint.com')); }); });
+        it('throws when http localhost', () => { assert.doesNotThrow(() => { Validate.isValidEndpoint(new URL('http://localhost')); }); });
     });
 
     describe('#isValidId', () => {

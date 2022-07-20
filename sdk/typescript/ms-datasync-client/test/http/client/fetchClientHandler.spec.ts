@@ -15,7 +15,7 @@ describe('src/http/client/fetchClientHandler', function () {
 
         it('can use default headers', async () => {
             const clientConfig: http.FetchClientOptions = {
-                defaultHeaders: {
+                headers: {
                     'X-Zumo-Request': 'abcd'
                 }
             };
