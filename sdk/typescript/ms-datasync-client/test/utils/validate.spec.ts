@@ -17,81 +17,66 @@ describe('src/utils/validate', () => {
     });
 
     describe('#isInteger', () => {
-        it('throws when required', () => {
-            assert.throws(() => { Validate.isInteger(null); });
-            assert.throws(() => { Validate.isInteger(''); });
-            assert.throws(() => { Validate.isInteger('foo'); });
-            assert.throws(() => { Validate.isInteger('1'); });
-            assert.throws(() => { Validate.isInteger(1.5); });
-            assert.throws(() => { Validate.isInteger(0.001); });
-            assert.throws(() => { Validate.isInteger(NaN); });
-        });
-        it('passes otherwise', () => {
-            assert.doesNotThrow(() => { Validate.isInteger(0); });
-            assert.doesNotThrow(() => { Validate.isInteger(1); });
-            assert.doesNotThrow(() => { Validate.isInteger(-1); });
-            assert.doesNotThrow(() => { Validate.isInteger(10); });
-        });
+        it('throws when null', () => { assert.throws(() => { Validate.isInteger(null); }); });
+        it('throws when empty string', () => { assert.throws(() => { Validate.isInteger(''); }); });
+        it('throws when string', () => { assert.throws(() => { Validate.isInteger('foo'); }); });
+        it('throws when numeric string', () => { assert.throws(() => { Validate.isInteger('1'); }); });
+        it('throws when 1.5', () => { assert.throws(() => { Validate.isInteger(1.5); }); });
+        it('throws when 0.001', () => { assert.throws(() => { Validate.isInteger(0.001); }); });
+        it('throws when NaN', () => { assert.throws(() => { Validate.isInteger(NaN); }); });
+
+        it('does not throw when zero', () => { assert.doesNotThrow(() => { Validate.isInteger(0); }); });
+        it('does not throw when 1', () => { assert.doesNotThrow(() => { Validate.isInteger(1); }); });
+        it('does not throw when -1', () => { assert.doesNotThrow(() => { Validate.isInteger(-1); }); });
+        it('does not throw when 10', () => { assert.doesNotThrow(() => { Validate.isInteger(10); }); });
     });
 
     describe('#notNull', () => {
-        it('throws when required', () => {
-            assert.throws(() => { Validate.notNull(null); }, TypeError);
-            assert.throws(() => { Validate.notNull(undefined); }, TypeError);
-        });
-        it('passes otherwise', () => {
-            assert.doesNotThrow(() => { Validate.notNull(''); });
-            assert.doesNotThrow(() => { Validate.notNull(0); });
-            assert.doesNotThrow(() => { Validate.notNull('foo'); });
-            assert.doesNotThrow(() => { Validate.notNull([]); });
-            assert.doesNotThrow(() => { Validate.notNull({}); });
-        });
+        it('throws when null', () => { assert.throws(() => { Validate.notNull(null); }, TypeError); });
+        it('throws when undefined', () => { assert.throws(() => { Validate.notNull(undefined); }, TypeError); });
+
+        it('does not throw when empty string', () => { assert.doesNotThrow(() => { Validate.notNull(''); }); });
+        it('does not throw when zero', () => { assert.doesNotThrow(() => { Validate.notNull(0); }); });
+        it('does not throw when string', () => { assert.doesNotThrow(() => { Validate.notNull('foo'); }); });
+        it('does not throw when array', () => { assert.doesNotThrow(() => { Validate.notNull([]); }); });
+        it('does not throw when object', () => { assert.doesNotThrow(() => { Validate.notNull({}); }); });
     });
 
     describe('#notNullOrEmpty', () => {
-        it('throws when required', () => {
-            assert.throws(() => { Validate.notNullOrEmpty(null); });
-            assert.throws(() => { Validate.notNullOrEmpty(undefined); });
-            assert.throws(() => { Validate.notNullOrEmpty(''); });
-            assert.throws(() => { Validate.notNullOrEmpty([]); });
-        });
-        it('passes otherwise', () => {
-            assert.doesNotThrow(() => { Validate.notNullOrEmpty(0); });
-            assert.doesNotThrow(() => { Validate.notNullOrEmpty('foo'); });
-            assert.doesNotThrow(() => { Validate.notNullOrEmpty({}); });
-        });
+        it('throws when null', () => { assert.throws(() => { Validate.notNullOrEmpty(null); }, TypeError); });
+        it('throws when undefined', () => { assert.throws(() => { Validate.notNullOrEmpty(undefined); }, TypeError); });
+        it('throws when empty string', () => { assert.throws(() => { Validate.notNullOrEmpty(''); }, TypeError); });
+        it('throws when empty array', () => { assert.throws(() => { Validate.notNullOrEmpty([]); }, TypeError); });
+
+        it('does not throw when zero', () => { assert.doesNotThrow(() => { Validate.notNullOrEmpty(0); }); });
+        it('does not throw when string', () => { assert.doesNotThrow(() => { Validate.notNullOrEmpty('foo'); }); });
+        it('does not throw when object', () => { assert.doesNotThrow(() => { Validate.notNullOrEmpty({}); }); });
     });
 
     describe('#notNullOrZero', () => {
-        it('throws when required', () => {
-            assert.throws(() => { Validate.notNullOrZero(null); });
-            assert.throws(() => { Validate.notNullOrZero(undefined); });
-            assert.throws(() => { Validate.notNullOrZero(''); });
-            assert.throws(() => { Validate.notNullOrZero(0); });
-        });
-        it('passes otherwise', () => {
-            assert.doesNotThrow(() => { Validate.notNullOrZero([]); });
-            assert.doesNotThrow(() => { Validate.notNullOrZero('foo'); });
-            assert.doesNotThrow(() => { Validate.notNullOrZero({}); });
-        });
+        it('throws when null', () => { assert.throws(() => { Validate.notNullOrZero(null); }, TypeError); });
+        it('throws when undefined', () => { assert.throws(() => { Validate.notNullOrZero(undefined); }, TypeError); });
+        it('throws when empty string', () => { assert.throws(() => { Validate.notNullOrZero(''); }, TypeError); });
+        it('throws when zero', () => { assert.throws(() => { Validate.notNullOrZero(0); }, TypeError); });
+
+        it('does not throw when empty array', () => { assert.doesNotThrow(() => { Validate.notNullOrZero([]); }); });
+        it('does not throw when string', () => { assert.doesNotThrow(() => { Validate.notNullOrZero('foo'); }); });
+        it('does not throw when object', () => { assert.doesNotThrow(() => { Validate.notNullOrZero({}); }); });
     });
 
     describe('#isNumber', () => {
-        it('throws when required', () => {
-            assert.throws(() => { Validate.isNumber(null); });
-            assert.throws(() => { Validate.isNumber(''); });
-            assert.throws(() => { Validate.isNumber('foo'); });
-            assert.throws(() => { Validate.isNumber('1'); });
-        });
-        it('passes otherwise', () => {
-            assert.doesNotThrow(() => { Validate.isNumber(0); });
-            assert.doesNotThrow(() => { Validate.isNumber(1); });
-            assert.doesNotThrow(() => { Validate.isNumber(-1); });
-            assert.doesNotThrow(() => { Validate.isNumber(1.5); });
-            assert.doesNotThrow(() => { Validate.isNumber(10); });
-            assert.doesNotThrow(() => { Validate.isNumber(0.001); });
-            assert.doesNotThrow(() => { Validate.isNumber(NaN); });
-        });
+        it('throws when null', () => { assert.throws(() => { Validate.isNumber(null); }, TypeError); });
+        it('throws when empty string', () => { assert.throws(() => { Validate.isNumber(''); }, TypeError); });
+        it('throws when string', () => { assert.throws(() => { Validate.isNumber('foo'); }, TypeError); });
+        it('throws when numeric string', () => { assert.throws(() => { Validate.isNumber('1'); }, TypeError); });
+
+        it('does not throw when zero', () => { assert.doesNotThrow(() => { Validate.isNumber(0); }); });
+        it('does not throw when 1', () => { assert.doesNotThrow(() => { Validate.isNumber(1); }); });
+        it('does not throw when -1', () => { assert.doesNotThrow(() => { Validate.isNumber(-1); }); });
+        it('does not throw when 1.5', () => { assert.doesNotThrow(() => { Validate.isNumber(1.5); }); });
+        it('does not throw when 10', () => { assert.doesNotThrow(() => { Validate.isNumber(10); }); });
+        it('does not throw when 0.001', () => { assert.doesNotThrow(() => { Validate.isNumber(0.001); }); });
+        it('does not throw when NaN (which is a number)', () => { assert.doesNotThrow(() => { Validate.isNumber(NaN); }); });
     });
 
     describe('#isValidEndpoint', () => {
@@ -101,15 +86,15 @@ describe('src/utils/validate', () => {
     });
 
     describe('#isValidId', () => {
-        it('throws when required', () => {
-            assert.throws(() => { Validate.isValidId(null); });
-            assert.throws(() => { Validate.isValidId(undefined); });
-            assert.throws(() => { Validate.isValidId(''); });
-            assert.throws(() => { Validate.isValidId([]); });
-            assert.throws(() => { Validate.isValidId(0); });
-            assert.throws(() => { Validate.isValidId(1); });
-            assert.throws(() => { Validate.isValidId(654); });
-        });
+        it('throws when null', () => { assert.throws(() => { Validate.isValidId(null); }, TypeError); });
+        it('throws when undefined', () => { assert.throws(() => { Validate.isValidId(undefined); }, TypeError); });
+        it('throws when empty string', () => { assert.throws(() => { Validate.isValidId(''); }, TypeError); });
+        it('throws when array', () => { assert.throws(() => { Validate.isValidId([]); }, TypeError); });
+        it('throws when zero', () => { assert.throws(() => { Validate.isValidId(0); }, TypeError); });
+        it('throws when 1', () => { assert.throws(() => { Validate.isValidId(1); }, TypeError); });
+        it('throws when 654', () => { assert.throws(() => { Validate.isValidId(654); }, TypeError); });
+        it('throws when boolean', () => { assert.throws(() => { Validate.isValidId(true); }, TypeError); });
+
         it('passes otherwise', () => {
             assert.doesNotThrow(() => { Validate.isValidId('id'); });
             assert.doesNotThrow(() => { Validate.isValidId('12.0'); });
