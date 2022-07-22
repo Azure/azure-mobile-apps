@@ -2,4 +2,4 @@
 // Licensed under the MIT license.
 
 export * from './client';
-export * from './serviceClient';
+export { ServiceClient } from './serviceClient';

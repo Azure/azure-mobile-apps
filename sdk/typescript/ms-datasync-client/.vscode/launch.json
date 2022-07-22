@@ -12,6 +12,15 @@
             "args": [],
             "cwd": "${workspaceRoot}",
             "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Mocha (SELECTION)",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": ["--grep", "SELECTION"],
+            "cwd": "${workspaceRoot}",
+            "internalConsoleOptions": "openOnSessionStart"
         }
     ]
 }

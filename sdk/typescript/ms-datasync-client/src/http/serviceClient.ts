@@ -1,25 +1,10 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import { HttpMessageHandler, HttpHeaders } from './client';
+import * as client from './client';
 import { _, validate } from '../utils';
-import { version } from '../../package.json';
+import { createPipeline, getUserAgent } from './utils';
 import { DatasyncClientOptions } from '../datasyncClientOptions';
-
-function createPipeline(handlers: HttpMessageHandler[]): HttpMessageHandler {
-
-}
-
-/**
- * Returns the user agent that requests should use.  Note that some platforms do not allow you to
- * specify the user agent, but we have a second header for those cases.
- * 
- * @returns The user agent.
- */
-function getUserAgent() {
-    const baseVersion = version.split(/\./).slice(0, 2).join('.');
-    return `Datasync/${baseVersion} (lang=typescript;ver=${version})`;
-}
 
 /**
  * An internal version of a http cleint that provides pipeline
@@ -34,7 +19,7 @@ export class ServiceClient {
     /**
      * The root of the HTTP message handler pipeline.
      */
-    protected rootHandler: HttpMessageHandler;
+    protected rootHandler: client.HttpMessageHandler;
 
     /**
      * The base URL for this client.
@@ -54,7 +39,7 @@ export class ServiceClient {
     /**
      * The default headers to add to every single request.
      */
-    private _headers: HttpHeaders;
+    private _headers: client.HttpHeaders;
 
     /**
      * 
@@ -67,10 +52,10 @@ export class ServiceClient {
         this._endpoint = endpoint;
         this._options = clientOptions;
         this._installationId = this._options.installationId || '';
-        this.rootHandler = createPipeline(this._options.httpPipeline || new Array<HttpMessageHandler>());
+        this.rootHandler = createPipeline(this._options.httpPipeline || []);
         this._headers = { 'ZUMO-API-VERSION': ServiceClient.PROTOCOL_VERSION };
-        const userAgent = this._options.userAgent || getUserAgent();
-        if (!_.isNullOrWhiteSpace(userAgent)) {
+        const userAgent: string = this._options.userAgent !== '' ? this._options.userAgent || getUserAgent() : '';
+        if (!_.isNullOrEmpty(userAgent)) {
             this._headers['X-ZUMO-VERSION'] = userAgent.trim();
         }
         if (!_.isNullOrWhiteSpace(this._installationId)) {
@@ -87,4 +72,9 @@ export class ServiceClient {
      * The unique identifier for this app on this device.
      */
     public get installationId(): string { return this._installationId; }
+
+    /**
+     * The default headers to add to the service request.
+     */
+    public get defaultHeaders(): client.HttpHeaders { return this._headers; }
 }

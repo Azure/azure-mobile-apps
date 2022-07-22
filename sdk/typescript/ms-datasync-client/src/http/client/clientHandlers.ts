@@ -45,6 +45,12 @@ export abstract class DelegatingHandler implements HttpMessageHandler {
     }
 
     /**
+     * The inner handler
+     */
+    public get innerHandler(): HttpMessageHandler | undefined { return this._innerHandler; }
+    public set innerHandler(value: HttpMessageHandler | undefined) { this._innerHandler = value; }
+
+    /**
      * Sends a request to the rest of the pipeline.
      * 
      * @param request the Request to send
