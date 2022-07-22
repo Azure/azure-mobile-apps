@@ -95,15 +95,12 @@ describe('src/utils/validate', () => {
         it('throws when 654', () => { assert.throws(() => { Validate.isValidId(654); }, TypeError); });
         it('throws when boolean', () => { assert.throws(() => { Validate.isValidId(true); }, TypeError); });
 
-        it('passes otherwise', () => {
-            assert.doesNotThrow(() => { Validate.isValidId('id'); });
-            assert.doesNotThrow(() => { Validate.isValidId('12.0'); });
-            assert.doesNotThrow(() => { Validate.isValidId('true'); });
-            assert.doesNotThrow(() => { Validate.isValidId('false'); });
-            assert.doesNotThrow(() => { Validate.isValidId('aa4da0b5-308c-4877-a5d2-03f274632636'); });
-            assert.doesNotThrow(() => { Validate.isValidId('69C8BE62-A09F-4638-9A9C-6B448E9ED4E7'); });
-            assert.doesNotThrow(() => { Validate.isValidId('{EC26F57E-1E65-4A90-B949-0661159D0546}'); });
-            assert.doesNotThrow(() => { Validate.isValidId('id with Russian Где моя машина'); });
-        });
+        it('does not throw on simple string', () => {assert.doesNotThrow(() => { Validate.isValidId('id'); }); });
+        it('does not throw on numeric string', () => {assert.doesNotThrow(() => { Validate.isValidId('12.0'); }); });
+        it('does not throw on bool string', () => {assert.doesNotThrow(() => { Validate.isValidId('true'); }); });
+        it('does not throw on lc guid', () => {assert.doesNotThrow(() => { Validate.isValidId('aa4da0b5-308c-4877-a5d2-03f274632636'); }); });
+        it('does not throw on uc guid', () => {assert.doesNotThrow(() => { Validate.isValidId('69C8BE62-A09F-4638-9A9C-6B448E9ED4E7'); }); });
+        it('does not throw on bracketed guid', () => {assert.doesNotThrow(() => { Validate.isValidId('{EC26F57E-1E65-4A90-B949-0661159D0546}'); }); });
+        it('does not throw on russian string', () => {assert.doesNotThrow(() => { Validate.isValidId('id with Russian Где моя машина'); }); });
     });
 });

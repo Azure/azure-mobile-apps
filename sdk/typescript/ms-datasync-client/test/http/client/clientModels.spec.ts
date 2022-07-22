@@ -158,5 +158,14 @@ describe('src/http/client/clientModels', () => {
                 assert.equal(sut.isConflictStatusCode, value);
             });
         });
-    })
-})
+    
+        it('sets the reasonPhrase when not specified', () => {
+            for (let statusCode = 100; statusCode < 599; statusCode++) {
+                const request = new http.HttpRequestMessage(http.HttpMethod.Get, url);
+                const response = new http.HttpResponseMessage(statusCode, '', request);
+                assert.isDefined(response.reasonPhrase);
+                assert.isNotEmpty(response.reasonPhrase);
+            }
+        });
+    });
+});

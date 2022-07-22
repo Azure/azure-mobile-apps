@@ -70,4 +70,4 @@ describe('src/http/client/axiosClientHandler', function () {
             expect(c4).to.not.be.undefined;
         });
     });
-})
+});

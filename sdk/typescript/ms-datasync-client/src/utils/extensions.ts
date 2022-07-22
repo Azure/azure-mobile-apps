@@ -62,6 +62,11 @@ export function isInteger(value: any): boolean {
  * @param value the hostname value
  */
  export function isLocalNetwork(value: string): boolean {
+    // IPv6 addresses can be ::1 or [::1] - if first character is a [ and the last is ], then strip off the characters.
+    if (value[0] === '[' && value[value.length-1] === ']') {
+        value = value.slice(1, value.length - 1);
+    }
+    
     // Standard hostnames
     if (['localhost', '127.0.0.1', '::1'].includes(value) || value.endsWith('.local')) {
         return true;

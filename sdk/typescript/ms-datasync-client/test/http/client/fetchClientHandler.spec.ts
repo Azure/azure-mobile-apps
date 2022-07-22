@@ -38,4 +38,4 @@ describe('src/http/client/fetchClientHandler', function () {
             }
         });
     });
-})
+});
