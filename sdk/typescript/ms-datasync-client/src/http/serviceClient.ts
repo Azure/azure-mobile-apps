@@ -3,8 +3,36 @@
 
 import * as client from './client';
 import { _, validate } from '../utils';
-import { createPipeline, getUserAgent } from './utils';
 import { DatasyncClientOptions } from '../datasyncClientOptions';
+import { createPipeline, getErrorMessageFromContent, getRequestMessage, getUserAgent } from './utils';
+import { ServiceRequest } from './serviceRequest';
+import { ServiceResponse } from './serviceResponse';
+
+/**
+ * An error thrown by the service client.
+ */
+export class ServiceClientError extends Error {
+    private _request?: client.HttpRequestMessage;
+    private _response?: client.HttpResponseMessage;
+
+    /**
+     * 
+     * @param message The error message.
+     * @param request The request object.
+     * @param response The response object.
+     */
+    constructor(message: string, request?: client.HttpRequestMessage, response?: client.HttpResponseMessage) {
+        super(message);
+        this._request = request;
+        this._response = response;
+    }
+
+    /** The HTTP request message causing the issue. */
+    public get request(): client.HttpRequestMessage | undefined { return this._request; }
+
+    /** The HTTP response message causing the issue. */
+    public get response(): client.HttpResponseMessage | undefined { return this._response; }
+}
 
 /**
  * An internal version of a http cleint that provides pipeline
@@ -42,9 +70,10 @@ export class ServiceClient {
     private _headers: client.HttpHeaders;
 
     /**
+     * Creates a new ServiceClient.
      * 
-     * @param endpoint 
-     * @param clientOptions 
+     * @param endpoint the absolute URL to the service client endpoint.
+     * @param clientOptions The client options to use for modifying the request.
      */
     public constructor(endpoint: URL, clientOptions: DatasyncClientOptions) {
         validate.isValidEndpoint(endpoint, 'endpoint');
@@ -77,4 +106,43 @@ export class ServiceClient {
      * The default headers to add to the service request.
      */
     public get defaultHeaders(): client.HttpHeaders { return this._headers; }
+
+    /**
+     * Sends the request through the HTTP pipeline with additional default headers.  Any
+     * headers in the request will override the default headers.
+     * 
+     * @param request The request to send.
+     * @param signal An AbortSignal to monitor.
+     * @returns The response from the service.
+     */
+    public async sendRequestAsync(request: client.HttpRequestMessage, signal?: AbortSignal): Promise<client.HttpResponseMessage> {
+        validate.notNull(request, 'request');
+        request.headers = { ...this.defaultHeaders, ...request.headers };
+        return await this.rootHandler.sendAsync(request, signal);
+    }
+
+    /**
+     * Sends the request through the HTTP pipeline with the standard headers.
+     * 
+     * @param serviceRequest The request to send.
+     * @param signal An AbortSignal to monitor.
+     * @returns The response from the service.
+     */
+    public async sendAsync(serviceRequest: ServiceRequest, signal?: AbortSignal): Promise<ServiceResponse> {
+        validate.notNull(serviceRequest, 'serviceRequest');
+        const request = getRequestMessage(serviceRequest, this.endpoint);
+        const response = await this.sendRequestAsync(request, signal);
+        if (!response.isSuccessStatusCode)  {
+            const message = getErrorMessageFromContent(response.content || '') || `The request could not be complete (${response.reasonPhrase})`;
+            throw new ServiceClientError(message, request, response);
+        }
+
+        if (serviceRequest.ensureResponseContent) {
+            if (_.isNullOrEmpty(response.content)) {
+                throw new ServiceClientError('The server did not provide a response with the expected content', request, response);
+            }
+        }
+
+        return new ServiceResponse(response);
+    }
 }

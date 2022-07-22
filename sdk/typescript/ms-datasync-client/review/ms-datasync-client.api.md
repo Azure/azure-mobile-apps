@@ -4,7 +4,7 @@
 
 ```ts
 
-// @public (undocumented)
+// @public
 export class DatasyncClient {
     constructor(endpoint: string, options?: DatasyncClientOptions);
     get clientOptions(): DatasyncClientOptions;
@@ -12,13 +12,12 @@ export class DatasyncClient {
 }
 
 // @public
-export interface DatasyncClientOptions extends ServiceClientOptions {
-    installationId?: string;
-}
-
-// @public
-export interface ServiceClientOptions {
+export interface DatasyncClientOptions {
+    // Warning: (ae-forgotten-export) The symbol "HttpMessageHandler" needs to be exported by the entry point index.d.ts
+    httpPipeline?: HttpMessageHandler[];
     httpTimeout?: number;
+    installationId?: string;
+    userAgent?: string;
 }
 
 // (No @packageDocumentation comment for this package)

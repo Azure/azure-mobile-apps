@@ -9,6 +9,7 @@ import axios, {
     AxiosResponse
 } from 'axios';
 import {  
+    HttpHeaders,
     HttpMethod, 
     HttpRequestMessage, 
     HttpResponseMessage 
@@ -66,7 +67,9 @@ export class AxiosClientHandler extends HttpClientHandler {
      */
     private getRequestHeaders(request: HttpRequestMessage): AxiosRequestHeaders {
         const headers: AxiosRequestHeaders = {};
-        request.headers.forEach((value, key) => { headers[key] = value; });
+        for (const key in request.headers) {
+            headers[key] = request.headers[key];
+        }
         return headers;
     }
 
@@ -76,10 +79,10 @@ export class AxiosClientHandler extends HttpClientHandler {
      * @param response The Axios Response.
      * @returns The map of headers.
      */
-    private getResponseHeaders(response: AxiosResponse): Map<string, string> {
-        const headers: Map<string, string> = new Map<string, string>();
-        for (const header in response.headers) {
-            headers.set(header, response.headers[header]);
+    private getResponseHeaders(response: AxiosResponse): HttpHeaders {
+        const headers: HttpHeaders = {};
+        for (const key in response.headers) {
+            headers[key.toLowerCase()] = response.headers[key];
         }
         return headers;
     }

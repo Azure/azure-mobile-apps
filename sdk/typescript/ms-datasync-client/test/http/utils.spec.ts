@@ -3,7 +3,7 @@
 
 import { assert } from 'chai';
 import * as http from '../../src/http';
-import { createPipeline, getUserAgent } from '../../src/http/utils';
+import { createPipeline, getErrorMessageFromContent, getUserAgent, getRequestMessage } from '../../src/http/utils';
 
 class MockDelegatingHandler extends http.DelegatingHandler { }
 
@@ -88,6 +88,36 @@ describe('src/client/utils', () => {
             const c = new http.AxiosClientHandler();
             const args: Array<http.HttpMessageHandler> = [ a, c, b ];
             assert.throws(() => {  createPipeline(args); })
+        });
+    });
+
+    describe("#getErrorMessageFromContent", () => {
+        it('returns undefined for empty string', () => { assert.isUndefined(getErrorMessageFromContent('')); });
+        it('returns undefined for white space', () => { assert.isUndefined(getErrorMessageFromContent('   ')); });
+        it('returns undefined for empty object', () => { assert.isUndefined(getErrorMessageFromContent('{}')); });
+        it('returns string for non-JSON', () => { assert.equal(getErrorMessageFromContent('foo'), 'foo'); });
+        it('returns error message for standard-error', () => { assert.equal(getErrorMessageFromContent('{"error":"foo"}'), 'foo'); });
+        it('returns error message for standard-description', () => { assert.equal(getErrorMessageFromContent('{"description":"foo"}'), 'foo'); });
+        it('returns undefined for nonstandard object', () => { assert.isUndefined(getErrorMessageFromContent('{"code":1234}')); });
+    });
+
+    describe("#getRequestMessage", () => {
+        it('sets the url when pathAndQuery is absolute', () => {
+            const serviceRequest = new http.ServiceRequest().withPathAndQuery('http://localhost/tables/foo');
+            const request = getRequestMessage(serviceRequest, new URL('http://ds.azurewebsites.net'));
+            assert.equal('http://localhost/tables/foo', request.requestUri.href);
+        });
+
+        it('sets the url when pathAndQuery is relative with leading slash', () => {
+            const serviceRequest = new http.ServiceRequest().withPathAndQuery('/tables/foo');
+            const request = getRequestMessage(serviceRequest, new URL('http://ds.azurewebsites.net'));
+            assert.equal('http://ds.azurewebsites.net/tables/foo', request.requestUri.href);
+        });
+
+        it('sets the url when pathAndQuery is relative without leading slash', () => {
+            const serviceRequest = new http.ServiceRequest().withPathAndQuery('tables/foo');
+            const request = getRequestMessage(serviceRequest, new URL('http://ds.azurewebsites.net'));
+            assert.equal('http://ds.azurewebsites.net/tables/foo', request.requestUri.href);
         });
     });
 

@@ -22,15 +22,15 @@ export function runBasicHttpTests(getClient: () => HttpClientHandler) {
         expect(response).to.be.instanceof(HttpResponseMessage);
 
         // status code
-        expect(response.statusCode).to.equal(200);
-        expect(response.isConflictStatusCode).to.be.false;
-        expect(response.isSuccessStatusCode).to.be.true;
+        expect(response.statusCode, 'status code is 200').to.equal(200);
+        expect(response.isConflictStatusCode, 'conflict status code is false').to.be.false;
+        expect(response.isSuccessStatusCode, 'success status code is true').to.be.true;
 
         // headers
-        expect(response.headers.has('server')).to.be.true;
+        expect(response.headers, 'response has a header').to.not.be.empty;
 
         // content
-        expect(response.content).to.be.a('string')
+        expect(response.content, 'has content').to.be.a('string')
             .and.to.have.length.greaterThan(0);
         if (typeof response.content === 'string') {
             const obj = JSON.parse(response.content);
@@ -51,15 +51,15 @@ export function runBasicHttpTests(getClient: () => HttpClientHandler) {
         expect(response).to.be.instanceof(HttpResponseMessage);
 
         // status code
-        expect(response.statusCode).to.equal(404);
-        expect(response.isConflictStatusCode).to.be.false;
-        expect(response.isSuccessStatusCode).to.be.false;
+        expect(response.statusCode, 'status code is 404').to.equal(404);
+        expect(response.isConflictStatusCode, 'conflict status code is false').to.be.false;
+        expect(response.isSuccessStatusCode, 'success status code is false').to.be.false;
 
         // headers
-        expect(response.headers.has('server')).to.be.true;
+        expect(response.headers, 'response has a header').to.not.be.empty;
         
         // content
-        expect(response.content || '').to.be.equal('');
+        expect(response.content || '', 'has no content').to.be.equal('');
     });
 
     it('POST-200-with-body', async () => {
@@ -75,15 +75,15 @@ export function runBasicHttpTests(getClient: () => HttpClientHandler) {
         expect(response).to.be.instanceof(HttpResponseMessage);
 
         // status code
-        expect(response.statusCode).to.equal(200);
-        expect(response.isConflictStatusCode).to.be.false;
-        expect(response.isSuccessStatusCode).to.be.true;
+        expect(response.statusCode, 'status code is 200').to.equal(200);
+        expect(response.isConflictStatusCode, 'conflict status code is false').to.be.false;
+        expect(response.isSuccessStatusCode, 'success status code is true').to.be.true;
 
         // headers
-        expect(response.headers.has('server')).to.be.true;
+        expect(response.headers, 'response has a header').to.not.be.empty;
         
         // content
-        expect(response.content).to.be.a('string')
+        expect(response.content, 'has content').to.be.a('string')
             .and.to.have.length.greaterThan(0);
         if (typeof response.content === 'string') {
             const obj = JSON.parse(response.content);
@@ -104,14 +104,14 @@ export function runBasicHttpTests(getClient: () => HttpClientHandler) {
         expect(response).to.be.instanceof(HttpResponseMessage);
 
         // status code
-        expect(response.statusCode).to.equal(204);
-        expect(response.isConflictStatusCode).to.be.false;
-        expect(response.isSuccessStatusCode).to.be.true;
+        expect(response.statusCode, 'status code should be 204').to.equal(204);
+        expect(response.isConflictStatusCode, 'conflict status code should be false').to.be.false;
+        expect(response.isSuccessStatusCode, 'success status code should be true').to.be.true;
 
         // headers
-        expect(response.headers.has('server')).to.be.true;
+        expect(response.headers, 'response has a header').to.not.be.empty;
         
         // content
-        expect(response.content || '').to.be.equal('');
+        expect(response.content || '', 'has no content').to.be.equal('');
     });
 }

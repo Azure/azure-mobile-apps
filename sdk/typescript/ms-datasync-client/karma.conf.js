@@ -1,5 +1,4 @@
-// Karma configuration
-// Generated on Fri Jul 15 2022 15:16:33 GMT-0700 (Pacific Daylight Time)
+const os = require('os');
 
 module.exports = function(config) {
   config.set({
@@ -34,17 +33,23 @@ module.exports = function(config) {
     customLaunchers: {
       ChromeDebugging: {
         base: 'Chrome',
-        flags: [ '--remote-debugging-port=9333' ]
+        // Need to bypass web security for CORS issues
+        flags: [ 
+          '--remote-debugging-port=9333', 
+          '--disable-web-security', 
+          '--disable-site-isolation-trials',
+          `--user-data-dir=${os.tmpdir()}`,
+         ]
       }
     },
     browsers: ['ChromeDebugging'],
     singleRun: true,
     concurrency: 1,
     karmaTypescriptConfig: {
-      extends: "../tsconfig.json",
       compilerOptions: {
         sourceMap: true,
-        esModuleInterop: true
+        esModuleInterop: true,
+        resolveJsonModule: true
       }
     }
   });

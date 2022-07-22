@@ -34,7 +34,7 @@ export class HttpError extends Error {
 export class HttpRequestMessage {
     private _method: HttpMethod;
     private _requestUri: URL;
-    private _headers: Map<string, string>;
+    private _headers: HttpHeaders;
     private _content?: string;
 
     /**
@@ -45,10 +45,10 @@ export class HttpRequestMessage {
      * @param content The optional payload.
      * @param headers The optional list of headers.
      */
-    constructor(method: HttpMethod, requestUri: URL, content?: string, headers?: Map<string, string>) {
+    constructor(method: HttpMethod, requestUri: URL, content?: string, headers?: HttpHeaders) {
         this._method = method;
         this._requestUri = requestUri;
-        this._headers = headers || new Map<string, string>();
+        this._headers = headers || {};
         this._content = content;
         if (typeof content !== 'undefined') {
             this.setContentTypeToJson();
@@ -59,8 +59,8 @@ export class HttpRequestMessage {
      * Helper method that sets the content type header to the right thing.
      */
     private setContentTypeToJson() {
-        if (!this._headers.has('Content-Type')) {
-            this._headers.set('Content-Type', 'application/json; charset=utf-8');
+        if (typeof this._headers['Content-Type'] === 'undefined') {
+            this._headers['Content-Type'] = 'application/json; charset=utf-8';
         }
     }
 
@@ -73,15 +73,15 @@ export class HttpRequestMessage {
         if (typeof value !== 'undefined') {
             this.setContentTypeToJson();
         } else {
-            this._headers.delete('Content-Type');
+            delete this._headers['Content-Type'];
         }
     }
 
     /**
      * The HTTP Headers for this request.
      */
-    get headers(): Map<string, string> { return this._headers; }
-    set headers(value: Map<string, string>) { this._headers = value; }
+    get headers(): HttpHeaders { return this._headers; }
+    set headers(value: HttpHeaders) { this._headers = value; }
 
      /**
      * The HTTP VERB to use.
@@ -98,7 +98,7 @@ export class HttpRequestMessage {
 
 export class HttpResponseMessage {
     private _content?: string;
-    private _headers: Map<string, string>;
+    private _headers: HttpHeaders;
     private _reasonPhrase: string;
     private _requestMessage: HttpRequestMessage;
     private _statusCode: number;
@@ -111,11 +111,11 @@ export class HttpResponseMessage {
      * @param requestMessage The originating request message
      * @param headers The response headers
      */
-    constructor(statusCode: number, reasonPhrase: string, requestMessage: HttpRequestMessage, headers?: Map<string, string>, content?: string) {
+    constructor(statusCode: number, reasonPhrase: string, requestMessage: HttpRequestMessage, headers?: HttpHeaders, content?: string) {
         this._statusCode = statusCode;
         this._reasonPhrase = isNullOrEmpty(reasonPhrase) ? this.getDefaultReasonPhrase(statusCode) : reasonPhrase;
         this._requestMessage = requestMessage;
-        this._headers = headers ?? new Map<string, string>();
+        this._headers = headers ?? {};
         this._content = content;
     }
 
@@ -169,7 +169,7 @@ export class HttpResponseMessage {
     /**
      * The HTTP Headers for this request.
      */
-    get headers(): Map<string, string> { return this._headers; }
+    get headers(): HttpHeaders { return this._headers; }
 
     /**
      * Gets a value that indicates if the HTTP response was a conflict code.

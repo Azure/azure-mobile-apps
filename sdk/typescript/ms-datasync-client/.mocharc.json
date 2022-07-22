@@ -4,6 +4,7 @@
         "ts"
     ],
     "project": "./tsconfig.json",
+    "reporter": "tap",
     "spec": [
         "test/**/*.spec.ts"
     ],

@@ -9,57 +9,52 @@ const url = new URL('https://jsonplaceholder.typicode.com/posts/1');
 describe('src/http/client/clientModels', () => {
     describe('#HttpRequestMessage', () => {
         it('sets content-type when not specified', () => {
-            const headers = new Map<string, string>([[ 'X-ZUMO-TEST', '1234' ]]);
+            const headers: http.HttpHeaders = { 'X-ZUMO-TEST': '1234' };
             const request = new http.HttpRequestMessage(http.HttpMethod.Get, url, "content", headers);
 
-            assert.isTrue(request.headers.get('Content-Type')?.startsWith('application/json'));
-            assert.equal(request.headers.get('X-ZUMO-TEST'), '1234');
+            assert.isTrue(request.headers['Content-Type']?.startsWith('application/json'));
+            assert.equal(request.headers['X-ZUMO-TEST'], '1234');
         });
 
         it('does not override content-type', () => {
-            const headers = new Map<string, string>([
-                [ 'X-ZUMO-TEST', '1234' ],
-                [ 'Content-Type', 'application/patch+json']
-            ]);
+            const headers: http.HttpHeaders = { 'X-ZUMO-TEST': '1234', 'Content-Type': 'application/patch+json' };
             const request = new http.HttpRequestMessage(http.HttpMethod.Get, url, "content", headers); 
 
-            assert.equal(request.headers.get('Content-Type'), 'application/patch+json');
-            assert.equal(request.headers.get('X-ZUMO-TEST'), '1234');
+            assert.equal(request.headers['Content-Type'], 'application/patch+json');
+            assert.equal(request.headers['X-ZUMO-TEST'], '1234');
         });
 
         it('sets content-type when setting content', () => {
             const request = new http.HttpRequestMessage(http.HttpMethod.Post, url);
             request.content = "something";
 
-            assert.isTrue(request.headers.get('Content-Type')?.startsWith('application/json'));
+            assert.isTrue(request.headers['Content-Type']?.startsWith('application/json'));
             assert.equal(request.content, "something");
         });
 
         it('does not override content-type when setting content', () => {
-            const headers = new Map<string, string>([
-                [ 'Content-Type', 'application/patch+json']
-            ]);
+            const headers: http.HttpHeaders = { 'Content-Type': 'application/patch+json' };
             const request = new http.HttpRequestMessage(http.HttpMethod.Get, url, undefined, headers);
             request.content = "something";
 
-            assert.equal(request.headers.get('Content-Type'), 'application/patch+json');
+            assert.equal(request.headers['Content-Type'], 'application/patch+json');
             assert.equal(request.content, "something");
         });
 
         it('clears content-type when clearing content', () => {
-            const headers = new Map<string, string>([[ 'X-ZUMO-TEST', '1234' ]]);
+            const headers: http.HttpHeaders = { 'X-ZUMO-TEST': '1234' };
             const request = new http.HttpRequestMessage(http.HttpMethod.Get, url, "content", headers);
             request.content = undefined;
 
             assert.isUndefined(request.content);
-            assert.isUndefined(request.headers.get('Content-Type'));
+            assert.isUndefined(request.headers['Content-Type']);
         });
 
         it('can set headers', () => {
             const request = new http.HttpRequestMessage(http.HttpMethod.Get, url, "content"); // sets content-type
-            request.headers = new Map<string, string>();
+            request.headers = {};
 
-            assert.isUndefined(request.headers.get('Content-Type')); // content-type no longer available.
+            assert.isUndefined(request.headers['Content-Type']); // content-type no longer available.
         });
 
         it('can set method', () => {
@@ -104,7 +99,7 @@ describe('src/http/client/clientModels', () => {
 
         it('sets all the variables - full', () => {
             const request = new http.HttpRequestMessage(http.HttpMethod.Get, url);
-            const headers = new Map<string, string>([[ 'X-ZUMO-TEST', '1234' ]]);
+            const headers: http.HttpHeaders = { 'X-ZUMO-TEST': '1234' };
             const sut = new http.HttpResponseMessage(200, "OK", request, headers, "body-text");
 
             assert.isDefined(sut);
@@ -115,12 +110,12 @@ describe('src/http/client/clientModels', () => {
             assert.equal(sut.requestMessage, request);
             assert.equal(sut.content, "body-text");
             assert.isNotEmpty(sut.headers);
-            assert.strictEqual(sut.headers.get('X-ZUMO-TEST'), '1234');
+            assert.strictEqual(sut.headers['X-ZUMO-TEST'], '1234');
         });
 
         it('sets isSuccessStatusCode to true', () => {
             const request = new http.HttpRequestMessage(http.HttpMethod.Get, url);
-            const headers = new Map<string, string>([[ 'X-ZUMO-TEST', '1234' ]]);
+            const headers: http.HttpHeaders = { 'X-ZUMO-TEST': '1234' };
 
             for (let statusCode = 200; statusCode < 299; statusCode++) {
                 const sut = new http.HttpResponseMessage(statusCode, "OK", request, headers, "body-text");
@@ -130,7 +125,7 @@ describe('src/http/client/clientModels', () => {
 
         it('sets isSuccessStatusCode to false', () => {
             const request = new http.HttpRequestMessage(http.HttpMethod.Get, url);
-            const headers = new Map<string, string>([[ 'X-ZUMO-TEST', '1234' ]]);
+            const headers: http.HttpHeaders = { 'X-ZUMO-TEST': '1234' };
 
             for (let statusCode = 400; statusCode < 599; statusCode++) {
                 const sut = new http.HttpResponseMessage(statusCode, "Failed", request, headers, "body-text");
@@ -140,7 +135,7 @@ describe('src/http/client/clientModels', () => {
 
         it('sets isConflictStatusCode', () => {
             const request = new http.HttpRequestMessage(http.HttpMethod.Get, url);
-            const headers = new Map<string, string>([[ 'X-ZUMO-TEST', '1234' ]]);
+            const headers: http.HttpHeaders = { 'X-ZUMO-TEST': '1234' };
             const codes: Map<number, boolean> = new Map<number, boolean>([
                 [ 200, false ],
                 [ 201, false ],

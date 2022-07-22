@@ -1,20 +1,16 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import { ServiceClientOptions } from './http';
-
-/**
- * The options used to configure the DatasyncClient.
- */
-export interface DatasyncClientOptions extends ServiceClientOptions {
-    /** The installation ID (if any) to send to the service with every request */
-    installationId?: string;
-}
+import { DatasyncClientOptions } from './datasyncClientOptions';
 
 const defaultClientOptions: DatasyncClientOptions = {
-    // Set up the default client options here.
+    httpPipeline: [],
+    httpTimeout: 100000
 };
 
+/**
+ * Provides basic access to a Microsoft Datasync service.
+ */
 export class DatasyncClient {
     private _endpoint: string;
     private _clientOptions: DatasyncClientOptions;
@@ -32,17 +28,9 @@ export class DatasyncClient {
         this._clientOptions = { ...defaultClientOptions, ...options };
     }
 
-    /**
-     * The client options for the service.
-     */
-    get clientOptions() {
-        return this._clientOptions;
-    }
+    /** The client options for the service. */
+    public get clientOptions() { return this._clientOptions; }
 
-    /**
-     * The endpoint for the service.
-     */
-    get endpoint() {
-        return this._endpoint;
-    }
+    /** The endpoint for the service. */
+    public get endpoint() { return this._endpoint; }
 }

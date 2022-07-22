@@ -51,10 +51,9 @@ export class FetchClientHandler extends HttpClientHandler {
                 requestHeaders.append(key, this._options.headers[key]);
             }
         }
-
-        // Append the request headers.
-        request.headers.forEach((value, key) => { requestHeaders.append(key, value); });
-
+        for (const key in request.headers) {
+            requestHeaders.append(key, request.headers[key]);
+        }
         return requestHeaders;
     }
 
@@ -64,9 +63,9 @@ export class FetchClientHandler extends HttpClientHandler {
      * @param response The response object.
      * @returns A map of the headers.
      */
-    private getResponseHeaders(response: Response): Map<string, string> {
-        const headers = new Map<string, string>();
-        response.headers.forEach((value, key) => { headers.set(key, value); });
+    private getResponseHeaders(response: Response): HttpHeaders {
+        const headers: HttpHeaders = {};
+        response.headers.forEach((value, key) => { headers[key.toLowerCase()] = value; });
         return headers;
     }
 

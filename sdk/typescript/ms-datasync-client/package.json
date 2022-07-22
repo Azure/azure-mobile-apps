@@ -45,7 +45,7 @@
     "test": "run-s test:node test:browser test:coverage",
     "test:browser": "karma start --single-run=true",
     "test:coverage": "nyc report --reporter text",
-    "test:node": "nyc --reporter none mocha"
+    "test:node": "nyc --reporter none mocha --reporter progress"
   },
   "dependencies": {
     "axios": "^0.27.2",
