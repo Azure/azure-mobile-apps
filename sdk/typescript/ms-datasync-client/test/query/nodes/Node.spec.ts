@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 import { assert } from 'chai';
-import { Node } from '../../src/query/Node';
+import { Node } from '../../../src/query/nodes';
 
 class Expression extends Node {
     constructor() { super(); }
@@ -12,7 +12,7 @@ class BinaryExpression extends Expression {
     constructor() { super(); }
 }
 
-describe('src/query/Node', () => {
+describe('src/query/nodes/Node', () => {
     describe('#constructor', () => {
         it('sets type in constructor', () => {
             const n = new Node();
