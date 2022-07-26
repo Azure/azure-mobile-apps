@@ -1,20 +1,17 @@
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+import { PagedAsyncIterableIterator, PageSettings } from "@azure/core-paging";
+import { DataTransferObject, DataTransferPage } from "./DataTransferObject";
+import { IDataTable } from "./IDataTable";
+import { TableQuery } from "./TableQuery";
 
-import { PagedAsyncIterableIterator } from '@azure/core-paging';
-import { DataTransferObject, DataTransferPage } from './DataTransferObject';
-import { TableQuery } from './TableQuery';
-
-/**
- * Definition of a data table.
- */
-export interface IDataTable<T extends DataTransferObject> {
+export class RemoteTable<T extends DataTransferObject> implements IDataTable<T> {
     /**
      * Gets the name of the table.
      * 
      * @returns {string} The name of the table
      */
-    get tableName(): string;
+    get tableName(): string {
+        throw new Error("Method not implemented.");
+    }
 
     /**
      * Creates a new item in the table.  The item does not need
@@ -25,7 +22,9 @@ export interface IDataTable<T extends DataTransferObject> {
      * @param signal An AbortSignal to monitor.
      * @returns A promise that resolves to the stored item.
      */
-    createItemAsync(item: T, signal?: AbortSignal): Promise<T>;
+    createItemAsync(item: T, signal?: AbortSignal): Promise<T> {
+        throw new Error("Method not implemented.");
+    }
 
     /**
      * Deletes an existing item in the table.  The item must have
@@ -36,7 +35,9 @@ export interface IDataTable<T extends DataTransferObject> {
      * @param signal An AbortSignal to monitor.
      * @returns A promise that resolves when the operation is complete.
      */
-    deleteItemAsync(item: T, signal?: AbortSignal): Promise<void>;
+    deleteItemAsync(item: T, signal?: AbortSignal): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
 
     /**
      * Retrieves an existing item in the table.  The item must have
@@ -46,7 +47,9 @@ export interface IDataTable<T extends DataTransferObject> {
      * @param signal An AbortSignal to monitor.
      * @returns A promise that resolves to the stored item.
      */
-    getItemAsync(id: string, signal?: AbortSignal): Promise<T>;
+    getItemAsync(id: string, signal?: AbortSignal): Promise<T> {
+        throw new Error("Method not implemented.");
+    }
 
     /**
      * Retrieves a single page of items from the table according to the
@@ -57,7 +60,9 @@ export interface IDataTable<T extends DataTransferObject> {
      * @param signal An AbortSignal to monitor.
      * @returns A promise that resolves to a page of items.
      */
-    getPageOfItemsAsync(query?: TableQuery, signal?: AbortSignal): Promise<DataTransferPage<T>>;
+    getPageOfItemsAsync(query?: TableQuery, signal?: AbortSignal): Promise<DataTransferPage<T>> {
+        throw new Error("Method not implemented.");
+    }
 
     /**
      * Retrieves an async iterable of the items returned by the query.  If no query
@@ -66,7 +71,10 @@ export interface IDataTable<T extends DataTransferObject> {
      * @param query The query to use for retrieving the items in the table.
      * @returns An async iterable object of items.
      */
-    listItemsAsync(query?: TableQuery): PagedAsyncIterableIterator<T>;
+    listItemsAsync(query?: TableQuery): PagedAsyncIterableIterator<T> {
+        const iter = this.getPageOfItemsAsync()
+        throw new Error("Method not implemented.");
+    }
 
     /**
      * Replaces an item in the table with a new version of the item.
@@ -77,5 +85,8 @@ export interface IDataTable<T extends DataTransferObject> {
      * @param signal An AbortSignal to monitor.
      * @returns A promise that resolves to the stored item.
      */
-    replaceItemAsync(item: T, signal?: AbortSignal): Promise<T>;
+    replaceItemAsync(item: T, signal?: AbortSignal): Promise<T> {
+        throw new Error("Method not implemented.");
+    }
+    
 }
