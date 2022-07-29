@@ -7,7 +7,7 @@ import { ArgumentError } from '../../src/errors';
 describe('errors/ArgumentError', () => {
     describe('#ctor', () => {
         it('can be thrown', () => {
-            expect(() => { throw new ArgumentError('test', 'foo'); }).to.throw;
+            expect(() => { throw new ArgumentError('test', 'foo'); }).to.throw(ArgumentError);
         });
     });
 
