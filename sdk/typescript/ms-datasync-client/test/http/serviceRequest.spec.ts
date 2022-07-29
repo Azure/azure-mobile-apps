@@ -2,77 +2,56 @@
 // Licensed under the MIT license.
 
 import { expect } from 'chai';
+import { ArgumentError } from '../../src/errors';
 import { HttpMethod, ServiceRequest } from '../../src/http';
 
-describe('src/http/serviceRequest', () => {
+describe('http/ServiceRequest', () => {
     describe('#constructor', () => {
-        it('has default content', () => {
-            const request = new ServiceRequest();
-            expect(request.content).to.be.undefined;
+        it('sets default values', () => {
+            const req = new ServiceRequest();
+            expect(req.method).to.equal(HttpMethod.GET);
         });
 
-        it('does not ensure response content', () => {
-            const request = new ServiceRequest();
-            expect(request.ensureResponseContent).to.be.false;
+        it('can set the method to all values', () => {
+            const valuesToTest = [
+                HttpMethod.GET,
+                HttpMethod.DELETE,
+                HttpMethod.POST,
+                HttpMethod.PUT,
+                HttpMethod.QUERY
+            ];
+
+            for (const method of valuesToTest) {
+                const req = new ServiceRequest(method);
+                expect(req.method).to.equal(method, `method ${HttpMethod[method]} cannot be set in constructor`);
+            }
         });
 
-        it('has default headers', () => {
-            const request = new ServiceRequest();
-            expect(request.headers).to.eql({});
-        });
-
-        it('uses GET method', () => {
-            const request = new ServiceRequest();
-            expect(request.method).to.equal(HttpMethod.Get);
-        });
-
-        it('has blank path and query', () => {
-            const request = new ServiceRequest();
-            expect(request.pathAndQuery).to.equal('');
-        });
-
-        it('can handle complex chaining', () => {
-            const request = new ServiceRequest().requireResponseContent().withMethod(HttpMethod.Post).withPathAndQuery('/tables/foo').withContent('{ "id": "1234" }').withHeaders({ 'If-None-Match': '*' });
-            expect(request.ensureResponseContent).to.be.true;
-            expect(request.content).to.equal('{ "id": "1234" }');
-            expect(request.headers).to.eql({ 'If-None-Match': '*' });
-            expect(request.method).to.equal(HttpMethod.Post);
-            expect(request.pathAndQuery).to.equal('/tables/foo');
-        });
-    });
-
-    describe('#requireResponseContent', () => {
-        it('sets property when chained', () => {
-            const request = new ServiceRequest().requireResponseContent();
-            expect(request.ensureResponseContent).to.be.true;
-        });
-    });
-
-    describe('#withContent', () => {
-        it('sets property when chained', () => {
-            const request = new ServiceRequest().withContent('foo');
-            expect(request.content).to.equal('foo');
-        });
-    });
-
-    describe('#withHeaders', () => {
-        it('sets property when chained', () => {
-            const request = new ServiceRequest().withHeaders({ 'X-ZUMO-REQUEST': '1234' });
-            expect(request.headers).to.eql({ 'X-ZUMO-REQUEST': '1234' });
+        it('throws when setting an invalid method', () => {
+            const value: HttpMethod = 90;
+            expect(() => { new ServiceRequest(value); }).to.throw(ArgumentError);
         });
     });
 
     describe('#withMethod', () => {
-        it('sets property when chained', () => {
-            const request = new ServiceRequest().withMethod(HttpMethod.Delete);
-            expect(request.method).to.equal(HttpMethod.Delete);
-        });
-    });
+        it('can set the method to all values', () => {
+            const valuesToTest = [
+                HttpMethod.GET,
+                HttpMethod.DELETE,
+                HttpMethod.POST,
+                HttpMethod.PUT,
+                HttpMethod.QUERY
+            ];
 
-    describe('#withPathAndQuery', () => {
-        it('sets property when chained', () => {
-            const request = new ServiceRequest().withPathAndQuery('/foo/bar');
-            expect(request.pathAndQuery).to.equal('/foo/bar');
+            for (const method of valuesToTest) {
+                const req = new ServiceRequest().withMethod(method);
+                expect(req.method).to.equal(method, `method ${HttpMethod[method]} cannot be set in withMethod`);
+            }
+        });
+
+        it('throws when setting an invalid method', () => {
+            const value: HttpMethod = 90;
+            expect(() => { new ServiceRequest().withMethod(value); }).to.throw(ArgumentError);
         });
     });
 });

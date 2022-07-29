@@ -1,6 +1,4 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-export { 
-    ArgumentError 
-} from './errors';
+export { ArgumentError } from './ArgumentError';

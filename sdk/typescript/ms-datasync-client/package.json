@@ -39,7 +39,7 @@
     "build:api": "api-extractor run --local",
     "build:src": "tsc -p .",
     "build:types": "downlevel-dts types/latest/ types/3.1/",
-    "clean": "rimraf dist dist-esm temp types *.tgz *.log",
+    "clean": "rimraf dist dist-esm temp types .nyc_output coverage *.tgz *.log",
     "lint": "eslint src test --ext .ts",
     "pretest": "run-s build",
     "test": "run-s test:node test:browser test:coverage",

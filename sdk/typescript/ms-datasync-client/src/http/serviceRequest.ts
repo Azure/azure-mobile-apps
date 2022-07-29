@@ -1,74 +1,45 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import { HttpHeaders, HttpMethod } from "./client";
+import { ArgumentError } from '../errors';
+import { HttpMethod } from './HttpMethod';
 
+/**
+ * A request to the remote service.
+ */
 export class ServiceRequest {
-    /** The HTTP method to use to request the resource. */
-    public method: HttpMethod = HttpMethod.Get;
-
-    /** The JSON content to send as the payload. */
-    public content?: string;
-
-    /** If true, ensure that the response has content */
-    public ensureResponseContent = false;
-
-    /** The additional headers to send with the request. */
-    public headers: HttpHeaders = {};
-
-    /** The URI path and query of the resource to request (relative to the base endpoint) */
-    public pathAndQuery = '';
+    /** The HTTP method to use. */
+    private _method: HttpMethod = HttpMethod.GET;
 
     /**
-     * Fluent method to requires the response to have content.
-     * @returns the current service request.
+     * Constructs a new ServiceRequest.
+     * 
+     * @param method The HTTP method to use.
      */
-    public requireResponseContent(): ServiceRequest {
-        this.ensureResponseContent = true;
-        return this;
+    constructor(method?: HttpMethod) {
+        if (typeof method !== 'undefined') {
+            this.withMethod(method);
+        }
     }
 
     /**
-     * Fluent method to set the content on this request.
-     * 
-     * @param content The content.
-     * @returns the current service request.
+     * Gets the HTTP method to use.
      */
-    public withContent(content: string): ServiceRequest {
-        this.content = content;
-        return this;
-    }
+    public get method(): HttpMethod { return this._method; }
 
     /**
-     * Fluent method to set the headers on this request.
+     * Sets the method for the request.
      * 
-     * @param headers the HTTP headers.
-     * @returns the current service request.
+     * @param method the method for the request.
+     * @returns the current request (for chaining).
+     * @throws ArgumentError if the method is an invalid method.
      */
-    public withHeaders(headers: HttpHeaders): ServiceRequest {
-        this.headers = headers;
-        return this;
-    }
-
-    /**
-     * Fluent method to set the HTTP Method on this request.
-     * 
-     * @param method the HTTP method.
-     * @returns the current service request.
-     */
-     public withMethod(method: HttpMethod): ServiceRequest {
-        this.method = method;
-        return this;
-    }
-
-    /**
-     * Fluent method to set the path and query string on this request.
-     * 
-     * @param pathAndQuery the Path and Query string.
-     * @returns the current service request.
-     */
-    public withPathAndQuery(pathAndQuery: string): ServiceRequest {
-        this.pathAndQuery = pathAndQuery;
+    public withMethod(method: HttpMethod): ServiceRequest {
+        if (method in HttpMethod) {
+            this._method = method;
+        } else {
+            throw new ArgumentError('Invalid value', 'method');
+        }
         return this;
     }
 }
