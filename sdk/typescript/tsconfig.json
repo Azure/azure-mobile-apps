@@ -18,16 +18,8 @@
         "moduleResolution": "node",
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
-        "outDir": "./dist-esm",
-        "declarationDir": "./types",
-        "paths": {
-            "ms-datasync-client": [ "./src/index" ]
-        }
+        "resolveJsonModule": true
     },
-    "include": [
-        "src/**/*.ts",
-        "test/**/*.ts"
-    ],
     "ts-node": {
         "compilerOptions": {
             "module": "CommonJS"

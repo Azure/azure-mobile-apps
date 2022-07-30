@@ -11,7 +11,7 @@ const defaults: ServiceHttpClientOptions = {
     requestContentType: 'application/json; charset=utf-8'
 };
 
-const packageDetails = `Datasync/${pkg.version}`
+const packageDetails = `Datasync/${pkg.version}`;
 
 /**
  * Parameters for the service client.

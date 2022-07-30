@@ -75,7 +75,7 @@ describe('http/ServiceRequest', () => {
             req.removeContent();
             expect(req.content).to.be.undefined;
         });
-    })
+    });
 
     describe('#removeHeader', () => {
         it('removes a header that exists', () => {
@@ -100,7 +100,7 @@ describe('http/ServiceRequest', () => {
             req.removeQueryString();
             expect(req.queryString).to.be.undefined;
         });
-    })
+    });
     
     describe('#requireResponseContent', () => {
         it('sets ensureResponseContent to true when not specified', () => {
@@ -209,7 +209,7 @@ describe('http/ServiceRequest', () => {
 
         it('throws on non-printable header-value', () => {
             const req = new ServiceRequest();
-            expect(() => { req.withHeader('X-Header', "\u000A"); }).to.throw(ArgumentError);
+            expect(() => { req.withHeader('X-Header', '\u000A'); }).to.throw(ArgumentError);
         });
 
         it('throws on empty header value', () => {
@@ -273,7 +273,7 @@ describe('http/ServiceRequest', () => {
 
         it('throws on non-printable header-value', () => {
             const req = new ServiceRequest();
-            expect(() => { req.withHeaders({ 'X-Header': "\u000A" }); }).to.throw(ArgumentError);
+            expect(() => { req.withHeaders({ 'X-Header': '\u000A' }); }).to.throw(ArgumentError);
         });
 
         it('throws on empty header value', () => {

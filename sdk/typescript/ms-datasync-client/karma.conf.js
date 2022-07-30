@@ -47,9 +47,25 @@ module.exports = function(config) {
     concurrency: 1,
     karmaTypescriptConfig: {
       compilerOptions: {
-        sourceMap: true,
-        esModuleInterop: true,
-        resolveJsonModule: true
+        "target": "ES2017",
+        "module": "commonjs",
+        "lib": [],
+        "declaration": true,
+        "declarationMap": true,
+        "inlineSources": true,
+        "sourceMap": true,
+        "importHelpers": true,
+        "strict": true,
+        "alwaysStrict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "forceConsistentCasingInFileNames": true,
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true
       }
     }
   });

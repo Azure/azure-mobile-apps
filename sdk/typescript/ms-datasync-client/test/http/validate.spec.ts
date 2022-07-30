@@ -24,67 +24,67 @@ describe('http/validate', () => {
 
     describe('#isAbsoluteHttpEndpoint', () => {
         it('throws on (string) invalid URI', () => {
-            const sut = "some-bogus!uri";
+            const sut = 'some-bogus!uri';
             expect(() => { validate.isAbsoluteHttpEndpoint(sut, 'sut'); }).to.throw(ArgumentError);
         });
 
         it('throws on (string) http:non-local', () => {
-            const sut = "http://ds.azurewebsites.net";
+            const sut = 'http://ds.azurewebsites.net';
             expect(() => { validate.isAbsoluteHttpEndpoint(sut, 'sut'); }).to.throw(ArgumentError);
         });
 
         it('throws on (string) non-http', () => {
-            const sut = "file:///foo";
+            const sut = 'file:///foo';
             expect(() => { validate.isAbsoluteHttpEndpoint(sut, 'sut'); }).to.throw(ArgumentError);
         });
 
         it('passes (string) http-localdomain', () => {
-            const sut = "http://localhost";
+            const sut = 'http://localhost';
             expect(validate.isAbsoluteHttpEndpoint(sut, 'sut').href).to.equal('http://localhost/');
         });
 
         it('passes (string) https-remotedomain', () => {
-            const sut = "https://dz.azurewebsites.net";
+            const sut = 'https://dz.azurewebsites.net';
             expect(validate.isAbsoluteHttpEndpoint(sut, 'sut').href).to.equal('https://dz.azurewebsites.net/');
         });
 
         it('strips fragment (string)', () => {
-            const sut = "https://dz.azurewebsites.net#fragment";
+            const sut = 'https://dz.azurewebsites.net#fragment';
             expect(validate.isAbsoluteHttpEndpoint(sut, 'sut').href).to.equal('https://dz.azurewebsites.net/');
         });
 
         it('strips query string (string)', () => {
-            const sut = "https://dz.azurewebsites.net?search";
+            const sut = 'https://dz.azurewebsites.net?search';
             expect(validate.isAbsoluteHttpEndpoint(sut, 'sut').href).to.equal('https://dz.azurewebsites.net/');
         });
 
         it('throws on (URL) http:non-local', () => {
-            const sut = new URL("http://ds.azurewebsites.net");
+            const sut = new URL('http://ds.azurewebsites.net');
             expect(() => { validate.isAbsoluteHttpEndpoint(sut, 'sut'); }).to.throw(ArgumentError);
         });
 
         it('throws on (URL) non-http', () => {
-            const sut = new URL("file:///foo");
+            const sut = new URL('file:///foo');
             expect(() => { validate.isAbsoluteHttpEndpoint(sut, 'sut'); }).to.throw(ArgumentError);
         });
 
         it('passes (URL) http-localdomain', () => {
-            const sut = new URL("http://localhost");
+            const sut = new URL('http://localhost');
             expect(validate.isAbsoluteHttpEndpoint(sut, 'sut').href).to.equal('http://localhost/');
         });
 
         it('passes (URL) https-remotedomain', () => {
-            const sut = new URL("https://dz.azurewebsites.net");
+            const sut = new URL('https://dz.azurewebsites.net');
             expect(validate.isAbsoluteHttpEndpoint(sut, 'sut').href).to.equal('https://dz.azurewebsites.net/');
         });
 
         it('strips fragment (URL)', () => {
-            const sut = new URL("https://dz.azurewebsites.net#fragment");
+            const sut = new URL('https://dz.azurewebsites.net#fragment');
             expect(validate.isAbsoluteHttpEndpoint(sut, 'sut').href).to.equal('https://dz.azurewebsites.net/');
         });
 
         it('strips query string (URL)', () => {
-            const sut = new URL("https://dz.azurewebsites.net?search");
+            const sut = new URL('https://dz.azurewebsites.net?search');
             expect(validate.isAbsoluteHttpEndpoint(sut, 'sut').href).to.equal('https://dz.azurewebsites.net/');
         });
     });
@@ -150,7 +150,7 @@ describe('http/validate', () => {
                 '-X-',                      // doesn't start with alpha
                 '9X-Foo',                   // doesn't start with alpha
                 'X-Foo-',                   // doesn't end with alphanumeric
-                "X-\u000A",                 // control characters
+                'X-\u000A',                 // control characters
                 new Array(100).join('a'),   // too long
             ];
 
@@ -176,14 +176,13 @@ describe('http/validate', () => {
         it('throws for invalid header values', () => {
             const values: Array<string> = [
                 '',                         // blank
-                "X-\u000A",                 // control characters
+                'X-\u000A',                 // control characters
                 new Array(300).join('a'),   // too long
             ];
 
             for (const value of values) {
                 expect(() => { validate.isValidHeaderValue(value, 'foo'); }).to.throw(ArgumentError);
             }
-        })
-
+        });
     });
 });

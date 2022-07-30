@@ -86,8 +86,8 @@ export function isAbsoluteHttpEndpoint(endpoint: string | URL, parameterName: st
         const value = typeof endpoint === 'string' ? new URL(endpoint) : endpoint;
         if ((value.protocol === 'https:') || (value.protocol === 'http:' && isLocalNetwork(value.host))) {
             // Fix up value, since we don't allow fragments or query strings in the URL
-            value.hash = "";
-            value.search = "";
+            value.hash = '';
+            value.search = '';
             return value;
         }
         throw new ArgumentError('Invalid endpoint URL', parameterName);

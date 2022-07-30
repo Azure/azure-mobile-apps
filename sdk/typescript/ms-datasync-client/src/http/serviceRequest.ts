@@ -14,7 +14,7 @@ export class ServiceRequest {
     private _ensureResponseContent = false;
     private _headers: HttpHeaders = {};
     private _method: HttpMethod = HttpMethod.GET;
-    private _path = "";
+    private _path = '';
     private _queryString?: string;
 
     /**

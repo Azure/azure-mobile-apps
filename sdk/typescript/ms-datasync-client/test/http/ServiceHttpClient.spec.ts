@@ -37,5 +37,5 @@ describe('http/ServiceHttpClient', () => {
             const sut = new ServiceHttpClient(new URL('https://ds.azurewebsites.net'), options);
             expect(sut.apiVersion).to.equal('2.0.0');
         });
-    })
-})
+    });
+});
