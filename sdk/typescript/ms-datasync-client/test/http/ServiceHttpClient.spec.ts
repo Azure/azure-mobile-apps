@@ -3,6 +3,7 @@
 
 import { expect, use } from 'chai';
 import chaiString from 'chai-string';
+import { MockHttpClient } from '../helpers/MockHttpClient';
 import { ArgumentError } from '../../src/errors';
 import { ServiceHttpClient, ServiceHttpClientOptions } from '../../src/http';
 
@@ -36,6 +37,21 @@ describe('http/ServiceHttpClient', () => {
             };
             const sut = new ServiceHttpClient(new URL('https://ds.azurewebsites.net'), options);
             expect(sut.apiVersion).to.equal('2.0.0');
+        });
+    });
+
+    describe('#sendRequest', () => {
+        it('can handle a basic request/response', async () => {
+            const mock = new MockHttpClient();
+            const client = new ServiceHttpClient('http://localhost', { httpClient: mock });
+
+            mock.addResponse(200, '{"error":"foo"}', { 'Content-Type': 'application/json' });
+            const request = mock.createRequest('GET', '/foo');
+            const response = await client.sendRequest(request);
+
+            expect(response).to.not.be.undefined;
+            expect(response.status).to.equal(200);
+            expect(response.bodyAsText).to.equal('{"error":"foo"}');
         });
     });
 });
