@@ -54,7 +54,7 @@ describe('http/ServiceHttpClient', () => {
             expect(response.bodyAsText).to.equal('{"error":"foo"}');
         });
 
-        it('adds the required headers automatically', async() => {
+        it('adds the required headers automatically', async () => {
             const mock = new MockHttpClient();
             const client = new ServiceHttpClient('http://localhost', { httpClient: mock });
 
@@ -64,6 +64,37 @@ describe('http/ServiceHttpClient', () => {
 
             expect(request.headers.get('zumo-api-version')).to.equal('3.0.0');
             expect(request.headers.get('x-zumo-version')).to.startWith('Datasync/5.0.0');
+        });
+
+        it('can set a userAgentPrefix', async () => {
+            const mock = new MockHttpClient();
+            const client = new ServiceHttpClient('http://localhost', { 
+                httpClient: mock,
+                userAgentOptions: {
+                    userAgentPrefix: 'test-wumpus'
+                }
+            });
+
+            mock.addResponse(200, '{"error":"foo"}', { 'Content-Type': 'application/json' });
+            const request = mock.createRequest('GET', '/foo');
+            await client.sendRequest(request);
+
+            expect(request.headers.get('zumo-api-version')).to.equal('3.0.0');
+            expect(request.headers.get('x-zumo-version')).to.startWith('test-wumpus Datasync/5.0.0');
+        });
+
+        it('can override the apiVersion', async () => {
+            const mock = new MockHttpClient();
+            const client = new ServiceHttpClient('http://localhost', { 
+                httpClient: mock,
+                apiVersion: '2.1.0'
+            });
+
+            mock.addResponse(200, '{"error":"foo"}', { 'Content-Type': 'application/json' });
+            const request = mock.createRequest('GET', '/foo');
+            await client.sendRequest(request);
+
+            expect(request.headers.get('zumo-api-version')).to.equal('2.1.0');
         });
     });
 });

@@ -3,11 +3,11 @@
 
 import * as coreClient from '@azure/core-client';
 import * as validate from './validate';
-import { datasyncClientPolicy } from './DatasyncClientPolicy';
+import { PROTOCOLVERSION, datasyncClientPolicy } from './DatasyncClientPolicy';
 import * as pkg from '../../package.json';
 
+
 const defaults: ServiceHttpClientOptions = {
-    apiVersion: '3.0.0',
     requestContentType: 'application/json; charset=utf-8'
 };
 
@@ -34,23 +34,23 @@ export class ServiceHttpClient extends coreClient.ServiceClient {
      * @param endpoint the base URI of the datasync service.
      * @param options Any service options to use.
      */
-    public constructor(endpoint: string | URL, options?: ServiceHttpClientOptions) {
+    public constructor(endpoint: string | URL, options: ServiceHttpClientOptions = {}) {
         const baseUri = validate.isAbsoluteHttpEndpoint(endpoint, 'endpoint');
-        const apiVersion = options?.apiVersion || defaults.apiVersion || '3.0.0'; 
+        const apiVersion = options.apiVersion || defaults.apiVersion; 
 
-        const userAgentPrefix = options?.userAgentOptions?.userAgentPrefix
+        const userAgentPrefix = options.userAgentOptions?.userAgentPrefix
             ? `${options.userAgentOptions.userAgentPrefix} ${packageDetails}`
             : packageDetails;
 
         // The policies list is made up of "additionalPolicies" then the client
         // policies
-        const policies = options?.additionalPolicies || [];
+        const policies = options.additionalPolicies || [];
         const clientPolicy = datasyncClientPolicy({ apiVersion });
         policies.push({ policy: clientPolicy, position: 'perRetry' });
 
         super({
             ...defaults,
-            ...(options || {}),
+            ...options,
             userAgentOptions: {
                 userAgentPrefix
             },
@@ -60,7 +60,7 @@ export class ServiceHttpClient extends coreClient.ServiceClient {
         });
 
         this._serviceEndpoint = baseUri;
-        this._apiVersion = apiVersion;
+        this._apiVersion = apiVersion || PROTOCOLVERSION;
     }
 
     /**

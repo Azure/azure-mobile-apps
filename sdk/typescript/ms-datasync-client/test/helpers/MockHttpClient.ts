@@ -15,6 +15,8 @@ export class MockHttpClient implements HttpClient {
     private _requests: Array<PipelineRequest> = [];
     private _responses: Array<Partial<PipelineResponse>> = [];
 
+    get requests(): Array<PipelineRequest> { return this._requests; }
+
     /**
      * Converts an object version of headers to a Map version.
      * 
@@ -58,7 +60,7 @@ export class MockHttpClient implements HttpClient {
     }
 
     async sendRequest(request: PipelineRequest): Promise<PipelineResponse> {
-        this._requests.push({ ...request });
+        this._requests.push(request);
 
         if (this._responses.length == 0) {
             throw new Error('No responses left');
