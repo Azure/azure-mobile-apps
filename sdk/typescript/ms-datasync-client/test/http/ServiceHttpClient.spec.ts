@@ -53,5 +53,17 @@ describe('http/ServiceHttpClient', () => {
             expect(response.status).to.equal(200);
             expect(response.bodyAsText).to.equal('{"error":"foo"}');
         });
+
+        it('adds the required headers automatically', async() => {
+            const mock = new MockHttpClient();
+            const client = new ServiceHttpClient('http://localhost', { httpClient: mock });
+
+            mock.addResponse(200, '{"error":"foo"}', { 'Content-Type': 'application/json' });
+            const request = mock.createRequest('GET', '/foo');
+            await client.sendRequest(request);
+
+            expect(request.headers.get('zumo-api-version')).to.equal('3.0.0');
+            expect(request.headers.get('x-zumo-version')).to.startWith('Datasync/5.0.0');
+        });
     });
 });

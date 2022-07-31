@@ -3,7 +3,7 @@
 
 import * as coreClient from '@azure/core-client';
 import * as validate from './validate';
-//import { ServiceRequest } from './ServiceRequest';
+import { datasyncClientPolicy } from './DatasyncClientPolicy';
 import * as pkg from '../../package.json';
 
 const defaults: ServiceHttpClientOptions = {
@@ -36,10 +36,17 @@ export class ServiceHttpClient extends coreClient.ServiceClient {
      */
     public constructor(endpoint: string | URL, options?: ServiceHttpClientOptions) {
         const baseUri = validate.isAbsoluteHttpEndpoint(endpoint, 'endpoint');
+        const apiVersion = options?.apiVersion || defaults.apiVersion || '3.0.0'; 
 
         const userAgentPrefix = options?.userAgentOptions?.userAgentPrefix
             ? `${options.userAgentOptions.userAgentPrefix} ${packageDetails}`
             : packageDetails;
+
+        // The policies list is made up of "additionalPolicies" then the client
+        // policies
+        const policies = options?.additionalPolicies || [];
+        const clientPolicy = datasyncClientPolicy({ apiVersion });
+        policies.push({ policy: clientPolicy, position: 'perRetry' });
 
         super({
             ...defaults,
@@ -47,11 +54,13 @@ export class ServiceHttpClient extends coreClient.ServiceClient {
             userAgentOptions: {
                 userAgentPrefix
             },
-            baseUri: baseUri.href
+            additionalPolicies: policies,
+            requestContentType: 'application/json; charset=utf-8',
+            endpoint: baseUri.href
         });
 
         this._serviceEndpoint = baseUri;
-        this._apiVersion = options?.apiVersion || defaults.apiVersion || '3.0.0';
+        this._apiVersion = apiVersion;
     }
 
     /**
