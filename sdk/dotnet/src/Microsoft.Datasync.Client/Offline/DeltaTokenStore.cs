@@ -101,6 +101,22 @@ namespace Microsoft.Datasync.Client.Offline
         }
 
         /// <summary>
+        /// For testing purposes, this invalidates the cache entry without removing the key from the DB.
+        /// </summary>
+        /// <param name="tableName">The table name.</param>
+        /// <param name="queryId">The query ID.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to acquire.</param>
+        /// <returns>A task that completes when the delta token cache key is removed.</returns>
+        internal async Task InvalidateCacheAsync(string tableName, string queryId, CancellationToken cancellationToken = default)
+        {
+            string key = GetKey(tableName, queryId);
+            using (await cacheLock.AcquireAsync(cancellationToken).ConfigureAwait(false))
+            {
+                cache.Remove(key);
+            }
+        }
+
+        /// <summary>
         /// Sets the delta token for a table/queryId from persistent store.
         /// </summary>
         /// <remarks>
