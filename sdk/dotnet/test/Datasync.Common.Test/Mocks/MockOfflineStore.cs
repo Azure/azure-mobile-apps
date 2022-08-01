@@ -189,6 +189,17 @@ namespace Datasync.Common.Test.Mocks
         }
 
         /// <summary>
+        /// Gets the list of offline tables that have been defined.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the list of tables that have been defined.</returns>
+        public Task<IList<string>> GetTablesAsync(CancellationToken cancellationToken = default)
+        {
+            var list = TableMap.Keys.Where(t => !t.StartsWith("__")).ToList();
+            return Task.FromResult((IList<string>)list);
+        }
+
+        /// <summary>
         /// Initializes the store for use.
         /// </summary>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>

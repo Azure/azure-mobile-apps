@@ -53,6 +53,13 @@ namespace Microsoft.Datasync.Client.Offline
         Task<Page<JObject>> GetPageAsync(QueryDescription query, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Gets the list of offline tables that have been defined.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the list of tables that have been defined.</returns>
+        Task<IList<string>> GetTablesAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Initializes the store for use.
         /// </summary>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
