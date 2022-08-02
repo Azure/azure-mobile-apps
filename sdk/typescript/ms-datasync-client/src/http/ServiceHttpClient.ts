@@ -2,14 +2,17 @@
 // Licensed under the MIT license.
 
 import * as coreClient from '@azure/core-client';
+import { AbortSignal } from '@azure/abort-controller';
+import * as msrest from '@azure/core-rest-pipeline';
+import { v4 as uuid } from 'uuid';
+
 import * as validate from './validate';
 import { PROTOCOLVERSION, datasyncClientPolicy } from './DatasyncClientPolicy';
+import { HttpMethod } from './HttpMethod';
+import { ServiceRequest } from './ServiceRequest';
+import { ServiceResponse } from './ServiceResponse';
 import * as pkg from '../../package.json';
-
-
-const defaults: ServiceHttpClientOptions = {
-    requestContentType: 'application/json; charset=utf-8'
-};
+import { HttpError } from '../errors';
 
 const packageDetails = `Datasync/${pkg.version}`;
 
@@ -19,7 +22,14 @@ const packageDetails = `Datasync/${pkg.version}`;
 export interface ServiceHttpClientOptions extends coreClient.ServiceClientOptions {
     /** Overrides the protocol version for the client endpoint. */
     apiVersion?: string;
+
+    /** Sets the timeout (in ms) on a per-request basis */
+    timeout?: number;
 }
+
+const defaults: ServiceHttpClientOptions = {
+    requestContentType: 'application/json; charset=utf-8'
+};
 
 /**
  * The internal service client used to do final communication with the datasync service.
@@ -27,6 +37,14 @@ export interface ServiceHttpClientOptions extends coreClient.ServiceClientOption
 export class ServiceHttpClient extends coreClient.ServiceClient {
     private _apiVersion: string;
     private _serviceEndpoint: URL;
+    private _timeout: number;
+
+    // Mapping of HttpMethod to HttpMethods for @azure/core-client snedRequest.
+    private _methodMap: Map<HttpMethod, msrest.HttpMethods> = new Map([
+        [ HttpMethod.DELETE, 'DELETE' ],
+        [ HttpMethod.POST, 'POST' ],
+        [ HttpMethod.PUT, 'PUT' ]
+    ]);
 
     /**
      * Creates a new service client.
@@ -61,6 +79,7 @@ export class ServiceHttpClient extends coreClient.ServiceClient {
 
         this._serviceEndpoint = baseUri;
         this._apiVersion = apiVersion || PROTOCOLVERSION;
+        this._timeout = options.timeout || 60000; // 60 seconds
     }
 
     /**
@@ -76,11 +95,31 @@ export class ServiceHttpClient extends coreClient.ServiceClient {
     /**
      * Sends a request to the remote service.
      * @param request The ServiceRequest object that describes the request.
-     * @param signal An AbortSignal to use in aborting the request.
+     * @param abortSignal An AbortSignal to use in aborting the request.
      * @returns A promise that resolves to the ServiceResponse when complete.
      * @throws InvalidResponseError if the response required a payload and didn't receive one.
      */
-    // public async SendRequestAsync(request: ServiceRequest, signal?: AbortSignal): Promise<ServiceResponse> {
-    //     throw 'not implemented';
-    // }
+    public async sendServiceRequest(request: ServiceRequest, abortSignal?: AbortSignal): Promise<ServiceResponse> {
+        const url = (request.path.startsWith('http:') || request.path.startsWith('https:')) ? new URL(request.path) : new URL(request.path, this._serviceEndpoint);
+        const method = this._methodMap.get(request.method) ?? 'GET';
+        const req: msrest.PipelineRequest = {
+            abortSignal: abortSignal,
+            allowInsecureConnection: url.protocol === 'http:',
+            body: () => request.content,
+            headers: msrest.createHttpHeaders(request.headers),
+            method: method,
+            requestId: uuid(),
+            timeout: this._timeout,
+            url: url.href,
+            withCredentials: false
+        };
+        
+        const resp = await this.sendRequest(req);
+        const response = new ServiceResponse(resp);
+        if (request.ensureResponseContent && !response.hasContent) {
+            throw new HttpError('No content', request, response);
+        }
+
+        return response;
+    }
 }

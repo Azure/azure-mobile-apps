@@ -48,12 +48,14 @@
     "test:node": "nyc --reporter none mocha --reporter progress"
   },
   "dependencies": {
+    "@azure/abort-controller": "^1.1.0",
     "@azure/core-client": "^1.6.0",
     "@azure/core-paging": "^1.3.0",
     "axios": "^0.27.2",
     "cross-fetch": "^3.1.5",
     "ip6addr": "^0.2.5",
-    "tslib": "^2.2.0"
+    "tslib": "^2.2.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@azure/core-rest-pipeline": "^1.9.0",

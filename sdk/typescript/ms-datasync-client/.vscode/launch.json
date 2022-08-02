@@ -9,7 +9,9 @@
             "request": "launch",
             "name": "Mocha",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-            "args": [],
+            "args": [ 
+                "--reporter", "spec" 
+            ],
             "cwd": "${workspaceRoot}",
             "internalConsoleOptions": "openOnSessionStart"
         },
@@ -18,7 +20,10 @@
             "request": "launch",
             "name": "Mocha (SELECTION)",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-            "args": [ "--grep", "SELECTION", "--timeout", "30000" ],
+            "args": [ 
+                "--grep", "SELECTION",
+                "--reporter", "spec" 
+            ],
             "cwd": "${workspaceRoot}",
             "internalConsoleOptions": "openOnSessionStart"
         }
