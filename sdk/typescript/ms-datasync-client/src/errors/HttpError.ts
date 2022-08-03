@@ -34,10 +34,10 @@ import { ServiceRequest, ServiceResponse } from '../http';
     /**
      * The request causing the error.
      */
-    public get request(): ServiceRequest { return this._request; }
+    public get request(): ServiceRequest | undefined { return this._request; }
 
     /**
      * The response causing the error.
      */
-    public get response(): ServiceResponse { return this._response; }
+    public get response(): ServiceResponse | undefined { return this._response; }
 }

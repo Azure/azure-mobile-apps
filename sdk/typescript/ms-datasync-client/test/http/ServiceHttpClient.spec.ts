@@ -108,11 +108,23 @@ describe('http/ServiceHttpClient', () => {
             const request = new ServiceRequest(HttpMethod.DELETE, '/tables/foo/id');
             const response = await client.sendServiceRequest(request);
 
-            // TODO: Check that request is sent properly
+            // Check that request is sent properly
+            expect(mock.requests).to.have.lengthOf(1);
+            const req = mock.requests[0];
+            expect(req.headers.get('zumo-api-version')).to.equal('3.0.0');
+            expect(req.headers.get('x-zumo-version')).to.startWith('Datasync/5.0.0');
+            expect(req.method).to.equal('DELETE');
+            expect(req.url).to.equal('http://localhost/tables/foo/id');
 
-            // TODO: Check that serviceResponse is constructed properly
+            // Check that serviceResponse is constructed properly
+            expect(response.content).to.be.undefined;
+            expect(response.etag).to.be.undefined;
+            expect(response.hasContent).to.be.false;
+            expect(response.hasValue).to.be.false;
+            expect(response.isConflictStatusCode).to.be.false;
+            expect(response.isSuccessStatusCode).to.be.true;
+            expect(response.statusCode).to.equal(204);
+            expect(response.value).to.be.undefined;
         });
-
-
     });
 });
