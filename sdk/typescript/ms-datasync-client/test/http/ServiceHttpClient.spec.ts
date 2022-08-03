@@ -5,7 +5,8 @@ import { expect, use } from 'chai';
 import chaiString from 'chai-string';
 import { MockHttpClient } from '../helpers/MockHttpClient';
 import { ArgumentError } from '../../src/errors';
-import { ServiceHttpClient, ServiceHttpClientOptions } from '../../src/http';
+import { HttpMethod, ServiceHttpClient, ServiceHttpClientOptions } from '../../src/http';
+import { ServiceRequest } from '../../src/http/ServiceRequest';
 
 use(chaiString);
 
@@ -96,5 +97,22 @@ describe('http/ServiceHttpClient', () => {
 
             expect(request.headers.get('zumo-api-version')).to.equal('2.1.0');
         });
+    });
+
+    describe('#sendServiceRequest', () => {
+        it('can send a DELETE message and get a 204 response back', async () => {
+            const mock = new MockHttpClient();
+            mock.addResponse(204);
+
+            const client = new ServiceHttpClient('http://localhost', { httpClient: mock });
+            const request = new ServiceRequest(HttpMethod.DELETE, '/tables/foo/id');
+            const response = await client.sendServiceRequest(request);
+
+            // TODO: Check that request is sent properly
+
+            // TODO: Check that serviceResponse is constructed properly
+        });
+
+
     });
 });
