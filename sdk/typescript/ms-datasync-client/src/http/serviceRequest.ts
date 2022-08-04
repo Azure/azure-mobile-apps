@@ -113,6 +113,17 @@ export class ServiceRequest {
     }
 
     /**
+     * Sets the path to a URI
+     * @param uri the absolute URI.
+     * @returns the current request (for chaining).
+     */
+    public withAbsoluteUrl(uri: string | URL): ServiceRequest {
+        const u = validate.isAbsoluteHttpEndpoint(uri, 'uri');
+        this._path = u.href;
+        return this;
+    }
+
+    /**
      * Sets the content to the provided value.  If the content is
      * empty or undefined, it is removed.  If the content is a
      * value, it is either set (string) or serialized (anything

@@ -116,7 +116,7 @@ export class ServiceHttpClient extends coreClient.ServiceClient {
         
         const resp = await this.sendRequest(req);
         const response = new ServiceResponse(resp);
-        if (request.ensureResponseContent && !response.hasContent) {
+        if (request.ensureResponseContent && response.isSuccessStatusCode && !response.hasContent) {
             throw new HttpError('No content', request, response);
         }
 

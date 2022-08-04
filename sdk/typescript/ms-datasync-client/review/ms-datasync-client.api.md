@@ -4,12 +4,27 @@
 
 ```ts
 
+/// <reference types="node" />
+
+import { PipelineResponse } from '@azure/core-rest-pipeline';
+
 // @public
 export class ArgumentError extends Error {
     constructor(message: string, argumentName: string);
     // (undocumented)
     __proto__: ErrorConstructor;
     get argumentName(): string;
+}
+
+// @public
+export class HttpError extends Error {
+    // Warning: (ae-forgotten-export) The symbol "ServiceRequest" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "ServiceResponse" needs to be exported by the entry point index.d.ts
+    constructor(message: string, request?: ServiceRequest, response?: ServiceResponse);
+    // (undocumented)
+    __proto__: ErrorConstructor;
+    get request(): ServiceRequest | undefined;
+    get response(): ServiceResponse | undefined;
 }
 
 // (No @packageDocumentation comment for this package)

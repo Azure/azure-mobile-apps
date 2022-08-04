@@ -3,12 +3,8 @@
 
 import { expect, use } from 'chai';
 import chaiString from 'chai-string';
-import { ArgumentError } from '../../src/errors';
-import { 
-    HttpHeaders, 
-    HttpMethod, 
-    ServiceRequest 
-} from '../../src/http';
+import { ArgumentError } from '../../src';
+import { HttpHeaders, HttpMethod, ServiceRequest } from '../../src/http';
 
 use(chaiString);
 
@@ -116,6 +112,34 @@ describe('http/ServiceRequest', () => {
         it('sets ensureResponseContent to false when false', () => {
             const req = new ServiceRequest().requireResponseContent(false);
             expect(req.ensureResponseContent).to.be.false;
+        });
+    });
+
+    describe('#withAbsoluteUrl', () => {
+        it('handles http (string)', () => {
+            const req = new ServiceRequest().withAbsoluteUrl('http://localhost');
+            expect(req.path).to.equal('http://localhost/');
+        });
+        it('handles https (string)', () => {
+            const req = new ServiceRequest().withAbsoluteUrl('https://localhost');
+            expect(req.path).to.equal('https://localhost/');
+        });
+        it('throws on non-http (string)', () => {
+            const req = new ServiceRequest();
+            expect(() => req.withAbsoluteUrl('file:///foo')).to.throw;
+        });
+
+        it('handles http (URL)', () => {
+            const req = new ServiceRequest().withAbsoluteUrl(new URL('http://localhost'));
+            expect(req.path).to.equal('http://localhost/');
+        });
+        it('handles https (URL)', () => {
+            const req = new ServiceRequest().withAbsoluteUrl(new URL('https://localhost'));
+            expect(req.path).to.equal('https://localhost/');
+        });
+        it('throws on non-http (URL)', () => {
+            const req = new ServiceRequest();
+            expect(() => req.withAbsoluteUrl(new URL('file:///foo'))).to.throw;
         });
     });
 
