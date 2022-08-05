@@ -396,5 +396,20 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Test
             var storedToken = await deltaTokenStore.GetDeltaTokenAsync("testtable", "testquery");
             Assert.Equal(storedToken.Millisecond, deltaToken.Millisecond);
         }
+
+        [Fact]
+        public async Task GetTablesAsync_ReturnsListOfTables()
+        {
+            // Set up the default store and client.
+            var store = new OfflineSQLiteStore(ConnectionString);
+            store.DefineTable(TestTable, IdEntityDefinition);
+            var client = new DatasyncClient("https://localhost/", new DatasyncClientOptions { OfflineStore = store });
+            var context = new SyncContext(client, store);
+            await context.InitializeAsync();
+
+            var tables = await context.OfflineStore.GetTablesAsync();
+            Assert.Equal(1, tables.Count);  // If it's 4, then the system tables are being returned as well.
+            Assert.Equal(TestTable, tables[0]);
+        }
     }
 }

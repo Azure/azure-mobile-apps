@@ -87,6 +87,11 @@ namespace Microsoft.Datasync.Client.Test.Offline
             throw new NotImplementedException();
         }
 
+        public override Task<IList<string>> GetTablesAsync(CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task UpsertAsync(string tableName, IEnumerable<JObject> items, bool ignoreMissingColumns, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();

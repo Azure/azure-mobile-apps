@@ -186,6 +186,17 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         }
 
         /// <summary>
+        /// Gets the list of offline tables that have been defined.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the list of tables that have been defined.</returns>
+        public override async Task<IList<string>> GetTablesAsync(CancellationToken cancellationToken = default)
+        {
+            await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+            return tableMap.Keys.Where(t => !t.StartsWith("__")).ToList();
+        }
+
+        /// <summary>
         /// Initialize the store.  This is over-ridden by the store implementation to provide a point
         /// where the tables can be created or updated.
         /// </summary>
