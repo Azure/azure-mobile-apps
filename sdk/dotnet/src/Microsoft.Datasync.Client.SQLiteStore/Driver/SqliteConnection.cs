@@ -3,10 +3,11 @@
 
 using Microsoft.Datasync.Client.Utils;
 using SQLitePCL;
+using System;
 
 namespace Microsoft.Datasync.Client.SQLiteStore.Driver
 {
-    internal class SqliteConnection
+    internal class SqliteConnection : IDisposable
     {
         /// <summary>
         /// The maximum number of parameters per query.  See https://www.sqlite.org/limits.html#max_variable_number
@@ -76,5 +77,27 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
 
             return new SqliteStatement(connection, stmt);
         }
+
+        #region IDisposable
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                raw.sqlite3_close_v2(connection);
+                connection = null;
+            }
+        }
+
+        ~SqliteConnection()
+        {
+            Dispose(disposing: false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

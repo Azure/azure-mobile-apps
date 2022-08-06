@@ -411,5 +411,22 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Test
             Assert.Equal(1, tables.Count);  // If it's 4, then the system tables are being returned as well.
             Assert.Equal(TestTable, tables[0]);
         }
+
+        [Fact]
+        public async Task Dispose_ReleasesFileHandle()
+        {
+            // Set up store as a file.
+            var dbFile = Path.Join(Path.GetTempPath(), "test-release.db");
+            var store = new OfflineSQLiteStore($"file:///{dbFile}");
+            store.DefineTable(TestTable, IdEntityDefinition);
+            await store.InitializeAsync();
+
+            // Act - dispose the store
+            store.Dispose();
+
+            // Assert - Should be able to File.Delete the store file.
+            File.Delete(dbFile);   // This should not throw.
+            Assert.False(File.Exists(dbFile), $"{dbFile} still exists but was deleted.");
+        }
     }
 }
