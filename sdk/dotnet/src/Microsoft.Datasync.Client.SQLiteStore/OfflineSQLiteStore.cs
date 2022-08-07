@@ -9,11 +9,13 @@ using Microsoft.Datasync.Client.SQLiteStore.Utils;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
+using SQLitePCL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Microsoft.Datasync.Client.SQLiteStore
 {
@@ -480,6 +482,18 @@ namespace Microsoft.Datasync.Client.SQLiteStore
                 return table;
             }
             throw new InvalidOperationException($"Table '{tableName}' is not defined.");
+        }
+
+        /// <summary>
+        /// Dispose of the database connection.
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                DbConnection.Dispose();
+            }
         }
     }
 }
