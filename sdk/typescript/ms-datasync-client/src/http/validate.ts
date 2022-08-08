@@ -124,6 +124,20 @@ export function isRelativePath(path: string, parameterName: string): void {
 }
 
 /**
+ * Validates that the provided id field is a valid entity ID.  
+ * @param id The id to validate.
+ * @param parameterName The name of the id field.
+ */
+export function isValidEntityId(id: any, parameterName: string): void {
+    if (typeof id !== 'string') {
+        throw new ArgumentError('id must be a string', parameterName);
+    }
+    if (!id.match(/^[a-zA-Z0-9][a-zA-Z0-9-_.]{0,126}$/)) {
+        throw new ArgumentError('id is invalid', parameterName);
+    }
+}
+
+/**
  * Validates if the provided headerName is a valid HTTP header name.  If it
  * isn't, then an ArgumentError is thrown.
  * 

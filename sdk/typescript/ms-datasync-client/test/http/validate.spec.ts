@@ -123,6 +123,38 @@ describe('http/validate', () => {
         });
     });
 
+    describe('#isValidEntityId', () => {
+        it('passes for valid identities', () => {
+            expect(() => { validate.isValidEntityId('db0ec08d-46a9-465d-9f5e-0066a3ee5b5f', 'id'); }).to.not.throw;
+            expect(() => { validate.isValidEntityId('0123456789', 'id'); }).to.not.throw;
+            expect(() => { validate.isValidEntityId('abcdefgh', 'id'); }).to.not.throw;
+            expect(() => { validate.isValidEntityId('db0ec08d_46a9_465d_9f5e_0066a3ee5b5f', 'id'); }).to.not.throw;
+            expect(() => { validate.isValidEntityId('db0ec08d.46a9.465d.9f5e.0066a3ee5b5f', 'id'); }).to.not.throw;
+        });
+        
+        it('throws for null identity', () => {
+            expect(() => { validate.isValidEntityId(null, 'id'); }).to.throw(ArgumentError);
+            expect(() => { validate.isValidEntityId('', 'id'); }).to.throw(ArgumentError);
+        });
+
+        it('throws for invalid identities', () => {
+            const values: Array<string> = [
+                ' ',
+                '\t',
+                'abcdef gh',
+                '!!!',
+                '?',
+                ';',
+                '{EA235ADF-9F38-44EA-8DA4-EF3D24755767}',
+                '###'
+            ];
+
+            for (const value of values) {
+                expect(() => { validate.isValidEntityId(value, 'id'); }, `Value = ${JSON.stringify(value)}`).to.throw(ArgumentError);
+            }
+        });
+    });
+
     describe('#isValidHeaderName', () => {
         it('passes valid header names', () => {
             const values: Array<string> = [

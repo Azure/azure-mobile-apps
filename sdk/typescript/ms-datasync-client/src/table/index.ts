@@ -3,3 +3,4 @@
 
 export { DataTransferObject, Page, TableQuery } from './models';
 export { DatasyncTable } from './DatasyncTable';
+export { RemoteTable } from './RemoteTable';

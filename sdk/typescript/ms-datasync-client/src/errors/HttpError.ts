@@ -41,3 +41,21 @@ import { ServiceRequest, ServiceResponse } from '../http';
      */
     public get response(): ServiceResponse | undefined { return this._response; }
 }
+
+/**
+ * An error that is thrown because a requested entity is not available.  This could be
+ * 410 "Gone" or 404 "Not Found".
+ */
+export class EntityNotFoundError extends HttpError { }
+
+/**
+ * An error that is thrown because a requested entity is in conflict.  This could be 
+ * because of 409 "Conflict" or 412 "Precondition failed"
+ */
+export class ConflictError extends HttpError 
+{ 
+    /**
+     * The value of the entity on the server (if available).
+     */
+    public get serverValue(): unknown | undefined { return this.response?.value; }
+}

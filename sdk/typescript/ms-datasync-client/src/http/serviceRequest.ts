@@ -222,4 +222,17 @@ export class ServiceRequest {
         }
         return this;
     }
+
+    /**
+     * Adds a version match header if a version is set.
+     * 
+     * @param version The version of the object.
+     * @returns the current request (for chaining).
+     */
+    public withVersionHeader(version?: string): ServiceRequest {
+        if (typeof version === 'string' && version.length > 0) {
+            return this.withHeader('If-Match', `"${version}"`);
+        }
+        return this;
+    }
 }

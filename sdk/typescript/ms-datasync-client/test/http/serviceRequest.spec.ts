@@ -385,4 +385,21 @@ describe('http/ServiceRequest', () => {
             expect(req.withQueryString('?abc=foo   ').queryString).to.equal('abc=foo');
         });
     });
+
+    describe('#withVersionHeader', () => {
+        it('sets If-Match header', () => {
+            const req = new ServiceRequest().withHeaders({ 'ZUMO-API-VERSION': '3.0.0' });
+            expect(req.withVersionHeader('abcd').headers).to.eql({ 'ZUMO-API-VERSION': '3.0.0', 'If-Match': '"abcd"'});
+        });
+
+        it('skips if blank', () => {
+            const req = new ServiceRequest().withHeaders({ 'ZUMO-API-VERSION': '3.0.0' });
+            expect(req.withVersionHeader('').headers).to.eql({ 'ZUMO-API-VERSION': '3.0.0' });
+        });
+
+        it('skips if undefined', () => {
+            const req = new ServiceRequest().withHeaders({ 'ZUMO-API-VERSION': '3.0.0' });
+            expect(req.withVersionHeader(undefined).headers).to.eql({ 'ZUMO-API-VERSION': '3.0.0' });
+        });
+    });
 });

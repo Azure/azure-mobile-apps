@@ -6,6 +6,7 @@ import { PagedAsyncIterableIterator } from '@azure/core-paging';
 import { HttpMethod, ServiceHttpClient, ServiceRequest, validate } from '../http';
 import { DatasyncTable } from './DatasyncTable';
 import { DataTransferObject, Page, TableQuery } from './models';
+import { createQueryString, getStandardError } from './utils';
 
 /**
  * Implementation of a remote connection to a table.
@@ -28,6 +29,11 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
     }
 
     /**
+     * The endpoint for the table.
+     */
+    public get endpoint(): URL { return new URL(this.tablePath, this.client.endpoint); }
+
+    /**
      * Creates an item in the table.  The item must not exist.
      * 
      * @param item The item to create.
@@ -45,7 +51,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
             .requireResponseContent();
         const response = await this.client.sendServiceRequest(request, abortSignal);
         if (!response.isSuccessStatusCode) {
-            throw this.standardError(request, response);
+            throw getStandardError(request, response);
         }
         return response.value as T;
      }
@@ -62,13 +68,12 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
         const itemId = typeof item === 'string' ? item : item.id;
         validate.isValidEntityId(itemId, 'item');
 
-        let request = new ServiceRequest(HttpMethod.DELETE, `${this.tablePath}/${itemId}`);
-        if (typeof item !== 'string') {
-            request = request.withVersionHeader(item.version);
-        }
+        const request = typeof item === 'string'
+            ? new ServiceRequest(HttpMethod.DELETE, `${this.tablePath}/${itemId}`)
+            : new ServiceRequest(HttpMethod.DELETE, `${this.tablePath}/${itemId}`).withVersionHeader(item.version);
         const response = await this.client.sendServiceRequest(request, abortSignal);
         if (!response.isSuccessStatusCode) {
-            throw this.standardError(request, response);
+            throw getStandardError(request, response);
         }
      }
  
@@ -82,11 +87,10 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      public async getItem(itemId: string, abortSignal?: AbortSignal): Promise<T> {
         validate.isValidEntityId(itemId, 'itemId');
 
-        const request = new ServiceRequest(HttpMethod.GET, `${this.tablePath}/${itemId}`)
-            .requireResponseContent();
+        const request = new ServiceRequest(HttpMethod.GET, `${this.tablePath}/${itemId}`).requireResponseContent();
         const response = await this.client.sendServiceRequest(request, abortSignal);
         if (!response.isSuccessStatusCode) {
-            throw this.standardError(request, response);
+            throw getStandardError(request, response);
         }
         return response.value as T;
      }
@@ -101,11 +105,11 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
       */
      public async getPageOfItems(filter?: TableQuery, abortSignal?: AbortSignal): Promise<Page<Partial<T>>> {
         const request = new ServiceRequest(HttpMethod.GET, this.tablePath)
-            .withQueryString(this.createQueryString(filter))
+            .withQueryString(createQueryString(filter))
             .requireResponseContent();
         const response = await this.client.sendServiceRequest(request, abortSignal);
         if (!response.isSuccessStatusCode) {
-            throw this.standardError(request, response);
+            throw getStandardError(request, response);
         }
         return response.value as Page<Partial<T>>;
      }
@@ -117,6 +121,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
       * @returns An async paged iterator over the results.
       */
      public listItems(filter?: TableQuery): PagedAsyncIterableIterator<Partial<T>> {
+        console.log(createQueryString(filter));// A debug statement to avoid a ts error - remove this when not implemented is fixed
         throw new Error('Not implemented');
      }
  
@@ -136,8 +141,10 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
             .requireResponseContent();
         const response = await this.client.sendServiceRequest(request, abortSignal);
         if (!response.isSuccessStatusCode) {
-            throw this.standardError(request, response);
+            throw getStandardError(request, response);
         }
         return response.value as T;
      }
+
+
 }
