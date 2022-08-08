@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import { AbortSignalLike } from '@azure/abort-controller';
+import { AbortSignal } from '@azure/abort-controller';
 import { PagedAsyncIterableIterator } from '@azure/core-paging';
-import { DataTransferObject, TableQuery } from './models';
+import { DataTransferObject, Page, TableQuery } from './models';
 
 /**
  * Definition of the table specification, which provides
@@ -17,7 +17,7 @@ export interface DatasyncTable<T extends DataTransferObject> {
      * @param abortSignal An abort signal.
      * @returns A promise that resolves to the stored item.
      */
-    createItem(item: T, abortSignal?: AbortSignalLike): Promise<T>;
+    createItem(item: T, abortSignal?: AbortSignal): Promise<T>;
 
     /**
      * Deletes an item in the table.  If the item is the generic type, then
@@ -27,7 +27,7 @@ export interface DatasyncTable<T extends DataTransferObject> {
      * @param abortSignal An abort signal.
      * @returns A promise that resolves when the item is deleted.
      */
-    deleteItem(item: T | string, abortSignal?: AbortSignalLike): Promise<void>;
+    deleteItem(item: T | string, abortSignal?: AbortSignal): Promise<void>;
 
     /**
      * Retrieves an item in the table.
@@ -36,7 +36,17 @@ export interface DatasyncTable<T extends DataTransferObject> {
      * @param abortSignal An abort signal.
      * @returns A promise that resolves to the stored item.
      */
-    getItem(itemId: string, abortSignal?: AbortSignalLike): Promise<T>;
+    getItem(itemId: string, abortSignal?: AbortSignal): Promise<T>;
+
+    /**
+     * Gets a single page of items from the server, according to the
+     * filter.
+     * 
+     * @param filter the filter used to restrict the items being retrieved.
+     * @param abortSignal An abort signal.
+     * @returns A promise that resolves to a page of stored items.
+     */
+    getPageOfItems(filter?: TableQuery, abortSignal?: AbortSignal): Promise<Page<Partial<T>>>;
 
     /**
      * Retrieves a list of items specified by the filter.
@@ -53,5 +63,5 @@ export interface DatasyncTable<T extends DataTransferObject> {
      * @param abortSignal An abort signal.
      * @reutrns A promise that resolves to the stored item.
      */
-    replaceItem(item: T, abortSignal?: AbortSignalLike): Promise<T>;
+    replaceItem(item: T, abortSignal?: AbortSignal): Promise<T>;
 }
