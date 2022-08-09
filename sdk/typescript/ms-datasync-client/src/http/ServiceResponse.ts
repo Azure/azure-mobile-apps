@@ -22,7 +22,13 @@ export class ServiceResponse {
         if (typeof response.bodyAsText === 'string' && response.bodyAsText.length > 0) {
             try {
                 this._content = response.bodyAsText;
-                this._value = JSON.parse(this._content);
+                this._value = JSON.parse(this._content, (field: string, value: string) => {
+                    if (field === 'updatedAt') {
+                        return new Date(value);
+                    } else {
+                        return value;
+                    }
+                });
             } catch {
                 // Swallow the error here - we deal with it elsewhere.
             }

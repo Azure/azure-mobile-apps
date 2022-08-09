@@ -65,7 +65,7 @@ describe('table/RemoteTable', () => {
 
             const response = await sut.createItem(movieResponse);
 
-            expect(response).to.eql(movieResponse);
+            mock.expectMoviesToMatch(movieResponse, response);
 
             // Check that request is sent properly
             const requests = mock.getMovieRequests(sut);
@@ -74,14 +74,14 @@ describe('table/RemoteTable', () => {
 
             expect(req.headers.get('zumo-api-version')).to.equal('3.0.0');
             expect(req.headers.get('x-zumo-version')).to.startWith('Datasync/5.0.0');
-            expect(req.headers.get('if-match')).to.equal('*');
             expect(req.headers.get('content-type')).to.startWith('application/json');
             expect(req.method).to.equal('POST');
-            expect(req.url).to.equal('https://localhost/tables/movies');
+            expect(req.url).to.equal('http://localhost/tables/movies');
 
-            // TODO: Check body type is a function
-            // TODO: Check to ensure body value matches the movieResponse
-
+            if (typeof req.body === 'function') {
+                const body = req.body();
+                expect(body).to.equal(JSON.stringify(movieResponse));
+            }
         });
 
         it('throws when successful but providing no content', async () => {

@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-export { MockHttpClient } from './MockHttpClient';
-export { BaseMovie, Movie, testMovie, getMovieTable, getMovieRequests, addMovieResponse } from './movie';
+export * from './MockHttpClient';
+export * from './movie';
 
 /**
  * A list of invalid IDs for test runners

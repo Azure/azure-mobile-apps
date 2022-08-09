@@ -128,6 +128,7 @@ export function isRelativePath(path: string, parameterName: string): void {
  * @param id The id to validate.
  * @param parameterName The name of the id field.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isValidEntityId(id: any, parameterName: string): void {
     if (typeof id !== 'string') {
         throw new ArgumentError('id must be a string', parameterName);

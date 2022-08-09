@@ -24,7 +24,7 @@ export function createQueryString(filter?: TableQuery): string {
     }
 
     if (typeof filter.includeDeletedItems === 'boolean' && filter.includeDeletedItems) {
-        params.append('__includedeleted', 'true')
+        params.append('__includedeleted', 'true');
     }
 
     if (typeof filter.selection !== 'undefined' && filter.selection.length > 0) {

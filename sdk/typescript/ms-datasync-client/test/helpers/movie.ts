@@ -1,11 +1,15 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
+import { assert, expect, use } from 'chai';
+import chaiDateTime from 'chai-datetime';
 import { DataTransferObject } from '../../src/table';
 import { MockHttpClient } from './MockHttpClient';
 import * as http from '../../src/http';
 import * as table from '../../src/table';
 import * as msrest from '@azure/core-rest-pipeline';
+
+use(chaiDateTime);
 
 /**
  * Definition of the movie type from the test service.
@@ -90,6 +94,68 @@ export function getMovieRequests(tableRef: table.RemoteTable<Movie>): Array<msre
         return mock.requests;
     }
     return [];
+}
+
+/**
+ * Check to see if two Dates are equivalent.
+ * 
+ * @param expected 
+ * @param actual 
+ */
+function expectDatesToMatch(expected?: Date, actual?: Date | string) {
+    if (typeof actual === 'undefined') {
+        if (typeof expected === 'undefined') {
+            return;
+        }
+    }
+
+    const actualDate = typeof actual === 'string' ? new Date(actual) : actual;
+    if (expected instanceof Date && actualDate instanceof Date) {
+        expect(actualDate).to.equalDate(expected);
+    } else if (expected instanceof Date) {
+        assert.fail(`Expected date = '${expected.toISOString()}', but actual date is undefined`);
+    } else if (actualDate instanceof Date) {
+        assert.fail(`Actual date = '${actualDate.toISOString()}', but expected date is undefined`);
+    }
+}
+
+/**
+ * Expect two DTOs to match.
+ * 
+ * @param expected 
+ * @param actual 
+ */
+export function expectDTOsToMatch(expected: DataTransferObject, actual: DataTransferObject) {
+    expect(actual.id).to.eql(expected.id);
+    expectDatesToMatch(expected.updatedAt, actual.updatedAt);
+    expect(actual.version).to.eql(expected.version);
+    expect(actual.deleted).to.eql(expected.deleted);
+}
+
+/**
+ * Expect two BaseMovie objects to match.
+ * 
+ * @param expected 
+ * @param actual 
+ */
+export function expectBaseMoviesToMatch(expected: BaseMovie, actual: BaseMovie) {
+    expect(actual.bestPictureWinner).to.eql(expected.bestPictureWinner);
+    expect(actual.duration).to.eql(expected.duration);
+    expect(actual.rating).to.eql(expected.rating);
+    expectDatesToMatch(expected.releaseDate, actual.releaseDate);
+    expect(actual.title).to.eql(expected.title);
+    expect(actual.year).to.eql(expected.year);
+}
+
+/**
+ * Expect two Movie objects to match.
+ * 
+ * @param expected 
+ * @param actual 
+ */
+export function expectMoviesToMatch(expected: Movie, actual: Movie) {
+    expectDTOsToMatch(expected, actual);
+    expectBaseMoviesToMatch(expected, actual);
 }
 
 
