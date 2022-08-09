@@ -13,7 +13,7 @@ import { createQueryString, getStandardError } from './utils';
  */
 export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<T> {
     private tablePath: string;
-    private client: ServiceHttpClient;
+    private _client: ServiceHttpClient;
 
     /**
      * Creates a new table connection.
@@ -25,8 +25,13 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
         validate.isRelativePath(tablePath, 'tablePath');
         
         this.tablePath = tablePath.replace(/\/*$/, ''); // Strip off any final separators
-        this.client = client;
+        this._client = client;
     }
+
+    /**
+     * The service client to use for requests.
+     */
+    public get client(): ServiceHttpClient { return this._client; }
 
     /**
      * The endpoint for the table.

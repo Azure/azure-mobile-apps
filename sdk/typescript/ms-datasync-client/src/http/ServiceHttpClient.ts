@@ -38,6 +38,7 @@ export class ServiceHttpClient extends coreClient.ServiceClient {
     private _apiVersion: string;
     private _serviceEndpoint: URL;
     private _timeout: number;
+    private _options: ServiceHttpClientOptions;
 
     // Mapping of HttpMethod to HttpMethods for @azure/core-client snedRequest.
     private _methodMap: Map<HttpMethod, msrest.HttpMethods> = new Map([
@@ -66,7 +67,7 @@ export class ServiceHttpClient extends coreClient.ServiceClient {
         const clientPolicy = datasyncClientPolicy({ apiVersion });
         policies.push({ policy: clientPolicy, position: 'perRetry' });
 
-        super({
+        const coreOptions = {
             ...defaults,
             ...options,
             userAgentOptions: {
@@ -75,11 +76,14 @@ export class ServiceHttpClient extends coreClient.ServiceClient {
             additionalPolicies: policies,
             requestContentType: 'application/json; charset=utf-8',
             endpoint: baseUri.href
-        });
+        };
+
+        super(coreOptions);
 
         this._serviceEndpoint = baseUri;
         this._apiVersion = apiVersion || PROTOCOLVERSION;
         this._timeout = options.timeout || 60000; // 60 seconds
+        this._options = { ...coreOptions };
     }
 
     /**
@@ -91,6 +95,11 @@ export class ServiceHttpClient extends coreClient.ServiceClient {
      * Returns the API version that is being used for the datasync service.
      */
     public get apiVersion(): string { return this._apiVersion; }
+
+    /**
+     * Gets the effective options in use.
+     */
+    public get options(): ServiceHttpClientOptions { return this._options; }
 
     /**
      * Sends a request to the remote service.
