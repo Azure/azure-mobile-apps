@@ -12,7 +12,7 @@ import { HttpMethod } from './HttpMethod';
 import { ServiceRequest } from './ServiceRequest';
 import { ServiceResponse } from './ServiceResponse';
 import * as pkg from '../../package.json';
-import { HttpError } from '../errors';
+import { ConflictError, RestError } from '../errors';
 
 const packageDetails = `Datasync/${pkg.version}`;
 
@@ -30,6 +30,52 @@ export interface ServiceHttpClientOptions extends coreClient.ServiceClientOption
 const defaults: ServiceHttpClientOptions = {
     requestContentType: 'application/json; charset=utf-8'
 };
+
+// Mapping of the status code to the standard reason phrase.
+const statusCodeMap: Map<number, string> = new Map([
+    [ 300, 'Multiple Choices' ],
+    [ 301, 'Moved Permanently' ],
+    [ 302, 'Found' ],
+    [ 303, 'See Other' ],
+    [ 304, 'Not Modified' ],
+    [ 305, 'Use Proxy' ],
+    [ 307, 'Temporary Redirect' ],
+    [ 308, 'Permanent Redirect'],
+    [ 400, 'Bad Request' ],
+    [ 401, 'Unauthorized' ],
+    [ 402, 'Payment Required' ],
+    [ 403, 'Forbidden' ],
+    [ 404, 'Not Found' ],
+    [ 405, 'Method Not Allowed' ],
+    [ 406, 'Not Acceptable' ],
+    [ 407, 'Proxy Authentication Required' ],
+    [ 408, 'Request Timeout' ],
+    [ 409, 'Conflict' ],
+    [ 410, 'Gone' ],
+    [ 411, 'Length Required' ],
+    [ 412, 'Precondition Failed' ],
+    [ 413, 'Payload Too Large' ],
+    [ 414, 'URI Too Long' ],
+    [ 415, 'Unsupported Media Type' ],
+    [ 416, 'Range Not Satisfiable' ],
+    [ 417, 'Expectation Failed' ],
+    [ 418, 'I am a teapot'],
+    [ 419, 'Misdirected Request' ],
+    [ 425, 'Too Early' ],
+    [ 426, 'Upgrade Required' ],
+    [ 428, 'Precondition Required' ],
+    [ 429, 'Too Many Requests' ],
+    [ 431, 'Request Header Fields Too Large' ],
+    [ 451, 'Unavailable for legal reasons' ],
+    [ 500, 'Internal server error' ],
+    [ 501, 'Not implemented' ],
+    [ 502, 'Bad gateway' ],
+    [ 503, 'Service Unavailable' ],
+    [ 504, 'Gateway Timeout' ],
+    [ 505, 'HTTP version not supported' ],
+    [ 506, 'Variant Also Negotiates' ],
+    [ 511, 'Network authentication required' ]
+]);
 
 /**
  * The internal service client used to do final communication with the datasync service.
@@ -126,7 +172,25 @@ export class ServiceHttpClient extends coreClient.ServiceClient {
         const resp = await this.sendRequest(req);
         const response = new ServiceResponse(resp);
         if (request.ensureResponseContent && response.isSuccessStatusCode && !response.hasContent) {
-            throw new HttpError('No content', request, response);
+            throw new RestError('Expected content but non provided', {
+                code: 'NO_CONTENT',
+                statusCode: response.statusCode,
+                request: req,
+                response: resp
+            });
+        }
+
+        if (response.isConflictStatusCode && response.hasContent) {
+            throw new ConflictError('Conflict', request, response);
+        }
+
+        if (!response.isSuccessStatusCode) {
+            throw new RestError(statusCodeMap.get(resp.status) || `HTTP Status ${resp.status}`, {
+                code: 'HTTP_ERROR',
+                statusCode: response.statusCode,
+                request: req,
+                response: resp
+            });
         }
 
         return response;

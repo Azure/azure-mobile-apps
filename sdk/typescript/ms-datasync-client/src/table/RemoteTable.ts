@@ -6,7 +6,7 @@ import { PagedAsyncIterableIterator } from '@azure/core-paging';
 import { HttpMethod, ServiceHttpClient, ServiceRequest, validate } from '../http';
 import { DatasyncTable } from './DatasyncTable';
 import { DataTransferObject, Page, TableQuery } from './models';
-import { createQueryString, getStandardError } from './utils';
+import { createQueryString } from './utils';
 
 /**
  * Implementation of a remote connection to a table.
@@ -55,9 +55,6 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
             .withHeader('If-None-Match', '*')
             .requireResponseContent();
         const response = await this.client.sendServiceRequest(request, abortSignal);
-        if (!response.isSuccessStatusCode) {
-            throw getStandardError(request, response);
-        }
         return response.value as T;
      }
 
@@ -76,10 +73,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
         const request = typeof item === 'string'
             ? new ServiceRequest(HttpMethod.DELETE, `${this.tablePath}/${itemId}`)
             : new ServiceRequest(HttpMethod.DELETE, `${this.tablePath}/${itemId}`).withVersionHeader(item.version);
-        const response = await this.client.sendServiceRequest(request, abortSignal);
-        if (!response.isSuccessStatusCode) {
-            throw getStandardError(request, response);
-        }
+        await this.client.sendServiceRequest(request, abortSignal);
      }
  
      /**
@@ -94,9 +88,6 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
 
         const request = new ServiceRequest(HttpMethod.GET, `${this.tablePath}/${itemId}`).requireResponseContent();
         const response = await this.client.sendServiceRequest(request, abortSignal);
-        if (!response.isSuccessStatusCode) {
-            throw getStandardError(request, response);
-        }
         return response.value as T;
      }
  
@@ -113,9 +104,6 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
             .withQueryString(createQueryString(filter))
             .requireResponseContent();
         const response = await this.client.sendServiceRequest(request, abortSignal);
-        if (!response.isSuccessStatusCode) {
-            throw getStandardError(request, response);
-        }
         return response.value as Page<Partial<T>>;
      }
  
@@ -145,11 +133,6 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
             .withVersionHeader(item.version)
             .requireResponseContent();
         const response = await this.client.sendServiceRequest(request, abortSignal);
-        if (!response.isSuccessStatusCode) {
-            throw getStandardError(request, response);
-        }
         return response.value as T;
      }
-
-
 }

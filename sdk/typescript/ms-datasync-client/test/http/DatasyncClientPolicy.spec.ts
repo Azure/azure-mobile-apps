@@ -15,7 +15,7 @@ describe('http/DatasyncClientPolicy', () => {
     });
 
     describe('#sendRequest', async () => {
-        it('SELECTION sets the protocol version by default', async () => {
+        it('sets the protocol version by default', async () => {
             const policy = datasyncClientPolicy({});
             const mockClient = new MockHttpClient();
  

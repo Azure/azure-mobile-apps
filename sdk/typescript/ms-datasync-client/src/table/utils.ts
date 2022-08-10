@@ -2,8 +2,6 @@
 // Licensed under the MIT license.
 
 import { TableQuery } from './models';
-import { ServiceRequest, ServiceResponse } from '../http';
-import { ConflictError, EntityNotFoundError, HttpError } from '../errors';
 
 /**
  * Converts a table query into a 
@@ -39,23 +37,4 @@ export function createQueryString(filter?: TableQuery): string {
         params.append('$top', `${filter.top}`);
     }
     return params.toString();
-}
-
-/**
- * Converts the request/response set into the appropriate type of HttpError.
- * 
- * @param request The ServiceRequest object.
- * @param response The ServiceResponse object.
- * @returns the Error object that is relevant to the response.
- */
-export function  getStandardError(request: ServiceRequest, response: ServiceResponse): Error {
-    if (response.statusCode === 404 || response.statusCode === 410) {
-        return new EntityNotFoundError('Entity not found', request, response);
-    }
-
-    if (response.isConflictStatusCode) {
-        return new ConflictError('Conflict', request, response);
-    }
-
-    return new HttpError(`Error Status Code ${response.statusCode}`, request, response);
 }

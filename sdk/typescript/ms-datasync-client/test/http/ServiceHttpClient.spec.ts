@@ -7,7 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { RequestBodyType } from '@azure/core-rest-pipeline';
 
 import { MockHttpClient } from '../helpers/MockHttpClient';
-import { ArgumentError, HttpError } from '../../src';
+import { ArgumentError, ConflictError, isConflictError, RestError } from '../../src/errors';
 import { HttpMethod, ServiceHttpClient, ServiceHttpClientOptions, ServiceRequest, ServiceResponse } from '../../src/http';
 
 use(chaiString);
@@ -264,8 +264,26 @@ describe('http/ServiceHttpClient', () => {
 
             const client = new ServiceHttpClient('http://localhost', { httpClient: mock });
             const request = new ServiceRequest(HttpMethod.PUT, '/tables/foo/id').withContent(JSON.stringify({id: 'wumpus'}));
-            const response = await client.sendServiceRequest(request);
-            expect(response).to.be.instanceOf(ServiceResponse);
+
+            try {
+                await client.sendServiceRequest(request);
+                assert.fail('ConflictError is expected');
+            } catch(err) {
+                expect(err).to.be.instanceOf(ConflictError);
+                if (isConflictError(err)) {
+                    const response = err.response;
+                    // Check that serviceResponse is constructed properly
+                    expect(response?.content).to.equal('{"id":"abcd"}');
+                    expect(response?.etag).to.be.equal('W/"wumpus"');
+                    expect(response?.hasContent).to.be.true;
+                    expect(response?.hasValue).to.be.true;
+                    expect(response?.headers).to.have.property('etag', 'W/"wumpus"');
+                    expect(response?.isConflictStatusCode).to.be.true;
+                    expect(response?.isSuccessStatusCode).to.be.false;
+                    expect(response?.statusCode).to.equal(409);
+                    expect(response?.value).to.be.eql({id: 'abcd'});
+                }
+            }
 
             // Check that request is sent properly
             expect(mock.requests).to.have.lengthOf(1);
@@ -275,16 +293,6 @@ describe('http/ServiceHttpClient', () => {
             expect(req.method).to.equal('PUT');
             expect(req.url).to.equal('http://localhost/tables/foo/id');
             expect(getBody(req.body)).to.equal('{"id":"wumpus"}');
-
-            // Check that serviceResponse is constructed properly
-            expect(response.content).to.equal('{"id":"abcd"}');
-            expect(response.etag).to.be.equal('W/"wumpus"');
-            expect(response.hasContent).to.be.true;
-            expect(response.hasValue).to.be.true;
-            expect(response.isConflictStatusCode).to.be.true;
-            expect(response.isSuccessStatusCode).to.be.false;
-            expect(response.statusCode).to.equal(409);
-            expect(response.value).to.be.eql({id: 'abcd'});
         });
 
         it('can send a POST message with headers and context and get a 412 response with content back', async () => {
@@ -295,8 +303,26 @@ describe('http/ServiceHttpClient', () => {
             const request = new ServiceRequest(HttpMethod.POST, '/tables/foo')
                 .withContent({id: 'wumpus'})
                 .withHeader('If-Match', '*');
-            const response = await client.sendServiceRequest(request);
-            expect(response).to.be.instanceOf(ServiceResponse);
+
+            try {
+                await client.sendServiceRequest(request);
+                assert.fail('ConflictError is expected');
+            } catch(err) {
+                expect(err).to.be.instanceOf(ConflictError);
+                if (isConflictError(err)) {
+                    const response = err.response;
+                    // Check that serviceResponse is constructed properly
+                    expect(response?.content).to.equal('{"id":"abcd"}');
+                    expect(response?.etag).to.be.equal('W/"wumpus"');
+                    expect(response?.hasContent).to.be.true;
+                    expect(response?.hasValue).to.be.true;
+                    expect(response?.headers).to.have.property('etag', 'W/"wumpus"');
+                    expect(response?.isConflictStatusCode).to.be.true;
+                    expect(response?.isSuccessStatusCode).to.be.false;
+                    expect(response?.statusCode).to.equal(412);
+                    expect(response?.value).to.be.eql({id: 'abcd'});
+                }
+            }
 
             // Check that request is sent properly
             expect(mock.requests).to.have.lengthOf(1);
@@ -308,20 +334,9 @@ describe('http/ServiceHttpClient', () => {
             expect(req.method).to.equal('POST');
             expect(req.url).to.equal('http://localhost/tables/foo');
             expect(getBody(req.body)).to.equal('{"id":"wumpus"}');
-
-            // Check that serviceResponse is constructed properly
-            expect(response.content).to.equal('{"id":"abcd"}');
-            expect(response.etag).to.be.equal('W/"wumpus"');
-            expect(response.hasContent).to.be.true;
-            expect(response.hasValue).to.be.true;
-            expect(response.headers).to.have.property('etag', 'W/"wumpus"');
-            expect(response.isConflictStatusCode).to.be.true;
-            expect(response.isSuccessStatusCode).to.be.false;
-            expect(response.statusCode).to.equal(412);
-            expect(response.value).to.be.eql({id: 'abcd'});
         });
 
-        it('throws a HttpError when requireResponseContent but no content returned', async () => {
+        it('throws a RestError when requireResponseContent but no content returned', async () => {
             const mock = new MockHttpClient();
             mock.addResponse(204);
 
@@ -335,45 +350,50 @@ describe('http/ServiceHttpClient', () => {
                 await client.sendServiceRequest(request);
                 assert.fail('did not expect to get a valid response');
             } catch (err) {
-                expect(err).to.be.instanceOf(HttpError);
-                if (err instanceof HttpError) {
-                    expect(err.request).to.not.be.undefined;
-                    expect(err.response).to.not.be.undefined;
-                }
+                expect(err).to.be.instanceOf(RestError);
             }
         });
 
-        it('returns a response when requireResponseContent and no content but error', async () => {
+        it('throws a RestError when a known error code is returned', async () => {
             const mock = new MockHttpClient();
-            mock.addResponse(412);
+            mock.addResponse(418);
 
-            const client = new ServiceHttpClient('https://localhost', { httpClient: mock });
+            const client = new ServiceHttpClient('http://localhost', { httpClient: mock });
             const request = new ServiceRequest(HttpMethod.POST, '/tables/foo')
                 .withContent({id: 'wumpus'})
                 .withHeader('If-Match', '*')
                 .requireResponseContent();
-            const response = await client.sendServiceRequest(request);
-            expect(response).to.be.instanceOf(ServiceResponse);
+            
+            try {
+                await client.sendServiceRequest(request);
+                assert.fail('did not expect to get a valid response');
+            } catch (err) {
+                expect(err).to.be.instanceOf(RestError);
+                if (err instanceof RestError) {
+                    expect(err.statusCode).to.equal(418);
+                }
+            }
+        });
 
-            // Check that request is sent properly
-            expect(mock.requests).to.have.lengthOf(1);
-            const req = mock.requests[0];
-            expect(req.headers.get('zumo-api-version')).to.equal('3.0.0');
-            expect(req.headers.get('x-zumo-version')).to.startWith('Datasync/5.0.0');
-            expect(req.headers.get('if-match')).to.equal('*');
-            expect(req.headers.get('content-type')).to.startWith('application/json');
-            expect(req.method).to.equal('POST');
-            expect(req.url).to.equal('https://localhost/tables/foo');
+        it('throws a RestError when an unknown error code is returned', async () => {
+            const mock = new MockHttpClient();
+            mock.addResponse(449);
 
-            // Check that serviceResponse is constructed properly
-            expect(response.content).to.be.undefined;
-            expect(response.etag).to.be.undefined;
-            expect(response.hasContent).to.be.false;
-            expect(response.hasValue).to.be.false;
-            expect(response.isConflictStatusCode).to.be.true;
-            expect(response.isSuccessStatusCode).to.be.false;
-            expect(response.statusCode).to.equal(412);
-            expect(response.value).to.be.undefined;
+            const client = new ServiceHttpClient('http://localhost', { httpClient: mock });
+            const request = new ServiceRequest(HttpMethod.POST, '/tables/foo')
+                .withContent({id: 'wumpus'})
+                .withHeader('If-Match', '*')
+                .requireResponseContent();
+            
+            try {
+                await client.sendServiceRequest(request);
+                assert.fail('did not expect to get a valid response');
+            } catch (err) {
+                expect(err).to.be.instanceOf(RestError);
+                if (err instanceof RestError) {
+                    expect(err.statusCode).to.equal(449);
+                }
+            }
         });
     });
 });

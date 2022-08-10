@@ -7,24 +7,76 @@
 /// <reference types="node" />
 
 import { PipelineResponse } from '@azure/core-rest-pipeline';
+import { RestError } from '@azure/core-rest-pipeline';
 
 // @public
 export class ArgumentError extends Error {
     constructor(message: string, argumentName: string);
-    // (undocumented)
-    __proto__: ErrorConstructor;
-    get argumentName(): string;
+    readonly argumentName: string;
 }
 
 // @public
-export class HttpError extends Error {
-    // Warning: (ae-forgotten-export) The symbol "ServiceRequest" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "ServiceResponse" needs to be exported by the entry point index.d.ts
+export class ConflictError extends Error {
     constructor(message: string, request?: ServiceRequest, response?: ServiceResponse);
-    // (undocumented)
-    __proto__: ErrorConstructor;
-    get request(): ServiceRequest | undefined;
-    get response(): ServiceResponse | undefined;
+    readonly request?: ServiceRequest;
+    readonly response?: ServiceResponse;
+    get serverValue(): unknown | undefined;
+}
+
+// @public
+export interface HttpHeaders {
+    [headerName: string]: string;
+}
+
+// @public
+export enum HttpMethod {
+    DELETE = 0,
+    GET = 1,
+    POST = 2,
+    PUT = 3,
+    QUERY = 4
+}
+
+// @public
+export function isConflictError(e: unknown): e is ConflictError;
+
+export { RestError }
+
+// @public
+export class ServiceRequest {
+    constructor(method?: HttpMethod, path?: string);
+    get content(): string | undefined;
+    get ensureResponseContent(): boolean;
+    get headers(): HttpHeaders;
+    get method(): HttpMethod;
+    get path(): string;
+    get queryString(): string | undefined;
+    removeContent(): ServiceRequest;
+    removeHeader(headerName: string): ServiceRequest;
+    removeQueryString(): ServiceRequest;
+    requireResponseContent(ensureReponseContent?: boolean): ServiceRequest;
+    withAbsoluteUrl(uri: string | URL): ServiceRequest;
+    withContent(content: any): ServiceRequest;
+    withHeader(headerName: string, headerValue: string): ServiceRequest;
+    withHeaders(headers: HttpHeaders): ServiceRequest;
+    withMethod(method: HttpMethod): ServiceRequest;
+    withPath(path: string): ServiceRequest;
+    withQueryString(queryString: string): ServiceRequest;
+    withVersionHeader(version?: string): ServiceRequest;
+}
+
+// @public
+export class ServiceResponse {
+    constructor(response: PipelineResponse);
+    get content(): string | undefined;
+    get etag(): string | undefined;
+    get hasContent(): boolean;
+    get hasValue(): boolean;
+    get headers(): HttpHeaders;
+    get isConflictStatusCode(): boolean;
+    get isSuccessStatusCode(): boolean;
+    get statusCode(): number;
+    get value(): unknown;
 }
 
 // (No @packageDocumentation comment for this package)
