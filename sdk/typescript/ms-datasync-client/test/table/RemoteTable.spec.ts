@@ -138,7 +138,7 @@ describe('table/RemoteTable', () => {
     
                 try {
                     await sut.createItem(movie);
-                    assert.fail('createItem should not be successful when returning bad JSON content');
+                    assert.fail('createItem should not be successful when returning a conflict');
                 } catch (err) {
                     expect(err).to.be.instanceOf(ConflictError);
                     if (err instanceof ConflictError) {
@@ -191,8 +191,171 @@ describe('table/RemoteTable', () => {
         });
     });
 
-    // describe('#deleteItem', () => {
-    // });
+    describe('#deleteItem', () => {
+        it('throws on invalid id (string version)', async () => {
+            for (const invalidId of mock.invalidIds) {
+                const sut = mock.getMovieTable();
+
+                try {
+                    await sut.deleteItem(invalidId);
+                    assert.fail('expected deleteItem to throw');
+                } catch (err) {
+                    expect(err).to.be.instanceOf(ArgumentError);
+                }
+            }
+        });
+
+        it('throws on invalid id (object version)', async () => {
+            for (const invalidId of mock.invalidIds) {
+                const sut = mock.getMovieTable();
+                const movie: mock.Movie = {
+                    id: invalidId,
+                    ...mock.testMovie,
+                };
+
+                try {
+                    await sut.deleteItem(movie);
+                    assert.fail('expected deleteItem to throw');
+                } catch (err) {
+                    expect(err).to.be.instanceOf(ArgumentError);
+                }
+            }
+        });
+
+        it('formulates correct request and response with an ID', async () => {
+            const sut = mock.getMovieTable();
+            mock.addMovieResponse(sut, 204);
+
+            await sut.deleteItem('movie-001');
+
+            // Check that request is sent properly
+            const requests = mock.getMovieRequests(sut);
+            expect(requests).to.have.lengthOf(1);
+            const req = requests[0];
+
+            expect(req.headers.get('zumo-api-version')).to.equal('3.0.0');
+            expect(req.headers.get('x-zumo-version')).to.startWith('Datasync/5.0.0');
+            expect(req.method).to.equal('DELETE');
+            expect(req.url).to.equal('http://localhost/tables/movies/movie-001');
+        });
+
+        it('formulates correct request and response with an object with no version', async () => {
+            const sut = mock.getMovieTable();
+            const movieResponse: mock.Movie = {
+                id: 'movie-001',
+                updatedAt: new Date(),
+                deleted: false,
+                ...mock.testMovie
+            };
+            mock.addMovieResponse(sut, 204);
+
+            await sut.deleteItem(movieResponse);
+
+            // Check that request is sent properly
+            const requests = mock.getMovieRequests(sut);
+            expect(requests).to.have.lengthOf(1);
+            const req = requests[0];
+
+            expect(req.headers.get('zumo-api-version')).to.equal('3.0.0');
+            expect(req.headers.get('x-zumo-version')).to.startWith('Datasync/5.0.0');
+            expect(req.method).to.equal('DELETE');
+            expect(req.url).to.equal('http://localhost/tables/movies/movie-001');
+        });
+
+        it('formulates correct request and response with an object with a version', async () => {
+            const sut = mock.getMovieTable();
+            const movieResponse: mock.Movie = {
+                id: 'movie-001',
+                version: 'testversion',
+                updatedAt: new Date(),
+                deleted: false,
+                ...mock.testMovie
+            };
+            mock.addMovieResponse(sut, 204);
+
+            await sut.deleteItem(movieResponse);
+
+            // Check that request is sent properly
+            const requests = mock.getMovieRequests(sut);
+            expect(requests).to.have.lengthOf(1);
+            const req = requests[0];
+
+            expect(req.headers.get('zumo-api-version')).to.equal('3.0.0');
+            expect(req.headers.get('x-zumo-version')).to.startWith('Datasync/5.0.0');
+            expect(req.headers.get('if-match')).to.equal('"testversion"');
+            expect(req.method).to.equal('DELETE');
+            expect(req.url).to.equal('http://localhost/tables/movies/movie-001');
+        });
+
+        it('throws a ConflictError when the server returns 409 or 412', async () => {
+            const sut = mock.getMovieTable();
+            const responseMovie: mock.Movie = {
+                id: 'movie-001',
+                version: 'abcd',
+                ...mock.testMovie
+            };
+
+            for (const statusCode of [ 409, 412]) {
+                mock.addMovieResponse(sut, statusCode, JSON.stringify(responseMovie), { 'Content-Type': 'application/json', 'ETag': '"abcd"' });
+                const movie: mock.Movie = {
+                    id: 'movie-001',
+                    ...mock.testMovie,
+                };
+    
+                try {
+                    await sut.deleteItem(movie);
+                    assert.fail('deleteItem should not be successful when returning a conflict');
+                } catch (err) {
+                    expect(err).to.be.instanceOf(ConflictError);
+                    if (err instanceof ConflictError) {
+                        expect(err.request).to.not.be.undefined;
+                        expect(err.response).to.not.be.undefined;
+                        expectMoviesToMatch(responseMovie, err.serverValue as mock.Movie);
+                    }
+                }
+            }
+        });
+
+        it('throws a RestError when there is any other HTTP error', async () => {
+            const sut = mock.getMovieTable();
+            const movie: mock.Movie = {
+                id: 'movie-001',
+                ...mock.testMovie,
+            };
+
+            for (const statusCode of [ 400, 401, 403, 413 ])
+            mock.addMovieResponse(sut, statusCode);
+
+            try {
+                await sut.deleteItem(movie);
+                assert.fail('deleteItem should not be successful when an error is returned');
+            } catch (err) {
+                expect(err).to.be.instanceOf(RestError);
+                if (err instanceof RestError) {
+                    expect(err.code).to.equal('HTTP_ERROR');
+                }
+            }
+        });
+
+        it('throws a RestError when there is a ConflictError with bad JSON content', async () => {
+            const sut = mock.getMovieTable();
+            mock.addMovieResponse(sut, 409, '{this-is-bad-json');
+            const movie: mock.Movie = {
+                id: 'movie-001',
+                ...mock.testMovie,
+            };
+
+            try {
+                await sut.deleteItem(movie);
+                assert.fail('deleteItem should not be successful when returning bad JSON content');
+            } catch (err) {
+                expect(err).to.be.instanceOf(RestError);
+                if (err instanceof RestError) {
+                    expect(err.code).to.equal('PARSE_ERROR');
+                }
+            }
+        });
+    });
 
     // describe('#getItem', () => {
 
