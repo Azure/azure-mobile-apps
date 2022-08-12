@@ -1,138 +1,233 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import { AbortSignal } from '@azure/abort-controller';
-import { PagedAsyncIterableIterator } from '@azure/core-paging';
-import { HttpMethod, ServiceHttpClient, ServiceRequest, validate } from '../http';
-import { DatasyncTable } from './DatasyncTable';
-import { DataTransferObject, Page, TableQuery } from './models';
-import { createQueryString } from './utils';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+import { ServiceClient } from "@azure/core-client";
+import { PagedAsyncIterableIterator } from "@azure/core-paging";
+import * as msrest from "@azure/core-rest-pipeline";
+import { v4 as uuid } from "uuid";
+
+import { DatasyncClientOptions } from "../DatasyncClient";
+import { DatasyncTable } from "./datasyncTable";
+import { DataTransferObject, Page, TableOperationOptions, TableQuery } from "./models";
+import { InvalidArgumentError } from "../utils/errors";
+import * as validate from "../utils/validate";
 
 /**
- * Implementation of a remote connection to a table.
+ * Helper method to determine if the operation should be forced or not.
+ * 
+ * @param options - the options for the request.
+ * @returns true if the operation should be forced; false otherwise.
+ */
+function isForcedRequest(options?: TableOperationOptions): boolean {
+    return options?.force ?? false;
+}
+
+/**
+ * An implementation of the DatasyncTable interface that sends requests to
+ * a remote datasync service.
  */
 export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<T> {
-    private tablePath: string;
-    private _client: ServiceHttpClient;
+    /**
+     * The default client options to use in formulating HTTP requests.
+     */
+    public readonly clientOptions: DatasyncClientOptions;
 
     /**
-     * Creates a new table connection.
-     * 
-     * @param tablePath the path to the table (relative to the base URI of the service client)
-     * @param client The service client.
+     * The service client that will be used for any requests to the datasync service.
      */
-    constructor(tablePath: string, client: ServiceHttpClient) {
-        validate.isRelativePath(tablePath, 'tablePath');
-        
-        this.tablePath = tablePath.replace(/\/*$/, ''); // Strip off any final separators
-        this._client = client;
+    public readonly serviceClient: ServiceClient;
+
+    /**
+     * The relative path to the table endpoint.
+     */
+    public readonly tableEndpoint: URL;
+
+    /**
+     * The name of the table.
+     */
+    public readonly tableName: string;
+
+    /**
+     * Creates a new RemoteTable connection.  Do not use this method.  Instead, use
+     * getRemoteTable() on the DatasyncClient instance.
+     * 
+     * @param serviceClient - the service client to use for communicating with the datasync service.
+     * @param tableName - the name of the table.
+     * @param endpoint - the absolute HTTP endpoint to the table.
+     * @param clientOptions - the client options to use.
+     */
+    constructor(serviceClient: ServiceClient, tableName: string, endpoint: URL, clientOptions: DatasyncClientOptions) {
+        this.clientOptions = clientOptions;
+        this.serviceClient = serviceClient;
+        this.tableName = tableName;
+        this.tableEndpoint = endpoint;
     }
 
     /**
-     * The service client to use for requests.
-     */
-    public get client(): ServiceHttpClient { return this._client; }
-
-    /**
-     * The endpoint for the table.
-     */
-    public get endpoint(): URL { return new URL(this.tablePath, this.client.endpoint); }
-
-    /**
-     * Creates an item in the table.  The item must not exist.
+     * Creates a new item in the table.  The item must not exist.
      * 
-     * @param item The item to create.
-     * @param abortSignal An abort signal.
+     * @param item - the item to create.
+     * @param options - the options to use on this request.
      * @returns A promise that resolves to the stored item.
      */
-     public async createItem(item: T, abortSignal?: AbortSignal): Promise<T> {
-        if (typeof item.id === 'string') {
-            validate.isValidEntityId(item.id, 'item.id');
+    public async createItem(item: T, options?: TableOperationOptions): Promise<T> {
+        if (!validate.isEntityId(item.id)) {
+            throw new InvalidArgumentError("Entity ID is not valid", "item");
         }
+        const request = this.createRequest("POST", this.tableEndpoint, this.serialize(item), options);
+        if (!isForcedRequest(options)) {
+            request.headers.set("If-None-Match", "*");
+        }
+        const response = await this.serviceClient.sendRequest(request);
+        this.throwIfNotSuccessful(request, response, true);
+        return this.deserialize<T>(response.bodyAsText);
+    }
 
-        const request = new ServiceRequest(HttpMethod.POST, this.tablePath)
-            .withContent(item)
-            .withHeader('If-None-Match', '*')
-            .requireResponseContent();
-        const response = await this.client.sendServiceRequest(request, abortSignal);
-        return response.value as T;
+    /**
+     * Deletes an existing item in the table.  If the item is provided,
+     * then the deletion happens only if versions match.
+     * 
+     * @param item - the item to delete (by ID or item).
+     * @param options - the options to use on this request.
+     * @returns A promise that resolves when the operation is complete.
+     */
+     public async deleteItem(item: T | string, options?: TableOperationOptions): Promise<void> {
+        const itemId: string = (typeof item === "string") ? item : item.id;
+        if (!validate.isEntityId(itemId)) {
+            throw new InvalidArgumentError("Entity ID is not valid", "item");
+        }
+        const request = this.createRequest("DELETE", new URL(itemId, this.tableEndpoint), undefined, options);
+        if (!isForcedRequest(options) && typeof item !== "string" && validate.isNotEmpty(item.version)) {
+            request.headers.set("If-Match", `"${item.version}"`);
+        }
+        const response = await this.serviceClient.sendRequest(request);
+        this.throwIfNotSuccessful(request, response, false);
+    }
+
+    /**
+     * Retrieves an existing item from the table.
+     * 
+     * @param itemId - the ID of the item to retrieve.
+     * @param options - the options to use on this request.
+     * @returns A promise that resolves to the stored item.
+     */
+     public async getItem(itemId: string, options?: TableOperationOptions): Promise<T> {
+        if (!validate.isEntityId(itemId)) {
+            throw new InvalidArgumentError("Entity ID is not valid", "itemId");
+        }
+        const request = this.createRequest("GET", new URL(itemId, this.tableEndpoint), undefined, options);
+        const response = await this.serviceClient.sendRequest(request);
+        this.throwIfNotSuccessful(request, response, true);
+        return this.deserialize<T>(response.bodyAsText);
      }
 
-     /**
-      * Deletes an item in the table.  If the item is the generic type, then
-      * the version of the item must match.
-      * 
-      * @param item The item to delete, or the item ID to delete.
-      * @param abortSignal An abort signal.
-      * @returns A promise that resolves when the item is deleted.
-      */
-     public async deleteItem(item: T | string, abortSignal?: AbortSignal): Promise<void> {
-        const itemId = typeof item === 'string' ? item : item.id;
-        validate.isValidEntityId(itemId, 'item');
+    /**
+     * Gets a page of items specified by the provided filter.
+     * 
+     * @param query - the filter used to restrict the items being retrieved.
+     * @param options - the options to use on this request.
+     * @returns A promise that resolves to a page of stored items when complete.
+     */
+    public async getPageOfItems(query?: TableQuery, options?: TableOperationOptions): Promise<Page<Partial<T>>> {
+        throw "not implemented";
+    }
 
-        const request = typeof item === 'string'
-            ? new ServiceRequest(HttpMethod.DELETE, `${this.tablePath}/${itemId}`)
-            : new ServiceRequest(HttpMethod.DELETE, `${this.tablePath}/${itemId}`).withVersionHeader(item.version);
-        await this.client.sendServiceRequest(request, abortSignal);
-     }
- 
-     /**
-      * Retrieves an item in the table.
-      * 
-      * @param itemId The ID of the item to retrieve.
-      * @param abortSignal An abort signal.
-      * @returns A promise that resolves to the stored item.
-      */
-     public async getItem(itemId: string, abortSignal?: AbortSignal): Promise<T> {
-        validate.isValidEntityId(itemId, 'itemId');
+    /**
+     * Retrieves an async list of items specified by the provided filter.
+     * 
+     * @param query - the filter used to restrict the items being retrieved.
+     * @param options - the options to use on this request.
+     * @returns An async iterator over the results.
+     */
+    listItems(query?: TableQuery, options?: TableOperationOptions): PagedAsyncIterableIterator<Partial<T>> {
+        throw "not implemented";
+    }
 
-        const request = new ServiceRequest(HttpMethod.GET, `${this.tablePath}/${itemId}`).requireResponseContent();
-        const response = await this.client.sendServiceRequest(request, abortSignal);
-        return response.value as T;
-     }
- 
-     /**
-      * Gets a single page of items from the server, according to the
-      * filter.
-      * 
-      * @param filter the filter used to restrict the items being retrieved.
-      * @param abortSignal An abort signal.
-      * @returns A promise that resolves to a page of stored items.
-      */
-     public async getPageOfItems(filter?: TableQuery, abortSignal?: AbortSignal): Promise<Page<Partial<T>>> {
-        const request = new ServiceRequest(HttpMethod.GET, this.tablePath)
-            .withQueryString(createQueryString(filter))
-            .requireResponseContent();
-        const response = await this.client.sendServiceRequest(request, abortSignal);
-        return response.value as Page<Partial<T>>;
-     }
- 
-     /**
-      * Retrieves a list of items specified by the filter.
-      * 
-      * @param filter the filter used to restrict the items to be retrieved.
-      * @returns An async paged iterator over the results.
-      */
-     public listItems(filter?: TableQuery): PagedAsyncIterableIterator<Partial<T>> {
-        console.log(createQueryString(filter));// A debug statement to avoid a ts error - remove this when not implemented is fixed
-        throw new Error('Not implemented');
-     }
- 
-     /**
-      * Replaces the items with new data.
-      * 
-      * @param item the new data for the item.
-      * @param abortSignal An abort signal.
-      * @reutrns A promise that resolves to the stored item.
-      */
-     public async replaceItem(item: T, abortSignal?: AbortSignal): Promise<T> {
-        validate.isValidEntityId(item.id, 'item.id');
+    /**
+     * Replaces an item in the remote store.  If the item has an version, the
+     * item is only replaced if the version matches the remote version.
+     * 
+     * @param item - the item with new data for the replaced data.
+     * @param options - the options to use on this request.
+     * @returns A promise that resolves to the stored item.
+     */
+    public async replaceItem(item: T, options?: TableOperationOptions): Promise<T> {
+        if (!validate.isEntityId(item.id)) {
+            throw new InvalidArgumentError("Entity ID is not valid", "item");
+        }
+        const request = this.createRequest("POST", this.tableEndpoint, this.serialize(item), options);
+        if (!isForcedRequest(options) && validate.isNotEmpty(item.version)) {
+            request.headers.set("If-Match", `"${item.version}"`);
+        }
+        const response = await this.serviceClient.sendRequest(request);
+        this.throwIfNotSuccessful(request, response, true);
+        return this.deserialize<T>(response.bodyAsText);
+    }
 
-        const request = new ServiceRequest(HttpMethod.PUT, `${this.tablePath}/${item.id}`)
-            .withContent(item)
-            .withVersionHeader(item.version)
-            .requireResponseContent();
-        const response = await this.client.sendServiceRequest(request, abortSignal);
-        return response.value as T;
-     }
+    /**
+     * Internal method to construct a new request object.
+     * 
+     * @param method The HTTP method to execute.
+     * @param url The URL of the request.
+     * @param content If set, the JSON content for the request.
+     * @param options If set, the operation options to set.
+     * @returns The pipeline request object.
+     */
+    private createRequest(method: msrest.HttpMethods, url: URL, content?: string, options?: TableOperationOptions): msrest.PipelineRequest {
+        const request: msrest.PipelineRequest = {
+            abortSignal: options?.abortSignal,
+            allowInsecureConnection: this.clientOptions?.allowInsecureConnection ?? url.href === "http:",
+            body: content,
+            headers: msrest.createHttpHeaders(),
+            method: method,
+            requestId: uuid(),
+            timeout: options?.timeout || this.clientOptions?.timeout || 60000,
+            url: url.href,
+            withCredentials: true
+        };
+        return request;
+    }
+
+    /**
+     * Deserializes some JSON content into the appropriate type.
+     * 
+     * @param content - the content to be deserialized.
+     * @returns the deserialized object.
+     * @throws SyntaxError if the JSON is invalid.
+     */
+    private deserialize<U>(content?: string | null): U {
+        throw "not implemented";
+    }
+
+    /**
+     * Serializes the object provided to JSON.
+     * 
+     * @param content - the content to be serialized.
+     * @returns the serialized string.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private serialize(content: any): string {
+        throw "not implemented";
+    }
+
+    /**
+     * If the response from the server is not successful, then throw a RestError.
+     * 
+     * @param request - the PipelineRequest object.
+     * @param response - the PipelineResponse object.
+     * @param ensureResponseContent - if true and the request was successful, a body must be provided.
+     */
+    private throwIfNotSuccessful(request: msrest.PipelineRequest, response: msrest.PipelineResponse, ensureResponseContent: boolean) {
+        if ((response.status == 409 || response.status == 412) && validate.isNotEmpty(response.bodyAsText)) {
+            throw "not implemented";
+        }
+        if (response.status < 200 || response.status > 299) {
+            throw new msrest.RestError("Service request was not successful", { code: "HTTP_ERROR", statusCode: response.status, request, response });
+        }
+        if (ensureResponseContent && !validate.isNotEmpty(response.bodyAsText)) {
+            throw new msrest.RestError("No content was received", { code: "NO_CONTENT", statusCode: response.status, request, response });
+        }
+    }
 }

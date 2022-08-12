@@ -6,77 +6,32 @@
 
 /// <reference types="node" />
 
-import { PipelineResponse } from '@azure/core-rest-pipeline';
-import { RestError } from '@azure/core-rest-pipeline';
+import { CommonClientOptions } from '@azure/core-client';
+import { ServiceClient } from '@azure/core-client';
+import { TokenCredential } from '@azure/core-auth';
 
 // @public
-export class ArgumentError extends Error {
+export class DatasyncClient {
+    constructor(endpointUrl: string | URL);
+    constructor(endpointUrl: string | URL, clientOptions: DatasyncClientOptions);
+    constructor(endpointUrl: string | URL, credential: TokenCredential);
+    constructor(endpointUrl: string | URL, credential: TokenCredential, clientOptions: DatasyncClientOptions);
+    readonly clientOptions: DatasyncClientOptions;
+    readonly credential?: TokenCredential;
+    readonly endpointUrl: URL;
+    readonly serviceClient: ServiceClient;
+}
+
+// @public
+export interface DatasyncClientOptions extends CommonClientOptions {
+    apiVersion?: string;
+    scopes?: string | string[];
+}
+
+// @public
+export class InvalidArgumentError extends Error {
     constructor(message: string, argumentName: string);
     readonly argumentName: string;
-}
-
-// @public
-export class ConflictError extends Error {
-    constructor(message: string, request?: ServiceRequest, response?: ServiceResponse);
-    readonly request?: ServiceRequest;
-    readonly response?: ServiceResponse;
-    get serverValue(): unknown | undefined;
-}
-
-// @public
-export interface HttpHeaders {
-    [headerName: string]: string;
-}
-
-// @public
-export enum HttpMethod {
-    DELETE = 0,
-    GET = 1,
-    POST = 2,
-    PUT = 3,
-    QUERY = 4
-}
-
-// @public
-export function isConflictError(e: unknown): e is ConflictError;
-
-export { RestError }
-
-// @public
-export class ServiceRequest {
-    constructor(method?: HttpMethod, path?: string);
-    get content(): string | undefined;
-    get ensureResponseContent(): boolean;
-    get headers(): HttpHeaders;
-    get method(): HttpMethod;
-    get path(): string;
-    get queryString(): string | undefined;
-    removeContent(): ServiceRequest;
-    removeHeader(headerName: string): ServiceRequest;
-    removeQueryString(): ServiceRequest;
-    requireResponseContent(ensureReponseContent?: boolean): ServiceRequest;
-    withAbsoluteUrl(uri: string | URL): ServiceRequest;
-    withContent(content: any): ServiceRequest;
-    withHeader(headerName: string, headerValue: string): ServiceRequest;
-    withHeaders(headers: HttpHeaders): ServiceRequest;
-    withMethod(method: HttpMethod): ServiceRequest;
-    withPath(path: string): ServiceRequest;
-    withQueryString(queryString: string): ServiceRequest;
-    withVersionHeader(version?: string): ServiceRequest;
-}
-
-// @public
-export class ServiceResponse {
-    constructor(response: PipelineResponse);
-    get content(): string | undefined;
-    get etag(): string | undefined;
-    get hasContent(): boolean;
-    get hasValue(): boolean;
-    get headers(): HttpHeaders;
-    get isConflictStatusCode(): boolean;
-    get isSuccessStatusCode(): boolean;
-    get statusCode(): number;
-    get value(): unknown;
 }
 
 // (No @packageDocumentation comment for this package)

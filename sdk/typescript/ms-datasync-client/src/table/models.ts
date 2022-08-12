@@ -1,40 +1,77 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
+import { AbortSignalLike } from "@azure/abort-controller";
+
 /**
- * Definition of the common fields for a data transfer object
- * from the service.
+ * Base definition for a model type, representing the common fields for
+ * a data transfer object from the service.
  */
 export interface DataTransferObject {
-    /** The globally unique ID for the object */
+    /**
+     * The globally unique ID for the object.
+     */
     id: string;
 
-    /** An opaque string uniquely identifying the version */
+    /**
+     * An opaque string uniquely identifying the version.
+     */
     version?: string;
 
-    /** The last date/time that the object was updated, with ms precision */
+    /**
+     * The last date/time that the object was updated, with ms precision.
+     */
     updatedAt?: Date;
 
-    /** If true, the item is deleted. */
+    /**
+     * If true, the item is marked for deletion.
+     */
     deleted?: boolean;
 }
 
 /**
- * Definition of a page of items returned from the service.
+ * A page of items returned from the server.
  */
 export interface Page<T> {
-    /** The items - always returned. */
-    items: [T],
+    /**
+     * The list of items in the page
+     */
+    items: [T];
 
-    /** The count of items (only if requested) */
-    count?: number,
+    /**
+     * The count of items (only if requested)
+     */
+    count?: number;
 
-    /** The link to the next page of items (if there are more pages) */
-    nextLink?: string
+    /**
+     * The link to the next page of items (if there are more pages)
+     */
+    nextLink?: string;
 }
 
 /**
- * Definition of a query against a table.
+ * Common set of operation options for table operations.
+ */
+export interface TableOperationOptions {
+    /**
+     * If set, an abort signal to monitor.
+     */
+    abortSignal?: AbortSignalLike;
+
+    /**
+     * If set and the operation would be a conditional operation, force
+     * the operation instead.
+     */
+    force?: boolean;
+
+    /**
+     * If set, the timeout for the request (expressed in milliseconds).
+     */
+    timeout?: number;
+}
+
+/**
+ * A query against a table.
  */
 export interface TableQuery {
     /** An OData filter statement for the table. */

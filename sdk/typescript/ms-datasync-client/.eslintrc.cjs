@@ -12,7 +12,7 @@ module.exports = {
         'plugin:@typescript-eslint/recommended'
     ],
     "rules": {
-        "quotes": [ "error", "single", { "avoidEscape": true }],
+        "quotes": [ "error", "double", { "avoidEscape": true }],
         "semi": [ "error", "always" ]
     }
 };

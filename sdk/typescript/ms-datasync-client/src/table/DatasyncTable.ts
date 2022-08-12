@@ -1,67 +1,63 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import { AbortSignal } from '@azure/abort-controller';
-import { PagedAsyncIterableIterator } from '@azure/core-paging';
-import { DataTransferObject, Page, TableQuery } from './models';
+import { PagedAsyncIterableIterator } from "@azure/core-paging";
+import { DataTransferObject, Page, TableOperationOptions, TableQuery } from "./models";
 
-/**
- * Definition of the table specification, which provides
- * CRUDL on a remote or offline table.
- */
 export interface DatasyncTable<T extends DataTransferObject> {
     /**
-     * Creates an item in the table.  The item must not exist.
+     * Creates a new item in the table.  The item must not exist.
      * 
-     * @param item The item to create.
-     * @param abortSignal An abort signal.
+     * @param item - the item to create.
+     * @param options - the options to use on this request.
      * @returns A promise that resolves to the stored item.
      */
-    createItem(item: T, abortSignal?: AbortSignal): Promise<T>;
+    createItem(item: T, options?: TableOperationOptions): Promise<T>;
 
     /**
-     * Deletes an item in the table.  If the item is the generic type, then
-     * the version of the item must match.
+     * Deletes an existing item in the table.  If the item is provided,
+     * then the deletion happens only if versions match.
      * 
-     * @param item The item to delete, or the item ID to delete.
-     * @param abortSignal An abort signal.
-     * @returns A promise that resolves when the item is deleted.
+     * @param item - the item to delete (by ID or item).
+     * @param options - the options to use on this request.
+     * @returns A promise that resolves when the operation is complete.
      */
-    deleteItem(item: T | string, abortSignal?: AbortSignal): Promise<void>;
+    deleteItem(item: T | string, options?: TableOperationOptions): Promise<void>;
 
     /**
-     * Retrieves an item in the table.
+     * Retrieves an existing item from the table.
      * 
-     * @param itemId The ID of the item to retrieve.
-     * @param abortSignal An abort signal.
+     * @param itemId - the ID of the item to retrieve.
+     * @param options - the options to use on this request.
      * @returns A promise that resolves to the stored item.
      */
-    getItem(itemId: string, abortSignal?: AbortSignal): Promise<T>;
+    getItem(itemId: string, options?: TableOperationOptions): Promise<T>;
 
     /**
-     * Gets a single page of items from the server, according to the
-     * filter.
+     * Gets a page of items specified by the provided filter.
      * 
-     * @param filter the filter used to restrict the items being retrieved.
-     * @param abortSignal An abort signal.
-     * @returns A promise that resolves to a page of stored items.
+     * @param query - the filter used to restrict the items being retrieved.
+     * @param options - the options to use on this request.
+     * @returns A promise that resolves to a page of stored items when complete.
      */
-    getPageOfItems(filter?: TableQuery, abortSignal?: AbortSignal): Promise<Page<Partial<T>>>;
+    getPageOfItems(query?: TableQuery, options?: TableOperationOptions): Promise<Page<Partial<T>>>;
 
     /**
-     * Retrieves a list of items specified by the filter.
+     * Retrieves an async list of items specified by the provided filter.
      * 
-     * @param filter the filter used to restrict the items to be retrieved.
-     * @returns An async paged iterator over the results.
+     * @param query - the filter used to restrict the items being retrieved.
+     * @param options - the options to use on this request.
+     * @returns An async iterator over the results.
      */
-    listItems(filter?: TableQuery): PagedAsyncIterableIterator<Partial<T>>;
+    listItems(query?: TableQuery, options?: TableOperationOptions): PagedAsyncIterableIterator<Partial<T>>;
 
     /**
-     * Replaces the items with new data.
+     * Replaces an item in the remote store.  If the item has an version, the
+     * item is only replaced if the version matches the remote version.
      * 
-     * @param item the new data for the item.
-     * @param abortSignal An abort signal.
-     * @reutrns A promise that resolves to the stored item.
+     * @param item - the item with new data for the replaced data.
+     * @param options - the options to use on this request.
+     * @returns A promise that resolves to the stored item.
      */
-    replaceItem(item: T, abortSignal?: AbortSignal): Promise<T>;
+    replaceItem(item: T, options?: TableOperationOptions): Promise<T>;
 }
