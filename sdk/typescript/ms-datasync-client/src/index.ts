@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 export { 
+    ConflictError,
     InvalidArgumentError
 } from "./utils/errors";
 export {

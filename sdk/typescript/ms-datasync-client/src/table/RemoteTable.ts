@@ -11,7 +11,7 @@ import { v4 as uuid } from "uuid";
 import { DatasyncClientOptions } from "../DatasyncClient";
 import { DatasyncTable } from "./datasyncTable";
 import { DataTransferObject, Page, TableOperationOptions, TableQuery } from "./models";
-import { InvalidArgumentError } from "../utils/errors";
+import { ConflictError, InvalidArgumentError } from "../utils/errors";
 import * as validate from "../utils/validate";
 
 /**
@@ -131,7 +131,12 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      * @returns A promise that resolves to a page of stored items when complete.
      */
     public async getPageOfItems(query?: TableQuery, options?: TableOperationOptions): Promise<Page<Partial<T>>> {
-        throw "not implemented";
+        const requestUrl = new URL(this.tableEndpoint.href);
+        requestUrl.search = this.getSearchParams(query);
+        const request = this.createRequest("GET", requestUrl, undefined, options);
+        const response = await this.serviceClient.sendRequest(request);
+        this.throwIfNotSuccessful(request, response, true);
+        return this.deserialize<Page<Partial<T>>>(response.bodyAsText);
     }
 
     /**
@@ -198,6 +203,18 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      * @throws SyntaxError if the JSON is invalid.
      */
     private deserialize<U>(content?: string | null): U {
+        if (!validate.isNotEmpty(content)) {
+            throw new SyntaxError("No content received to deserialize");
+        }
+        throw "not implemented";
+    }
+
+    /**
+     * Converts a TableQuery into the appropriate query string for sending to the service.
+     * 
+     * @param query - the query to be executed.
+     */
+    private getSearchParams(query?: TableQuery): string {
         throw "not implemented";
     }
 
@@ -209,7 +226,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private serialize(content: any): string {
-        throw "not implemented";
+        return JSON.stringify(content);
     }
 
     /**
@@ -221,7 +238,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      */
     private throwIfNotSuccessful(request: msrest.PipelineRequest, response: msrest.PipelineResponse, ensureResponseContent: boolean) {
         if ((response.status == 409 || response.status == 412) && validate.isNotEmpty(response.bodyAsText)) {
-            throw "not implemented";
+            throw new ConflictError(request, response, this.deserialize<T>(response.bodyAsText));
         }
         if (response.status < 200 || response.status > 299) {
             throw new msrest.RestError("Service request was not successful", { code: "HTTP_ERROR", statusCode: response.status, request, response });
