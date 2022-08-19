@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Datasync.EFCore
     /// data in an Entity Framework configured database.
     /// </summary>
     /// <typeparam name="TEntity">The type of entity being stored.</typeparam>
-    public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity : EntityTableData
+    public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity : class, ITableData
     {
         /// <summary>
         /// The EF Core <see cref="DbContext"/> for requests to the backend.
@@ -33,6 +33,13 @@ namespace Microsoft.AspNetCore.Datasync.EFCore
         /// <param name="context">The <see cref="DbContext"/> for the backend store.</param>
         public EntityTableRepository(DbContext context)
         {
+            // Type check - only known derivates are allowed.
+            var typeInfo = typeof(TEntity);
+            if (!typeInfo.IsSubclassOf(typeof(EntityTableData)) && !typeInfo.IsSubclassOf(typeof(ETagEntityTableData)))
+            {
+                throw new InvalidCastException($"Entity type {typeof(TEntity).Name} is not a valid entity type.");
+            }
+
             Context = context ?? throw new ArgumentNullException(nameof(context));
             try
             {

@@ -15,6 +15,10 @@ using TestData = Datasync.Common.Test.TestData;
 
 namespace Microsoft.AspNetCore.Datasync.EFCore.Test
 {
+    internal class ETagModel : ETagEntityTableData
+    {
+    }
+
     /// <summary>
     /// A <see cref="DbContext"/> for serving the movies set up for tests.
     /// </summary>
@@ -61,6 +65,11 @@ namespace Microsoft.AspNetCore.Datasync.EFCore.Test
         /// The set of movies.
         /// </summary>
         public DbSet<EFMovie> Movies { get; set; }
+
+        /// <summary>
+        /// The set of movies with an ETag model
+        /// </summary>
+        public DbSet<ETagModel> ETagModels { get; set; }
 
         /// <summary>
         /// Get a cloned copy of the movie by ID, or null if it doesn't exist.
