@@ -29,6 +29,19 @@ namespace Microsoft.AspNetCore.Datasync.EFCore.Test
             Title = "Black Panther",
             Year = 2018
         };
+
+        internal class NotEntityModel : ITableData
+        {
+            public string Id { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public byte[] Version { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DateTimeOffset UpdatedAt { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public bool Deleted { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+            public bool Equals(ITableData other)
+            {
+                throw new NotImplementedException();
+            }
+        }
         #endregion
 
         /// <summary>
@@ -63,6 +76,19 @@ namespace Microsoft.AspNetCore.Datasync.EFCore.Test
         public void EntityTableRepository_Throws_WithMissingSet()
         {
             Assert.Throws<ArgumentException>(() => new EntityTableRepository<EFError>(context));
+        }
+
+        [Fact]
+        public void EntityTableRepository_Allows_ETagEntityTableData_GenericParam()
+        {
+            var sut = new EntityTableRepository<ETagModel>(context);
+            Assert.NotNull(sut);
+        }
+
+        [Fact]
+        public void EntityTableRepository_Throws_OnNonSupported_GenericParam()
+        {
+            Assert.Throws<InvalidCastException>(() => new EntityTableRepository<NotEntityModel>(context));
         }
 
         [Fact]
