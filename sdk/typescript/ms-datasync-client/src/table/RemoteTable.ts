@@ -9,7 +9,7 @@ import * as msrest from "@azure/core-rest-pipeline";
 import { v4 as uuid } from "uuid";
 
 import { DatasyncClientOptions } from "../DatasyncClient";
-import { DatasyncTable } from "./datasyncTable";
+import { DatasyncTable } from "./DatasyncTable";
 import { DataTransferObject, Page, TableOperationOptions, TableQuery } from "./models";
 import { ConflictError, InvalidArgumentError } from "../utils/errors";
 import * as validate from "../utils/validate";
@@ -147,6 +147,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      * @returns An async iterator over the results.
      */
     listItems(query?: TableQuery, options?: TableOperationOptions): PagedAsyncIterableIterator<Partial<T>> {
+        console.log(`query = ${JSON.stringify(query)}; options = ${JSON.stringify(options)}`);
         throw "not implemented";
     }
 
@@ -215,6 +216,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      * @param query - the query to be executed.
      */
     private getSearchParams(query?: TableQuery): string {
+        console.log(`query = ${JSON.stringify(query)}`);
         throw "not implemented";
     }
 
@@ -237,8 +239,12 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      * @param ensureResponseContent - if true and the request was successful, a body must be provided.
      */
     private throwIfNotSuccessful(request: msrest.PipelineRequest, response: msrest.PipelineResponse, ensureResponseContent: boolean) {
-        if ((response.status == 409 || response.status == 412) && validate.isNotEmpty(response.bodyAsText)) {
-            throw new ConflictError(request, response, this.deserialize<T>(response.bodyAsText));
+        if (response.status == 409 || response.status == 412) {
+            if (validate.isNotEmpty(response.bodyAsText)) {
+                throw new ConflictError(request, response, this.deserialize<T>(response.bodyAsText));
+            } else {
+                throw new msrest.RestError("No content was received", { code: "NO_CONTENT", statusCode: response.status, request, response });
+            }
         }
         if (response.status < 200 || response.status > 299) {
             throw new msrest.RestError("Service request was not successful", { code: "HTTP_ERROR", statusCode: response.status, request, response });

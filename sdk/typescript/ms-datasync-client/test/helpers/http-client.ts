@@ -81,11 +81,29 @@ export class MockHttpClient implements msrest.HttpClient {
      * @param headers - if provided, the list of headers to send.
      * @returns the mock client (for chaining).
      */
-    addResponse(statusCode: number, body?: string, headers?: msrest.HttpHeaders): MockHttpClient {
+    addRestResponse(statusCode: number, body?: string, headers?: msrest.HttpHeaders): MockHttpClient {
         const response: MockResponse = {
             status: statusCode,
             bodyAsText: body,
             headers: headers || msrest.createHttpHeaders()
+        };
+        this.responses.push(response);
+        return this;
+    }
+    
+        /**
+     * Adds a response to the list of responses to send.
+     * 
+     * @param statusCode - the HTTP status code to send.
+     * @param body - if provided, the body to send.
+     * @param headers - if provided, the list of headers to send (raw form).
+     * @returns the mock client (for chaining).
+     */
+    addResponse(statusCode: number, body?: string, headers?: msrest.RawHttpHeadersInput): MockHttpClient {
+        const response: MockResponse = {
+            status: statusCode,
+            bodyAsText: body,
+            headers: msrest.createHttpHeaders(headers)
         };
         this.responses.push(response);
         return this;

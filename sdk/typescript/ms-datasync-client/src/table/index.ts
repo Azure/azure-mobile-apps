@@ -2,4 +2,5 @@
 // Licensed under the MIT license.
 
 export * from "./models";
-export * from "./datasyncTable";
+export * from "./DatasyncTable";
+export * from "./RemoteTable";
