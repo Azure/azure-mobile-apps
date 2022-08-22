@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { ServiceClient } from "@azure/core-client";
 import { PagedAsyncIterableIterator } from "@azure/core-paging";
 import * as msrest from "@azure/core-rest-pipeline";
@@ -66,7 +64,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
     /**
      * The relative path to the table endpoint.
      */
-    public readonly tableEndpoint: URL;
+    public readonly tableEndpoint: string;
 
     /**
      * The name of the table.
@@ -86,7 +84,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
         this.clientOptions = clientOptions;
         this.serviceClient = serviceClient;
         this.tableName = tableName;
-        this.tableEndpoint = endpoint;
+        this.tableEndpoint = endpoint.href.replace(/\/$/, ""); // Strip end slashes
         if (typeof clientOptions.tableReviver !== "undefined") {
             this.reviver = clientOptions.tableReviver(tableName);
         }
@@ -103,13 +101,13 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
         if (!validate.isEntityId(item.id)) {
             throw new InvalidArgumentError("Entity ID is not valid", "item");
         }
-        const request = this.createRequest("POST", this.tableEndpoint, this.serialize(item), options);
+        const request = this.createRequest("POST", new URL(this.tableEndpoint), this.serialize(item), options);
         if (!isForcedRequest(options)) {
             request.headers.set("If-None-Match", "*");
         }
         const response = await this.serviceClient.sendRequest(request);
-        this.throwIfNotSuccessful(request, response, true);
-        return this.deserialize<T>(response.bodyAsText);
+        this.throwIfNotSuccessful(request, response);
+        return this.deserialize<T>(request, response);
     }
 
     /**
@@ -125,12 +123,12 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
         if (!validate.isEntityId(itemId)) {
             throw new InvalidArgumentError("Entity ID is not valid", "item");
         }
-        const request = this.createRequest("DELETE", new URL(itemId, this.tableEndpoint), undefined, options);
+        const request = this.createRequest("DELETE", new URL(`${this.tableEndpoint}/${itemId}`), undefined, options);
         if (!isForcedRequest(options) && typeof item !== "string" && validate.isNotEmpty(item.version)) {
             request.headers.set("If-Match", `"${item.version}"`);
         }
         const response = await this.serviceClient.sendRequest(request);
-        this.throwIfNotSuccessful(request, response, false);
+        this.throwIfNotSuccessful(request, response);
     }
 
     /**
@@ -144,10 +142,10 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
         if (!validate.isEntityId(itemId)) {
             throw new InvalidArgumentError("Entity ID is not valid", "itemId");
         }
-        const request = this.createRequest("GET", new URL(itemId, this.tableEndpoint), undefined, options);
+        const request = this.createRequest("GET", new URL(`${this.tableEndpoint}/${itemId}`), undefined, options);
         const response = await this.serviceClient.sendRequest(request);
-        this.throwIfNotSuccessful(request, response, true);
-        return this.deserialize<T>(response.bodyAsText);
+        this.throwIfNotSuccessful(request, response);
+        return this.deserialize<T>(request, response);
      }
 
     /**
@@ -158,12 +156,12 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      * @returns A promise that resolves to a page of stored items when complete.
      */
     public async getPageOfItems(query?: TableQuery, options?: TableOperationOptions): Promise<Page<Partial<T>>> {
-        const requestUrl = new URL(this.tableEndpoint.href);
+        const requestUrl = new URL(this.tableEndpoint);
         requestUrl.search = this.getSearchParams(query);
         const request = this.createRequest("GET", requestUrl, undefined, options);
         const response = await this.serviceClient.sendRequest(request);
-        this.throwIfNotSuccessful(request, response, true);
-        return this.deserialize<Page<Partial<T>>>(response.bodyAsText);
+        this.throwIfNotSuccessful(request, response);
+        return this.deserialize<Page<Partial<T>>>(request, response);
     }
 
     /**
@@ -190,13 +188,13 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
         if (!validate.isEntityId(item.id)) {
             throw new InvalidArgumentError("Entity ID is not valid", "item");
         }
-        const request = this.createRequest("POST", this.tableEndpoint, this.serialize(item), options);
+        const request = this.createRequest("PUT", new URL(`${this.tableEndpoint}/${item.id}`), this.serialize(item), options);
         if (!isForcedRequest(options) && validate.isNotEmpty(item.version)) {
             request.headers.set("If-Match", `"${item.version}"`);
         }
         const response = await this.serviceClient.sendRequest(request);
-        this.throwIfNotSuccessful(request, response, true);
-        return this.deserialize<T>(response.bodyAsText);
+        this.throwIfNotSuccessful(request, response);
+        return this.deserialize<T>(request, response);
     }
 
     /**
@@ -223,18 +221,31 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
         return request;
     }
 
+
+    /**
+     * Deserialize some JSON content into the appropriate type
+     * 
+     * @param request - the request that generated the content
+     * @param response - the response holding the content
+     * @returns the deserialized content
+     * @throws RestError if the deserialized content is empty
+     */
+    private deserialize<U>(request: msrest.PipelineRequest, response: msrest.PipelineResponse) {
+        if (typeof response.bodyAsText !== "string" || response.bodyAsText.length <= 0) {
+            throw new msrest.RestError("No content was received", { code: "NO_CONTENT", statusCode: response.status, request, response });
+        } else {
+            return this.deserializeContent<U>(response.bodyAsText);
+        }
+    }
+
     /**
      * Deserializes some JSON content into the appropriate type.
      * 
      * @param content - the content to be deserialized.
      * @returns the deserialized object.
-     * @throws SyntaxError if the JSON is invalid.
      */
-    private deserialize<U>(content?: string | null): U {
-        if (!validate.isNotEmpty(content)) {
-            throw new SyntaxError("No content received to deserialize");
-        }
-        return JSON.parse(content ?? "", (propName: string, propValue: unknown) => {
+    private deserializeContent<U>(content: string): U {
+        return JSON.parse(content, (propName: string, propValue: unknown) => {
             if (dtoFields.indexOf(propName) > -1) {
                 return reviveDTO(propName, propValue);
             }
@@ -251,8 +262,31 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      * @param query - the query to be executed.
      */
     private getSearchParams(query?: TableQuery): string {
-        console.log(`query = ${JSON.stringify(query)}`);
-        throw "not implemented";
+        const params: Array<string> = [];
+        if (typeof query !== "undefined") {
+            if (typeof query.filter !== "undefined" && query.filter.length > 0) {
+                params.push(`$filter=${encodeURI(query.filter)}`);
+            }
+            if (typeof query.orderBy !== "undefined" && query.orderBy.length > 0) {
+                params.push(`$orderby=${encodeURI(query.orderBy.join(","))}`);
+            }
+            if (typeof query.selection !== "undefined" && query.selection.length > 0) {
+                params.push(`$select=${encodeURI(query.selection.join(","))}`);
+            }
+            if (typeof query.skip !== "undefined" && query.skip > 0) {
+                params.push(`$skip=${query.skip}`);
+            }
+            if (typeof query.top !== "undefined" && query.top > 0) {
+                params.push(`$top=${query.top}`);
+            }
+            if (typeof query.includeCount !== "undefined" && query.includeCount) {
+                params.push("$count=true");
+            }
+            if (typeof query.includeDeletedItems !== "undefined" && query.includeDeletedItems) {
+                params.push("__includedeleted=true");
+            }
+        }
+        return params.join("&");
     }
 
     /**
@@ -273,19 +307,12 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      * @param response - the PipelineResponse object.
      * @param ensureResponseContent - if true and the request was successful, a body must be provided.
      */
-    private throwIfNotSuccessful(request: msrest.PipelineRequest, response: msrest.PipelineResponse, ensureResponseContent: boolean) {
+    private throwIfNotSuccessful(request: msrest.PipelineRequest, response: msrest.PipelineResponse) {
         if (response.status == 409 || response.status == 412) {
-            if (validate.isNotEmpty(response.bodyAsText)) {
-                throw new ConflictError(request, response, this.deserialize<T>(response.bodyAsText));
-            } else {
-                throw new msrest.RestError("No content was received", { code: "NO_CONTENT", statusCode: response.status, request, response });
-            }
+            throw new ConflictError(request, response, this.deserialize<T>(request, response));
         }
         if (response.status < 200 || response.status > 299) {
             throw new msrest.RestError("Service request was not successful", { code: "HTTP_ERROR", statusCode: response.status, request, response });
-        }
-        if (ensureResponseContent && !validate.isNotEmpty(response.bodyAsText)) {
-            throw new msrest.RestError("No content was received", { code: "NO_CONTENT", statusCode: response.status, request, response });
         }
     }
 }

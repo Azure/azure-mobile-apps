@@ -78,7 +78,10 @@ export interface TableQuery {
     filter?: string;
 
     /** The list of fields to return. */
-    selection?: [string];
+    selection?: Array<string>;
+
+    /** The ordering */
+    orderBy?: Array<string>;
 
     /** The number of items to skip. */
     skip?: number;

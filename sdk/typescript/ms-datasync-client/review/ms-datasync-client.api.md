@@ -88,7 +88,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
     replaceItem(item: T, options?: TableOperationOptions): Promise<T>;
     reviver?: JsonReviver;
     readonly serviceClient: ServiceClient;
-    readonly tableEndpoint: URL;
+    readonly tableEndpoint: string;
     readonly tableName: string;
 }
 
@@ -106,7 +106,8 @@ export interface TableQuery {
     filter?: string;
     includeCount?: boolean;
     includeDeletedItems?: boolean;
-    selection?: [string];
+    orderBy?: Array<string>;
+    selection?: Array<string>;
     skip?: number;
     top?: number;
 }
