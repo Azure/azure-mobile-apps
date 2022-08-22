@@ -22,11 +22,12 @@ use(chaiSubset);
  * @param method The expected method.
  * @param url The expected URL.
  */
-export function expectMockRequestsToBeValid(mock: MockHttpClient, length: number, method: string, url: string) {
+export function expectMockRequestsToBeValid(mock: MockHttpClient, length: number, method: string, url: string | string[]) {
     expect(mock.requests).to.have.length(length);
     for (const req of mock.requests) {
         expect(req.method).to.equal(method);
-        expect(req.url).to.equal(url);
+        const expectedUrl = typeof url === "string" ? url : url.shift();
+        expect(req.url).to.equal(expectedUrl);
     }
 }
 

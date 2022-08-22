@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 import * as models from "./models";
+import { Page } from "../../src";
 
 export const invalidIds: Array<string> = [
     " ",
@@ -22,3 +23,18 @@ export const movie: models.BaseMovie = {
     title: "The Shawshank Redemption",
     year: 1994
 };
+
+export function getPageOfMovies(startIndex: number, count: number, includedCount?: number, nextLink?: string): Page<models.Movie> {
+    const items: Array<Partial<models.Movie>> = [];
+
+    for (let i = startIndex, c = 0; c < count; i++, c++) {
+        const item: Partial<models.Movie> = { id: `m-${i}`, ...movie };
+        items.push(item);
+    }
+
+    return {
+        items: items,
+        count: includedCount,
+        nextLink: nextLink
+    };
+}

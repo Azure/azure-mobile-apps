@@ -51,7 +51,7 @@ export interface DatasyncTable<T extends DataTransferObject> {
     deleteItem(item: T | string, options?: TableOperationOptions): Promise<void>;
     getItem(itemId: string, options?: TableOperationOptions): Promise<T>;
     getPageOfItems(query?: TableQuery, options?: TableOperationOptions): Promise<Page<Partial<T>>>;
-    listItems(query?: TableQuery, options?: TableOperationOptions): PagedAsyncIterableIterator<Partial<T>>;
+    listItems(query?: TableQuery, options?: TableOperationOptions): PagedAsyncIterableIterator<Partial<T>, Page<Partial<T>>>;
     replaceItem(item: T, options?: TableOperationOptions): Promise<T>;
 }
 
@@ -72,7 +72,7 @@ export class InvalidArgumentError extends Error {
 // @public
 export interface Page<T> {
     count?: number;
-    items: [T];
+    items: Array<Partial<T>>;
     nextLink?: string;
 }
 
@@ -83,8 +83,8 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
     createItem(item: T, options?: TableOperationOptions): Promise<T>;
     deleteItem(item: T | string, options?: TableOperationOptions): Promise<void>;
     getItem(itemId: string, options?: TableOperationOptions): Promise<T>;
-    getPageOfItems(query?: TableQuery, options?: TableOperationOptions): Promise<Page<Partial<T>>>;
-    listItems(query?: TableQuery, options?: TableOperationOptions): PagedAsyncIterableIterator<Partial<T>>;
+    getPageOfItems(query?: TableQuery, options?: TableOperationOptions): Promise<Page<T>>;
+    listItems(query?: TableQuery, options?: TableOperationOptions): PagedAsyncIterableIterator<Partial<T>, Page<T>>;
     replaceItem(item: T, options?: TableOperationOptions): Promise<T>;
     reviver?: JsonReviver;
     readonly serviceClient: ServiceClient;

@@ -49,7 +49,7 @@ export interface DatasyncTable<T extends DataTransferObject> {
      * @param options - the options to use on this request.
      * @returns An async iterator over the results.
      */
-    listItems(query?: TableQuery, options?: TableOperationOptions): PagedAsyncIterableIterator<Partial<T>>;
+    listItems(query?: TableQuery, options?: TableOperationOptions): PagedAsyncIterableIterator<Partial<T>, Page<Partial<T>>>;
 
     /**
      * Replaces an item in the remote store.  If the item has an version, the

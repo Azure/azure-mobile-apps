@@ -36,7 +36,7 @@ export interface Page<T> {
     /**
      * The list of items in the page
      */
-    items: [T];
+    items: Array<Partial<T>>;
 
     /**
      * The count of items (only if requested)

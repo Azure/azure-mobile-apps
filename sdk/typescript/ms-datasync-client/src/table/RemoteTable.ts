@@ -155,7 +155,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      * @param options - the options to use on this request.
      * @returns A promise that resolves to a page of stored items when complete.
      */
-    public async getPageOfItems(query?: TableQuery, options?: TableOperationOptions): Promise<Page<Partial<T>>> {
+    public async getPageOfItems(query?: TableQuery, options?: TableOperationOptions): Promise<Page<T>> {
         const requestUrl = new URL(this.tableEndpoint);
         requestUrl.search = this.getSearchParams(query);
         const request = this.createRequest("GET", requestUrl, undefined, options);
@@ -171,9 +171,53 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      * @param options - the options to use on this request.
      * @returns An async iterator over the results.
      */
-    public listItems(query?: TableQuery, options?: TableOperationOptions): PagedAsyncIterableIterator<Partial<T>> {
-        console.log(`query = ${JSON.stringify(query)}; options = ${JSON.stringify(options)}`);
-        throw "not implemented";
+    public listItems(query?: TableQuery, options?: TableOperationOptions): PagedAsyncIterableIterator<Partial<T>, Page<T>> {
+        const iterator = this.listItemsIterator(query, options);
+
+        return {
+            next: () => iterator.next(),
+            [Symbol.asyncIterator]() { return this; },
+            byPage: () => this.listItemsByPage(query, options)
+        };
+    }
+
+    /**
+     * Async iterator for each item in the list of results.
+     * 
+     * @param query - the query to execute.
+     * @param options - the optios for each request.
+     * @returns An async iterable over the items in the result set.
+     */
+    private async *listItemsIterator(query?: TableQuery, options?: TableOperationOptions): AsyncIterableIterator<Partial<T>> {
+        for await (const page of this.listItemsByPage(query, options)) {
+            for (const item of page.items) {
+                yield item;
+            }
+        }
+    }
+
+    /**
+     * Async iterator for each page of items.
+     * 
+     * @param query - the query to execute.
+     * @param options - the options for each request.
+     * @returns An async iterable over the pages of items.
+     */
+    private async *listItemsByPage(query?: TableQuery, options?: TableOperationOptions): AsyncIterableIterator<Page<T>> {
+        const requestUrl = new URL(this.tableEndpoint);
+        requestUrl.search = this.getSearchParams(query);
+
+        let nextLink: URL | undefined = requestUrl;
+        while (typeof nextLink !== "undefined") {
+            const request = this.createRequest("GET", nextLink, undefined, options);
+            const response = await this.serviceClient.sendRequest(request);
+            this.throwIfNotSuccessful(request, response);
+            const result = this.deserialize<Page<Partial<T>>>(request, response);
+
+            yield { ...result };
+
+            nextLink = typeof result.nextLink !== "undefined" ? new URL(result.nextLink) : undefined;
+        }
     }
 
     /**
@@ -209,12 +253,12 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
     private createRequest(method: msrest.HttpMethods, url: URL, content?: string, options?: TableOperationOptions): msrest.PipelineRequest {
         const request: msrest.PipelineRequest = {
             abortSignal: options?.abortSignal,
-            allowInsecureConnection: this.clientOptions?.allowInsecureConnection ?? url.href === "http:",
+            allowInsecureConnection: this.clientOptions.allowInsecureConnection ?? url.href === "http:",
             body: content,
             headers: msrest.createHttpHeaders(),
             method: method,
             requestId: uuid(),
-            timeout: options?.timeout || this.clientOptions?.timeout || 60000,
+            timeout: options?.timeout || this.clientOptions.timeout || 60000,
             url: url.href,
             withCredentials: true
         };
