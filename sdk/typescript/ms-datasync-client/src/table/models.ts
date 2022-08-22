@@ -92,3 +92,9 @@ export interface TableQuery {
     /** Whether to include deleted items in the result set. */
     includeDeletedItems?: boolean;
 }
+
+/**
+ * A reviver method that can be used during deserialization.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type JsonReviver = (propertyName: string, propertyValue: unknown) => any;

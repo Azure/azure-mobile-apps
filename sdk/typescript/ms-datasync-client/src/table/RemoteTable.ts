@@ -10,7 +10,7 @@ import { v4 as uuid } from "uuid";
 
 import { DatasyncClientOptions } from "../DatasyncClient";
 import { DatasyncTable } from "./DatasyncTable";
-import { DataTransferObject, Page, TableOperationOptions, TableQuery } from "./models";
+import { DataTransferObject, JsonReviver, Page, TableOperationOptions, TableQuery } from "./models";
 import { ConflictError, InvalidArgumentError } from "../utils/errors";
 import * as validate from "../utils/validate";
 
@@ -25,6 +25,25 @@ function isForcedRequest(options?: TableOperationOptions): boolean {
 }
 
 /**
+ * Reviver for the DataTransferObject.
+ * 
+ * @param propertyName The name of the property
+ * @param propertyValue The value of the property
+ * @returns the value of the property
+ */
+function reviveDTO(propertyName: string, propertyValue: unknown): any {
+    if (propertyName === "updatedAt" && typeof propertyValue === "string") {
+        return new Date(propertyValue);
+    }
+    return propertyValue;
+}
+
+/**
+ * The list of fields in the DTO.
+ */
+const dtoFields: Array<string> = [ "id", "updatedAt", "version", "deleted" ];
+
+/**
  * An implementation of the DatasyncTable interface that sends requests to
  * a remote datasync service.
  */
@@ -33,6 +52,11 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      * The default client options to use in formulating HTTP requests.
      */
     public readonly clientOptions: DatasyncClientOptions;
+
+    /**
+     * The reviver for this table.
+     */
+    public readonly reviver?: JsonReviver;
 
     /**
      * The service client that will be used for any requests to the datasync service.
@@ -63,6 +87,9 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
         this.serviceClient = serviceClient;
         this.tableName = tableName;
         this.tableEndpoint = endpoint;
+        if (typeof clientOptions.tableReviver !== "undefined") {
+            this.reviver = clientOptions.tableReviver(tableName);
+        }
     }
 
     /**
@@ -207,7 +234,15 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
         if (!validate.isNotEmpty(content)) {
             throw new SyntaxError("No content received to deserialize");
         }
-        throw "not implemented";
+        return JSON.parse(content ?? "", (propName: string, propValue: unknown) => {
+            if (dtoFields.indexOf(propName) > -1) {
+                return reviveDTO(propName, propValue);
+            }
+            if (typeof this.reviver !== "undefined") {
+                return this.reviver(propName, propValue);
+            }
+            return propValue;
+        });
     }
 
     /**

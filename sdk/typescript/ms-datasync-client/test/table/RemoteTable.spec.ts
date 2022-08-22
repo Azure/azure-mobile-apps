@@ -7,6 +7,26 @@ import { datasets, models, MockHttpClient } from "../helpers";
 import { v4 as uuid } from "uuid";
 
 import { ConflictError, DatasyncClient, InvalidArgumentError, RemoteTable, RestError } from "../../src";
+import { JsonReviver } from "../../src/table";
+
+/**
+ * Test reviver map for the movie database.
+ * @param tableName The name of the table
+ * @returns The reviver, or undefined.
+ */
+const movieReviver = (tableName: string) => {
+    if (tableName === "movies") {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const reviver: JsonReviver = (propName: string, propValue: unknown): any => {
+            if (propName === "releaseDate" && typeof(propValue) === "string") {
+                return new Date(propValue);
+            }
+            return propValue;
+        };
+        return reviver;
+    }
+    return undefined;
+};
 
 describe("table/RemoteTable", () => {
     describe("#constructor", () => {
@@ -19,6 +39,23 @@ describe("table/RemoteTable", () => {
             expect(sut.serviceClient).to.equal(client.serviceClient);
             expect(sut.tableEndpoint.href).to.equal("https://localhost/tables/movies");
             expect(sut.tableName).to.equal("movies");
+            expect(sut.reviver).to.be.undefined;
+        });
+        
+        it("sets reviver when tableReviver is set and handles the table name", () => {
+            const mock = new MockHttpClient();
+            const client = new DatasyncClient("https://localhost", { httpClient: mock, tableReviver: movieReviver });
+            const sut = new RemoteTable(client.serviceClient, "movies", new URL("tables/movies", client.endpointUrl), client.clientOptions);
+
+            expect(sut.reviver).to.not.be.undefined;
+        });
+
+        it("does not set reviver when tableReviver is set and does not handle the table name", () => {
+            const mock = new MockHttpClient();
+            const client = new DatasyncClient("https://localhost", { httpClient: mock, tableReviver: movieReviver });
+            const sut = new RemoteTable(client.serviceClient, "test", new URL("tables/test", client.endpointUrl), client.clientOptions);
+
+            expect(sut.reviver).to.be.undefined;
         });
     });
 
@@ -42,7 +79,7 @@ describe("table/RemoteTable", () => {
 
         it("correctly formulates a request and handles a correct response", async () => {
             const mock = new MockHttpClient();
-            const client = new DatasyncClient("https://localhost", { httpClient: mock });
+            const client = new DatasyncClient("https://localhost", { httpClient: mock, tableReviver: movieReviver });
             const sut = new RemoteTable(client.serviceClient, "movies", new URL("tables/movies", client.endpointUrl), client.clientOptions);
 
             const movieResponse: models.Movie = {
@@ -99,9 +136,9 @@ describe("table/RemoteTable", () => {
         });
 
         for (const statusCode of [ 409, 412 ]) {
-            it(`SELECTION throws a ConflictError when status code ${statusCode} is returned`, async () => {
+            it(`throws a ConflictError when status code ${statusCode} is returned`, async () => {
                 const mock = new MockHttpClient();
-                const client = new DatasyncClient("https://localhost", { httpClient: mock });
+                const client = new DatasyncClient("https://localhost", { httpClient: mock, tableReviver: movieReviver });
                 const sut = new RemoteTable(client.serviceClient, "movies", new URL("tables/movies", client.endpointUrl), client.clientOptions);
 
                 const responseMovie: models.Movie = { id: "movie-001", version: "abcd", ...datasets.movie };

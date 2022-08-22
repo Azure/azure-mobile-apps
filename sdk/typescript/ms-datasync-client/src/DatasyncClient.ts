@@ -9,6 +9,7 @@ import * as pkg from "../package.json";
 import { InvalidArgumentError } from "./utils/errors";
 import { datasyncClientPolicy } from "./utils/policies";
 import { isDatasyncServiceUrl } from "./utils/validate";
+import { JsonReviver } from "./table";
 
 /**
  * Client options used to configure the Datasync Client API requests.
@@ -29,6 +30,11 @@ export interface DatasyncClientOptions extends CommonClientOptions {
      * A resolver for turning a table name into a table path.
      */
     tablePathResolver?: (tableName: string) => string;
+
+    /**
+     * A resolver for turning a table name into a JSON reviver.
+     */
+    tableReviver?: (tableName: string) => JsonReviver | undefined;
 
     /**
      * The default timeout (in milliseconds) for operations.
