@@ -25,6 +25,16 @@ describe("utils/validate.ts", () => {
         }
     });
 
+    describe("#isEntityId", () => {
+        it("returns false for non-string values", () => {
+            expect(validate.isEntityId(1)).to.be.false;
+            expect(validate.isEntityId(new Date())).to.be.false;
+            expect(validate.isEntityId([])).to.be.false;
+            expect(validate.isEntityId({})).to.be.false;
+            expect(validate.isEntityId(true)).to.be.false;
+        });
+    });
+
     describe("#isInCIDR", () => {
         const cidrBlocks = [
             "10.0.0.0/8",

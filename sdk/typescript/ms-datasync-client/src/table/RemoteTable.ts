@@ -31,12 +31,12 @@ function isForcedRequest(options?: TableOperationOptions): boolean {
  * @param propertyValue The value of the property
  * @returns the value of the property
  */
-function reviveDTO(propertyName: string, propertyValue: unknown): any {
+const reviveDTO: JsonReviver = (propertyName: string, propertyValue: unknown) => {
     if (propertyName === "updatedAt" && typeof propertyValue === "string") {
         return new Date(propertyValue);
     }
     return propertyValue;
-}
+};
 
 /**
  * The list of fields in the DTO.
@@ -56,7 +56,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
     /**
      * The reviver for this table.
      */
-    public readonly reviver?: JsonReviver;
+    public reviver?: JsonReviver;
 
     /**
      * The service client that will be used for any requests to the datasync service.
@@ -120,7 +120,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      * @param options - the options to use on this request.
      * @returns A promise that resolves when the operation is complete.
      */
-     public async deleteItem(item: T | string, options?: TableOperationOptions): Promise<void> {
+    public async deleteItem(item: T | string, options?: TableOperationOptions): Promise<void> {
         const itemId: string = (typeof item === "string") ? item : item.id;
         if (!validate.isEntityId(itemId)) {
             throw new InvalidArgumentError("Entity ID is not valid", "item");
@@ -140,7 +140,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      * @param options - the options to use on this request.
      * @returns A promise that resolves to the stored item.
      */
-     public async getItem(itemId: string, options?: TableOperationOptions): Promise<T> {
+    public async getItem(itemId: string, options?: TableOperationOptions): Promise<T> {
         if (!validate.isEntityId(itemId)) {
             throw new InvalidArgumentError("Entity ID is not valid", "itemId");
         }
@@ -173,7 +173,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
      * @param options - the options to use on this request.
      * @returns An async iterator over the results.
      */
-    listItems(query?: TableQuery, options?: TableOperationOptions): PagedAsyncIterableIterator<Partial<T>> {
+    public listItems(query?: TableQuery, options?: TableOperationOptions): PagedAsyncIterableIterator<Partial<T>> {
         console.log(`query = ${JSON.stringify(query)}; options = ${JSON.stringify(options)}`);
         throw "not implemented";
     }
