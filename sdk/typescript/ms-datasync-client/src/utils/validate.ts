@@ -95,3 +95,13 @@ export function isNotEmpty(value: string | undefined | null): boolean {
     return (typeof value !== "undefined" && value !== null && value.length > 0);
 }
 
+/**
+ * Determines if the provided string is a valid table name
+ * 
+ * @param value - the value to check.
+ * @returns true if the value is a valid datasync table name; false otherwise.
+ */
+export function isTableName(value: string): boolean {
+    return new RegExp(/^[a-z][a-z0-9_]{0,63}$/).test(value);
+}
+

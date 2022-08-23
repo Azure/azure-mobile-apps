@@ -6,10 +6,12 @@ import { TokenCredential, isTokenCredential } from "@azure/core-auth";
 import { bearerTokenAuthenticationPolicy } from "@azure/core-rest-pipeline";
 
 import * as pkg from "../package.json";
-import { InvalidArgumentError } from "./utils/errors";
-import { datasyncClientPolicy } from "./utils/policies";
-import { isDatasyncServiceUrl } from "./utils/validate";
-import { JsonReviver } from "./table";
+import { 
+    InvalidArgumentError, 
+    datasyncClientPolicy, 
+    validate
+} from "./utils";
+import { DatasyncTable, DataTransferObject, JsonReviver, RemoteTable } from "./table";
 
 /**
  * Client options used to configure the Datasync Client API requests.
@@ -166,7 +168,7 @@ export class DatasyncClient {
         const credential = (typeof credentialOrOptions !== "undefined" && isTokenCredential(credentialOrOptions)) ? credentialOrOptions : undefined;
         const options = ((typeof credentialOrOptions !== "undefined" && !isTokenCredential(credentialOrOptions)) ? credentialOrOptions : clientOptions) || {};
 
-        if (!isDatasyncServiceUrl(baseUrl)) {
+        if (!validate.isDatasyncServiceUrl(baseUrl)) {
             throw new InvalidArgumentError(`"${baseUrl.href}" is not valid as a datasync service`, "endpointUrl");
         }
 
@@ -200,5 +202,31 @@ export class DatasyncClient {
         this.clientOptions = options;
         this.credential = credential;
         this.endpointUrl = baseUrl;
+    }
+
+    /**
+     * Returns a table reference for a remote table.
+     * 
+     * @param tableName - the name of the table.
+     * @param tablePath - the endpoint for the table (will be computed if not provided)
+     * @returns the table reference.
+     */
+    getRemoteTable<T extends DataTransferObject>(tableName: string, tablePath?: string): DatasyncTable<T> {
+        if (!validate.isTableName(tableName)) {
+            throw new InvalidArgumentError("Invalid table name", "tableName");
+        }
+        let path: string | undefined;
+        if (typeof tablePath !== "undefined") {
+            path = tablePath;
+        } else if (typeof this.clientOptions.tablePathResolver !== "undefined") {
+            path = this.clientOptions.tablePathResolver(tableName);
+        } else {
+            path = `/tables/${tableName.toLowerCase()}`;
+        }
+        if (!validate.isNotEmpty(path)) {
+            throw new InvalidArgumentError("Cannot create path for table", "tableName");
+        }
+        const endpoint = new URL(path, this.endpointUrl);
+        return new RemoteTable<T>(this.serviceClient, tableName, endpoint, this.clientOptions);
     }
 }

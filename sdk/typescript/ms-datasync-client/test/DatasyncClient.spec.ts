@@ -8,8 +8,10 @@ import * as msrest from "@azure/core-rest-pipeline";
 import { 
     DatasyncClient, 
     DatasyncClientOptions,
-    InvalidArgumentError
+    InvalidArgumentError,
+    RemoteTable
 } from "../src";
+import { models } from "./helpers";
 
 describe("DatasyncClient", () => {
     describe("constructor", () => {
@@ -169,6 +171,63 @@ describe("DatasyncClient", () => {
             expect(response).to.not.be.undefined;
             expect(response.status).to.equal(200);
             expect(response.bodyAsText).to.equal(body);
+        });
+    });
+
+    describe("getRemoteTable", () => {
+        it("produces a RemoteTable when provided a table name", () => {
+            const mock = new MockHttpClient();
+            const client = new DatasyncClient("https://localhost", { httpClient: mock });
+
+            const sut = client.getRemoteTable<models.Movie>("movies");
+            expect(sut).to.be.instanceOf(RemoteTable);
+
+            const table = sut as RemoteTable<models.Movie>;            
+            expect(table.tableName).to.equal("movies");
+            expect(table.tableEndpoint).to.equal("https://localhost/tables/movies");
+        });
+
+        it("produces a RemoteTable when provided a table name and path", () => {
+            const mock = new MockHttpClient();
+            const client = new DatasyncClient("https://localhost", { httpClient: mock });
+
+            const sut = client.getRemoteTable<models.Movie>("movies", "/api/movies");
+            expect(sut).to.be.instanceOf(RemoteTable);
+
+            const table = sut as RemoteTable<models.Movie>;            
+            expect(table.tableName).to.equal("movies");
+            expect(table.tableEndpoint).to.equal("https://localhost/api/movies");
+        });
+
+        it("produces a RemoteTable when provided a table name and path resolver", () => {
+            const mock = new MockHttpClient();
+            const client = new DatasyncClient("https://localhost", { httpClient: mock,
+                tablePathResolver: (tableName: string) => `/api/${tableName}`
+            });
+
+            const sut = client.getRemoteTable<models.Movie>("movies");
+            expect(sut).to.be.instanceOf(RemoteTable);
+
+            const table = sut as RemoteTable<models.Movie>;            
+            expect(table.tableName).to.equal("movies");
+            expect(table.tableEndpoint).to.equal("https://localhost/api/movies");
+        });
+
+        it("throws on an invalid table name", () => {
+            const mock = new MockHttpClient();
+            const client = new DatasyncClient("https://localhost", { httpClient: mock });
+
+            expect(() => { client.getRemoteTable<models.Movie>(""); }).to.throw(InvalidArgumentError);
+        });
+
+        it("throws if resolver returns blank string", () => {
+            const mock = new MockHttpClient();
+            const client = new DatasyncClient("https://localhost", { httpClient: mock,
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                tablePathResolver: (_: string) => ""
+            });
+
+            expect(() => { client.getRemoteTable<models.Movie>("movies"); }).to.throw(InvalidArgumentError);
         });
     });
 });

@@ -32,6 +32,7 @@ export class DatasyncClient {
     readonly clientOptions: DatasyncClientOptions;
     readonly credential?: TokenCredential;
     readonly endpointUrl: URL;
+    getRemoteTable<T extends DataTransferObject>(tableName: string, tablePath?: string): DatasyncTable<T>;
     readonly serviceClient: ServiceClient;
 }
 

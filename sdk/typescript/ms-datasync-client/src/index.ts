@@ -4,7 +4,7 @@
 export { 
     ConflictError,
     InvalidArgumentError
-} from "./utils/errors";
+} from "./utils";
 export {
     RestError
 } from "@azure/core-rest-pipeline";

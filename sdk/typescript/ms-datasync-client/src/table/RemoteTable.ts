@@ -9,8 +9,7 @@ import { v4 as uuid } from "uuid";
 import { DatasyncClientOptions } from "../DatasyncClient";
 import { DatasyncTable } from "./DatasyncTable";
 import { DataTransferObject, JsonReviver, Page, TableOperationOptions, TableQuery } from "./models";
-import { ConflictError, InvalidArgumentError } from "../utils/errors";
-import * as validate from "../utils/validate";
+import { ConflictError, InvalidArgumentError, validate } from "../utils";
 
 /**
  * Helper method to determine if the operation should be forced or not.
