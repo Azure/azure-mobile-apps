@@ -69,11 +69,11 @@ stages:
       - job: buildnetsdk
         displayName: Build .NET SDK
         steps:
-          - template: .ci/provision.yml
+          - template: provision.yml
             parameters:
               platform: 'windows'
 
-          - template: .ci/prebuild.yml
+          - template: prebuild.yml
           
           - pwsh: |
               Get-ChildItem "C:\Program Files (x86)\Android\android-sdk\platforms"
@@ -115,7 +115,7 @@ stages:
               searchFolder: $(netSdkPath)
               configuration: $(buildConfiguration)
 
-          - template: .ci/postbuild.yml
+          - template: postbuild.yml
             parameters:
               sourceDirectory: '$(netSdkPath)/src'
               buildConfiguration: '$(buildConfiguration)'
@@ -123,7 +123,7 @@ stages:
       - job: buildnettemplate
         displayName: Build .NET Core Template
         steps:
-          - template: .ci/prebuild.yml
+          - template: prebuild.yml
 
           - pwsh: |
               (Get-Content -path "Template.DatasyncServer.csproj.template") -replace "{NUGET_VERSION}", "$(NUGET_VERSION)" | Set-Content -Path "./Template.DatasyncServer.csproj"
@@ -135,7 +135,7 @@ stages:
             displayName: Build Template
             workingDirectory: '$(netSdkPath)/templates'
 
-          - template: .ci/postbuild.yml
+          - template: postbuild.yml
             parameters:
               sourceDirectory: '$(netSdkPath)/templates'
               buildConfiguration: '$(buildConfiguration)'
