@@ -1,0 +1,14 @@
+{
+    "require": "ts-node/register",
+    "extensions": [
+        "ts"
+    ],
+    "project": "./tsconfig.json",
+    "reporter": "tap",
+    "spec": [
+        "test/**/*.spec.ts"
+    ],
+    "watch-files": [
+        "src"
+    ]
+}

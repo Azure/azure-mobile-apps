@@ -1,0 +1,14 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./dist-esm",
+        "declarationDir": "./types",
+        "paths": {
+            "ms-datasync-client": [ "./src/index" ]
+        }
+    },
+    "include": [
+        "src/**/*.ts",
+        "test/**/*.ts"
+    ]
+}
