@@ -67,7 +67,17 @@ namespace TodoApp.Data.MVVM
         /// <returns>A task that completes when the sync is done.</returns>
         public virtual async Task RefreshItemsAsync()
         {
+            // Note that there is a short race condition here inbetween accessing the IsRefreshing
+            // property and setting it asynchronously.  In an ideal world, we would use a surrounding
+            // async lock to ensure that the critical section is only accessed serially, thus
+            // avoiding this problem.
+            if (IsRefreshing)
+            {
+                return;
+            }
             await SetRefreshing(true);
+            // End of critical section
+
             try
             {
                 // Do any database service refreshing needed
