@@ -1,3 +1,19 @@
+#
+# This file is not used any more - it is used when we have to use Preview releases of Visual Studio
+# for the build process only.
+#
+# To use, add the following to the dotnet-build.yml variables section:
+#  provisionator.path: '$(System.DefaultWorkingDirectory)/eng/provisioning/provisioning.csx'
+#  provisionator.vs: '$(System.DefaultWorkingDirectory)/eng/provisioning/vs.csx'
+#  provisionator.extraArguments: '--v'
+#
+# THEN Add the following as the first step in the build stage
+#          - template: provision-visualstudio.yml
+#            parameters:
+#              platform: 'windows'
+#
+##########################################################################################################
+
 parameters:
   platform: ''
   skipXcode: false
