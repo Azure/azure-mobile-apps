@@ -51,9 +51,6 @@ variables:
   PREVIEW_LABEL: 'preview'
   BUILD_NUMBER: $[counter(format('{0}_{1}_{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['Build.SourceBranch']), 1)]
   NUGET_VERSION: $[format('{0}-{1}.{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['BUILD_NUMBER'])]
-#  provisionator.path: '$(System.DefaultWorkingDirectory)/eng/provisioning/provisioning.csx'
-#  provisionator.vs: '$(System.DefaultWorkingDirectory)/eng/provisioning/vs.csx'
-#  provisionator.extraArguments: '--v'
 
 resources:
   repositories:
@@ -69,10 +66,6 @@ stages:
       - job: buildnetsdk
         displayName: Build .NET SDK
         steps:
-#          - template: provision.yml
-#            parameters:
-#              platform: 'windows'
-
           - template: prebuild.yml
           
           - pwsh: |
