@@ -429,7 +429,7 @@ namespace Microsoft.AspNetCore.Datasync
                 Logger?.LogWarning("Read({Id}): Item not found (not in view)", id);
                 return NotFound();
             }
-            await AuthorizeRequest(TableOperation.Delete, entity, token).ConfigureAwait(false);
+            await AuthorizeRequest(TableOperation.Read, entity, token).ConfigureAwait(false);
             if (Options.EnableSoftDelete && entity.Deleted)
             {
                 Logger?.LogWarning("Read({Id}): Item not found (soft-delete)", id);
