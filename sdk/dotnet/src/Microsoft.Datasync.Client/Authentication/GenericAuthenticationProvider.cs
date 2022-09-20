@@ -114,8 +114,16 @@ namespace Microsoft.Datasync.Client
         /// <returns>true if the token is valid.</returns>
         internal bool IsExpired(AuthenticationToken? token)
         {
-            if (!token.HasValue) return true;
-            return DateTimeOffset.Now >= token.Value.ExpiresOn.Subtract(RefreshBufferTimeSpan);
+            try
+            {
+                if (!token.HasValue) return true;
+                return DateTimeOffset.Now >= token.Value.ExpiresOn.Subtract(RefreshBufferTimeSpan);
+            }
+            catch
+            {
+                // If any errors occurred, treat as if the token is expired.
+                return true;
+            }
         }
 
         /// <summary>

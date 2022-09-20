@@ -185,6 +185,23 @@ namespace Microsoft.Datasync.Client.Test.Authentication
         }
 
         [Fact]
+        [Trait("Method", "IsExpired")]
+        public void IsExpired_NoExpiration_ReturnsTrue()
+        {
+            var authtoken = new AuthenticationToken
+            {
+                DisplayName = ValidAuthenticationToken.DisplayName,
+                Token = ValidAuthenticationToken.Token,
+                UserId = ValidAuthenticationToken.UserId
+            };
+            var sut = new GenericAuthenticationProvider(() => Task.FromResult(authtoken))
+            {
+                RefreshBufferTimeSpan = TimeSpan.FromMinutes(2)
+            };
+            Assert.True(sut.IsExpired(authtoken));
+        }
+
+        [Fact]
         [Trait("Method", "GetTokenAsync")]
         public async Task GetTokenAsync_CallsOnFirstRun()
         {
