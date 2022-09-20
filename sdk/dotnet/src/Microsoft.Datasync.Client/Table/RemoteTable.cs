@@ -34,7 +34,7 @@ namespace Microsoft.Datasync.Client.Table
 
             ServiceClient = serviceClient;
             TableName = tableName;
-            TableEndpoint = ServiceClient.ClientOptions.TableEndpointResolver?.Invoke(tableName) ?? $"/tables/{tableName.ToLowerInvariant()}";
+            TableEndpoint = ServiceClient.ClientOptions.TableEndpointResolver?.Invoke(tableName) ?? $"tables/{tableName.ToLowerInvariant()}";
         }
 
         #region IRemoteTable

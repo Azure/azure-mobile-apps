@@ -65,7 +65,7 @@ namespace Microsoft.Datasync.Client.Test.Table
         {
             var client = GetMockClient();
             var table = client.GetRemoteTable("foo") as RemoteTable;
-            Assert.Equal("/tables/foo", table.TableEndpoint);
+            Assert.Equal("tables/foo", table.TableEndpoint);
         }
 
         [Fact]
