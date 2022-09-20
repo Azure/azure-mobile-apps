@@ -397,6 +397,7 @@ namespace Microsoft.Datasync.Client.Offline
             cancellationToken.Register(() => batch.Abort(PushStatus.CancelledByToken));
 
             // Process the queue - only use the QueueHandler (new logic) if maxThreads > 1
+            SendPushStartedEvent();
             var maxThreads = GetMaximumParallelOperations(options);
             if (maxThreads == 1)
             {
@@ -405,7 +406,9 @@ namespace Microsoft.Datasync.Client.Offline
                     TableOperation operation = await OperationsQueue.PeekAsync(0, tableNames, cancellationToken).ConfigureAwait(false);
                     while (operation != null)
                     {
-                        _ = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
+                        SendItemWillBePushedEvent(operation.ItemId);
+                        bool isSuccessful = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
+                        SendItemWasPushedEvent(operation.ItemId, isSuccessful);
                         if (batch.AbortReason.HasValue)
                         {
                             break;
@@ -417,12 +420,14 @@ namespace Microsoft.Datasync.Client.Offline
                 {
                     batch.OtherErrors.Add(ex);
                 }
-            } 
+            }
             else
             {
                 QueueHandler queueHandler = new(maxThreads, async (operation) =>
                 {
-                    _ = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
+                    SendItemWillBePushedEvent(operation.ItemId);
+                    bool isSuccessful = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
+                    SendItemWasPushedEvent(operation.ItemId, isSuccessful);
                 });
                 try
                 {
@@ -451,6 +456,7 @@ namespace Microsoft.Datasync.Client.Offline
             {
                 batch.OtherErrors.Add(new OfflineStoreException("Failed to read errors from the local store.", ex));
             }
+            SendPushFinishedEvent(batchStatus != PushStatus.Complete);
 
             // If the push did not complete successfully, then throw a PushFailedException.
             if (batchStatus != PushStatus.Complete || batch.HasErrors(errors))
@@ -758,6 +764,48 @@ namespace Microsoft.Datasync.Client.Offline
             long pendingOperations = await OperationsQueue.CountPendingOperationsAsync(tableName, cancellationToken).ConfigureAwait(false);
             return pendingOperations > 0;
         }
+
+        #region Eventing Support
+        private void SendPushStartedEvent()
+        {
+            ServiceClient.SendSynchronizationEvent(new SynchronizationEventArgs
+            {
+                EventType = SynchronizationEventType.PushStarted,
+                QueueLength = OperationsQueue.PendingOperations
+            });
+        }
+
+        private void SendPushFinishedEvent(bool success)
+        {
+            ServiceClient.SendSynchronizationEvent(new SynchronizationEventArgs
+            {
+                EventType = SynchronizationEventType.PushFinished,
+                QueueLength = OperationsQueue.PendingOperations,
+                IsSuccessful = success
+            });
+        }
+
+        private void SendItemWillBePushedEvent(string itemId)
+        {
+            ServiceClient.SendSynchronizationEvent(new SynchronizationEventArgs
+            {
+                EventType = SynchronizationEventType.ItemWillBePushed,
+                QueueLength = OperationsQueue.PendingOperations,
+                ItemId = itemId
+            });
+        }
+
+        private void SendItemWasPushedEvent(string itemId, bool success)
+        {
+            ServiceClient.SendSynchronizationEvent(new SynchronizationEventArgs
+            {
+                EventType = SynchronizationEventType.ItemWasPushed,
+                QueueLength = OperationsQueue.PendingOperations,
+                ItemId = itemId,
+                IsSuccessful = success
+            });
+        }
+        #endregion
 
         #region IDisposable
         /// <summary>

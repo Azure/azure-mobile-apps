@@ -33,11 +33,17 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
         private readonly IdEntity testObject;
         private readonly JObject jsonObject;
+        private List<SynchronizationEventArgs> events = new();
 
         public SyncContext_Tests()
         {
             client = GetMockClient();
             store = new MockOfflineStore();
+
+            client.SynchronizationProgress += (sender, args) =>
+            {
+                events.Add(args);
+            };
 
             testObject = new IdEntity { Id = Guid.NewGuid().ToString("N"), StringValue = "testValue" };
             jsonObject = (JObject)client.Serializer.Serialize(testObject);
@@ -118,6 +124,27 @@ namespace Microsoft.Datasync.Client.Test.Offline
             var context = new SyncContext(client, store);
             await context.InitializeAsync();
             return context;
+        }
+
+        private void AssertEventsRecorded(int count, int qlen)
+        {
+            Assert.Equal((count + 1) * 2, events.Count);
+            Assert.Equal(SynchronizationEventType.PushStarted, events.First().EventType);
+            Assert.Equal(SynchronizationEventType.PushFinished, events.Last().EventType);
+            Assert.Equal(qlen, events.First().QueueLength);
+        }
+
+        private static void AssertItemWillBePushed(SynchronizationEventArgs args, string id)
+        {
+            Assert.Equal(SynchronizationEventType.ItemWillBePushed, args.EventType);
+            Assert.Equal(id, args.ItemId);
+        }
+
+        private static void AssertItemWasPushed(SynchronizationEventArgs args, string id, bool success)
+        {
+            Assert.Equal(SynchronizationEventType.ItemWasPushed, args.EventType);
+            Assert.Equal(id, args.ItemId);
+            Assert.Equal(success, args.IsSuccessful);
         }
         #endregion
 
@@ -982,6 +1009,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
             await context.PushItemsAsync((string[])null);
 
             Assert.Empty(MockHandler.Requests);
+            AssertEventsRecorded(0, 0);
         }
 
         [Fact]
@@ -996,6 +1024,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
             await context.PushItemsAsync("movies");
 
             Assert.Empty(MockHandler.Requests);
+            AssertEventsRecorded(0, 0);
             Assert.Single(store.TableMap[SystemTables.OperationsQueue]);
         }
 
@@ -1014,6 +1043,9 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.Single(MockHandler.Requests);
+            AssertEventsRecorded(1, 1);
+            AssertItemWillBePushed(events[1], item.Id);
+            AssertItemWasPushed(events[2], item.Id, true);
 
             var request = MockHandler.Requests[0];
             Assert.Equal(HttpMethod.Delete, request.Method);
@@ -1036,6 +1068,9 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.Single(MockHandler.Requests);
+            AssertEventsRecorded(1, 1);
+            AssertItemWillBePushed(events[1], item.Id);
+            AssertItemWasPushed(events[2], item.Id, true);
 
             var request = MockHandler.Requests[0];
             Assert.Equal(HttpMethod.Delete, request.Method);
@@ -1076,6 +1111,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.Equal(nItems, MockHandler.Requests.Count);
+            AssertEventsRecorded(nItems, nItems);
 
             foreach (var movie in movies)
             {
