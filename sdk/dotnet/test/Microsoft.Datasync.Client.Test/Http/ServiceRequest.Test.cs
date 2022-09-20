@@ -66,6 +66,18 @@ namespace Microsoft.Datasync.Client.Test.Http
         [Theory]
         [MemberData(nameof(HttpMethods))]
         [Trait("Method", "ToHttpRequestMessage")]
+        public void ToHttpRequestMessage_WithBaseUriAndPath_Creates(HttpMethod method)
+        {
+            var sut = new ServiceRequest { Method = method, UriPathAndQuery = "tables/movies/" };
+            var actual = sut.ToHttpRequestMessage(new Uri("https://localhost/api/"));
+
+            Assert.Equal(method, actual.Method);
+            Assert.Equal("https://localhost/api/tables/movies/", actual.RequestUri.ToString());
+        }
+
+        [Theory]
+        [MemberData(nameof(HttpMethods))]
+        [Trait("Method", "ToHttpRequestMessage")]
         public void ToHttpRequestMessage_NullBaseUriAndHeaders_Creates(HttpMethod method)
         {
             var sut = new ServiceRequest

@@ -601,6 +601,37 @@ namespace Microsoft.Datasync.Client.Test.Http
 
         [Fact]
         [Trait("Method", "SendAsync(ServiceMessage)")]
+        public async Task SendServiceAsync_WithPathInEndpoint_OnSuccessfulRequest()
+        {
+            var handler = new MockDelegatingHandler();
+            var response = new HttpResponseMessage(HttpStatusCode.OK);
+            handler.Responses.Add(response);
+
+            var options = new DatasyncClientOptions
+            {
+                HttpPipeline = new HttpMessageHandler[] { handler },
+                InstallationId = "hijack",
+                UserAgent = "hijack"
+            };
+            var client = new WrappedHttpClient(new Uri("https://localhost/api/"), options);
+
+            var request = new ServiceRequest { Method = HttpMethod.Get, UriPathAndQuery = "tables/movies/", EnsureResponseContent = false };
+            var actualResponse = await client.WrappedSendAsync(request).ConfigureAwait(false);
+            Assert.Equal(200, actualResponse.StatusCode);
+
+            // Check that the right headers were applied to the request
+            Assert.Single(handler.Requests);
+            var actual = handler.Requests[0];
+
+            Assert.Equal("https://localhost/api/tables/movies/", actual.RequestUri.ToString());
+            Assert.Equal(options.UserAgent, actual.Headers.UserAgent.ToString());
+            AssertEx.HasHeader(actual.Headers, "X-ZUMO-VERSION", options.UserAgent);
+            AssertEx.HasHeader(actual.Headers, "ZUMO-API-VERSION", "3.0.0");
+            AssertEx.HasHeader(actual.Headers, "X-ZUMO-INSTALLATION-ID", options.InstallationId);
+        }
+
+        [Fact]
+        [Trait("Method", "SendAsync(ServiceMessage)")]
         public async Task SendServiceAsync_Throws_OnFailedRequest()
         {
             var handler = new MockDelegatingHandler();
