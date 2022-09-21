@@ -12,6 +12,7 @@ using Microsoft.Datasync.Client.Test.Helpers;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Frameworks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -134,15 +135,17 @@ namespace Microsoft.Datasync.Client.Test.Offline
             Assert.Equal(qlen, events.First().QueueLength);
         }
 
-        private static void AssertItemWillBePushed(SynchronizationEventArgs args, string id)
+        private static void AssertItemWillBePushed(SynchronizationEventArgs args, string table, string id)
         {
             Assert.Equal(SynchronizationEventType.ItemWillBePushed, args.EventType);
+            Assert.Equal(table, args.TableName);
             Assert.Equal(id, args.ItemId);
         }
 
-        private static void AssertItemWasPushed(SynchronizationEventArgs args, string id, bool success)
+        private static void AssertItemWasPushed(SynchronizationEventArgs args, string table, string id, bool success)
         {
             Assert.Equal(SynchronizationEventType.ItemWasPushed, args.EventType);
+            Assert.Equal(table, args.TableName);
             Assert.Equal(id, args.ItemId);
             Assert.Equal(success, args.IsSuccessful);
         }
@@ -548,7 +551,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             // Query was correct
             Assert.Single(MockHandler.Requests);
-            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&$count=true&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
         }
 
         [Fact]
@@ -570,7 +573,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             // Query was correct
             Assert.Single(MockHandler.Requests);
-            Assert.Equal("/tables/movies?$filter=((rating eq 'PG-13') and (updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset)))&$orderby=updatedAt&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+            Assert.Equal("/tables/movies?$filter=((rating eq 'PG-13') and (updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset)))&$orderby=updatedAt&$count=true&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
         }
 
         [Fact]
@@ -594,7 +597,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             // Query was correct
             Assert.Single(MockHandler.Requests);
-            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&$count=true&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
         }
 
         [Fact]
@@ -602,7 +605,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
         public async Task PullItemsAsync_ProducesCorrectQuery_WithoutUpdatedAt()
         {
             var context = await GetSyncContext();
-            _ = CreatePageOfItems(10);
+            _ = CreatePageOfItems(10, 10);
 
             await context.PullItemsAsync("movies", "", new PullOptions());
 
@@ -612,7 +615,29 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             // Query was correct
             Assert.Single(MockHandler.Requests);
-            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&$count=true&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+
+            // Events were sent properly
+            Assert.Equal(22, events.Count); // 2 for each event, plus start and finish.
+            Assert.Equal(SynchronizationEventType.PullStarted, events.First().EventType);
+            Assert.Equal("movies", events.First().TableName);
+            Assert.Equal(SynchronizationEventType.PullFinished, events.Last().EventType);
+            Assert.Equal("movies", events.Last().TableName);
+            for (int i = 1; i < events.Count - 1; i += 2)
+            {
+                Assert.Equal(SynchronizationEventType.ItemWillBeStored, events[i].EventType);
+                Assert.Equal("movies", events[i].TableName);
+                Assert.NotEmpty(events[i].ItemId);
+                Assert.Equal((i - 1) / 2, events[i].ItemsProcessed);
+                Assert.Equal(10, events[i].QueueLength);
+
+                Assert.Equal(SynchronizationEventType.ItemWasStored, events[i+1].EventType);
+                Assert.Equal("movies", events[i + 1].TableName);
+                Assert.NotEmpty(events[i + 1].ItemId);
+                Assert.Equal(((i - 1) / 2) + 1, events[i + 1].ItemsProcessed);
+                Assert.Equal(10, events[i + 1].QueueLength);
+            }
+            Assert.Equal(10, events[2].QueueLength);
         }
 
         [Fact]
@@ -638,7 +663,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             // Query was correct
             Assert.Single(MockHandler.Requests);
-            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&$count=true&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
         }
 
         [Fact]
@@ -657,7 +682,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             // Query was correct
             Assert.Single(MockHandler.Requests);
-            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(2021-03-24T12:50:44.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(2021-03-24T12:50:44.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&$count=true&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
         }
 
         [Fact]
@@ -684,7 +709,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             // Query was correct
             Assert.Single(MockHandler.Requests);
-            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&$count=true&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
         }
 
         [Fact]
@@ -773,7 +798,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             // Query was correct
             Assert.Single(MockHandler.Requests);
-            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&$count=true&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
         }
         #endregion
 
@@ -1044,8 +1069,8 @@ namespace Microsoft.Datasync.Client.Test.Offline
             Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.Single(MockHandler.Requests);
             AssertEventsRecorded(1, 1);
-            AssertItemWillBePushed(events[1], item.Id);
-            AssertItemWasPushed(events[2], item.Id, true);
+            AssertItemWillBePushed(events[1], "movies", item.Id);
+            AssertItemWasPushed(events[2], "movies", item.Id, true);
 
             var request = MockHandler.Requests[0];
             Assert.Equal(HttpMethod.Delete, request.Method);
@@ -1069,8 +1094,8 @@ namespace Microsoft.Datasync.Client.Test.Offline
             Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.Single(MockHandler.Requests);
             AssertEventsRecorded(1, 1);
-            AssertItemWillBePushed(events[1], item.Id);
-            AssertItemWasPushed(events[2], item.Id, true);
+            AssertItemWillBePushed(events[1], "movies", item.Id);
+            AssertItemWasPushed(events[2], "movies", item.Id, true);
 
             var request = MockHandler.Requests[0];
             Assert.Equal(HttpMethod.Delete, request.Method);
