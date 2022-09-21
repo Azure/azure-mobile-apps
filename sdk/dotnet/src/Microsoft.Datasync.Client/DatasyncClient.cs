@@ -166,6 +166,11 @@ namespace Microsoft.Datasync.Client
         internal SyncContext SyncContext { get; }
 
         /// <summary>
+        /// An event delegate that allows the app to monitor synchronization events.
+        /// </summary>
+        public event EventHandler<SynchronizationEventArgs> SynchronizationProgress;
+
+        /// <summary>
         /// Returns a reference to an offline table, providing untyped (JSON) data
         /// operations for that table.
         /// </summary>
@@ -290,6 +295,15 @@ namespace Microsoft.Datasync.Client
                 throw new InvalidOperationException("An offline store must be specified before doing offline operations.");
             }
             await SyncContext.PushItemsAsync(tables.ToArray(), options, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Sends a synchronization event to the consumers.
+        /// </summary>
+        /// <param name="eventArgs">The event arguments.</param>
+        internal void SendSynchronizationEvent(SynchronizationEventArgs eventArgs)
+        {
+            SynchronizationProgress?.Invoke(this, eventArgs);
         }
 
         #region IDisposable
