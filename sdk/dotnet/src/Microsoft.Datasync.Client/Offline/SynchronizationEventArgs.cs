@@ -30,6 +30,11 @@ namespace Microsoft.Datasync.Client.Offline
         public long QueueLength { get; internal set; }
 
         /// <summary>
+        /// The name of the table containing the item (if appropriate).
+        /// </summary>
+        public string TableName { get; internal set; }
+
+        /// <summary>
         /// When an item is indicated, the ID of the item that was processed.
         /// </summary>
         public string ItemId { get; internal set; }

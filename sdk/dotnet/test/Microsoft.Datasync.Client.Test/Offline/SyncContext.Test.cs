@@ -12,6 +12,7 @@ using Microsoft.Datasync.Client.Test.Helpers;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Frameworks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -134,15 +135,17 @@ namespace Microsoft.Datasync.Client.Test.Offline
             Assert.Equal(qlen, events.First().QueueLength);
         }
 
-        private static void AssertItemWillBePushed(SynchronizationEventArgs args, string id)
+        private static void AssertItemWillBePushed(SynchronizationEventArgs args, string table, string id)
         {
             Assert.Equal(SynchronizationEventType.ItemWillBePushed, args.EventType);
+            Assert.Equal(table, args.TableName);
             Assert.Equal(id, args.ItemId);
         }
 
-        private static void AssertItemWasPushed(SynchronizationEventArgs args, string id, bool success)
+        private static void AssertItemWasPushed(SynchronizationEventArgs args, string table, string id, bool success)
         {
             Assert.Equal(SynchronizationEventType.ItemWasPushed, args.EventType);
+            Assert.Equal(table, args.TableName);
             Assert.Equal(id, args.ItemId);
             Assert.Equal(success, args.IsSuccessful);
         }
@@ -1044,8 +1047,8 @@ namespace Microsoft.Datasync.Client.Test.Offline
             Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.Single(MockHandler.Requests);
             AssertEventsRecorded(1, 1);
-            AssertItemWillBePushed(events[1], item.Id);
-            AssertItemWasPushed(events[2], item.Id, true);
+            AssertItemWillBePushed(events[1], "movies", item.Id);
+            AssertItemWasPushed(events[2], "movies", item.Id, true);
 
             var request = MockHandler.Requests[0];
             Assert.Equal(HttpMethod.Delete, request.Method);
@@ -1069,8 +1072,8 @@ namespace Microsoft.Datasync.Client.Test.Offline
             Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.Single(MockHandler.Requests);
             AssertEventsRecorded(1, 1);
-            AssertItemWillBePushed(events[1], item.Id);
-            AssertItemWasPushed(events[2], item.Id, true);
+            AssertItemWillBePushed(events[1], "movies", item.Id);
+            AssertItemWasPushed(events[2], "movies", item.Id, true);
 
             var request = MockHandler.Requests[0];
             Assert.Equal(HttpMethod.Delete, request.Method);

@@ -406,9 +406,9 @@ namespace Microsoft.Datasync.Client.Offline
                     TableOperation operation = await OperationsQueue.PeekAsync(0, tableNames, cancellationToken).ConfigureAwait(false);
                     while (operation != null)
                     {
-                        SendItemWillBePushedEvent(operation.ItemId);
+                        SendItemWillBePushedEvent(operation.TableName, operation.ItemId);
                         bool isSuccessful = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
-                        SendItemWasPushedEvent(operation.ItemId, isSuccessful);
+                        SendItemWasPushedEvent(operation.TableName, operation.ItemId, isSuccessful);
                         if (batch.AbortReason.HasValue)
                         {
                             break;
@@ -425,9 +425,9 @@ namespace Microsoft.Datasync.Client.Offline
             {
                 QueueHandler queueHandler = new(maxThreads, async (operation) =>
                 {
-                    SendItemWillBePushedEvent(operation.ItemId);
+                    SendItemWillBePushedEvent(operation.TableName, operation.ItemId);
                     bool isSuccessful = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
-                    SendItemWasPushedEvent(operation.ItemId, isSuccessful);
+                    SendItemWasPushedEvent(operation.ItemId, operation.ItemId, isSuccessful);
                 });
                 try
                 {
@@ -785,22 +785,24 @@ namespace Microsoft.Datasync.Client.Offline
             });
         }
 
-        private void SendItemWillBePushedEvent(string itemId)
+        private void SendItemWillBePushedEvent(string tableName, string itemId)
         {
             ServiceClient.SendSynchronizationEvent(new SynchronizationEventArgs
             {
                 EventType = SynchronizationEventType.ItemWillBePushed,
                 QueueLength = OperationsQueue.PendingOperations,
+                TableName = tableName,
                 ItemId = itemId
             });
         }
 
-        private void SendItemWasPushedEvent(string itemId, bool success)
+        private void SendItemWasPushedEvent(string tableName, string itemId, bool success)
         {
             ServiceClient.SendSynchronizationEvent(new SynchronizationEventArgs
             {
                 EventType = SynchronizationEventType.ItemWasPushed,
                 QueueLength = OperationsQueue.PendingOperations,
+                TableName = tableName,
                 ItemId = itemId,
                 IsSuccessful = success
             });
