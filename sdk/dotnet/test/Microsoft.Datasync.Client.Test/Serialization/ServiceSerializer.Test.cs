@@ -3,6 +3,7 @@
 
 using Datasync.Common.Test;
 using Microsoft.Datasync.Client.Serialization;
+using Microsoft.Datasync.Client.Test.Helpers;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -32,6 +33,24 @@ namespace Microsoft.Datasync.Client.Test.Serialization
             var settings = new DatasyncSerializerSettings();
             serializer.SerializerSettings = settings;
             Assert.Same(settings, serializer.SerializerSettings);
+        }
+
+        [Fact]
+        public void EnsureIdIsStringId_Works_WithValidModel()
+        {
+            ServiceSerializer.EnsureIdIsString<IdEntity>();
+        }
+
+        [Fact]
+        public void EnsureIdIsStringId_Throws_WithMissingIdColumn()
+        {
+            Assert.Throws<ArgumentException>(() => ServiceSerializer.EnsureIdIsString<BadEntityNoId>());
+        }
+
+        [Fact]
+        public void EnsureIdIsStringId_Throws_WithNonStringIdColumn()
+        {
+            Assert.Throws<ArgumentException>(() => ServiceSerializer.EnsureIdIsString<BadEntityIntId>());
         }
 
         [Fact]

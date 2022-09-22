@@ -30,4 +30,16 @@ namespace Microsoft.Datasync.Client.Test.Helpers
     {
         public string Id { get; set; }
     }
+
+    [ExcludeFromCodeCoverage]
+    public class BadEntityNoId
+    {
+        public string NotAnId { get; set; }
+    }
+
+    [ExcludeFromCodeCoverage]
+    public class BadEntityIntId
+    {
+        public int Id { get; set; }
+    }
 }

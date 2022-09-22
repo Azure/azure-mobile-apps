@@ -59,8 +59,23 @@ namespace Microsoft.Datasync.Client.Test.Table
         [Trait("Method", "Ctor")]
         public void Ctor_NullClient_Throws()
         {
-            var client = GetMockClient();
             Assert.Throws<ArgumentNullException>(() => new RemoteTable<ClientMovie>("movies", null));
+        }
+
+        [Fact]
+        [Trait("Method", "Ctor")]
+        public void Ctor_NoId_Throws()
+        {
+            var client = GetMockClient();
+            Assert.ThrowsAny<Exception>(() => new RemoteTable<BadEntityNoId>("movies", client));
+        }
+
+        [Fact]
+        [Trait("Method", "Ctor")]
+        public void Ctor_IntId_Throws()
+        {
+            var client = GetMockClient();
+            Assert.ThrowsAny<Exception>(() => new RemoteTable<BadEntityIntId>("movies", client));
         }
 
         [Fact]

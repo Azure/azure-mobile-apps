@@ -31,6 +31,9 @@ namespace Microsoft.Datasync.Client.Table
             // ResolveTableName has a side effect of initializing the contract in the contract resolver,
             // so call it here to ensure initialization.
             serviceClient.Serializer.ResolveTableName<T>();
+
+            // Ensure that the Id field in T is a String.
+            ServiceSerializer.EnsureIdIsString<T>();
         }
 
         #region IRemoteTable<T>

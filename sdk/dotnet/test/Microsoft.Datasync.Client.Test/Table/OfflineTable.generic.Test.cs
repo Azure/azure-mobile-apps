@@ -67,6 +67,20 @@ namespace Microsoft.Datasync.Client.Test.Table
         }
 
         [Fact]
+        [Trait("Method", "Ctor")]
+        public void Ctor_NoId_Throws()
+        {
+            Assert.ThrowsAny<Exception>(() => new OfflineTable<BadEntityNoId>("movies", client));
+        }
+
+        [Fact]
+        [Trait("Method", "Ctor")]
+        public void Ctor_IntId_Throws()
+        {
+            Assert.ThrowsAny<Exception>(() => new RemoteTable<BadEntityIntId>("movies", client));
+        }
+
+        [Fact]
         public void Ctor_CreateTable_WhenArgsCorrect()
         {
             var table = new OfflineTable<ClientMovie>("movies", client);
