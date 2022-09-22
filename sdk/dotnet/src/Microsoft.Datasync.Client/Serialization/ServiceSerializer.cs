@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
@@ -56,6 +57,43 @@ namespace Microsoft.Datasync.Client.Serialization
         {
             var item = string.IsNullOrEmpty(json) ? null : JsonConvert.DeserializeObject<JToken>(json, SerializerSettings);
             return item is JObject obj && obj.Value<string>(SystemProperties.JsonIdProperty) != null ? (JObject)item : null;
+        }
+
+        /// <summary>
+        /// Given a type, ensure that the type has an Id property and that it is a string.
+        /// </summary>
+        /// <typeparam name="T">The type to check.</typeparam>
+        public static void EnsureIdIsString<T>()
+            => EnsureIdIsString(typeof(T));
+
+        /// <summary>
+        /// Given a type, ensure that the type has an Id property and that it is a string.
+        /// </summary>
+        /// <param name="type">The type to check.</param>
+        public static void EnsureIdIsString(Type type)
+        {
+            // Special case - if the Type is a generic Dictionary or a JObject, then we need to basically say
+            // "customer knows what they are doing" because they are constructing a JsonObject with the right
+            // fields on each call.  We can't prevent this, so skip over the check and check it in operation.
+            if (type.IsGenericType)
+            {
+                Type genericType = type.GetGenericTypeDefinition();
+                if (genericType.Name == "Dictionary`2")
+                {
+                    return;
+                }
+            }
+
+            var idProperty = type.GetProperties().Where(prop => prop.Name.Equals("id", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            if (idProperty == null)
+            {
+                throw new ArgumentException($"Type {type.Name} must contain an Id property", nameof(type));
+            }
+            if (idProperty.PropertyType != typeof(string))
+            {
+                throw new ArgumentException($"Property {type.Name}.Id must be a string", nameof(type));
+            }
+            // We should be OK here!
         }
 
         /// <summary>
