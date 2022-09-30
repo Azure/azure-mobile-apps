@@ -32,6 +32,10 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
 
             // Act
             await table!.InsertItemAsync(movieToAdd);
+
+            // There should be one pending operation right now.
+            Assert.Equal(1, client.PendingOperations);
+
             await table!.PushItemsAsync();
             var result = await table!.GetItemAsync(movieToAdd.Id);
 

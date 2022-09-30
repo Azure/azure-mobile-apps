@@ -73,18 +73,10 @@ namespace Microsoft.Datasync.Client.SQLiteStore
             Arguments.IsValidTableName(tableName, true, nameof(tableName));
             Arguments.IsNotNull(tableDefinition, nameof(tableDefinition));
 
-            //if (Initialized)
-            //{
-            //    throw new InvalidOperationException("Cannot define a table after the offline store has been initialized.");
-            //}
             if (!tableMap.ContainsKey(tableName))
             {
                 tableMap.Add(tableName, new TableDefinition(tableName, tableDefinition));
             }
-            //else
-            //{
-            //    throw new InvalidOperationException("Cannot define a table twice");
-            //}
         }
 
         /// <summary>

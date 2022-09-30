@@ -31,6 +31,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
             // Act
             await table!.DeleteItemAsync(item);
             Assert.Equal(MovieCount, MovieServer.GetMovieCount());
+            Assert.Equal(1, client.PendingOperations);
 
             await table!.PushItemsAsync();
             Assert.Equal(MovieCount - 1, MovieServer.GetMovieCount());
