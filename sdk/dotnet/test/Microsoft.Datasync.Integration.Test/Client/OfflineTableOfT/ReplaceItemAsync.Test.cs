@@ -31,6 +31,10 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
 
             // Act
             await table!.ReplaceItemAsync(expected);
+
+            // There should be one pending operation
+            Assert.Equal(1, client.PendingOperations);
+
             await table!.PushItemsAsync();
             var response = await table!.GetItemAsync(id);
 

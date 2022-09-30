@@ -100,6 +100,11 @@ namespace Microsoft.Datasync.Client.Offline
         internal IPushContext PushContext { get; set; }
 
         /// <summary>
+        /// The number of pending operations in the operations queue.
+        /// </summary>
+        internal long PendingOperations { get => OperationsQueue.PendingOperations; }
+
+        /// <summary>
         /// Initialize the synchronization context for this offline store.
         /// </summary>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
