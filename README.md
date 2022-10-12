@@ -1,7 +1,7 @@
 # Azure Mobile Apps
 
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/azure/azure-mobile-apps/tree/main/LICENSE.txt)
-[![Build Status](https://dev.azure.com/devdiv/DevDiv/_apis/build/status/Xamarin/Components/Azure.azure-mobile-apps?repoName=Azure%2Fazure-mobile-apps&branchName=main)](https://dev.azure.com/devdiv/DevDiv/_build/latest?definitionId=14830&repoName=Azure%2Fazure-mobile-apps&branchName=main) [![Join the chat at https://gitter.im/azure-mobile-apps/community](https://badges.gitter.im/azure-mobile-apps/community.svg)](https://gitter.im/azure-mobile-apps/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![NuGet Version][v1]](https://www.nuget.org/packages?q=Microsoft+Datasync)
+[![Build Status](https://dev.azure.com/devdiv/DevDiv/_apis/build/status/Xamarin/Components/Azure.azure-mobile-apps?repoName=Azure%2Fazure-mobile-apps&branchName=main)](https://dev.azure.com/devdiv/DevDiv/_build/latest?definitionId=14830&repoName=Azure%2Fazure-mobile-apps&branchName=main) [![NuGet Version][v1]](https://www.nuget.org/packages?q=Microsoft+Datasync)
 
 Azure Mobile Apps (also known as the Microsoft Datasync Framework) is a set of client and server libraries for adding authenticated data access and offline synchronization to your mobile applications.
 
