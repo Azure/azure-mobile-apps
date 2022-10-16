@@ -60,4 +60,14 @@ export interface DatasyncTable<T extends DataTransferObject> {
      * @returns A promise that resolves to the stored item.
      */
     replaceItem(item: T, options?: TableOperationOptions): Promise<T>;
+
+    /**
+     * Updates an item in the remote store.  The ID of the item must be specified
+     * in the partial.
+     * 
+     * @param item - the partial item with the ID.
+     * @param options - the options to use on this request.
+     * @returns A promise that resolves to the updated item.
+     */
+    updateItem(item: Partial<T>, options?: TableOperationOptions): Promise<T>;
 }
