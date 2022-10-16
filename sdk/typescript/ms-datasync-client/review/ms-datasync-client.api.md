@@ -54,6 +54,7 @@ export interface DatasyncTable<T extends DataTransferObject> {
     getPageOfItems(query?: TableQuery, options?: TableOperationOptions): Promise<Page<Partial<T>>>;
     listItems(query?: TableQuery, options?: TableOperationOptions): PagedAsyncIterableIterator<Partial<T>, Page<Partial<T>>>;
     replaceItem(item: T, options?: TableOperationOptions): Promise<T>;
+    updateItem(item: Partial<T>, options?: TableOperationOptions): Promise<T>;
 }
 
 // @public
@@ -91,6 +92,7 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
     readonly serviceClient: ServiceClient;
     readonly tableEndpoint: string;
     readonly tableName: string;
+    updateItem(item: Partial<T>, options?: TableOperationOptions): Promise<T>;
 }
 
 export { RestError }

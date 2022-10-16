@@ -241,6 +241,27 @@ export class RemoteTable<T extends DataTransferObject> implements DatasyncTable<
     }
 
     /**
+     * Updates an item in the remote store.  The ID of the item must be specified
+     * in the partial.
+     * 
+     * @param item - the partial item with the ID.
+     * @param options - the options to use on this request.
+     * @returns A promise that resolves to the updated item.
+     */
+    public async updateItem(item: Partial<T>, options?: TableOperationOptions): Promise<T> {
+        if (!validate.isEntityId(item.id)) {
+            throw new InvalidArgumentError("Entity ID is not valid", "item");
+        }
+        const request = this.createRequest("PATCH", new URL(`${this.tableEndpoint}/${item.id}`), this.serialize(item), options);
+        if (!isForcedRequest(options) && validate.isNotEmpty(item.version)) {
+            request.headers.set("If-Match", `"${item.version}"`);
+        }
+        const response = await this.serviceClient.sendRequest(request);
+        this.throwIfNotSuccessful(request, response);
+        return this.deserialize<T>(request, response);
+    }
+
+    /**
      * Internal method to construct a new request object.
      * 
      * @param method The HTTP method to execute.
