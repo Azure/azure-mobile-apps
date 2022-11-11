@@ -9,13 +9,11 @@ using Microsoft.Datasync.Client.SQLiteStore.Utils;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
-using SQLitePCL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Transactions;
 
 namespace Microsoft.Datasync.Client.SQLiteStore
 {
