@@ -59,6 +59,7 @@ namespace TodoApp.WinUI
                 Content = message,
                 CloseButtonText = "OK"
             };
+            dialog.XamlRoot = Content.XamlRoot;
             await dialog.ShowAsync();
         }
         #endregion
