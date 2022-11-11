@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test;
+using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Query;
 using Newtonsoft.Json;
@@ -427,6 +429,47 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Test
             // Assert - Should be able to File.Delete the store file.
             File.Delete(dbFile);   // This should not throw.
             Assert.False(File.Exists(dbFile), $"{dbFile} still exists but was deleted.");
+        }
+
+        /// <summary>
+        /// Issue 499 - using ExecuteQueryAsync on an offline database will return IList{JObject}.
+        /// Deserializing the returned JObjects generates a JsonSerializationException for items
+        /// that were created with InsertItemAsync(T item) that have not yet been pushed.  This is
+        /// because the three columns (deleted, updatedAt, and version) are all null.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task Issue499()
+        {
+            // Set up a client and a store.
+            // Set up the default store and client.
+            var store = new OfflineSQLiteStore(ConnectionString);
+            store.DefineTable<ClientMovie>("movies");
+            var client = new DatasyncClient("https://localhost/", new DatasyncClientOptions { OfflineStore = store });
+            await client.InitializeOfflineStoreAsync();
+            var offlineTable = client.GetOfflineTable<ClientMovie>("movies");
+
+            // Insert a new item in the database
+            var testItem = GetSampleMovie<ClientMovie>();
+            await offlineTable.InsertItemAsync(testItem);
+
+            // Execute executeQueryAsync on the offline table.
+            var sqlStatement = $"SELECT * FROM movies WHERE id = @id";
+            var queryParams = new Dictionary<string, object>
+            {
+                { "@id", testItem.Id }
+            };
+            var result = await store.ExecuteQueryAsync("movies", sqlStatement, queryParams);
+
+            // Step 3 - deserialize the content
+            var movies = result.Select(obj => client.Serializer.Deserialize<ClientMovie>(obj)).ToArray();
+
+            // This should be the movie setting
+            Assert.Single(movies);
+
+            var movieResult = movies[0]!;
+            Assert.Equal<IMovie>(testItem, movieResult);
+            Assert.Equal(testItem.Id, movieResult.Id);
         }
     }
 }

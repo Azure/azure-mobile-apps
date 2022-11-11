@@ -163,7 +163,7 @@ namespace Microsoft.Datasync.Client
         /// <summary>
         /// The serializer to use for serializing and deserializing content.
         /// </summary>
-        internal ServiceSerializer Serializer { get; } = new();
+        public ServiceSerializer Serializer { get; } = new();
 
         /// <summary>
         /// The synchronization context.

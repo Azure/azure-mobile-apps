@@ -6,7 +6,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
@@ -15,7 +14,7 @@ namespace Microsoft.Datasync.Client.Serialization
     /// <summary>
     /// Provides serialization and deserialization for a <see cref="DatasyncClient"/>.
     /// </summary>
-    internal class ServiceSerializer
+    public class ServiceSerializer
     {
         /// <summary>
         /// The JSON serializer settings to use with this serializer.
