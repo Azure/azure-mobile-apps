@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Swashbuckle.AspNetCore.SwaggerGen
+namespace Microsoft.AspNetCore.Datasync
 {
     /// <summary>
     /// Extensions to enable the developer to wire in the Datasync Controllers Swashbuckle
