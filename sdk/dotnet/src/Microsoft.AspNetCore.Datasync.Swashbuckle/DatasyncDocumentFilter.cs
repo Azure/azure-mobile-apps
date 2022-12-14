@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Datasync;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Microsoft.AspNetCore.Datasync.EFCore
+namespace Swashbuckle.AspNetCore.SwaggerGen
 {
     /// <summary>
     /// An <see cref="IDocumentFilter"/> that adds the relevant schema and paramter definitions
