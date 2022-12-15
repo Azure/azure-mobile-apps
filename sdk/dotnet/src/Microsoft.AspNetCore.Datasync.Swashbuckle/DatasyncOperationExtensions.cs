@@ -1,4 +1,7 @@
-﻿using Microsoft.OpenApi.Any;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.OpenApi.Any;
 using System.Collections.Generic;
 using System.Linq;
 
