@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
@@ -34,15 +37,27 @@ namespace Microsoft.AspNetCore.Datasync
         private readonly List<string> processedEntityNames = new();
 
         /// <summary>
+        /// The assembly to query for TableController instances, if any.  If none is provided, the calling assembly is queried.
+        /// </summary>
+        private Assembly assemblyToQuery = null;
+
+        /// <summary>
+        /// Creates a new <see cref="DatasyncDocumentFilter"/>.
+        /// </summary>
+        /// <param name="assemblyToQuery">The assembly to query for TableController instances, if any.  If none is provided, the calling assembly is queried.</param>
+        public DatasyncDocumentFilter(Assembly assemblyToQuery = null)
+        {
+            this.assemblyToQuery = assemblyToQuery;
+        }
+
+        /// <summary>
         /// Applies the necessary changes to the <see cref="OpenApiDocument"/>.
         /// </summary>
         /// <param name="document">The <see cref="OpenApiDocument"/> to edit.</param>
         /// <param name="context">The filter context.</param>
         public void Apply(OpenApiDocument document, DocumentFilterContext context)
         {
-            var controllers = Assembly.GetExecutingAssembly().GetTypes()
-                .Where(t => t.BaseType?.IsGenericType == true && t.BaseType.GetGenericTypeDefinition() == typeof(TableController<>))
-                .ToList();
+            var controllers = GetAllTableControllers(assemblyToQuery);
 
             foreach (Type controller in controllers)
             {
@@ -160,6 +175,19 @@ namespace Microsoft.AspNetCore.Datasync
                     }
                 }
             }
+        }
+        
+        /// <summary>
+        /// Returns a list of all table controllers in the provided assembly.
+        /// </summary>
+        /// <param name="assembly">The assembly to query.  Be default, the calling assembly is queried.</param>
+        /// <returns>The list of table controllers in the assembly.</returns>
+        internal static List<Type> GetAllTableControllers(Assembly assembly = null)
+        {
+            return (assembly ?? Assembly.GetCallingAssembly())
+                .GetTypes()
+                .Where(t => t.BaseType?.IsGenericType == true && t.BaseType.GetGenericTypeDefinition() == typeof(TableController<>))
+                .ToList();
         }
 
         /// <summary>

@@ -1,5 +1,9 @@
+// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Reflection;
 
 namespace Microsoft.AspNetCore.Datasync
 {
@@ -11,7 +15,7 @@ namespace Microsoft.AspNetCore.Datasync
     {
         public static void AddDatasyncControllers(this SwaggerGenOptions options)
         {
-            options.DocumentFilter<DatasyncDocumentFilter>();
+            options.DocumentFilter<DatasyncDocumentFilter>(Assembly.GetCallingAssembly());
         }
     }
 }
