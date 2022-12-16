@@ -11,12 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreadedPushTest", "Threade
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreadedPushTest.Service", "ThreadedPushTest.Service\ThreadedPushTest.Service.csproj", "{8F0E978A-5A7F-4C92-A1AC-D396BDB8E403}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "client-library", "client-library", "{0FACB6BD-4555-4B80-A6C2-EC2AB85987D2}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Datasync.Client", "..\..\sdk\dotnet\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj", "{6A900011-EC55-4895-A9A6-4C2F93C7C5DE}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Datasync.Client.SQLiteStore", "..\..\sdk\dotnet\src\Microsoft.Datasync.Client.SQLiteStore\Microsoft.Datasync.Client.SQLiteStore.csproj", "{BF44650F-8CD3-45B4-837C-3D29FE1826B7}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
