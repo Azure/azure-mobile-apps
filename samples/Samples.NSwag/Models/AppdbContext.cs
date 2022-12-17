@@ -19,7 +19,7 @@ namespace Samples.NSwag.Db
         /// <returns>A task that completes when the database is initialized</returns>
         public async Task InitializeDatabaseAsync()
         {
-            await this.Database.EnsureCreatedAsync().ConfigureAwait(false);
+            await Database.EnsureCreatedAsync();
         }
     }
 }

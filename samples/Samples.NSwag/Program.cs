@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Datasync;
+using Microsoft.AspNetCore.Datasync.NSwag;
 using Microsoft.EntityFrameworkCore;
 using Samples.NSwag.Db;
-using Samples.NSwag.Processors;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -10,9 +10,7 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(conn
 builder.Services.AddDatasyncControllers();
 builder.Services.AddOpenApiDocument(options =>
 {
-    options.DocumentProcessors.Add(new DatasyncDocumentProcessor());
-    options.OperationProcessors.Add(new DatasyncOperationProcessor());
-    options.SchemaProcessors.Add(new DatasyncSchemaProcessor());
+    options.AddDatasyncProcessors();
 });
 
 var app = builder.Build();
