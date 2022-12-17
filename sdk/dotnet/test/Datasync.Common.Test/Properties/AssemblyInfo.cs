@@ -4,3 +4,5 @@
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Microsoft.AspNetCore.Datasync.Swashbuckle.Test")]
+[assembly: InternalsVisibleTo("Microsoft.AspNetCore.Datasync.NSwag.Test")]
+

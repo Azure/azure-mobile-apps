@@ -1,16 +1,16 @@
-﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
-using Microsoft.AspNetCore.Datasync.Swashbuckle.Test.Service;
+using Microsoft.AspNetCore.Datasync.NSwag.Test.Service;
 using Microsoft.AspNetCore.TestHost;
 using System.Reflection;
 
-namespace Microsoft.AspNetCore.Datasync.Swashbuckle.Test
+namespace Microsoft.AspNetCore.Datasync.NSwag.Test
 {
-    public class SwaggerGen_Tests
+    public class NSwag_Tests
     {
-        private TestServer server = SwaggerServer.CreateTestServer();
+        private TestServer server = NSwagServer.CreateTestServer();
 
         private static string ReadExternalFile(string filename)
         {
@@ -21,17 +21,7 @@ namespace Microsoft.AspNetCore.Datasync.Swashbuckle.Test
         }
 
         [Fact]
-        public void DocumentFilter_ReadsAllControllers()
-        {
-            Assert.NotNull(server);
-
-            var controllers = DatasyncDocumentFilter.GetAllTableControllers();
-            Assert.Single(controllers);
-            Assert.Equal("KitchenSinkController", controllers.First().Name);
-        }
-
-        [Fact]
-        public async Task SwaggerGen_GeneratesSwagger()
+        public async Task NSwag_GeneratesSwagger()
         {
             var swaggerDoc = await server.SendRequest(HttpMethod.Get, "swagger/v1/swagger.json");
             Assert.NotNull(swaggerDoc);
