@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Datasync.NSwag;
 using Microsoft.EntityFrameworkCore;
 using Samples.NSwag.Db;
 
-
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
