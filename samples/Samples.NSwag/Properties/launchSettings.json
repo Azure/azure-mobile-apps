@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "Samples.NSwag": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "/swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:61534;http://localhost:61535"
+    }
+  }
+}
