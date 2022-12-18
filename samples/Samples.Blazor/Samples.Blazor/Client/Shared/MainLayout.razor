@@ -1,0 +1,29 @@
+﻿@*
+// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+*@
+
+@inherits LayoutComponentBase
+
+<MudThemeProvider IsDarkMode="@isDarkTheme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Dense="true">
+       <MudText Typo="Typo.h6">Blazor Quickstart for Azure Mobile Apps</MudText>
+       <MudSpacer/>
+       <MudToggleIconButton @bind-Toggled="@isDarkTheme"
+           Icon="@Icons.Material.Filled.LightMode" Style="color: var(--mud-palette-primary-text);" Title="Light Mode"
+           ToggledIcon="@Icons.Material.Filled.DarkMode" ToggledTitle="Dark Mode" />
+    </MudAppBar>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pt-4">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool isDarkTheme = false;
+}
