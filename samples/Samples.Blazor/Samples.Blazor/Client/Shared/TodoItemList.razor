@@ -1,0 +1,69 @@
+﻿@using System.Collections.ObjectModel
+@inject ITodoRepository Repository
+
+<MudDataGrid T="TodoItemDTO" Items="TodoItems" Filterable="true">
+    <Columns>
+        <Column T="TodoItemDTO" Field="IsComplete" Title="Complete?" CellStyle="width: 100px;">
+            <CellTemplate>
+                <MudToggleIconButton Toggled="@context.Item.IsComplete" ToggledChanged="@((e) => OnToggleCompleted(e, context.Item))"
+                                     Icon="@Icons.Outlined.Circle" Title="Not complete"
+                                     ToggledIcon="@Icons.Outlined.CheckCircle" ToggledTitle="Complete" />
+            </CellTemplate>
+        </Column>
+        <Column T="TodoItemDTO" Field="Title" Title="Title" CellStyle="font-size: 135%;"/>
+        <Column T="TodoItemDTO" Field="Id" Title="" Sortable="false" Filterable="false" CellStyle="width: 100px;">
+            <CellTemplate>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="@((e) => OnDeleteItemAsync(e, context.Item))" />
+            </CellTemplate>
+        </Column>
+    </Columns>
+</MudDataGrid>
+
+@code {
+    ObservableCollection<TodoItemDTO> TodoItems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAsync();
+        Repository.RepositoryUpdated += (sender, args) => OnRepositoryUpdated(args);
+    }
+
+    private void OnRepositoryUpdated(TodoRepositoryEventArgs e)
+    {
+        switch (e.Operation)
+        {
+            case RepositoryOperation.Add:
+                TodoItems.Add(e.Item!);
+                break;
+            case RepositoryOperation.Delete:
+                var deleteIdx = TodoItems.RemoveIf(item => item.Id == e.Item!.Id);
+                break;
+            case RepositoryOperation.Update:
+                var updateIdx = TodoItems.ReplaceIf(item => item.Id == e.Item!.Id, e.Item!);
+                break;
+        }
+        StateHasChanged();
+    }
+
+    private async Task RefreshAsync()
+    {
+        var loadedItems = await Repository.GetItemsAsync();
+        TodoItems.Clear();
+        foreach (var item in loadedItems)
+        {
+            TodoItems.Add(item);
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnDeleteItemAsync(MouseEventArgs e, TodoItemDTO item)
+    {
+        await Repository.DeleteItemAsync(item);
+    }
+
+    private async Task OnToggleCompleted(bool toggleValue, TodoItemDTO item)
+    {
+        item.IsComplete = toggleValue;
+        await Repository.UpdateItemAsync(item);
+    }
+}

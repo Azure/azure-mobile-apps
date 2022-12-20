@@ -1,0 +1,32 @@
+﻿@*
+// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+*@
+
+@inject ITodoRepository Repository
+
+<MudPaper Class="pa-4" Elevation="1">
+    <EditForm Model="newItem" OnSubmit="SubmitAsync">
+        <div class="d-flex flex-grow-1 gap-2">
+            <MudTextField Class="flex-grow-1" Label="Title" Variant="Variant.Text" @bind-Value="newItem.Title" />
+            <MudIconButton Class="flex-grow-0" Icon="@Icons.Material.Filled.Add" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"/>
+        </div>
+    </EditForm>
+</MudPaper>
+
+@code {
+    TodoItemDTO newItem = new();
+
+    async Task SubmitAsync()
+    {
+        // Creates a new item, so we can adjust the form.
+        var item = new TodoItemDTO { Title = newItem.Title };
+
+        // Wipes out the form.
+        newItem = new();
+        StateHasChanged();
+
+        // Adds the item into the repository.
+        await Repository.AddNewItemAsync(item);
+    }
+}
