@@ -42,19 +42,6 @@ namespace Samples.Blazor.Client.Services
         Task<IEnumerable<TodoItemDTO>> GetItemsAsync();
 
         /// <summary>
-        /// Retrieves an item by ID.
-        /// </summary>
-        /// <param name="id">The ID of the item to return.</param>
-        /// <returns>A task that returns the item (or null if the item does not exist). when complete.</returns>
-        Task<TodoItemDTO?> GetItemByIdAsync(string id);
-
-        /// <summary>
-        /// Refreshes the list of items from the remote service.
-        /// </summary>
-        /// <returns>A task that completes when the operation is complete.</returns>
-        Task RefreshAsync();
-
-        /// <summary>
         /// Updates an item in the repository.
         /// </summary>
         /// <param name="item">The updated item.</param>

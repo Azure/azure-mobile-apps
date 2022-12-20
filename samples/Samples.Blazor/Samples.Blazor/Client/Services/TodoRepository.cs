@@ -32,11 +32,6 @@ namespace Samples.Blazor.Client.Services
         private IRemoteTable<TodoItemDTO>? _table = null;
 
         /// <summary>
-        /// The internal list of items.
-        /// </summary>
-        private List<TodoItemDTO> _items = new();
-
-        /// <summary>
         /// Construct a new <see cref="TodoRepository"/> based on the default HttpClient.
         /// </summary>
         /// <param name="httpClient">The HttpClient.</param>
@@ -71,14 +66,15 @@ namespace Samples.Blazor.Client.Services
                 if (_initialized)
                     return;
 
+                // Blazor support - must specify Installation Id.
                 var options = new DatasyncClientOptions
                 {
-                    HttpPipeline = new HttpMessageHandler[] { new LoggingHandler() }
+                    HttpPipeline = new HttpMessageHandler[] { new LoggingHandler() },
+                    InstallationId = "dad8a3b7-038f-4725-a812-fb9e580a13e5"
                 };
 
                 _client = new DatasyncClient(BackendUri, options);
                 _table = _client.GetRemoteTable<TodoItemDTO>("todoitem");
-                _items = await _table!.GetAsyncItems().ToListAsync();
 
                 _initialized = true;
             }
@@ -126,17 +122,6 @@ namespace Samples.Blazor.Client.Services
         }
 
         /// <summary>
-        /// Retrieves an item by ID.
-        /// </summary>
-        /// <param name="id">The ID of the item to return.</param>
-        /// <returns>A task that returns the item (or null if the item does not exist). when complete.</returns>
-        public async Task<TodoItemDTO?> GetItemByIdAsync(string id)
-        {
-            await InitializeAsync();
-            return _items.SingleOrDefault(m => m.Id == id);
-        }
-
-        /// <summary>
         /// Gets a list of all items in the repository.
         /// </summary>
         /// <returns>A task that returns the list of items in the repository when complete.</returns>
@@ -144,16 +129,6 @@ namespace Samples.Blazor.Client.Services
         {
             await InitializeAsync();
             return await _table!.GetAsyncItems().ToListAsync();
-        }
-
-        /// <summary>
-        /// Refreshes the list of items from the remote service.
-        /// </summary>
-        /// <returns>A task that completes when the operation is complete.</returns>
-        public async Task RefreshAsync()
-        {
-            await InitializeAsync();
-            _items = await _table!.GetAsyncItems().ToListAsync();
         }
 
         /// <summary>
