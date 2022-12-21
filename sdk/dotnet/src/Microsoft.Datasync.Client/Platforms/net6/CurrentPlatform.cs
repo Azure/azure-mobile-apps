@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Utils;
-using System.IO.IsolatedStorage;
 using System;
 
 namespace Microsoft.Datasync.Client.Platforms
