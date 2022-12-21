@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client;
+using Microsoft.JSInterop;
 using Samples.Blazor.Client.Models;
 
 namespace Samples.Blazor.Client.Services
@@ -32,13 +33,19 @@ namespace Samples.Blazor.Client.Services
         private IRemoteTable<TodoItemDTO>? _table = null;
 
         /// <summary>
+        /// The runtime for JSInterop.
+        /// </summary>
+        private IJSRuntime _jsRuntime;
+
+        /// <summary>
         /// Construct a new <see cref="TodoRepository"/> based on the default HttpClient.
         /// </summary>
         /// <param name="httpClient">The HttpClient.</param>
         /// <exception cref="ArgumentException">If the HttpClient does not have a BaseAddress defined.</exception>
-        public TodoRepository(HttpClient httpClient)
+        public TodoRepository(HttpClient httpClient, IJSRuntime jsRuntime)
         {
             BackendUri = httpClient.BaseAddress ?? throw new ArgumentException("HttpClient must have a BaseAddress defined");
+            _jsRuntime = jsRuntime;
         }
 
         /// <summary>
@@ -70,7 +77,7 @@ namespace Samples.Blazor.Client.Services
                 var options = new DatasyncClientOptions
                 {
                     HttpPipeline = new HttpMessageHandler[] { new LoggingHandler() },
-                    InstallationId = "dad8a3b7-038f-4725-a812-fb9e580a13e5"
+                    InstallationId = BlazorSupport.GetInstallationId(_jsRuntime)
                 };
 
                 _client = new DatasyncClient(BackendUri, options);
