@@ -1,7 +1,7 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.44">
 
 	<PropertyGroup>
-		<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst;net6.0-windows10.0.19041.0;netstandard2.0;monoandroid12.0;xamarin.ios10</TargetFrameworks>
+		<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst;net6.0-windows10.0.19041.0;net6.0;netstandard2.0;monoandroid12.0;xamarin.ios10</TargetFrameworks>
 		<TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);uap10.0</TargetFrameworks>
 	</PropertyGroup>
 
@@ -25,7 +25,7 @@
 	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
-
+	
 	<PropertyGroup Condition="$(TargetFramework.StartsWith('net6.0-'))">
 		<UseMauiEssentials>true</UseMauiEssentials>
 		<SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-ios'))">10.0</SupportedOSPlatformVersion>
@@ -45,7 +45,7 @@
 	<!-- Android Platform Support -->
 	<ItemGroup Condition="$(TargetFramework.StartsWith('monoandroid'))">
 		<Compile Include="Platforms\android\*.cs" />
-		<PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
+		<PackageReference Include="Xamarin.Essentials" Version="1.7.4" />
 		<PackageReference Include="Xamarin.AndroidX.Browser" Version="1.3.0.10" />
 		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
 	</ItemGroup>
@@ -57,7 +57,7 @@
 	<!-- iOS Platform Support -->
 	<ItemGroup Condition="$(TargetFramework.StartsWith('xamarin.ios'))">
 		<Compile Include="Platforms\ios\*.cs" />
-		<PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
+		<PackageReference Include="Xamarin.Essentials" Version="1.7.4" />
 		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
 	</ItemGroup>
 
@@ -84,7 +84,13 @@
 	<ItemGroup Condition="$(TargetFramework.StartsWith('net6.0-windows'))">
 		<Compile Include="Platforms\net6-windows\*.cs" />
 	</ItemGroup>
-
+	
+	<!-- .NET 6.0 Platform support -->
+	<ItemGroup Condition="$(TargetFramework.Equals('net6.0'))">
+		<Compile Include="Platforms\net6\*.cs" />
+		<PackageReference Include="Microsoft.JSInterop" Version="6.0.12" />
+	</ItemGroup>
+		
 	<!-- .NET Standard 2.0 Platform Support -->
 	<ItemGroup Condition="$(TargetFramework.StartsWith('netstandard2.0'))">
 		<Compile Include="Platforms\netstandard\*.cs" />
@@ -94,6 +100,6 @@
 
 	<!-- Common package requirements -->
 	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
 	</ItemGroup>
 </Project>
