@@ -3,6 +3,7 @@
 
 using Microsoft.Datasync.Client.Utils;
 using System;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.Datasync.Client.Platforms
 {
@@ -33,6 +34,10 @@ namespace Microsoft.Datasync.Client.Platforms
 
         private static IApplicationStorage CreateApplicationStorage()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Create("WEBASSEMBLY")))
+            {
+                throw new NotSupportedException("You must specify an InstallationId for Blazor WASM");
+            }
             return new Platforms.ApplicationStorage();
         }
     }
