@@ -783,9 +783,11 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
 
             // Act
             var count = await table.CountItemsAsync(query);
+            var linqCount = await query.LongCountAsync();
 
             // Assert
             Assert.Equal(resultCount, count);
+            Assert.Equal(resultCount, linqCount);
         }
     }
 }

@@ -9,6 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Microsoft.Datasync.Client.Query
 {
@@ -209,20 +211,6 @@ namespace Microsoft.Datasync.Client.Query
         }
 
         /// <summary>
-        /// Returns the result of the query as an <see cref="IAsyncEnumerable{T}"/>.
-        /// </summary>
-        /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/></returns>
-        public IAsyncEnumerable<T> ToAsyncEnumerable()
-        {
-            if (IsOfflineEnabled)
-            {
-                var offlineTable = new OfflineTable<T>(RemoteTable.TableName, RemoteTable.ServiceClient);
-                return offlineTable.GetAsyncItems(this);
-            }
-            return RemoteTable.GetAsyncItems(this);
-        }
-
-        /// <summary>
         /// Applies the specified filter predicate to the source query.
         /// </summary>
         /// <param name="predicate">The filter predicate.</param>
@@ -271,6 +259,35 @@ namespace Microsoft.Datasync.Client.Query
                 Parameters[param.Key] = param.Value;
             });
             return this;
+        }
+
+        /// <summary>
+        /// Count the number of items that would be returned by the provided query, without returning all the values.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the number of items that will be in the result set when the query finishes.</returns>
+        public Task<long> LongCountAsync(CancellationToken cancellationToken = default)
+        {
+            if (IsOfflineEnabled)
+            {
+                var offlineTable = new OfflineTable<T>(RemoteTable.TableName, RemoteTable.ServiceClient);
+                return offlineTable.CountItemsAsync(this, cancellationToken);
+            }
+            return RemoteTable.CountItemsAsync(this, cancellationToken);
+        }
+
+        /// <summary>
+        /// Returns the result of the query as an <see cref="IAsyncEnumerable{T}"/>.
+        /// </summary>
+        /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/></returns>
+        public IAsyncEnumerable<T> ToAsyncEnumerable()
+        {
+            if (IsOfflineEnabled)
+            {
+                var offlineTable = new OfflineTable<T>(RemoteTable.TableName, RemoteTable.ServiceClient);
+                return offlineTable.GetAsyncItems(this);
+            }
+            return RemoteTable.GetAsyncItems(this);
         }
         #endregion
     }

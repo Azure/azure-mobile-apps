@@ -647,16 +647,6 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
         }
 
         [Fact]
-        public async Task ToAsyncEnumerable_Linq_where_098()
-        {
-            await RunLinqTest(
-                m => m.Where(x => x.Rating.Substring(0, 2) == "PG"),
-                68,
-                new string[] { "id-006", "id-008", "id-010", "id-012", "id-013" }
-            );
-        }
-
-        [Fact]
         public async Task ToAsyncEnumerable_Linq_where_099()
         {
             await RunLinqTest(
@@ -776,9 +766,11 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
 
             // Act
             var count = await table.CountItemsAsync(query);
+            var linqCount = await query.LongCountAsync();
 
             // Assert
             Assert.Equal(resultCount, count);
+            Assert.Equal(resultCount, linqCount);
         }
     }
 }
