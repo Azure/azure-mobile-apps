@@ -13,7 +13,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
+namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTableOfT
 {
     [ExcludeFromCodeCoverage]
     public class CountItemsAsync_Tests : BaseOperationTest
@@ -56,7 +56,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
             MockHandler.AddResponse(statusCode);
 
             // Assert
-            var ex = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(async () => await table.CountItemsAsync(""));
+            var ex = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(async () => await table.CountItemsAsync());
             Assert.Equal(statusCode, ex.Response.StatusCode);
         }
 
@@ -68,12 +68,27 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
 
             // Act
-            var count = await authTable.CountItemsAsync("$filter=foo");
+            var count = await authTable.CountItemsAsync();
 
             // Assert
-            var request = AssertSingleRequest(HttpMethod.Get, tableEndpoint + $"?$filter=foo&{CountArgs}");
+            var request = AssertSingleRequest(HttpMethod.Get, tableEndpoint + $"?{CountArgs}");
             AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
             Assert.Equal(-1, count);
+        }
+
+        [Fact]
+        [Trait("Method", "CountItemsAsync")]
+        public async Task CountItemsAsync_NoItems_WithFilter()
+        {
+            // Arrange
+            MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
+
+            // Act
+            var query = table.CreateQuery().Where(m => m.StringField == "id");
+            var count = await table.CountItemsAsync(query);
+
+            // Assert
+            var request = AssertSingleRequest(HttpMethod.Get, tableEndpoint + $"?$filter=(stringField eq 'id')&{CountArgs}");
         }
 
         [Fact]
@@ -84,7 +99,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
 
             // Act
-            var count = await table.CountItemsAsync("");
+            var count = await table.CountItemsAsync();
 
             // Assert
             Assert.Equal(-1, count);
@@ -98,7 +113,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
             CreatePageOfJsonItems(1, 42);
 
             // Act
-            var count = await table.CountItemsAsync("");
+            var count = await table.CountItemsAsync();
 
             // Assert
             _ = AssertSingleRequest(HttpMethod.Get, tableEndpoint + $"?{CountArgs}");
@@ -106,3 +121,4 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.RemoteTable
         }
     }
 }
+
