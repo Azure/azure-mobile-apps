@@ -15,7 +15,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable
     [ExcludeFromCodeCoverage]
     public class InsertItemWithIdGeneratorAsync_Tests : BaseOperationIdGeneratorTest
     {
-        public InsertItemWithIdGeneratorAsync_Tests(ITestOutputHelper logger) : base(logger) { }
+        public InsertItemWithIdGeneratorAsync_Tests(ITestOutputHelper logger) : base(logger, false) { }
 
         [Theory, CombinatorialData]
         [Trait("Method", "InsertItemAsync")]

@@ -22,7 +22,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable
     public abstract class BaseOperationTest : BaseTest, IDisposable
     {
         protected readonly ITestOutputHelper Logger;
-        protected readonly string filename;
+        protected readonly string? filename;
         protected readonly string connectionString;
         protected readonly OfflineSQLiteStore store;
         protected readonly DatasyncClient client;
@@ -42,11 +42,18 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable
             { "year", 0 }
         };
 
-        protected BaseOperationTest(ITestOutputHelper logger)
+        protected BaseOperationTest(ITestOutputHelper logger, bool useFile = true)
         {
             Logger = logger;
-            filename = Path.GetTempFileName();
-            connectionString = new UriBuilder(filename) { Query = "?mode=rwc" }.Uri.ToString();
+            if (useFile)
+            {
+                filename = Path.GetTempFileName();
+                connectionString = new UriBuilder(filename) { Query = "?mode=rwc" }.Uri.ToString();
+            }
+            else
+            {
+                connectionString = "file:in-memory.db?mode=memory";
+            }
             store = new OfflineSQLiteStore(connectionString);
             store.DefineTable("movies", MovieDefinition);
             store.DefineTable("soft", MovieDefinition);
@@ -96,7 +103,10 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable
         public void Dispose()
         {
             store.DbConnection.connection.Close();
-            File.Delete(filename);
+            if (filename != null)
+            {
+                File.Delete(filename);
+            }
             GC.SuppressFinalize(this);
         }
     }
