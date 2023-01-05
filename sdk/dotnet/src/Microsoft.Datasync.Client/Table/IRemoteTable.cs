@@ -26,6 +26,15 @@ namespace Microsoft.Datasync.Client
         string TableName { get; }
 
         /// <summary>
+        /// Count the number of items that would be returned by the provided query, without returning
+        /// all the values.
+        /// </summary>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the number of items that will be in the result set when the query finishes.</returns>
+        Task<long> CountItemsAsync(string query, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Deletes an item from the remote table.
         /// </summary>
         /// <param name="instance">The instance to delete from the table.</param>
@@ -83,6 +92,15 @@ namespace Microsoft.Datasync.Client
         /// </summary>
         /// <returns>A query against the table.</returns>
         ITableQuery<T> CreateQuery();
+
+        /// <summary>
+        /// Count the number of items that would be returned by the provided query, without returning
+        /// all the values.
+        /// </summary>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the number of items that will be in the result set when the query finishes.</returns>
+        Task<long> CountItemsAsync(ITableQuery<T> query, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes an item from the remote table.

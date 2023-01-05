@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Http;
+using Microsoft.Datasync.Client.Query;
+using Microsoft.Datasync.Client.Query.OData;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json;
@@ -52,6 +54,33 @@ namespace Microsoft.Datasync.Client.Table
         /// The endpoint to the table.
         /// </summary>
         public string TableEndpoint { get; }
+
+        /// <summary>
+        /// Count the number of items that would be returned by the provided query, without returning
+        /// all the values.
+        /// </summary>
+        /// <param name="query">The query to execute.</param>
+        /// <returns>A task that returns the number of items that will be in the result set when the query finishes.</returns>
+        public async Task<long> CountItemsAsync(string query, CancellationToken cancellationToken = default)
+        {
+            QueryDescription qd = QueryDescription.Parse(TableName, query);
+            qd.IncludeTotalCount = true;
+            qd.Skip = null;
+            qd.Top = 1;
+            ServiceRequest request = new()
+            {
+                Method = HttpMethod.Get,
+                UriPathAndQuery = $"{TableEndpoint}?{qd.ToODataString()}",
+                EnsureResponseContent = true
+            };
+            var response = await SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+            long count = -1;
+            if (response is JObject && response[Page.JsonCountProperty]?.Type == JTokenType.Integer)
+            {
+                count = response.Value<long>(Page.JsonCountProperty);
+            }
+            return count;
+        }
 
         /// <summary>
         /// Deletes an item from the remote table.

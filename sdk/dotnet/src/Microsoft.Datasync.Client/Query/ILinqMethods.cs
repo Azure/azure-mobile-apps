@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Datasync.Client.Query
 {
@@ -84,12 +86,6 @@ namespace Microsoft.Datasync.Client.Query
         ITableQuery<T> ThenByDescending<TKey>(Expression<Func<T, TKey>> keySelector);
 
         /// <summary>
-        /// Returns the result of the query as an <see cref="IAsyncEnumerable{T}"/>.
-        /// </summary>
-        /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/></returns>
-        IAsyncEnumerable<T> ToAsyncEnumerable();
-
-        /// <summary>
         /// Applies the specified filter predicate to the source query.
         /// </summary>
         /// <param name="predicate">The filter predicate.</param>
@@ -113,5 +109,18 @@ namespace Microsoft.Datasync.Client.Query
         /// <param name="parameters">The parameters to apply.</param>
         /// <returns>The composed query object.</returns>
         ITableQuery<T> WithParameters(IEnumerable<KeyValuePair<string, string>> parameters);
+
+        /// <summary>
+        /// Count the number of items that would be returned by the provided query, without returning all the values.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the number of items that will be in the result set when the query finishes.</returns>
+        Task<long> LongCountAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns the result of the query as an <see cref="IAsyncEnumerable{T}"/>.
+        /// </summary>
+        /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/></returns>
+        IAsyncEnumerable<T> ToAsyncEnumerable();
     }
 }

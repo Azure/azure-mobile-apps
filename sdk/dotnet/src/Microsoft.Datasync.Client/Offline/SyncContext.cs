@@ -134,6 +134,25 @@ namespace Microsoft.Datasync.Client.Offline
 
         #region Store Operations initiated from an OfflineTable
         /// <summary>
+        /// Count the number of items that would be returned by the provided query, without returning
+        /// all the values.
+        /// </summary>
+        /// <param name="tableName">The name of the offline table.</param>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the number of items that will be in the result set when the query finishes.</returns>
+        public async Task<long> CountItemsAsync(string tableName, string query, CancellationToken cancellationToken = default)
+        {
+            await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
+            var queryDescription = QueryDescription.Parse(tableName, query);
+            queryDescription.IncludeTotalCount = true;
+            queryDescription.Skip = null;
+            queryDescription.Top = 1;
+            var page = await OfflineStore.GetPageAsync(queryDescription, cancellationToken).ConfigureAwait(false);
+            return page.Count ?? -1;
+        }
+
+        /// <summary>
         /// Deletes an item from the offline table.
         /// </summary>
         /// <param name="tableName">The name of the offline table.</param>

@@ -64,6 +64,15 @@ namespace Microsoft.Datasync.Client.Table
         public string TableName { get; }
 
         /// <summary>
+        /// Count the number of items that would be returned by the provided query, without returning
+        /// all the values.
+        /// </summary>
+        /// <param name="query">The query to execute.</param>
+        /// <returns>A task that returns the number of items that will be in the result set when the query finishes.</returns>
+        public Task<long> CountItemsAsync(string query, CancellationToken cancellationToken = default)
+            => _context.CountItemsAsync(TableName, query, cancellationToken);
+
+        /// <summary>
         /// Deletes an item from the offline table.
         /// </summary>
         /// <param name="instance">The instance to delete from the table.</param>

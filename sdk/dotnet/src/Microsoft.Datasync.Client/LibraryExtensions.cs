@@ -149,5 +149,21 @@ namespace Microsoft.Datasync.Client
         /// <returns>A task that completes when the pull operation is complete.</returns>
         public static Task PullItemsAsync<T, U>(this IOfflineTable<T> table, ITableQuery<U> query, CancellationToken cancellationToken = default)
             => table.PullItemsAsync(query, new PullOptions(), cancellationToken);
+
+        /// <summary>
+        /// Count the number of items that would be returned from the table without returning all the values.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the number of items that will be in the result set when the query finishes.</returns>
+        public static Task<long> CountItemsAsync<T>(this IOfflineTable<T> table, CancellationToken cancellationToken = default)
+            => table.CountItemsAsync(table.CreateQuery(), cancellationToken);
+
+        /// <summary>
+        /// Count the number of items that would be returned from the table without returning all the values.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the number of items that will be in the result set when the query finishes.</returns>
+        public static Task<long> CountItemsAsync<T>(this IRemoteTable<T> table, CancellationToken cancellationToken = default)
+            => table.CountItemsAsync(table.CreateQuery(), cancellationToken);
     }
 }

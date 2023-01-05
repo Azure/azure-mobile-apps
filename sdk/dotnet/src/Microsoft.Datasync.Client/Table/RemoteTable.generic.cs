@@ -45,6 +45,19 @@ namespace Microsoft.Datasync.Client.Table
             => new TableQuery<T>(this);
 
         /// <summary>
+        /// Count the number of items that would be returned by the provided query, without returning
+        /// all the values.
+        /// </summary>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the number of items that will be in the result set when the query finishes.</returns>
+        public Task<long> CountItemsAsync(ITableQuery<T> query, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(query, nameof(query));
+            return CountItemsAsync(((TableQuery<T>)query).ToODataString(true), cancellationToken);
+        }
+
+        /// <summary>
         /// Deletes an item from the remote table.
         /// </summary>
         /// <param name="instance">The instance to delete from the table.</param>
@@ -242,13 +255,6 @@ namespace Microsoft.Datasync.Client.Table
             => CreateQuery().ThenByDescending(keySelector);
 
         /// <summary>
-        /// Returns the result of the query as an <see cref="IAsyncEnumerable{T}"/>.
-        /// </summary>
-        /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/></returns>
-        public IAsyncEnumerable<T> ToAsyncEnumerable()
-            => CreateQuery().ToAsyncEnumerable();
-
-        /// <summary>
         /// Applies the specified filter predicate to the source query.
         /// </summary>
         /// <param name="predicate">The filter predicate.</param>
@@ -275,6 +281,22 @@ namespace Microsoft.Datasync.Client.Table
         /// <returns>The composed query object.</returns>
         public ITableQuery<T> WithParameters(IEnumerable<KeyValuePair<string, string>> parameters)
             => CreateQuery().WithParameters(parameters);
+
+
+        /// <summary>
+        /// Count the number of items that would be returned by the provided query, without returning all the values.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the number of items that will be in the result set when the query finishes.</returns>
+        public Task<long> LongCountAsync(CancellationToken cancellationToken = default)
+            => CountItemsAsync("", cancellationToken);
+
+        /// <summary>
+        /// Returns the result of the query as an <see cref="IAsyncEnumerable{T}"/>.
+        /// </summary>
+        /// <returns>The list of items as an <see cref="IAsyncEnumerable{T}"/></returns>
+        public IAsyncEnumerable<T> ToAsyncEnumerable()
+            => CreateQuery().ToAsyncEnumerable();
         #endregion
 
         /// <summary>
