@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
-using Newtonsoft.Json;
-using System;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Serialization;
-using System.Reflection;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
+using System;
 using System.Linq;
+using System.Reflection;
 
 namespace Microsoft.Datasync.Client
 {
