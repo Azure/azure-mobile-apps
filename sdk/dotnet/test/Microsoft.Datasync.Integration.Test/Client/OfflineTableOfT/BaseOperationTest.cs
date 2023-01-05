@@ -3,9 +3,9 @@
 
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
-using FluentAssertions.Common;
 using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.SQLiteStore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -19,14 +19,14 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
     [ExcludeFromCodeCoverage]
     public abstract class BaseOperationTest : BaseTest, IDisposable
     {
-        protected readonly ITestOutputHelper Logger;
-        protected readonly string? filename;
-        protected readonly string connectionString;
-        protected readonly OfflineSQLiteStore store;
-        protected readonly DatasyncClient client;
-        protected IOfflineTable<ClientMovie>? soft, table;
+        internal readonly ITestOutputHelper? Logger;
+        internal readonly string? filename;
+        internal readonly string connectionString;
+        internal readonly OfflineSQLiteStore store;
+        internal readonly DatasyncClient client;
+        internal IOfflineTable<ClientMovie>? soft, table;
 
-        protected JObject MovieDefinition = new()
+        internal JObject MovieDefinition = new()
         {
             { "id", string.Empty },
             { "deleted", false },
@@ -40,7 +40,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
             { "year", 0 }
         };
 
-        protected BaseOperationTest(ITestOutputHelper logger, bool useFile = true)
+        internal BaseOperationTest(ITestOutputHelper logger, bool useFile = true)
         {
             Logger = logger;
             if (useFile)
@@ -58,7 +58,24 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
             client = GetMovieClient(store: store);
         }
 
-        protected async Task InitializeAsync(bool pullItems = true)
+        internal BaseOperationTest(bool useFile = true)
+        {
+            if (useFile)
+            {
+                filename = Path.GetTempFileName();
+                connectionString = new UriBuilder(filename) { Query = "?mode=rwc" }.Uri.ToString();
+            }
+            else
+            {
+                connectionString = "file:in-memory.db?mode=memory";
+            }
+            store = new OfflineSQLiteStore(connectionString);
+            store.DefineTable<ClientMovie>("movies");
+            store.DefineTable<ClientMovie>("soft");
+            client = GetMovieClient(store: store);
+        }
+
+        internal async Task InitializeAsync(bool pullItems = true)
         {
             await client.InitializeOfflineStoreAsync();
 
@@ -72,7 +89,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
             }
         }
 
-        protected static void AssertSystemPropertiesMatch(EFMovie expected, ClientMovie actual)
+        internal static void AssertSystemPropertiesMatch(EFMovie expected, ClientMovie actual)
         {
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Deleted, actual.Deleted);
@@ -80,14 +97,14 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
             Assert.Equal(expected.UpdatedAt.ToUnixTimeMilliseconds(), actual.UpdatedAt.ToUnixTimeMilliseconds());
         }
 
-        protected static void AssertSystemPropertiesMatch(EFMovie expected, JObject actual)
+        internal static void AssertSystemPropertiesMatch(EFMovie expected, JObject actual)
         {
             Assert.Equal(expected.Id, actual.Value<string>("id"));
             Assert.Equal(expected.Deleted, actual.Value<bool>("deleted"));
             Assert.Equal(Convert.ToBase64String(expected.Version), actual.Value<string>("version"));
         }
 
-        protected async Task ModifyServerVersionAsync(string id)
+        internal async Task ModifyServerVersionAsync(string id)
         {
             var remoteTable = client.GetRemoteTable<ClientMovie>("movies");
             var item = await remoteTable!.GetItemAsync(id);
@@ -98,7 +115,7 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
             await remoteTable!.ReplaceItemAsync(item);
         }
 
-        protected static void AssertVersionMatches(byte[] expected, string actual)
+        internal static void AssertVersionMatches(byte[] expected, string actual)
         {
             string expstr = Convert.ToBase64String(expected);
             Assert.Equal(expstr, actual);
