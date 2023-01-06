@@ -5,12 +5,13 @@ using Datasync.Common.Test;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.Datasync.Integration.Test.Helpers
 {
+    [ExcludeFromCodeCoverage]
     public class OfflineServiceFixture : BaseOperationTest, IDisposable
     {
         private bool isInitialized = false;
@@ -33,6 +34,7 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         public new int MovieCount { get => BaseTest.MovieCount; }
     }
 
+    [ExcludeFromCodeCoverage]
     [CollectionDefinition("OfflineServiceCollection")]
     public class OfflineServiceCollection : ICollectionFixture<OfflineServiceFixture>
     {
