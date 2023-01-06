@@ -18,6 +18,14 @@ namespace Microsoft.Datasync.Client
     public static class ITableQueryExtensions
     {
         /// <summary>
+        /// Converts the table query to an OData string.
+        /// </summary>
+        /// <param name="includeParameters">Include the parameters.</param>
+        /// <returns>The OData string.</returns>
+        internal static string ToODataString<T>(this ITableQuery<T> query, bool includeParameters = true)
+            => (query as TableQuery<T>)!.ToODataString();
+
+        /// <summary>
         /// Creates an array from the result of a table query.
         /// </summary>
         /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>

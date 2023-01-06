@@ -1,16 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test;
-using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Test.Helpers;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Linq.Expressions;
 using Xunit;
 

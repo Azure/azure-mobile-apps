@@ -152,7 +152,7 @@ namespace Microsoft.Datasync.Client.Query
         /// <returns>The composed query object.</returns>
         public ITableQuery<U> Select<U>(Expression<Func<T, U>> selector)
         {
-            IRemoteTable<U> remoteTable = new RemoteTable<U>(RemoteTable.TableName, RemoteTable.ServiceClient);
+            IRemoteTable<U> remoteTable = new RemoteTable<U>(RemoteTable.TableName, RemoteTable.ServiceClient, isProjection: true);
             return new TableQuery<U>(remoteTable, Query.Select(selector), Parameters, RequestTotalCount) { IsOfflineEnabled = IsOfflineEnabled };
         }
 

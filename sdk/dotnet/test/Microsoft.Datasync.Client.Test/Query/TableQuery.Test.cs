@@ -228,7 +228,7 @@ namespace Microsoft.Datasync.Client.Test.Query
             var client = GetMockClient();
             RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
             var query = new TableQuery<IdEntity>(table);
-            var actual = query.Select(m => new IdOnly { Id = m.Id }) as TableQuery<IdOnly>;
+            var actual = query.Select(m => new IdOnly { Id = m.Id });
             Assert.IsAssignableFrom<MethodCallExpression>(actual.Query.Expression);
             var expression = actual.Query.Expression as MethodCallExpression;
             Assert.Equal("Select", expression.Method.Name);
@@ -241,9 +241,21 @@ namespace Microsoft.Datasync.Client.Test.Query
         {
             var client = GetMockClient();
             RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
-            var query = new TableQuery<IdEntity>(table).Select(m => new IdOnly { Id = m.Id }) as TableQuery<IdOnly>;
+            var query = new TableQuery<IdEntity>(table).Select(m => new IdOnly { Id = m.Id });
             var odata = query.ToODataString();
             Assert.Equal("$select=id", odata);
+        }
+
+        [Fact]
+        [Trait("Method", "ToODataString")]
+        [Trait("Method", "Select")]
+        public void ToODataString_Select_NoId_IsWellFormed()
+        {
+            var client = GetMockClient();
+            RemoteTable<ClientMovie> table = client.GetRemoteTable<ClientMovie>("movies") as RemoteTable<ClientMovie>;
+            var query = table.CreateQuery().Select(m => new { m.Title, m.ReleaseDate });
+            var odata = query.ToODataString();
+            Assert.Equal("$select=releaseDate,title", odata);
         }
 
         [Theory, CombinatorialData]
