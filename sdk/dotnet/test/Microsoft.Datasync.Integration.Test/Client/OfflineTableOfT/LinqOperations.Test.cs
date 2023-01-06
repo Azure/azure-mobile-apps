@@ -122,5 +122,48 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
             }
             Assert.Equal(MovieCount, set.Count);
         }
+
+        [Fact]
+        [Trait("Method", "ToObservableCollection")]
+        public async Task ToObservableCollection_Test_1()
+        {
+            //Arrange
+            await InitializeAsync();
+
+            // Act
+            var oc = await table!.ToObservableCollection();
+
+            // Assert
+            Assert.NotNull(oc);
+            foreach (var item in oc)
+            {
+                Assert.NotNull(item.Id);
+                var expected = MovieServer.GetMovieById(item.Id);
+                Assert.Equal<IMovie>(expected, item);
+            }
+            Assert.Equal(MovieCount, oc.Count);
+        }
+
+        [Fact]
+        [Trait("Method", "ToObservableCollection")]
+        public async Task ToObservableCollection_Test_2()
+        {
+            //Arrange
+            await InitializeAsync();
+
+            // Act
+            var oc = new ConcurrentObservableCollection<ClientMovie>();
+            await table!.ToObservableCollection(oc);
+
+            // Assert
+            Assert.NotNull(oc);
+            foreach (var item in oc)
+            {
+                Assert.NotNull(item.Id);
+                var expected = MovieServer.GetMovieById(item.Id);
+                Assert.Equal<IMovie>(expected, item);
+            }
+            Assert.Equal(MovieCount, oc.Count);
+        }
     }
 }

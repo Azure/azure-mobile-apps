@@ -143,9 +143,8 @@ namespace Microsoft.Datasync.Client.Extensions
         /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
         /// <param name="source">The source async-enumerable sequence to get a list of elements for.</param>
         /// <param name="cancellationToken">The optional cancellation token to be used for cancelling the sequence at any time.</param>
-        /// <returns>An async-enumerable sequence containing a single element with a list containing all the elements of the source sequence.</returns>
+        /// <returns>A list containing all the elements of the source sequence.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
-        /// <remarks>The return type of this operator differs from the corresponding operator on IEnumerable in order to retain asynchronous behavior.</remarks>
         internal static async ValueTask<List<TSource>> ToZumoListAsync<TSource>(this IAsyncEnumerable<TSource> source, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(source, nameof(source));
@@ -155,6 +154,34 @@ namespace Microsoft.Datasync.Client.Extensions
                 list.Add(item);
             }
             return list;
+        }
+
+        /// <summary>
+        /// Creates a <see cref="ConcurrentObservableCollection{T}"/> from an async-enumerable sequence.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
+        /// <param name="source">The source async-enumerable sequence to get a list of elements for.</param>
+        /// <param name="cancellationToken">The optional cancellation token to be used for cancelling the sequence at any time.</param>
+        /// <returns>An observable collection containing all the elements of the source sequence.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
+        internal static ValueTask<ConcurrentObservableCollection<TSource>> ToZumoObservableCollectionAsync<TSource>(this IAsyncEnumerable<TSource> source, CancellationToken cancellationToken = default)
+            => source.ToZumoObservableCollectionAsync(new ConcurrentObservableCollection<TSource>(), cancellationToken);
+
+        /// <summary>
+        /// Updates a <see cref="ConcurrentObservableCollection{T}"/> from an async-enumerable sequence.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
+        /// <param name="source">The source async-enumerable sequence to get a list of elements for.</param>
+        /// <param name="existingCollection">The existing observable collection object.</param>
+        /// <param name="cancellationToken">The optional cancellation token to be used for cancelling the sequence at any time.</param>
+        /// <returns>The updated observable collection containing all the elements of the source sequence.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
+        internal static async ValueTask<ConcurrentObservableCollection<TSource>> ToZumoObservableCollectionAsync<TSource>(this IAsyncEnumerable<TSource> source, ConcurrentObservableCollection<TSource> existingCollection, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(source, nameof(source));
+            var list = await source.ToZumoListAsync(cancellationToken).ConfigureAwait(false);
+            existingCollection.ReplaceAll(list);
+            return existingCollection;
         }
 
         // NB: ValueTask and ValueTask<T> do not have to support blocking on a call to GetResult when backed by

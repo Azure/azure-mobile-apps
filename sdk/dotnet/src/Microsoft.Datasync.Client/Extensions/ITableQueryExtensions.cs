@@ -91,5 +91,26 @@ namespace Microsoft.Datasync.Client
         /// <returns>A list containing all the elements of the source sequence.</returns>
         public static ValueTask<List<TSource>> ToListAsync<TSource>(this ITableQuery<TSource> query, CancellationToken cancellationToken = default)
             => query.ToAsyncEnumerable().ToZumoListAsync(cancellationToken);
+
+        /// <summary>
+        /// Creates a <see cref="ConcurrentObservableCollection{T}"/> from the result set of the table query
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
+        /// <param name="query">The source table query.</param>
+        /// <param name="cancellationToken">The optional cancellation token to be used for cancelling the sequence at any time.</param>
+        /// <returns>A <see cref="ConcurrentObservableCollection{T}"/> containing all the elements of the source sequence.</returns>
+        public static ValueTask<ConcurrentObservableCollection<TSource>> ToObservableCollection<TSource>(this ITableQuery<TSource> query, CancellationToken cancellationToken = default)
+            => query.ToAsyncEnumerable().ToZumoObservableCollectionAsync(cancellationToken);
+
+        /// <summary>
+        /// Updates a <see cref="ConcurrentObservableCollection{T}"/> from the result set of the table query.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
+        /// <param name="query">The source table query.</param>
+        /// <param name="collection">The <see cref="ConcurrentObservableCollection{T}"/> to update.</param>
+        /// <param name="cancellationToken">The optional cancellation token to be used for cancelling the sequence at any time.</param>
+        /// <returns>The <see cref="ConcurrentObservableCollection{T}"/> passed in containing all the elements of the source sequence (replacing the old content).</returns>
+        public static ValueTask<ConcurrentObservableCollection<TSource>> ToObservableCollection<TSource>(this ITableQuery<TSource> query, ConcurrentObservableCollection<TSource> collection, CancellationToken cancellationToken = default)
+            => query.ToAsyncEnumerable().ToZumoObservableCollectionAsync(collection, cancellationToken);
     }
 }

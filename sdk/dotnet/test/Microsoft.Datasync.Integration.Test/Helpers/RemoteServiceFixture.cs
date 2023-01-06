@@ -6,10 +6,12 @@ using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Datasync.Client;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace Microsoft.Datasync.Integration.Test.Helpers
 {
+    [ExcludeFromCodeCoverage]
     public class RemoteServiceFixture : BaseTest, IDisposable
     {
         public RemoteServiceFixture()
@@ -31,6 +33,7 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         public new int MovieCount { get => BaseTest.MovieCount; }
     }
 
+    [ExcludeFromCodeCoverage]
     [CollectionDefinition("RemoteServiceCollection")]
     public class RemoteServiceCollection : ICollectionFixture<RemoteServiceFixture>
     {
