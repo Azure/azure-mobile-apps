@@ -59,7 +59,8 @@ namespace Microsoft.Datasync.Client
         /// Adds a collection to the existing collection.
         /// </summary>
         /// <param name="collection">The collection of records to add.</param>
-        public void AddRange(IEnumerable<T> collection)
+        /// <returns><c>true</c> if any records were added; <c>false</c> otherwise.</returns>
+        public bool AddRange(IEnumerable<T> collection)
         {
             Arguments.IsNotNull(collection, nameof(collection));
             suppressNotification = true;
@@ -74,28 +75,7 @@ namespace Microsoft.Datasync.Client
             {
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
             }
-        }
-
-        /// <summary>
-        /// Removes a collection from the existing collection.
-        /// </summary>
-        /// <param name="collection">The collection of records to remove.</param>
-        public void RemoveRange(IEnumerable<T> collection)
-        {
-            Arguments.IsNotNull(collection, nameof(collection));
-            bool changed = false;
-            foreach (var item in collection)
-            {
-                if (this.Remove(item))
-                {
-                    changed = true;
-                }
-            }
-            suppressNotification = false;
-            if (changed)
-            {
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-            }
+            return changed;
         }
 
         /// <summary>
@@ -106,6 +86,8 @@ namespace Microsoft.Datasync.Client
         /// <returns><c>true</c> if the item was added, <c>false</c> otherwise.</returns>
         public bool AddIfMissing(Func<T, bool> match, T item)
         {
+            Arguments.IsNotNull(match, nameof(match));
+            Arguments.IsNotNull(item, nameof(item));
             if (!this.Any(match))
             {
                 this.Add(item);
@@ -121,6 +103,7 @@ namespace Microsoft.Datasync.Client
         /// <returns><c>true</c> if an item was removed, <c>false</c> otherwise.</returns>
         public bool RemoveIf(Func<T, bool> match)
         {
+            Arguments.IsNotNull(match, nameof(match));
             var itemsToRemove = this.Where(match).ToArray();
             foreach (var item in itemsToRemove)
             {
@@ -138,6 +121,8 @@ namespace Microsoft.Datasync.Client
         /// <returns><c>true</c> if an item was replaced, <c>false</c> otherwise.</returns>
         public bool ReplaceIf(Func<T, bool> match, T replacement)
         {
+            Arguments.IsNotNull(match, nameof(match));
+            Arguments.IsNotNull(replacement, nameof(replacement));
             var itemsToReplace = this.Where(match).ToArray();
             foreach (var item in itemsToReplace)
             {
