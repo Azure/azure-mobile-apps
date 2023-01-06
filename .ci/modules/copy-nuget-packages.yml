@@ -1,0 +1,25 @@
+parameters:
+  artifact: 'nuget'
+  buildConfiguration: 'Release'
+  displayName: 'Copy NuGet artifacts'
+  sourceDirectory: './src'
+
+steps:
+  - pwsh: |
+      New-Item -Force -Path 'output-${{ parameters.artifact }}' -ItemType Directory
+      $directories = Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse 
+        | Where-Object { $_.FullName -match "\\(bin|obj)\\${{ parameters.buildConfiguration }}$" }
+      $directories | Foreach-Object {
+        $directory = $_
+        Get-ChildItem -Path $directory -Include @( "*.nupkg", "*.nuspec" ) -File -Recurse | %{
+          Write-Host "Copy-Item -Path $_ -Destination 'output-${{ parameters.artifact }}'"
+          Copy-Item -Verbose -Path $_ -Destination 'output-${{ parameters.artifact }}'
+        }
+      }
+    displayName: '${{ parameters.displayName }}'
+  
+  - task: PublishBuildArtifacts@1
+    displayName: Publish NuGet Packages
+    inputs:
+      PathtoPublish: 'output-${{ parameters.artifact }}'
+      artifactName: '${{ parameters.artifact }}'

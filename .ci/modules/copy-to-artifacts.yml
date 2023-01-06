@@ -1,0 +1,39 @@
+parameters:
+  artifact: 'build'
+  buildConfiguration: 'Release'
+  displayName: 'Copy build artifacts'
+  filter: '*.dll'
+  sourceDirectory: './src'
+
+steps:
+  - pwsh: |
+      "Current Location:" | Write-Host
+      Get-Location
+
+      "\nSource Build Directories:" | Write-Host
+      Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse 
+        | Where-Object { $_.FullName -match '\\(bin|obj)\\${{ parameters.buildConfiguration }}$' } 
+        | Write-Host
+
+      New-Item -Force -Path 'output-${{ parameters.artifact }}' -ItemType Directory
+
+      $directories = Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse 
+        | Where-Object { $_.FullName -match "\\bin\\${{ parameters.buildConfiguration }}$" }
+      $directories | Foreach-Object {
+        Write-Host "Directory: $_"
+        $directory = $_
+        Get-ChildItem -Path $directory -Filter '${{ parameters.filter }}' -File -Recurse | Foreach-Object {
+          $base = [IO.Path]::GetRelativePath($directory, $_.FullName)
+          $dest = "output-${{ parameters.artifact }}\$base"
+          $destdir = [IO.Path]::GetDirectoryName($dest)
+          New-Item -Path $destdir -ItemType Directory -Force
+          Copy-Item -Verbose -Path $_.FullName -Destination $dest
+        }
+      }
+    displayName: '${{ parameters.displayName }}'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish ${{ parameters.artifact }} Artifacts'
+    inputs:
+      pathToPublish: 'output-${{ parameters.artifact }}'
+      artifactName: '${{ parameters.artifact }}'
