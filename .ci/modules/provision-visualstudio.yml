@@ -1,4 +1,6 @@
 #
+# INSTALL THE LATEST PREVIEW VERSION OF VISUAL STUDIO
+#
 # This file is not used any more - it is used when we have to use Preview releases of Visual Studio
 # for the build process only.
 #
@@ -8,7 +10,7 @@
 #  provisionator.extraArguments: '--v'
 #
 # THEN Add the following as the first step in the build stage
-#          - template: provision-visualstudio.yml
+#          - template: modules/provision-visualstudio.yml
 #            parameters:
 #              platform: 'windows'
 #

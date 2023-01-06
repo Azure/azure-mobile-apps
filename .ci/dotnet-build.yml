@@ -181,6 +181,7 @@ stages:
           - task: DownloadPipelineArtifact@2
             inputs:
               artifactName: 'test'
+              targetPath: '$(System.ArtifactsDirectory)'
             displayName: 'Download Test Assemblies'
 
           - pwsh: |
@@ -212,6 +213,7 @@ stages:
           - task: DownloadPipelineArtifact@2
             inputs:
               artifactName: 'test'
+              targetPath: '$(System.ArtifactsDirectory)'
             displayName: 'Download Test Assemblies'
 
           - pwsh: |
@@ -222,7 +224,7 @@ stages:
             displayName: 'Run Unit Tests'
             inputs:
               testAssemblyVer2: |
-                !*\Microsoft.Datasync.Integration.Test.dll
+                **\Microsoft.Datasync.Integration.Test.dll
               searchFolder: '$(System.ArtifactsDirectory)'
               codeCoverageEnabled: true
               rerunFailedTests: true
