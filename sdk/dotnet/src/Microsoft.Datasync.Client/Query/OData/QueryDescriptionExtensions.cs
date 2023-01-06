@@ -47,7 +47,7 @@ namespace Microsoft.Datasync.Client.Query.OData
 
             if (value.Selection.Count > 0)
             {
-                queryFragments.Add($"{ODataOptions.Select}={string.Join(",", value.Selection.Select(Uri.EscapeDataString))}");
+                queryFragments.Add($"{ODataOptions.Select}={string.Join(",", value.Selection.OrderBy(field => field).Select(Uri.EscapeDataString))}");
             }
 
             if (value.IncludeTotalCount)

@@ -26,14 +26,17 @@ namespace Microsoft.Datasync.Client.Table
         /// </summary>
         /// <param name="tableName">The name of the table.</param>
         /// <param name="serviceClient">The service client that created this table.</param>
-        internal RemoteTable(string tableName, DatasyncClient serviceClient) : base(tableName, serviceClient)
+        internal RemoteTable(string tableName, DatasyncClient serviceClient, bool isProjection = false) : base(tableName, serviceClient)
         {
-            // ResolveTableName has a side effect of initializing the contract in the contract resolver,
-            // so call it here to ensure initialization.
-            serviceClient.Serializer.ResolveTableName<T>();
+            if (!isProjection)
+            {
+                // ResolveTableName has a side effect of initializing the contract in the contract resolver,
+                // so call it here to ensure initialization.
+                serviceClient.Serializer.ResolveTableName<T>();
 
-            // Ensure that the Id field in T is a String.
-            ServiceSerializer.EnsureIdIsString<T>();
+                // Ensure that the Id field in T is a String.
+                ServiceSerializer.EnsureIdIsString<T>();
+            }
         }
 
         #region IRemoteTable<T>
