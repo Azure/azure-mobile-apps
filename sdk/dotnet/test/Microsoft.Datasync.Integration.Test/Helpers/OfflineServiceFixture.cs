@@ -1,0 +1,43 @@
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Datasync.Common.Test;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT;
+using System;
+using System.Threading.Tasks;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Microsoft.Datasync.Integration.Test.Helpers
+{
+    public class OfflineServiceFixture : BaseOperationTest, IDisposable
+    {
+        private bool isInitialized = false;
+
+        public OfflineServiceFixture() : base()
+        {
+        }
+
+        public new async Task InitializeAsync(bool pullItems = true)
+        {
+            if (!isInitialized)
+            {
+                await base.InitializeAsync(pullItems);
+                isInitialized = true;
+            }
+        }
+
+        public new TestServer MovieServer { get => base.MovieServer; }
+
+        public new int MovieCount { get => BaseTest.MovieCount; }
+    }
+
+    [CollectionDefinition("OfflineServiceCollection")]
+    public class OfflineServiceCollection : ICollectionFixture<OfflineServiceFixture>
+    {
+        // This class has no code, and is never created. Its purpose is simply
+        // to be the place to apply [CollectionDefinition] and all the
+        // ICollectionFixture<> interfaces.
+    }
+}

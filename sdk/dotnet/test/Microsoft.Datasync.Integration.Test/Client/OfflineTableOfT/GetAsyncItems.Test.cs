@@ -6,6 +6,7 @@ using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
+using Microsoft.Datasync.Integration.Test.Helpers;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -13,24 +14,34 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
+/*
+ * Because all of these tests are "read-only", we use a common setup and tear-down to
+ * speed up the tests.
+ */
 namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
 {
     [ExcludeFromCodeCoverage]
-    public class GetAsyncItems_Tests : BaseOperationTest
+    [Collection("OfflineServiceCollection")]
+    public class GetAsyncItems_Tests
     {
-        public GetAsyncItems_Tests(ITestOutputHelper logger) : base(logger, false) { }
+        private readonly OfflineServiceFixture fixture;
 
+        public GetAsyncItems_Tests(OfflineServiceFixture fixture)
+        {
+            this.fixture = fixture;
+        }
+        
         [Fact]
         [Trait("Method", "GetAsyncItems")]
         public async Task GetAsyncItems_RetrievesItems()
         {
-            await InitializeAsync();
+            await fixture.InitializeAsync();
 
             // Arrange
             int count = 0;
 
-            var query = table!.CreateQuery().IncludeTotalCount(true);
-            var pageable = table!.GetAsyncItems(query) as AsyncPageable<ClientMovie>;
+            var query = fixture.table!.CreateQuery().IncludeTotalCount(true);
+            var pageable = fixture.table!.GetAsyncItems(query) as AsyncPageable<ClientMovie>;
             Assert.NotNull(pageable);
 
             var enumerator = pageable!.GetAsyncEnumerator();
@@ -42,25 +53,25 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
                 Assert.NotNull(item);
                 Assert.NotNull(item.Id);
 
-                var expected = MovieServer.GetMovieById(item.Id);
+                var expected = fixture.MovieServer.GetMovieById(item.Id);
                 Assert.Equal<IMovie>(expected, item);
 
-                Assert.Equal(MovieCount, pageable.Count);
+                Assert.Equal(fixture.MovieCount, pageable.Count);
             }
 
-            Assert.Equal(MovieCount, count);
+            Assert.Equal(fixture.MovieCount, count);
         }
 
         [Fact]
         [Trait("Method", "GetAsyncItems")]
         public async Task GetAsyncItems_NoArgs_RetrievesItems()
         {
-            await InitializeAsync();
+            await fixture.InitializeAsync();
 
             // Arrange
             int count = 0;
 
-            var pageable = table!.GetAsyncItems() as AsyncPageable<ClientMovie>;
+            var pageable = fixture.table!.GetAsyncItems() as AsyncPageable<ClientMovie>;
             Assert.NotNull(pageable);
 
             var enumerator = pageable!.GetAsyncEnumerator();
@@ -72,23 +83,23 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
                 Assert.NotNull(item);
                 Assert.NotNull(item.Id);
 
-                var expected = MovieServer.GetMovieById(item.Id);
+                var expected = fixture.MovieServer.GetMovieById(item.Id);
                 Assert.Equal<IMovie>(expected, item);
             }
 
-            Assert.Equal(MovieCount, count);
+            Assert.Equal(fixture.MovieCount, count);
         }
 
         [Fact]
         [Trait("Method", "ToAsyncEnumerable")]
         public async Task ToAsyncEnumerable_RetrievesItems()
         {
-            await InitializeAsync();
+            await fixture.InitializeAsync();
 
             // Arrange
             int count = 0;
 
-            var result = table!.ToAsyncEnumerable();
+            var result = fixture.table!.ToAsyncEnumerable();
             var enumerator = result.GetAsyncEnumerator();
             while (await enumerator.MoveNextAsync())
             {
@@ -98,11 +109,11 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
                 Assert.NotNull(item);
                 Assert.NotNull(item.Id);
 
-                var expected = MovieServer.GetMovieById(item.Id);
+                var expected = fixture.MovieServer.GetMovieById(item.Id);
                 Assert.Equal<IMovie>(expected, item);
             }
 
-            Assert.Equal(MovieCount, count);
+            Assert.Equal(fixture.MovieCount, count);
         }
 
         #region LINQ tests against Offline Database
@@ -1233,10 +1244,10 @@ namespace Microsoft.Datasync.Integration.Test.Client.OfflineTableOfT
 
         private async Task RunLinqTest(Func<ITableQuery<ClientMovie>, ITableQuery<ClientMovie>> linqExpression, int resultCount, string[] firstResults)
         {
-            await InitializeAsync();
+            await fixture.InitializeAsync();
 
             // Arrange
-            var query = linqExpression.Invoke(table!.CreateQuery());
+            var query = linqExpression.Invoke(fixture.table!.CreateQuery());
 
             // Act
             var pageable = query.ToAsyncEnumerable();
