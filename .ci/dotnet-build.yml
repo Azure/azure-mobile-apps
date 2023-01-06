@@ -86,22 +86,7 @@ stages:
               configuration: $(buildConfiguration)
               solution: '$(netSdkPath)/Datasync.Framework.sln'
               msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
-
-          - pwsh: |
-              "Current Location:" | Write-Host
-              Get-Location
-
-              "\nSource Build Directories:" | Write-Host
-              Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse 
-                | Where-Object { $_.FullName -match '\\(bin|obj)\\${{ parameters.buildConfiguration }}$' } 
-                | Write-Host
-
-              "\nTest Build Directories:" | Write-Host
-              Get-ChildItem -Path '${{ parameters.testDirectory }}' -Directory -Recurse 
-                | Where-Object { $_.FullName -match '\\(bin|obj)\\${{ parameters.buildConfiguration }}$' } 
-                | Write-Host
-            displayName: Show Build Directories
-            
+          
           - template: copyartifacts.yml
             parameters:
               sourceDirectory: '$(netSdkPath)/src'
