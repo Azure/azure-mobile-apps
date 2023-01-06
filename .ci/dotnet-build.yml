@@ -64,6 +64,7 @@ stages:
     displayName: Build SDK
     jobs:
       - job: buildnetsdk
+        timeoutInMinutes: 90
         displayName: Build .NET SDK
         steps:
           - template: prebuild.yml
