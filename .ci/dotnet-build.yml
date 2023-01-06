@@ -64,15 +64,10 @@ stages:
     displayName: Build SDK
     jobs:
       - job: buildnetsdk
-        timeoutInMinutes: 90
         displayName: Build .NET SDK
         steps:
           - template: prebuild.yml
           
-          - pwsh: |
-              Get-ChildItem "C:\Program Files (x86)\Android\android-sdk\platforms"
-            displayName: Show the Android API levels available on the build machine
-
           - pwsh: |
               dotnet tool restore
             displayName: install dotnet tools
@@ -90,6 +85,32 @@ stages:
               solution: '$(netSdkPath)/Datasync.Framework.sln'
               msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
 
+          - pwsh: |
+              "Current Location:" | Write-Host
+              Get-Location
+
+              "\nSource Build Directories:" | Write-Host
+              Get-ChildItem -Path '${{ parameters.sourceDirectory }}' -Directory -Recurse 
+                | Where-Object { $_.FullName -match '\\(bin|obj)\\${{ parameters.buildConfiguration }}$' } 
+                | Write-Host
+
+              "\nTest Build Directories:" | Write-Host
+              Get-ChildItem -Path '${{ parameters.testDirectory }}' -Directory -Recurse 
+                | Where-Object { $_.FullName -match '\\(bin|obj)\\${{ parameters.buildConfiguration }}$' } 
+                | Write-Host
+            displayName: Show Build Directories
+            
+          - template: copyartifacts.yml
+            parameters:
+              sourceDirectory: '$(netSdkPath)/src'
+              testDirectory: '$(netSdkPath)/test'
+              buildConfiguration: '$(buildConfiguration)'
+
+      - job: testnetsdk
+        timeoutInMinutes: 90
+        displayName: Test .NET SDK
+        dependsOn: [ 'buildnetsdk' ]
+        steps:
           - task: VSTest@2
             displayName: 'Run Unit Tests'
             inputs:
@@ -121,11 +142,6 @@ stages:
               searchFolder: $(netSdkPath)
               configuration: $(buildConfiguration)
 
-          - template: postbuild.yml
-            parameters:
-              sourceDirectory: '$(netSdkPath)/src'
-              buildConfiguration: '$(buildConfiguration)'
-
       - job: buildnettemplate
         displayName: Build .NET Core Template
         steps:
@@ -154,6 +170,13 @@ stages:
             inputs:
               pathtoPublish: '$(netSdkPath)/SignList.xml'
               artifactName: nuget
+
+  - stage: sign
+    displayName: Sign SDK
+    dependsOn: [ 'build' ]
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    jobs:
+      - template: sign-artifacts/jobs/v2.yml@internal-templates
 
   - stage: postbuild
     displayName: Postbuild Checks
@@ -205,13 +228,6 @@ stages:
 
           - task: PublishSecurityAnalysisLogs@3
             displayName: 'Publish security analysis logs'
-
-  - stage: sign
-    displayName: Sign SDK
-    dependsOn: [ 'build' ]
-    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-    jobs:
-      - template: sign-artifacts/jobs/v2.yml@internal-templates
 
   - stage: release
     displayName: Release SDK

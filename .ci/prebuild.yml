@@ -24,3 +24,7 @@ steps:
   - pwsh: |
       Write-Host "##vso[build.updatebuildnumber]$env:NUGET_VERSION"
     displayName: Update the build number with a more readable one 
+
+  - pwsh: |
+      Get-ChildItem "C:\Program Files (x86)\Android\android-sdk\platforms"
+    displayName: Show the Android API levels available on the build machine
