@@ -98,6 +98,15 @@ stages:
         displayName: Test .NET SDK
         dependsOn: [ 'buildnetsdk' ]
         steps:
+          - task: DownloadBuildArtifact@1
+            inputs:
+              artifactName: './test'
+            displayName: 'Download Test Assemblies'
+
+          - pwsh: |
+              Get-ChildItem '$(System.ArtifactsDirectory)' -Directory -Recurse | Write-Host
+            displayName: 'Display Test Assemblies'
+
           - task: VSTest@2
             displayName: 'Run Unit Tests'
             inputs:
