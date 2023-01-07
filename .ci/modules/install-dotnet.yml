@@ -1,0 +1,20 @@
+parameters:
+  version: '6.0.x'
+  workingDirectory: ./sdk
+  project: 'temporary.csproj'
+
+steps:
+  - task: UseDotNet@2
+    inputs:
+      version: '${{ parameters.version }}'
+      performMultiLevelLookup: true
+
+  - pwsh: |
+      dotnet tool restore
+    displayName: install dotnet tools
+    workingDirectory: '${{ parameters.workingDirectory }}'
+
+  - pwsh: |
+      dotnet workload restore --project '${{ parameters.project }}'
+    displayName: install dotnet workloads
+    workingDirectory: '${{ parameters.workingDirectory }}'

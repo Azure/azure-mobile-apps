@@ -9,6 +9,7 @@ trigger:
   paths:
     include:
       - 'sdk/dotnet/*'
+      - '.ci/*'
     exclude:
       - .github/*
       - .vscode/*
@@ -28,6 +29,7 @@ pr:
   paths:
     include:
       - 'sdk/dotnet/*'
+      - '.ci/*'
     exclude:
       - .github/*
       - .vscode/*
@@ -60,28 +62,43 @@ resources:
       endpoint: xamarin
 
 stages:
-  - stage: build
+  - stage: setup
+    displayName: Configure Pipeline
+    jobs:
+      - job: configbuildnumber
+        displayName: Configure Build number
+        steps:
+          - pwsh: |
+              $pr = "pr." + $env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER
+              $nuget = $env:BASE_VERSION + "-" + $pr + "." + $env:BUILD_NUMBER
+              Write-Host "Preview label: $pr"
+              Write-Host "NuGet version: $nuget"
+              Write-Host "##vso[task.setvariable variable=PREVIEW_LABEL]$pr"
+              Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$nuget"
+            displayName: Override version for PRs
+            condition: eq(variables['Build.Reason'], 'PullRequest')
+
+          - pwsh: |
+              $tagVersion = $env:BUILD_SOURCEBRANCHNAME
+              Write-Host "Tag version: $tagVersion"
+              Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$tagVersion"
+            displayName: Override version for tags
+            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+
+          - pwsh: |
+              Write-Host "##vso[build.updatebuildnumber]$env:NUGET_VERSION"
+            displayName: Update the build number with a more readable one 
+
+  - stage: buildstage
     displayName: Build SDK
     jobs:
       - job: buildnetsdk
-        timeoutInMinutes: 90
         displayName: Build .NET SDK
         steps:
-          - template: prebuild.yml
-          
-          - pwsh: |
-              Get-ChildItem "C:\Program Files (x86)\Android\android-sdk\platforms"
-            displayName: Show the Android API levels available on the build machine
-
-          - pwsh: |
-              dotnet tool restore
-            displayName: install dotnet tools
-            workingDirectory: $(netSdkPath)
-
-          - pwsh: |
-              dotnet workload restore --project .\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj
-            displayName: install dotnet workloads
-            workingDirectory: $(netSdkPath)
+          - template: modules/install-dotnet.yml
+            parameters:
+              project: '.\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj'
+              workingDirectory: $(netSdkPath)
 
           - task: MSBuild@1
             displayName: 'Build SDK'
@@ -90,46 +107,40 @@ stages:
               solution: '$(netSdkPath)/Datasync.Framework.sln'
               msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
 
-          - task: VSTest@2
-            displayName: 'Run Unit Tests'
-            inputs:
-              testAssemblyVer2: |
-                **\Microsoft.*.Test.dll
-                !**\Microsoft.Datasync.Integration.Test.dll
-                !**\obj\**
-                !**\bin\**\ref\**
-              searchFolder: $(netSdkPath)
-              codeCoverageEnabled: true
-              configuration: $(buildConfiguration)
+          - template: modules/copy-to-artifacts.yml
+            parameters:
+              artifact: 'build'
+              displayName: 'Consolidate src build artifacts'
+              sourceDirectory: '$(netSdkPath)/src'
+              buildConfiguration: '$(buildConfiguration)'
+              filter: '*Datasync*'
 
-          - task: VSTest@2
-            displayName: 'Run Integration Tests'
-            inputs:
-              testAssemblyVer2: |
-                **\Microsoft.Datasync.Integration.Test.dll
-                !**\obj\**
-                !**\bin\**\ref\**
-              searchFolder: $(netSdkPath)
-              codeCoverageEnabled: true
-              configuration: $(buildConfiguration)
+          - template: modules/copy-to-artifacts.yml
+            parameters:
+              artifact: 'test'
+              displayName: 'Consolidate test build artifacts'
+              sourceDirectory: '$(netSdkPath)/test'
+              buildConfiguration: '$(buildConfiguration)'
+              filter: '*Datasync*'
 
-          - task: PublishTestResults@2
-            displayName: 'Publish Test Results'
-            inputs:
-              testResultsFormat: xUnit
-              testResultsFiles: 'TestResults\**'
-              searchFolder: $(netSdkPath)
-              configuration: $(buildConfiguration)
-
-          - template: postbuild.yml
+          - template: modules/copy-nuget-packages.yml
             parameters:
               sourceDirectory: '$(netSdkPath)/src'
               buildConfiguration: '$(buildConfiguration)'
+          
+          - task: PublishBuildArtifacts@1
+            displayName: Publish SignList.xml
+            inputs:
+              pathtoPublish: '$(netSdkPath)/SignList.xml'
+              artifactName: nuget
 
       - job: buildnettemplate
         displayName: Build .NET Core Template
         steps:
-          - template: prebuild.yml
+          - task: UseDotNet@2
+            inputs:
+              version: '6.0.x'
+              performMultiLevelLookup: true
 
           - pwsh: |
               (Get-Content -path "Template.DatasyncServer.csproj.template") -replace "{NUGET_VERSION}", "$(NUGET_VERSION)" | Set-Content -Path "./Template.DatasyncServer.csproj"
@@ -141,24 +152,92 @@ stages:
             displayName: Build Template
             workingDirectory: '$(netSdkPath)/templates'
 
-          - template: postbuild.yml
+          - template: modules/copy-to-artifacts.yml
             parameters:
+              artifact: 'build'
+              displayName: 'Consolidate template build artifacts'
               sourceDirectory: '$(netSdkPath)/templates'
               buildConfiguration: '$(buildConfiguration)'
+              filter: '*Datasync*'
 
-      - job: presign
-        displayName: Pre-signing Tasks
-        steps: 
-          - task: PublishBuildArtifacts@1
-            displayName: Publish SignList.xml
+          - template: modules/copy-nuget-packages.yml
+            parameters:
+              sourceDirectory: '$(netSdkPath)/templates'
+              buildConfiguration: '$(buildConfiguration)' 
+
+  - stage: teststage
+    displayName: Test SDK
+    dependsOn: [ 'buildstage' ]
+    condition: succeeded()
+    jobs:
+      - job: unittestnetsdk
+        displayName: Unit Tests
+        steps:
+          - template: modules/install-dotnet.yml
+            parameters:
+              project: '.\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj'
+              workingDirectory: $(netSdkPath)
+
+          - task: MSBuild@1
+            displayName: 'Build SDK'
             inputs:
-              pathtoPublish: '$(netSdkPath)/SignList.xml'
-              artifactName: nuget
+              configuration: $(buildConfiguration)
+              solution: '$(netSdkPath)/Datasync.Framework.sln'
+              msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
+
+          - task: VSTest@2
+            displayName: 'Run unit tests'
+            inputs:
+              testAssemblyVer2: |
+                **\Microsoft.*.Test.dll
+                !**\Microsoft.Datasync.Integration.Test.dll
+                !**\obj\**
+                !**\bin\**\ref\**
+              searchFolder: $(netSdkPath)
+              resultsFolder: '$(Agent.TempDirectory)\TestResults'
+              codeCoverageEnabled: true
+              rerunFailedTests: true
+              configuration: $(buildConfiguration)
+
+      - job: integrationtestnetsdk
+        displayName: Integration Tests
+        steps:
+          - template: modules/install-dotnet.yml
+            parameters:
+              project: '.\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj'
+              workingDirectory: $(netSdkPath)
+
+          - task: MSBuild@1
+            displayName: 'Build SDK'
+            inputs:
+              configuration: $(buildConfiguration)
+              solution: '$(netSdkPath)/Datasync.Framework.sln'
+              msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
+
+          - task: VSTest@2
+            displayName: 'Run integration tests'
+            inputs:
+              testAssemblyVer2: |
+                **\Microsoft.Datasync.Integration.Test.dll
+                !**\obj\**
+                !**\bin\**\ref\**
+              searchFolder: $(netSdkPath)
+              codeCoverageEnabled: true
+              rerunFailedTests: true
+              resultsFolder: '$(Agent.TempDirectory)\TestResults'
+              configuration: $(buildConfiguration)
+
+  - stage: signstage
+    displayName: Sign SDK
+    dependsOn: [ 'teststage' ]
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    jobs:
+      - template: sign-artifacts/jobs/v2.yml@internal-templates
 
   - stage: postbuild
     displayName: Postbuild Checks
     condition: eq('refs/heads/main', variables['Build.SourceBranch'])
-    dependsOn: [ 'build' ]
+    dependsOn: [ 'buildstage' ]
     jobs:
       - job: postbuild_checks
         displayName: 'Run required code checks'
@@ -206,16 +285,9 @@ stages:
           - task: PublishSecurityAnalysisLogs@3
             displayName: 'Publish security analysis logs'
 
-  - stage: sign
-    displayName: Sign SDK
-    dependsOn: [ 'build' ]
-    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-    jobs:
-      - template: sign-artifacts/jobs/v2.yml@internal-templates
-
-  - stage: release
+  - stage: releasestage
     displayName: Release SDK
-    dependsOn: [ 'sign' ]
+    dependsOn: [ 'signstage' ]
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     jobs:
       - job: update_github_release
