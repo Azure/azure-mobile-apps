@@ -178,25 +178,22 @@ stages:
               project: '.\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj'
               workingDirectory: $(netSdkPath)
 
-          - task: DownloadPipelineArtifact@2
+          - task: MSBuild@1
+            displayName: 'Build SDK'
             inputs:
-              artifactName: 'test'
-              targetPath: '$(System.ArtifactsDirectory)'
-            displayName: 'Download Test Assemblies'
-
-          - pwsh: |
-              Get-ChildItem '$(System.ArtifactsDirectory)' -Directory -Recurse | Write-Host
-            displayName: 'Display Test Assemblies'
+              configuration: $(buildConfiguration)
+              solution: '$(netSdkPath)/Datasync.Framework.sln'
+              msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
 
           - task: VSTest@2
-            displayName: 'Run Unit Tests'
+            displayName: 'Run unit tests'
             inputs:
               testAssemblyVer2: |
                 **\Microsoft.*.Test.dll
                 !**\Microsoft.Datasync.Integration.Test.dll
                 !**\obj\**
                 !**\bin\**\ref\**
-              searchFolder: '$(System.ArtifactsDirectory)'
+              searchFolder: $(netSdkPath)
               resultsFolder: '$(Agent.TempDirectory)\TestResults'
               codeCoverageEnabled: true
               rerunFailedTests: true
@@ -218,29 +215,28 @@ stages:
               project: '.\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj'
               workingDirectory: $(netSdkPath)
 
-          - task: DownloadPipelineArtifact@2
+          - task: MSBuild@1
+            displayName: 'Build SDK'
             inputs:
-              artifactName: 'test'
-              targetPath: '$(System.ArtifactsDirectory)'
-            displayName: 'Download Test Assemblies'
-
-          - pwsh: |
-              Get-ChildItem '$(System.ArtifactsDirectory)' -Directory -Recurse | Write-Host
-            displayName: 'Display Test Assemblies'
+              configuration: $(buildConfiguration)
+              solution: '$(netSdkPath)/Datasync.Framework.sln'
+              msBuildArguments: '/nologo /t:Restore;Build;Pack /p:PackageVersion=$(NUGET_VERSION) /p:Version=$(BASE_VERSION) /bl /clp:DisableConsoleColor;Verbosity:normal;PerformanceSummary /fl'
 
           - task: VSTest@2
-            displayName: 'Run Unit Tests'
+            displayName: 'Run integration tests'
             inputs:
               testAssemblyVer2: |
                 **\Microsoft.Datasync.Integration.Test.dll
-              searchFolder: '$(System.ArtifactsDirectory)'
+                !**\obj\**
+                !**\bin\**\ref\**
+              searchFolder: $(netSdkPath)
               codeCoverageEnabled: true
               rerunFailedTests: true
               resultsFolder: '$(Agent.TempDirectory)\TestResults'
               configuration: $(buildConfiguration)
 
           - task: PublishTestResults@2
-            displayName: Publish unit test results
+            displayName: Publish integration test results
             inputs:
               testResultsFormat: xUnit
               testResultsFiles: 'TestResults\**'
