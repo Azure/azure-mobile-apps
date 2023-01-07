@@ -197,9 +197,17 @@ stages:
                 !**\obj\**
                 !**\bin\**\ref\**
               searchFolder: '$(System.ArtifactsDirectory)'
+              resultsFolder: '$(Agent.TempDirectory)\TestResults'
               codeCoverageEnabled: true
               rerunFailedTests: true
-              PublishTestResults: true
+              configuration: $(buildConfiguration)
+
+          - task: PublishTestResults@2
+            displayName: Publish unit test results
+            inputs:
+              testResultsFormat: xUnit
+              testResultsFiles: 'TestResults\**'
+              searchFolder: $(Agent.TempDirectory)
               configuration: $(buildConfiguration)
 
       - job: integrationtestnetsdk
@@ -228,7 +236,15 @@ stages:
               searchFolder: '$(System.ArtifactsDirectory)'
               codeCoverageEnabled: true
               rerunFailedTests: true
-              PublishTestResults: true
+              resultsFolder: '$(Agent.TempDirectory)\TestResults'
+              configuration: $(buildConfiguration)
+
+          - task: PublishTestResults@2
+            displayName: Publish unit test results
+            inputs:
+              testResultsFormat: xUnit
+              testResultsFiles: 'TestResults\**'
+              searchFolder: $(Agent.TempDirectory)
               configuration: $(buildConfiguration)
 
   - stage: signstage
