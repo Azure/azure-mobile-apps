@@ -199,14 +199,6 @@ stages:
               rerunFailedTests: true
               configuration: $(buildConfiguration)
 
-          - task: PublishTestResults@2
-            displayName: Publish unit test results
-            inputs:
-              testResultsFormat: xUnit
-              testResultsFiles: 'TestResults\**'
-              searchFolder: $(Agent.TempDirectory)
-              configuration: $(buildConfiguration)
-
       - job: integrationtestnetsdk
         displayName: Integration Tests
         steps:
@@ -233,14 +225,6 @@ stages:
               codeCoverageEnabled: true
               rerunFailedTests: true
               resultsFolder: '$(Agent.TempDirectory)\TestResults'
-              configuration: $(buildConfiguration)
-
-          - task: PublishTestResults@2
-            displayName: Publish integration test results
-            inputs:
-              testResultsFormat: xUnit
-              testResultsFiles: 'TestResults\**'
-              searchFolder: $(Agent.TempDirectory)
               configuration: $(buildConfiguration)
 
   - stage: signstage
