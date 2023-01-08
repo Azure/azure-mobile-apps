@@ -1,4 +1,7 @@
-﻿using TodoApp.Data;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using TodoApp.Data;
 using TodoApp.Data.Services;
 
 namespace TodoApp.AvaloniaUI.ViewModels

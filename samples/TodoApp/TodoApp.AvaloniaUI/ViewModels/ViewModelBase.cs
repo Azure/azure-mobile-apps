@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
 using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;

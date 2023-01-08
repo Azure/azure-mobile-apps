@@ -1,4 +1,7 @@
-﻿using DynamicData;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.Datasync.Client;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
@@ -6,7 +9,6 @@ using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
 using TodoApp.Data;
-using TodoApp.Data.Extensions;
 using TodoApp.Data.Models;
 
 namespace TodoApp.AvaloniaUI.ViewModels
@@ -29,7 +31,7 @@ namespace TodoApp.AvaloniaUI.ViewModels
         /// <summary>
         /// The list of items.
         /// </summary>
-        public ObservableCollection<TodoItem> Items { get; } = new ObservableCollection<TodoItem>();
+        public ConcurrentObservableCollection<TodoItem> Items { get; } = new();
 
         /// <summary>
         /// Command for the Add Item button.
@@ -114,9 +116,7 @@ namespace TodoApp.AvaloniaUI.ViewModels
 
                 // Get the current list of items.
                 var items = await _service.GetItemsAsync();
-
-                Items.Clear();
-                Items.AddRange(items);
+                Items.ReplaceAll(items);
             }
             catch (Exception ex)
             {
