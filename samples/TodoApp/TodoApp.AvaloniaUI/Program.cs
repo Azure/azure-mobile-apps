@@ -1,6 +1,7 @@
+// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
 using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Logging;
 using Avalonia.ReactiveUI;
 using System;
 

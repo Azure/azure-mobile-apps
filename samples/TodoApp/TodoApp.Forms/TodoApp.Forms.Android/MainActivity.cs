@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
 
 using Android.App;
 using Android.Content.PM;

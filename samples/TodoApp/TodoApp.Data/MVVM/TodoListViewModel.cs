@@ -5,7 +5,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using TodoApp.Data.Extensions;
 using TodoApp.Data.Models;
 
 namespace TodoApp.Data.MVVM
@@ -50,7 +49,7 @@ namespace TodoApp.Data.MVVM
         /// <summary>
         /// The list of items.
         /// </summary>
-        public ObservableCollection<TodoItem> Items { get; } = new ConcurrentObservableCollection<TodoItem>();
+        public ConcurrentObservableCollection<TodoItem> Items { get; } = new();
 
         /// <summary>
         /// True if the service is refreshing the data.
@@ -90,11 +89,7 @@ namespace TodoApp.Data.MVVM
                 // This has to be done via the UI thread.
                 await _helper.RunOnUiThreadAsync(() =>
                 {
-                    Items.Clear();
-                    foreach (var item in items)
-                    {
-                        Items.Add(item);
-                    }
+                    Items.ReplaceAll(items);
                 });
             }
             catch (Exception ex)

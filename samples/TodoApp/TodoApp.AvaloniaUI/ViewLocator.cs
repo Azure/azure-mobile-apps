@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using System;
