@@ -50,7 +50,7 @@ namespace TodoApp.Data.MVVM
         /// <summary>
         /// The list of items.
         /// </summary>
-        public ObservableCollection<TodoItem> Items { get; } = new ObservableCollection<TodoItem>();
+        public ObservableCollection<TodoItem> Items { get; } = new ConcurrentObservableCollection<TodoItem>();
 
         /// <summary>
         /// True if the service is refreshing the data.
