@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Extensions;
+using Microsoft.Datasync.Client.Table;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -33,6 +34,15 @@ namespace Microsoft.Datasync.Client
         /// <returns>An array of the results.</returns>
         public static ValueTask<TSource[]> ToArrayAsync<TSource>(this IRemoteTable<TSource> table, CancellationToken cancellationToken = default)
             => table.ToAsyncEnumerable().ToZumoArrayAsync(cancellationToken);
+
+        /// <summary>
+        /// Returns the data set as an <see cref="AsyncPageable{T}"/> set.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
+        /// <param name="table">The source table.</param>
+        /// <returns>The result set as an <see cref="AsyncPageable{T}"/></returns>
+        public static AsyncPageable<TSource> ToAsyncPageable<TSource>(this IRemoteTable<TSource> table)
+            => (AsyncPageable<TSource>)table.ToAsyncEnumerable();
 
         /// <summary>
         /// Creates a dictionary from the result of a table query according to a specified key selector function.
