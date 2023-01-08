@@ -35,15 +35,14 @@ namespace Microsoft.Datasync.Client
         public static ValueTask<TSource[]> ToArrayAsync<TSource>(this IRemoteTable<TSource> table, CancellationToken cancellationToken = default)
             => table.ToAsyncEnumerable().ToZumoArrayAsync(cancellationToken);
 
-
         /// <summary>
         /// Returns the data set as an <see cref="AsyncPageable{T}"/> set.
         /// </summary>
         /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
-        /// <param name="query">The source table query.</param>
+        /// <param name="table">The source table.</param>
         /// <returns>The result set as an <see cref="AsyncPageable{T}"/></returns>
-        public static AsyncPageable<TSource> ToAsyncPageable<TSource>(this IRemoteTable<TSource> query)
-            => (AsyncPageable<TSource>)query.ToAsyncEnumerable();
+        public static AsyncPageable<TSource> ToAsyncPageable<TSource>(this IRemoteTable<TSource> table)
+            => (AsyncPageable<TSource>)table.ToAsyncEnumerable();
 
         /// <summary>
         /// Creates a dictionary from the result of a table query according to a specified key selector function.
