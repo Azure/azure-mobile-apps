@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
