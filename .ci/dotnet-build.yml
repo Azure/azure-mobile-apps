@@ -62,39 +62,14 @@ resources:
       endpoint: xamarin
 
 stages:
-  - stage: setup
-    displayName: Configure Pipeline
-    jobs:
-      - job: configbuildnumber
-        displayName: Configure Build number
-        steps:
-          - pwsh: |
-              $pr = "pr." + $env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER
-              $nuget = $env:BASE_VERSION + "-" + $pr + "." + $env:BUILD_NUMBER
-              Write-Host "Preview label: $pr"
-              Write-Host "NuGet version: $nuget"
-              Write-Host "##vso[task.setvariable variable=PREVIEW_LABEL]$pr"
-              Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$nuget"
-            displayName: Override version for PRs
-            condition: eq(variables['Build.Reason'], 'PullRequest')
-
-          - pwsh: |
-              $tagVersion = $env:BUILD_SOURCEBRANCHNAME
-              Write-Host "Tag version: $tagVersion"
-              Write-Host "##vso[task.setvariable variable=NUGET_VERSION]$tagVersion"
-            displayName: Override version for tags
-            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
-
-          - pwsh: |
-              Write-Host "##vso[build.updatebuildnumber]$env:NUGET_VERSION"
-            displayName: Update the build number with a more readable one 
-
   - stage: buildstage
     displayName: Build SDK
     jobs:
       - job: buildnetsdk
         displayName: Build .NET SDK
         steps:
+          - template: modules/set-version.yml
+
           - template: modules/install-dotnet.yml
             parameters:
               project: '.\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj'
@@ -137,6 +112,8 @@ stages:
       - job: buildnettemplate
         displayName: Build .NET Core Template
         steps:
+          - template: modules/set-version.yml
+
           - task: UseDotNet@2
             inputs:
               version: '6.0.x'
@@ -173,6 +150,8 @@ stages:
       - job: unittestnetsdk
         displayName: Unit Tests
         steps:
+          - template: modules/set-version.yml
+
           - template: modules/install-dotnet.yml
             parameters:
               project: '.\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj'
@@ -202,6 +181,8 @@ stages:
       - job: integrationtestnetsdk
         displayName: Integration Tests
         steps:
+          - template: modules/set-version.yml
+
           - template: modules/install-dotnet.yml
             parameters:
               project: '.\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj'
