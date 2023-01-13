@@ -4,6 +4,7 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
+using Microsoft.Datasync.Integration.Test.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -3890,13 +3891,237 @@ namespace Microsoft.Datasync.Integration.Test.Server
 			);
 		}
 
-		#region Base Tests
-		/// <summary>
-		/// This is the base test for the individual query tests.
-		/// </summary>
-		/// <param name="testcase">The test case being executed.</param>
-		/// <returns>A task that completes when the test is complete.</returns>
-		private async Task BaseQueryTest(string pathAndQuery, int itemCount, string? nextLinkQuery, long? totalCount, string[] firstItems, string? username = null)
+		[Fact]
+		public async Task DateTimeQueryTest_001()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$orderby=id",
+				100,
+				"tables/datetime?$orderby=id&$skip=100",
+				null,
+				new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003", "dtm-004", "dtm-005" }
+			);
+		}
+
+		[Fact]
+		public async Task DateTimeQueryTest_002()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$orderby=id&$filter=(month(dateOnly) eq 3)",
+				31,
+				null,
+				null,
+				new[] { "dtm-059", "dtm-060", "dtm-061", "dtm-062", "dtm-063", "dtm-064" }
+			);
+		}
+
+		[Fact]
+		public async Task DateTimeQueryTest_003()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$orderby=id&$filter=(day(dateOnly) eq 21)",
+				12,
+				null,
+				null,
+				new[] { "dtm-020", "dtm-051", "dtm-079", "dtm-110", "dtm-140", "dtm-171" }
+			);
+		}
+
+		[Fact]
+		public async Task DateTimeQueryTest_004()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$count=true&$orderby=id&$filter=(year(dateOnly) eq 2022)",
+				100,
+				"tables/datetime?$count=true&$orderby=id&$filter=(year(dateOnly) eq 2022)&$skip=100",
+				365,
+				new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003", "dtm-004", "dtm-005" }
+			);
+		}
+
+		[Fact]
+		public async Task DateTimeQueryTest_005()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$count=true&$orderby=id&$filter=dateOnly eq cast(2022-02-14,Edm.Date)",
+				1,
+				null,
+				1,
+				new[] { "dtm-044" }
+
+			);
+		}
+
+		[Fact]
+		public async Task DateTimeQueryTest_006()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$count=true&$orderby=id&$filter=dateOnly ge cast(2022-12-15,Edm.Date)",
+				17,
+				null,
+				17,
+				new[] { "dtm-348", "dtm-349", "dtm-350", "dtm-351" }
+
+			);
+		}
+
+		[Fact]
+		public async Task DateTimeQueryTest_007()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$count=true&$orderby=id&$filter=dateOnly gt cast(2022-12-15,Edm.Date)",
+				16,
+				null,
+				16,
+				new[] { "dtm-349", "dtm-350", "dtm-351", "dtm-352" }
+
+			);
+		}
+
+		[Fact]
+		public async Task DateTimeQueryTest_008()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$count=true&$orderby=id&$filter=dateOnly le cast(2022-07-14,Edm.Date)",
+				100,
+				"tables/datetime?$count=true&$orderby=id&$filter=dateOnly le cast(2022-07-14,Edm.Date)&$skip=100",
+				195,
+				new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003" }
+
+			);
+		}
+
+		[Fact]
+		public async Task DateTimeQueryTest_009()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$count=true&$orderby=id&$filter=dateOnly lt cast(2022-07-14,Edm.Date)",
+				100,
+				"tables/datetime?$count=true&$orderby=id&$filter=dateOnly lt cast(2022-07-14,Edm.Date)&$skip=100",
+				194,
+				new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003" }
+			);
+		}
+
+        [Fact]
+        public async Task DateTimeQueryTest_010()
+        {
+            await DateTimeQueryTest(
+                "tables/datetime?$orderby=id&$filter=(second(timeOnly) eq 0)",
+                100,
+                "tables/datetime?$orderby=id&$filter=(second(timeOnly) eq 0)&$skip=100",
+                null,
+                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003", "dtm-004", "dtm-005" }
+            );
+        }
+
+        [Fact]
+        public async Task DateTimeQueryTest_011()
+        {
+            await DateTimeQueryTest(
+                "tables/datetime?$orderby=id&$filter=(hour(timeOnly) eq 3)",
+                31,
+                null,
+                null,
+                new[] { "dtm-059", "dtm-060", "dtm-061", "dtm-062", "dtm-063", "dtm-064" }
+            );
+        }
+
+        [Fact]
+        public async Task DateTimeQueryTest_012()
+        {
+            await DateTimeQueryTest(
+                "tables/datetime?$orderby=id&$filter=(minute(timeOnly) eq 21)",
+                12,
+                null,
+                null,
+                new[] { "dtm-020", "dtm-051", "dtm-079", "dtm-110", "dtm-140", "dtm-171" }
+            );
+        }
+
+        [Fact]
+        public async Task DateTimeQueryTest_013()
+        {
+            await DateTimeQueryTest(
+                "tables/datetime?$count=true&$orderby=id&$filter=(hour(timeOnly) le 12)",
+                100,
+                "tables/datetime?$count=true&$orderby=id&$filter=(hour(timeOnly) le 12)&$skip=100",
+                365,
+                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003", "dtm-004", "dtm-005" }
+            );
+        }
+
+        [Fact]
+        public async Task DateTimeQueryTest_014()
+        {
+            await DateTimeQueryTest(
+                "tables/datetime?$count=true&$orderby=id&$filter=timeOnly eq cast(02:14:00,Edm.TimeOfDay)",
+                1,
+                null,
+                1,
+                new[] { "dtm-044" }
+
+            );
+        }
+
+        [Fact]
+        public async Task DateTimeQueryTest_015()
+        {
+            await DateTimeQueryTest(
+                "tables/datetime?$count=true&$orderby=id&$filter=timeOnly ge cast(12:15:00,Edm.TimeOfDay)",
+                17,
+                null,
+                17,
+                new[] { "dtm-348", "dtm-349", "dtm-350", "dtm-351" }
+
+            );
+        }
+
+        [Fact]
+        public async Task DateTimeQueryTest_016()
+        {
+            await DateTimeQueryTest(
+                "tables/datetime?$count=true&$orderby=id&$filter=timeOnly gt cast(12:15:00,Edm.TimeOfDay)",
+                16,
+                null,
+                16,
+                new[] { "dtm-349", "dtm-350", "dtm-351", "dtm-352" }
+
+            );
+        }
+
+        [Fact]
+        public async Task DateTimeQueryTest_017()
+        {
+            await DateTimeQueryTest(
+                "tables/datetime?$count=true&$orderby=id&$filter=timeOnly le cast(07:14:00,Edm.TimeOfDay)",
+                100,
+                "tables/datetime?$count=true&$orderby=id&$filter=timeOnly le cast(07:14:00,Edm.TimeOfDay)&$skip=100",
+                195,
+                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003" }
+
+            );
+        }
+
+        [Fact]
+        public async Task DateTimeQueryTest_018()
+        {
+            await DateTimeQueryTest(
+                "tables/datetime?$count=true&$orderby=id&$filter=timeOnly lt cast(07:14:00,Edm.TimeOfDay)",
+                100,
+                "tables/datetime?$count=true&$orderby=id&$filter=timeOnly lt cast(07:14:00,Edm.TimeOfDay)&$skip=100",
+                194,
+                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003" }
+            );
+        }
+
+        #region Base Tests
+        /// <summary>
+        /// This is the base test for the individual query tests.
+        /// </summary>
+        /// <param name="testcase">The test case being executed.</param>
+        /// <returns>A task that completes when the test is complete.</returns>
+        private async Task BaseQueryTest(string pathAndQuery, int itemCount, string? nextLinkQuery, long? totalCount, string[] firstItems, string? username = null)
 		{
 			Dictionary<string, string> headers = new();
 			Utils.AddAuthHeaders(headers, username);
@@ -3926,6 +4151,35 @@ namespace Microsoft.Datasync.Integration.Test.Server
 				Assert.Equal<IMovie>(expected, actual);
 				AssertEx.SystemPropertiesMatch(expected, actual);
 			}
+		}
+
+		/// <summary>
+		/// This is the base test for the individual query tests.
+		/// </summary>
+		/// <param name="testcase">The test case being executed.</param>
+		/// <returns>A task that completes when the test is complete.</returns>
+		private async Task DateTimeQueryTest(string pathAndQuery, int itemCount, string? nextLinkQuery, long? totalCount, string[] firstItems, string? username = null)
+		{
+			Dictionary<string, string> headers = new();
+			Utils.AddAuthHeaders(headers, username);
+
+			var response = await MovieServer.SendRequest(HttpMethod.Get, pathAndQuery, headers);
+
+			// Response has the right Status Code
+			await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
+
+			// Response payload can be decoded
+			var result = response.DeserializeContent<PageOfItems<DateTimeDto>>();
+			Assert.NotNull(result);
+
+			// Payload has the right content
+			Assert.Equal(itemCount, result!.Items!.Length);
+			Assert.Equal(nextLinkQuery, result.NextLink == null ? null : Uri.UnescapeDataString(result.NextLink.PathAndQuery).TrimStart('/'));
+			Assert.Equal(totalCount, result.Count);
+
+			// The first n items must match what is expected
+			Assert.True(result.Items.Length >= firstItems.Length);
+			Assert.Equal(firstItems, result.Items.Take(firstItems.Length).Select(m => m.Id).ToArray());
 		}
 
 		private async Task SoftDeleteQueryTest(string query, int expectedItemCount, string? expectedNextLinkQuery, long? expectedTotalCount, string[] firstExpectedItems, string? headerName = null, string? headerValue = null)
