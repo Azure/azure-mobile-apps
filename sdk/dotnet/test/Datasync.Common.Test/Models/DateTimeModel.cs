@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Datasync.InMemory;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
 
@@ -29,7 +30,7 @@ namespace Datasync.Common.Test.Models
                 var date = SourceDate.AddDays(i);
                 var model = new DateTimeModel
                 {
-                    Id = Guid.NewGuid().ToString("N"),
+                    Id = string.Format("dtm-{0:000}", i),
                     Version = Guid.NewGuid().ToByteArray(),
                     UpdatedAt = DateTimeOffset.UtcNow,
                     Deleted = false,
