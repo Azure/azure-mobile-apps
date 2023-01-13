@@ -4,10 +4,14 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync.Extensions;
+using Microsoft.Datasync.Integration.Test.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -48,6 +52,19 @@ namespace Microsoft.Datasync.Integration.Test.Server
             var actual = response.DeserializeContent<Dictionary<string, object>>();
             Assert.True(actual.ContainsKey("updatedAt"));
             Assert.Equal(expectedDTO, actual["updatedAt"].ToString());
+        }
+
+        [Fact]
+        public async Task DateOnly_CorrectFormat()
+        {
+            var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/datetime?$orderby=updatedAt&$skip=5&$top=1");
+            await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
+            var actual = response.DeserializeContent<PageOfItems<DateTimeDto>>();
+            Assert.Single(actual.Items);
+            var item = actual.Items[0];
+            Assert.NotNull(item);
+            Assert.Equal("2022-01-06", item.DateOnly);
+            Assert.Equal("01:06:00", item.TimeOnly);
         }
 
         [Theory]

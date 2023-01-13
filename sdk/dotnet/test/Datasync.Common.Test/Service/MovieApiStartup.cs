@@ -1,14 +1,17 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Datasync;
+using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Datasync.Common.Test.Service
@@ -52,6 +55,9 @@ namespace Datasync.Common.Test.Service
                 options.EnableDetailedErrors();
                 options.EnableSensitiveDataLogging();
             });
+
+            IEnumerable<DateTimeModel> dtmSeedData = DateTimeModel.GetSeedData();
+            services.AddSingleton<IRepository<DateTimeModel>>(new InMemoryRepository<DateTimeModel>(dtmSeedData));
 
             // Add the database context
             services.AddDbContext<MovieDbContext>(sqlConfiguration, contextLifetime: ServiceLifetime.Transient, optionsLifetime: ServiceLifetime.Singleton);

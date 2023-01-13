@@ -58,4 +58,11 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         public DateTimeOffset? DateTimeOffsetValue { get; set; }
         public Guid? GuidValue { get; set; }
     }
+
+    [ExcludeFromCodeCoverage]
+    public class DateTimeDto : DatasyncClientData
+    {
+        public string DateOnly { get; set; }
+        public string TimeOnly { get; set; }
+    }
 }
