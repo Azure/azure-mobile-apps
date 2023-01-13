@@ -4,6 +4,7 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync;
+using Microsoft.Datasync.Integration.Test.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -54,6 +55,22 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Assert.Equal<IMovie>(movieToAdd, entity!);
             AssertEx.ResponseHasConditionalHeaders(entity, response);
             AssertEx.HasHeader(response, "Location", $"https://localhost/tables/{table}/{result.Id}");
+        }
+
+        [Fact]
+        public async Task CanCreate_RoundTrip_DateTimeOnly()
+        {
+            var dateOnly = DateOnly.FromDateTime(DateTime.Now).ToString("yyyy-MM-dd");
+            var timeOnly = TimeOnly.FromDateTime(DateTime.Now).ToString("hh:mm:ss");
+
+            var testData = new DateTimeDto { DateOnly = dateOnly, TimeOnly = timeOnly };
+            var response = await MovieServer.SendRequest<DateTimeDto>(HttpMethod.Post, $"tables/datetime", testData);
+            await AssertResponseWithLoggingAsync(HttpStatusCode.Created, response);
+            var result = response.DeserializeContent<DateTimeDto>();
+            Assert.NotNull(result);
+            Assert.True(Guid.TryParse(result!.Id, out _));
+            Assert.Equal(dateOnly, result.DateOnly);
+            Assert.Equal(timeOnly, result.TimeOnly);
         }
 
         [Theory, CombinatorialData]
