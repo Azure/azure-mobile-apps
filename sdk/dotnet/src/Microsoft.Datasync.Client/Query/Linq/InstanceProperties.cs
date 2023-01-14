@@ -13,6 +13,16 @@ namespace Microsoft.Datasync.Client.Query.Linq
     {
         internal static readonly Lazy<Dictionary<MemberInfoKey, string>> _table = new(() => new()
         {
+#if HAS_DATEONLY
+            { new MemberInfoKey(typeof(DateOnly), "Day", false, true), "day" },
+            { new MemberInfoKey(typeof(DateOnly), "Month", false, true), "month" },
+            { new MemberInfoKey(typeof(DateOnly), "Year", false, true), "year" },
+#endif
+#if HAS_TIMEONLY
+            { new MemberInfoKey(typeof(TimeOnly), "Hour", false, true), "hour" },
+            { new MemberInfoKey(typeof(TimeOnly), "Minute", false, true), "minute" },
+            { new MemberInfoKey(typeof(TimeOnly), "Second", false, true), "second" },
+#endif
             { new MemberInfoKey(typeof(string), "Length", false, true), "length" },
             { new MemberInfoKey(typeof(DateTime), "Day", false, true), "day" },
             { new MemberInfoKey(typeof(DateTime), "Month", false, true), "month" },

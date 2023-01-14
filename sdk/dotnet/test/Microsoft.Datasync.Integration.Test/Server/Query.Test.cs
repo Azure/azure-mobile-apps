@@ -4003,125 +4003,125 @@ namespace Microsoft.Datasync.Integration.Test.Server
 			);
 		}
 
-        [Fact]
-        public async Task DateTimeQueryTest_010()
-        {
-            await DateTimeQueryTest(
-                "tables/datetime?$orderby=id&$filter=(second(timeOnly) eq 0)",
-                100,
-                "tables/datetime?$orderby=id&$filter=(second(timeOnly) eq 0)&$skip=100",
-                null,
-                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003", "dtm-004", "dtm-005" }
-            );
-        }
+		[Fact]
+		public async Task DateTimeQueryTest_010()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$orderby=id&$filter=(second(timeOnly) eq 0)",
+				100,
+				"tables/datetime?$orderby=id&$filter=(second(timeOnly) eq 0)&$skip=100",
+				null,
+				new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003", "dtm-004", "dtm-005" }
+			);
+		}
 
-        [Fact]
-        public async Task DateTimeQueryTest_011()
-        {
-            await DateTimeQueryTest(
-                "tables/datetime?$orderby=id&$filter=(hour(timeOnly) eq 3)",
-                31,
-                null,
-                null,
-                new[] { "dtm-059", "dtm-060", "dtm-061", "dtm-062", "dtm-063", "dtm-064" }
-            );
-        }
+		[Fact]
+		public async Task DateTimeQueryTest_011()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$orderby=id&$filter=(hour(timeOnly) eq 3)",
+				31,
+				null,
+				null,
+				new[] { "dtm-059", "dtm-060", "dtm-061", "dtm-062", "dtm-063", "dtm-064" }
+			);
+		}
 
-        [Fact]
-        public async Task DateTimeQueryTest_012()
-        {
-            await DateTimeQueryTest(
-                "tables/datetime?$orderby=id&$filter=(minute(timeOnly) eq 21)",
-                12,
-                null,
-                null,
-                new[] { "dtm-020", "dtm-051", "dtm-079", "dtm-110", "dtm-140", "dtm-171" }
-            );
-        }
+		[Fact]
+		public async Task DateTimeQueryTest_012()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$orderby=id&$filter=(minute(timeOnly) eq 21)",
+				12,
+				null,
+				null,
+				new[] { "dtm-020", "dtm-051", "dtm-079", "dtm-110", "dtm-140", "dtm-171" }
+			);
+		}
 
-        [Fact]
-        public async Task DateTimeQueryTest_013()
-        {
-            await DateTimeQueryTest(
-                "tables/datetime?$count=true&$orderby=id&$filter=(hour(timeOnly) le 12)",
-                100,
-                "tables/datetime?$count=true&$orderby=id&$filter=(hour(timeOnly) le 12)&$skip=100",
-                365,
-                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003", "dtm-004", "dtm-005" }
-            );
-        }
+		[Fact]
+		public async Task DateTimeQueryTest_013()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$count=true&$orderby=id&$filter=(hour(timeOnly) le 12)",
+				100,
+				"tables/datetime?$count=true&$orderby=id&$filter=(hour(timeOnly) le 12)&$skip=100",
+				365,
+				new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003", "dtm-004", "dtm-005" }
+			);
+		}
 
-        [Fact]
-        public async Task DateTimeQueryTest_014()
-        {
-            await DateTimeQueryTest(
-                "tables/datetime?$count=true&$orderby=id&$filter=timeOnly eq cast(02:14:00,Edm.TimeOfDay)",
-                1,
-                null,
-                1,
-                new[] { "dtm-044" }
+		[Fact]
+		public async Task DateTimeQueryTest_014()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$count=true&$orderby=id&$filter=timeOnly eq cast(02:14:00,Edm.TimeOfDay)",
+				1,
+				null,
+				1,
+				new[] { "dtm-044" }
 
-            );
-        }
+			);
+		}
 
-        [Fact]
-        public async Task DateTimeQueryTest_015()
-        {
-            await DateTimeQueryTest(
-                "tables/datetime?$count=true&$orderby=id&$filter=timeOnly ge cast(12:15:00,Edm.TimeOfDay)",
-                17,
-                null,
-                17,
-                new[] { "dtm-348", "dtm-349", "dtm-350", "dtm-351" }
+		[Fact]
+		public async Task DateTimeQueryTest_015()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$count=true&$orderby=id&$filter=timeOnly ge cast(12:15:00,Edm.TimeOfDay)",
+				17,
+				null,
+				17,
+				new[] { "dtm-348", "dtm-349", "dtm-350", "dtm-351" }
 
-            );
-        }
+			);
+		}
 
-        [Fact]
-        public async Task DateTimeQueryTest_016()
-        {
-            await DateTimeQueryTest(
-                "tables/datetime?$count=true&$orderby=id&$filter=timeOnly gt cast(12:15:00,Edm.TimeOfDay)",
-                16,
-                null,
-                16,
-                new[] { "dtm-349", "dtm-350", "dtm-351", "dtm-352" }
+		[Fact]
+		public async Task DateTimeQueryTest_016()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$count=true&$orderby=id&$filter=timeOnly gt cast(12:15:00,Edm.TimeOfDay)",
+				16,
+				null,
+				16,
+				new[] { "dtm-349", "dtm-350", "dtm-351", "dtm-352" }
 
-            );
-        }
+			);
+		}
 
-        [Fact]
-        public async Task DateTimeQueryTest_017()
-        {
-            await DateTimeQueryTest(
-                "tables/datetime?$count=true&$orderby=id&$filter=timeOnly le cast(07:14:00,Edm.TimeOfDay)",
-                100,
-                "tables/datetime?$count=true&$orderby=id&$filter=timeOnly le cast(07:14:00,Edm.TimeOfDay)&$skip=100",
-                195,
-                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003" }
+		[Fact]
+		public async Task DateTimeQueryTest_017()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$count=true&$orderby=id&$filter=timeOnly le cast(07:14:00,Edm.TimeOfDay)",
+				100,
+				"tables/datetime?$count=true&$orderby=id&$filter=timeOnly le cast(07:14:00,Edm.TimeOfDay)&$skip=100",
+				195,
+				new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003" }
 
-            );
-        }
+			);
+		}
 
-        [Fact]
-        public async Task DateTimeQueryTest_018()
-        {
-            await DateTimeQueryTest(
-                "tables/datetime?$count=true&$orderby=id&$filter=timeOnly lt cast(07:14:00,Edm.TimeOfDay)",
-                100,
-                "tables/datetime?$count=true&$orderby=id&$filter=timeOnly lt cast(07:14:00,Edm.TimeOfDay)&$skip=100",
-                194,
-                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003" }
-            );
-        }
+		[Fact]
+		public async Task DateTimeQueryTest_018()
+		{
+			await DateTimeQueryTest(
+				"tables/datetime?$count=true&$orderby=id&$filter=timeOnly lt cast(07:14:00,Edm.TimeOfDay)",
+				100,
+				"tables/datetime?$count=true&$orderby=id&$filter=timeOnly lt cast(07:14:00,Edm.TimeOfDay)&$skip=100",
+				194,
+				new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003" }
+			);
+		}
 
-        #region Base Tests
-        /// <summary>
-        /// This is the base test for the individual query tests.
-        /// </summary>
-        /// <param name="testcase">The test case being executed.</param>
-        /// <returns>A task that completes when the test is complete.</returns>
-        private async Task BaseQueryTest(string pathAndQuery, int itemCount, string? nextLinkQuery, long? totalCount, string[] firstItems, string? username = null)
+		#region Base Tests
+		/// <summary>
+		/// This is the base test for the individual query tests.
+		/// </summary>
+		/// <param name="testcase">The test case being executed.</param>
+		/// <returns>A task that completes when the test is complete.</returns>
+		private async Task BaseQueryTest(string pathAndQuery, int itemCount, string? nextLinkQuery, long? totalCount, string[] firstItems, string? username = null)
 		{
 			Dictionary<string, string> headers = new();
 			Utils.AddAuthHeaders(headers, username);

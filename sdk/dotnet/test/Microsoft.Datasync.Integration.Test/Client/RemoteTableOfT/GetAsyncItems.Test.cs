@@ -4,10 +4,12 @@
 using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
+using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Integration.Test.Helpers;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
@@ -1342,6 +1344,196 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
                 new string[] { "id-025", "id-026", "id-027", "id-028", "id-029" }
             );
         }
+
+        [Fact]
+        public async Task Linq_DateTime_001()
+        {
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id),
+                365,
+                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003", "dtm-004", "dtm-005" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_002()
+        {
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.DateOnly.Month == 3),
+                31,
+                new[] { "dtm-059", "dtm-060", "dtm-061", "dtm-062", "dtm-063", "dtm-064" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_003()
+        {
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.DateOnly.Day == 21),
+                12,
+                new[] { "dtm-020", "dtm-051", "dtm-079", "dtm-110", "dtm-140", "dtm-171" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_004()
+        {
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.DateOnly.Year == 2022),
+                365,
+                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003", "dtm-004", "dtm-005" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_005()
+        {
+            DateOnly myDate = new(2022, 2, 14);
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.DateOnly == myDate),
+                1,
+                new[] { "dtm-044" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_006()
+        {
+            DateOnly myDate = new(2022, 12, 15);
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.DateOnly >= myDate),
+                17,
+                new[] { "dtm-348", "dtm-349", "dtm-350", "dtm-351" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_007()
+        {
+            DateOnly myDate = new(2022, 12, 15);
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.DateOnly > myDate),
+                16,
+                new[] { "dtm-349", "dtm-350", "dtm-351", "dtm-352" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_008()
+        {
+            DateOnly myDate = new(2022, 7, 14);
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.DateOnly <= myDate),
+                195,
+                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003", "dtm-004", "dtm-005" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_009()
+        {
+            DateOnly myDate = new(2022, 7, 14);
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.DateOnly < myDate),
+                194,
+                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003", "dtm-004", "dtm-005" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_010()
+        {
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.TimeOnly.Second == 0),
+                365,
+                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003", "dtm-004", "dtm-005" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_011()
+        {
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.TimeOnly.Hour == 3),
+                31,
+                new[] { "dtm-059", "dtm-060", "dtm-061", "dtm-062", "dtm-063", "dtm-064" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_012()
+        {
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.TimeOnly.Minute == 21),
+                12,
+                new[] { "dtm-020", "dtm-051", "dtm-079", "dtm-110", "dtm-140", "dtm-171" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_013()
+        {
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.TimeOnly.Hour <= 12),
+                365,
+                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003", "dtm-004", "dtm-005" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_014()
+        {
+            TimeOnly myTime = new(2, 14, 0);
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.TimeOnly == myTime),
+                1,
+                new[] { "dtm-044" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_015()
+        {
+            TimeOnly myTime = new(12, 15, 0);
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.TimeOnly >= myTime),
+                17,
+                new[] { "dtm-348", "dtm-349", "dtm-350", "dtm-351" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_016()
+        {
+            TimeOnly myTime = new(12, 15, 0);
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.TimeOnly > myTime),
+                16,
+                new[] { "dtm-349", "dtm-350", "dtm-351", "dtm-352" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_017()
+        {
+            TimeOnly myTime = new(7, 15, 0);
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.TimeOnly <= myTime),
+                196,
+                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003" }
+            );
+        }
+
+        [Fact]
+        public async Task Linq_DateTime_018()
+        {
+            TimeOnly myTime = new(7, 15, 0);
+            await RunDateTimeTest(
+                q => q.OrderBy(m => m.Id).Where(f => f.TimeOnly < myTime),
+                195,
+                new[] { "dtm-000", "dtm-001", "dtm-002", "dtm-003" }
+            );
+        }
         #endregion
 
         private async Task RunLinqTest(Func<ITableQuery<ClientMovie>, ITableQuery<ClientMovie>> linqExpression, int resultCount, string[] firstResults)
@@ -1354,6 +1546,15 @@ namespace Microsoft.Datasync.Integration.Test.Client.RemoteTableOfT
             var list = await pageable.ToListAsync().ConfigureAwait(false);
 
             // Assert
+            Assert.Equal(resultCount, list.Count);
+            var actualItems = list.Take(firstResults.Length).Select(m => m.Id).ToArray();
+            Assert.Equal(firstResults, actualItems);
+        }
+
+        private async Task RunDateTimeTest(Func<ITableQuery<DateTimeClientModel>, ITableQuery<DateTimeClientModel>> linqExpression, int resultCount, string[] firstResults)
+        {
+            var query = new TableQuery<DateTimeClientModel>(fixture.DateTimeTable as RemoteTable<DateTimeClientModel>);
+            var list = await linqExpression.Invoke(query).ToListAsync();
             Assert.Equal(resultCount, list.Count);
             var actualItems = list.Take(firstResults.Length).Select(m => m.Id).ToArray();
             Assert.Equal(firstResults, actualItems);

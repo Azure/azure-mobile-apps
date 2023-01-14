@@ -86,7 +86,19 @@ namespace Microsoft.Datasync.Client.Test.Query
                 { FindInstanceProperty(typeof(DateTime), "Year"), new MemberInfoKey(typeof(DateTime), "Year", false, true) },
                 { FindInstanceProperty(typeof(DateTime), "Hour"), new MemberInfoKey(typeof(DateTime), "Hour", false, true) },
                 { FindInstanceProperty(typeof(DateTime), "Minute"), new MemberInfoKey(typeof(DateTime), "Minute", false, true) },
-                { FindInstanceProperty(typeof(DateTime), "Second"), new MemberInfoKey(typeof(DateTime), "Second", false, true) }
+                { FindInstanceProperty(typeof(DateTime), "Second"), new MemberInfoKey(typeof(DateTime), "Second", false, true) },
+                { FindInstanceProperty(typeof(DateTimeOffset), "Day"), new MemberInfoKey(typeof(DateTimeOffset), "Day", false, true) },
+                { FindInstanceProperty(typeof(DateTimeOffset), "Month"), new MemberInfoKey(typeof(DateTimeOffset), "Month", false, true) },
+                { FindInstanceProperty(typeof(DateTimeOffset), "Year"), new MemberInfoKey(typeof(DateTimeOffset), "Year", false, true) },
+                { FindInstanceProperty(typeof(DateTimeOffset), "Hour"), new MemberInfoKey(typeof(DateTimeOffset), "Hour", false, true) },
+                { FindInstanceProperty(typeof(DateTimeOffset), "Minute"), new MemberInfoKey(typeof(DateTimeOffset), "Minute", false, true) },
+                { FindInstanceProperty(typeof(DateTimeOffset), "Second"), new MemberInfoKey(typeof(DateTimeOffset), "Second", false, true) },
+                { FindInstanceProperty(typeof(DateOnly), "Day"), new MemberInfoKey(typeof(DateOnly), "Day", false, true) },
+                { FindInstanceProperty(typeof(DateOnly), "Month"), new MemberInfoKey(typeof(DateOnly), "Month", false, true) },
+                { FindInstanceProperty(typeof(DateOnly), "Year"), new MemberInfoKey(typeof(DateOnly), "Year", false, true) },
+                { FindInstanceProperty(typeof(TimeOnly), "Hour"), new MemberInfoKey(typeof(TimeOnly), "Hour", false, true) },
+                { FindInstanceProperty(typeof(TimeOnly), "Minute"), new MemberInfoKey(typeof(TimeOnly), "Minute", false, true) },
+                { FindInstanceProperty(typeof(TimeOnly), "Second"), new MemberInfoKey(typeof(TimeOnly), "Second", false, true) },
             };
 
             // Compare each key against all the other keys - they should only match for the same key.
@@ -111,7 +123,19 @@ namespace Microsoft.Datasync.Client.Test.Query
                 { FindInstanceProperty(typeof(DateTime), "Year"), new MemberInfoKey(typeof(DateTime), "Year", false, true) },
                 { FindInstanceProperty(typeof(DateTime), "Hour"), new MemberInfoKey(typeof(DateTime), "Hour", false, true) },
                 { FindInstanceProperty(typeof(DateTime), "Minute"), new MemberInfoKey(typeof(DateTime), "Minute", false, true) },
-                { FindInstanceProperty(typeof(DateTime), "Second"), new MemberInfoKey(typeof(DateTime), "Second", false, true) }
+                { FindInstanceProperty(typeof(DateTime), "Second"), new MemberInfoKey(typeof(DateTime), "Second", false, true) },
+                { FindInstanceProperty(typeof(DateTimeOffset), "Day"), new MemberInfoKey(typeof(DateTimeOffset), "Day", false, true) },
+                { FindInstanceProperty(typeof(DateTimeOffset), "Month"), new MemberInfoKey(typeof(DateTimeOffset), "Month", false, true) },
+                { FindInstanceProperty(typeof(DateTimeOffset), "Year"), new MemberInfoKey(typeof(DateTimeOffset), "Year", false, true) },
+                { FindInstanceProperty(typeof(DateTimeOffset), "Hour"), new MemberInfoKey(typeof(DateTimeOffset), "Hour", false, true) },
+                { FindInstanceProperty(typeof(DateTimeOffset), "Minute"), new MemberInfoKey(typeof(DateTimeOffset), "Minute", false, true) },
+                { FindInstanceProperty(typeof(DateTimeOffset), "Second"), new MemberInfoKey(typeof(DateTimeOffset), "Second", false, true) },
+                { FindInstanceProperty(typeof(DateOnly), "Day"), new MemberInfoKey(typeof(DateOnly), "Day", false, true) },
+                { FindInstanceProperty(typeof(DateOnly), "Month"), new MemberInfoKey(typeof(DateOnly), "Month", false, true) },
+                { FindInstanceProperty(typeof(DateOnly), "Year"), new MemberInfoKey(typeof(DateOnly), "Year", false, true) },
+                { FindInstanceProperty(typeof(TimeOnly), "Hour"), new MemberInfoKey(typeof(TimeOnly), "Hour", false, true) },
+                { FindInstanceProperty(typeof(TimeOnly), "Minute"), new MemberInfoKey(typeof(TimeOnly), "Minute", false, true) },
+                { FindInstanceProperty(typeof(TimeOnly), "Second"), new MemberInfoKey(typeof(TimeOnly), "Second", false, true) }
             };
 
             // Compare each key against all the other keys - they should only match for the same key.
