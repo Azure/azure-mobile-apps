@@ -17,11 +17,31 @@ namespace Microsoft.Datasync.Client.Query.OData
         /// </summary>
         private const string DateTimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffZ";
 
+#if HAS_DATEONLY
+        /// <summary>
+        /// The format for the DateOnly type
+        /// </summary>
+        private const string DateOnlyFormat = "yyyy-MM-dd";
+#endif
+
+#if HAS_TIMEONLY
+        /// <summary>
+        /// The format for the TimeOnly type
+        /// </summary>
+        private const string TimeOnlyFormat = "hh:mm:ss";
+#endif
+
         /// <summary>
         /// A list of the known Edm types we have a mechanism to convert.
         /// </summary>
         private enum EdmType
         {
+#if HAS_DATEONLY
+            Date,
+#endif
+#if HAS_TIMEONLY
+            TimeOfDay,
+#endif
             DateTime,
             DateTimeOffset,
             Guid
@@ -32,6 +52,12 @@ namespace Microsoft.Datasync.Client.Query.OData
         /// </summary>
         private static readonly Dictionary<long, EdmType> TypeLookupTable = new()
         {
+#if HAS_DATEONLY
+            { (long)typeof(DateOnly).TypeHandle.Value, EdmType.Date },
+#endif
+#if HAS_TIMEONLY
+            { (long)typeof(TimeOnly).TypeHandle.Value, EdmType.TimeOfDay },
+#endif
             { (long)typeof(DateTime).TypeHandle.Value, EdmType.DateTime },
             { (long)typeof(DateTimeOffset).TypeHandle.Value, EdmType.DateTimeOffset },
             { (long)typeof(Guid).TypeHandle.Value, EdmType.Guid }
@@ -42,6 +68,12 @@ namespace Microsoft.Datasync.Client.Query.OData
         /// </summary>
         private static readonly Dictionary<string, EdmType> EdmLookupTable = new()
         {
+#if HAS_DATEONLY
+            { "Edm.Date", EdmType.Date },
+#endif
+#if HAS_TIMEONLY
+            { "Edm.TimeOfDay", EdmType.TimeOfDay },
+#endif
             { "Edm.DateTime", EdmType.DateTime },
             { "Edm.DateTimeOffset", EdmType.DateTimeOffset },
             { "Edm.Guid", EdmType.Guid }
@@ -61,20 +93,33 @@ namespace Microsoft.Datasync.Client.Query.OData
                 return null;
             }
 
+            string formattedString = string.Empty;
             string result = null;
             switch (type)
             {
+#if HAS_DATEONLY
+                case EdmType.Date:
+                    formattedString = ((DateOnly)value).ToString(DateOnlyFormat);
+                    result = $"cast({formattedString},Edm.Date)";
+                    break;
+#endif
+#if HAS_TIMEONLY
+                case EdmType.TimeOfDay:
+                    formattedString = ((TimeOnly)value).ToString(TimeOnlyFormat);
+                    result = $"cast({formattedString},Edm.TimeOfDay)";
+                    break;
+#endif
                 case EdmType.DateTime:
-                    string dt = new DateTimeOffset(((DateTime)value).ToUniversalTime()).ToString(DateTimeFormat);
-                    result = $"cast({dt},Edm.DateTimeOffset)";
+                    formattedString = new DateTimeOffset(((DateTime)value).ToUniversalTime()).ToString(DateTimeFormat);
+                    result = $"cast({formattedString},Edm.DateTimeOffset)";
                     break;
                 case EdmType.DateTimeOffset:
-                    string dto = ((DateTimeOffset)value).ToUniversalTime().ToString(DateTimeFormat);
-                    result = $"cast({dto},Edm.DateTimeOffset)";
+                    formattedString = ((DateTimeOffset)value).ToUniversalTime().ToString(DateTimeFormat);
+                    result = $"cast({formattedString},Edm.DateTimeOffset)";
                     break;
                 case EdmType.Guid:
-                    Guid guid = (Guid)value;
-                    result = $"cast({guid:D},Edm.Guid)";
+                    formattedString = string.Format("{0:D}", (Guid)value);
+                    result = $"cast({formattedString},Edm.Guid)";
                     break;
             }
             return result;
@@ -95,6 +140,16 @@ namespace Microsoft.Datasync.Client.Query.OData
             var result = new ConstantNode(null);
             switch (type)
             {
+#if HAS_DATEONLY
+                case EdmType.Date:
+                    result.Value = DateOnly.ParseExact(literal, DateOnlyFormat);
+                    break;
+#endif
+#if HAS_TIMEONLY
+                case EdmType.TimeOfDay:
+                    result.Value = TimeOnly.ParseExact(literal, TimeOnlyFormat);
+                    break;
+#endif
                 case EdmType.DateTime:
                     result.Value = DateTime.Parse(literal);
                     break;

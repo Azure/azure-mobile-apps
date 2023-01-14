@@ -18,6 +18,7 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         {
             ServiceClient = GetMovieClient();
             MovieTable = ServiceClient.GetRemoteTable<ClientMovie>("movies");
+            DateTimeTable = ServiceClient.GetRemoteTable<DateTimeClientModel>("datetime");
         }
 
         public void Dispose()
@@ -27,6 +28,8 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         public DatasyncClient ServiceClient { get; }
 
         public IRemoteTable<ClientMovie> MovieTable { get; }
+
+        public IRemoteTable<DateTimeClientModel> DateTimeTable { get; }
 
         public new TestServer MovieServer { get => base.MovieServer; }
 
@@ -40,5 +43,11 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         // This class has no code, and is never created. Its purpose is simply
         // to be the place to apply [CollectionDefinition] and all the
         // ICollectionFixture<> interfaces.
+    }
+
+    public class DateTimeClientModel : DatasyncClientData
+    {
+        public DateOnly DateOnly { get; set; }
+        public TimeOnly TimeOnly { get; set; }
     }
 }

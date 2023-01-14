@@ -90,12 +90,18 @@
 		<Compile Include="Platforms\net6\*.cs" />
 		<PackageReference Include="Microsoft.JSInterop" Version="6.0.13" />
 	</ItemGroup>
+	
+	<PropertyGroup Condition="$(TargetFramework.StartsWith('net6.0'))">
+		<DefineConstants>$(DefineConstants);HAS_DATEONLY;HAS_TIMEONLY</DefineConstants>
+	</PropertyGroup>
+	
 		
 	<!-- .NET Standard 2.0 Platform Support -->
 	<ItemGroup Condition="$(TargetFramework.StartsWith('netstandard2.0'))">
 		<Compile Include="Platforms\netstandard\*.cs" />
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
 		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
+		<PackageReference Include="System.Memory" Version="4.5.4" PrivateAssets="compile;contentfiles;build;analyzers" />
 	</ItemGroup>
 
 	<!-- Common package requirements -->
