@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Extensions;
 using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
@@ -128,8 +129,37 @@ namespace Microsoft.Datasync.Client.Offline
                 // Initialize the delta token store.
                 DeltaTokenStore = new DeltaTokenStore(OfflineStore);
 
+                // Clear the errors in the store.
+                var errorsEnumerable = new FuncAsyncPageable<TableOperationError>(nextLink => GetPageOfErrorsAsync("", nextLink, cancellationToken));
+                var errors = await errorsEnumerable.ToZumoListAsync(cancellationToken).ConfigureAwait(false);
+                //await RemoveErrorsAsync(errors, cancellationToken).ConfigureAwait(false);
+
+                // We are now initialized.
                 IsInitialized = true;
             }
+        }
+
+        /// <summary>
+        /// Loads a single page from the SyncErrors table into memory.
+        /// </summary>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="nextLink">The next link.</param>
+        /// <returns>A page of operation error objects.</returns>
+        private async Task<Page<TableOperationError>> GetPageOfErrorsAsync(string query, string nextLink, CancellationToken cancellationToken)
+        {
+            if (nextLink != null)
+            {
+                var requestUri = new Uri(nextLink);
+                query = requestUri.Query.TrimStart('?');
+            }
+            var queryDescription = QueryDescription.Parse(SystemTables.SyncErrors, query);
+            Page<JObject> sourcePage = await OfflineStore.GetPageAsync(queryDescription, cancellationToken).ConfigureAwait(false);
+            return new Page<TableOperationError>()
+            {
+                Count = sourcePage.Count,
+                NextLink = sourcePage.NextLink,
+                Items = sourcePage.Items?.Select(err => TableOperationError.Deserialize(err, ServiceClient.Serializer.SerializerSettings))
+            };
         }
 
         #region Store Operations initiated from an OfflineTable
@@ -509,7 +539,23 @@ namespace Microsoft.Datasync.Client.Offline
             {
                 List<TableOperationError> unhandledErrors = errors.Where(error => !error.Handled).ToList();
                 Exception innerException = batch.OtherErrors.Count > 0 ? new AggregateException(batch.OtherErrors) : null;
+                await RemoveErrorsAsync(errors.Where(e => e.Status != HttpStatusCode.Conflict && e.Status != HttpStatusCode.PreconditionFailed), cancellationToken).ConfigureAwait(false);
                 throw new PushFailedException(new PushCompletionResult(unhandledErrors, batchStatus), innerException);
+            }
+        }
+
+        /// <summary>
+        /// Removes a list of errors from the errors table.
+        /// </summary>
+        /// <param name="errors">The list of errors to remove.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the errors are removed.</returns>
+        internal async Task RemoveErrorsAsync(IEnumerable<TableOperationError> errors, CancellationToken cancellationToken = default)
+        {
+            List<string> ids = errors.Select(e => e.Id).Where(e => !string.IsNullOrWhiteSpace(e)).ToList();
+            if (ids.Any())
+            {
+                await OfflineStore.DeleteAsync(SystemTables.SyncErrors, ids, cancellationToken).ConfigureAwait(false);
             }
         }
         #endregion
