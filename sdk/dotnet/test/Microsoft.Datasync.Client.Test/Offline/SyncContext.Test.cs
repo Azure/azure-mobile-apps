@@ -346,6 +346,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
                 return items;
             };
             var context = await GetSyncContext();
+            callCount = 0; // Adjust for any calls made during initialization.
 
             var result = await context.GetNextPageAsync("test", "");
             Assert.NotNull(result);
@@ -371,6 +372,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
                 return items;
             };
             var context = await GetSyncContext();
+            callCount = 0; // Adjust for any calls made during initialization.
 
             var result = await context.GetNextPageAsync("test", "$count=true");
             Assert.NotNull(result);
@@ -1983,12 +1985,8 @@ namespace Microsoft.Datasync.Client.Test.Offline
             var op = new CInsertOperation("movies", item.Id) { ExceptionToThrow = new DatasyncInvalidOperationException("Unauthorized", null, null) };
 
             Assert.False(await context.CExecutePushOperationAsync(op, batch, true, CancellationToken.None));
-
-            // One error, and one operation in the queue
             Assert.Single(store.TableMap[SystemTables.OperationsQueue]);
-
-            // This should really probably throw an error, but need to figure out what is meant to happen here.
-            //Assert.Single(store.TableMap[SystemTables.SyncErrors]);
+            Assert.Empty(store.TableMap[SystemTables.SyncErrors]);
         }
 
         [Fact]
