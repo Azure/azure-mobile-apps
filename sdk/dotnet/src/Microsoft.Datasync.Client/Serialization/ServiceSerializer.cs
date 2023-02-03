@@ -156,13 +156,7 @@ namespace Microsoft.Datasync.Client.Serialization
         /// <returns></returns>
         public static DateTimeOffset? GetUpdatedAt(JObject item)
         {
-            string updatedAt = item.Value<string>(SystemProperties.JsonUpdatedAtProperty);
-            if (updatedAt == null)
-            {
-                return null;
-            }
-            // Throw an error if the service returned a bad date format.
-            return DateTimeOffset.Parse(updatedAt, CultureInfo.InvariantCulture);
+            return item.SelectToken(SystemProperties.JsonUpdatedAtProperty)?.ToObject<DateTimeOffset>();
         }
 
         /// <summary>
