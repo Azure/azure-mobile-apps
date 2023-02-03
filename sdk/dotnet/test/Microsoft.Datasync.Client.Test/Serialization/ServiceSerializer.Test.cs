@@ -105,6 +105,16 @@ namespace Microsoft.Datasync.Client.Test.Serialization
             Assert.Equal(expected.ToUniversalTime(), ServiceSerializer.GetUpdatedAt(sut)?.ToUniversalTime());
         }
 
+
+        [Fact]
+        [Trait("Method", "GetUpdatedAt")]
+        public void GetUpdatedAt_ReturnsTheDateWhenPresent_NonZeroMS()
+        {
+            JObject sut = JObject.Parse("{\"updatedAt\":\"2021-03-16T12:32:05.123+00:00\"}");
+            DateTimeOffset expected = DateTimeOffset.Parse("2021-03-16T12:32:05.123+00:00");
+            Assert.Equal(expected.ToUniversalTime(), ServiceSerializer.GetUpdatedAt(sut)?.ToUniversalTime());
+        }
+
         [Fact]
         [Trait("Method", "IsDeleted")]
         public void IsDeleted_ReturnsFalseWhenMissing()
