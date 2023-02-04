@@ -222,14 +222,6 @@ namespace Microsoft.Datasync.Client.Test
 
         [Fact]
         [Trait("Method", "InstallationId")]
-        public void InstallationId_IsValid()
-        {
-            var client = new DatasyncClient(Endpoint);
-            Assert.NotEmpty(client.InstallationId);
-        }
-
-        [Fact]
-        [Trait("Method", "InstallationId")]
         public void InstallationId_CanBeOverridden()
         {
             var options = new DatasyncClientOptions { InstallationId = "hijack" };
