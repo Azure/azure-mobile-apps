@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Utils;
+using System;
 using Windows.Foundation.Collections;
 using Windows.Storage;
 
@@ -15,8 +16,17 @@ namespace Microsoft.Datasync.Client.Platforms
     {
         internal ApplicationStorage(string containerName = "")
         {
-            SharedContainerName = string.IsNullOrWhiteSpace(containerName) ? "ms-datasync-client" : containerName;
-            Preferences = ApplicationData.Current.LocalSettings.CreateContainer(SharedContainerName, ApplicationDataCreateDisposition.Always).Values;
+            try
+            {
+                SharedContainerName = string.IsNullOrWhiteSpace(containerName) ? "ms-datasync-client" : containerName;
+                Preferences = ApplicationData.Current.LocalSettings.CreateContainer(SharedContainerName, ApplicationDataCreateDisposition.Always).Values;
+                IsPackaged = true;
+            }
+            catch (InvalidOperationException)
+            {
+                IsPackaged = false;
+                Preferences = null;
+            }
         }
 
         /// <summary>
@@ -29,12 +39,14 @@ namespace Microsoft.Datasync.Client.Platforms
         /// </summary>
         private IPropertySet Preferences { get; }
 
+        private bool IsPackaged { get; } = false;
+
         /// <summary>
         /// Clear all the values within the store.
         /// </summary>
         public void ClearValues()
         {
-            Preferences.Clear();
+            Preferences?.Clear();
         }
 
         /// <summary>
@@ -43,7 +55,7 @@ namespace Microsoft.Datasync.Client.Platforms
         /// <param name="key">The key</param>
         public void RemoveValue(string key)
         {
-            if (Preferences.ContainsKey(key))
+            if (IsPackaged && Preferences.ContainsKey(key))
             {
                 Preferences.Remove(key);
             }
@@ -57,7 +69,10 @@ namespace Microsoft.Datasync.Client.Platforms
         /// <param name="value">The value to store</param>
         public void SetValue(string key, string value)
         {
-            Preferences[key] = value;
+            if (IsPackaged)
+            {
+                Preferences[key] = value;
+            }
         }
 
         /// <summary>
@@ -68,7 +83,7 @@ namespace Microsoft.Datasync.Client.Platforms
         /// <returns>True if the key was found</returns>
         public bool TryGetValue(string key, out string value)
         {
-            if (Preferences.TryGetValue(key, out object prefValue))
+            if (IsPackaged && Preferences.TryGetValue(key, out object prefValue))
             {
                 value = prefValue.ToString();
                 return value != null;
