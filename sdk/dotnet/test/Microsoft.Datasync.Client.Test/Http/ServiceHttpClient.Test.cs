@@ -72,7 +72,6 @@ namespace Microsoft.Datasync.Client.Test.Http
             Assert.Equal(client.HttpClient.DefaultRequestHeaders.UserAgent.ToString(),
                 client.HttpClient.DefaultRequestHeaders.GetValues("X-ZUMO-VERSION").FirstOrDefault());
             AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "ZUMO-API-VERSION", "3.0.0");
-            AssertEx.HasHeader(client.HttpClient.DefaultRequestHeaders, "X-ZUMO-INSTALLATION-ID", Platform.InstallationId);
             Assert.Equal(testcase.NormalizedEndpoint, client.HttpClient.BaseAddress.ToString());
         }
 
