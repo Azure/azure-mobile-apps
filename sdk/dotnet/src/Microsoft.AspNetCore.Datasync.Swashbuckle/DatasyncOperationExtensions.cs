@@ -31,7 +31,7 @@ namespace Microsoft.OpenApi.Models
                 Required = true,
                 Schema = new OpenApiSchema
                 {
-                    Type = "enum",
+                    Type = "string",
                     Enum = versionStrings.Select(p => new OpenApiString(p)).ToList<IOpenApiAny>()
                 }
             });
