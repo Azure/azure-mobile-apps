@@ -120,13 +120,25 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the store has been initialized.</returns>
         protected async Task EnsureInitializedAsync(CancellationToken cancellationToken)
         {
+            // Short circuit - escape quickly without locking if the store is initialized.
+            if (Initialized)
+            {
+                return;
+            }
+
             using (await initializationLock.AcquireAsync(cancellationToken).ConfigureAwait(false))
             {
-                await InitializeOfflineStoreAsync(cancellationToken).ConfigureAwait(false);
-                //if (!Initialized)
-                //{
-                //    throw new InvalidOperationException("The offline store must be initialized before it can be used.");
-                //}
+                // In case we were blocked during the initialization lock acquisition...
+                if (!Initialized)
+                {
+                    await InitializeOfflineStoreAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                // Something went wrong...
+                if (!Initialized)
+                {
+                    throw new InvalidOperationException("The offline store must be initialized before it can be used.");
+                }
             }
         }
 
