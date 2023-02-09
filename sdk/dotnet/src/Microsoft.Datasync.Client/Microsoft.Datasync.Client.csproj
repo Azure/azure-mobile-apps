@@ -46,7 +46,7 @@
 	<ItemGroup Condition="$(TargetFramework.StartsWith('monoandroid'))">
 		<Compile Include="Platforms\android\*.cs" />
 		<PackageReference Include="Xamarin.Essentials" Version="1.7.4" />
-		<PackageReference Include="Xamarin.AndroidX.Browser" Version="1.4.0.2" />
+		<PackageReference Include="Xamarin.AndroidX.Browser" Version="1.4.0" />
 		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
 	</ItemGroup>
 
