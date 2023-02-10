@@ -24,6 +24,7 @@ namespace Datasync.Common.Test.Models
         public decimal DecimalValue { get; set; }
         public double DoubleValue { get; set; }
         public float FloatValue { get; set; }
+        public double? NullableDouble { get; set; }
 
         // String
         public char CharValue { get; set; }

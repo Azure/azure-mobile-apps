@@ -59,7 +59,30 @@ namespace Microsoft.Datasync.Integration.Test.KitchenSink
         }
 
         [Fact]
-        public async Task KS2_DeferredTableDefinition()
+        public async Task KS2_NullDoubleSearch()
+        {
+            // On client 1
+            KitchenSinkDto client1dto = new() { NullableDouble = -1.0 };
+            await remoteTable.InsertItemAsync(client1dto);
+            var remoteId = client1dto.Id;
+            Assert.NotEmpty(remoteId);
+
+            // On client 2
+            await InitializeAsync();
+            var pullQuery = offlineTable!.CreateQuery();
+            await offlineTable!.PullItemsAsync(pullQuery, new PullOptions());
+            var client2dto = await offlineTable.GetItemAsync(remoteId);
+            Assert.NotNull(client2dto);
+            Assert.True(client2dto.NullableDouble < -0.5);
+
+            // Finally, let's search!
+            var elements = await offlineTable!.Where(x => x.NullableDouble < -0.5).ToListAsync();
+            Assert.Single(elements);
+            Assert.Equal(elements[0].Id, remoteId);
+        }
+
+        [Fact]
+        public async Task KS3_DeferredTableDefinition()
         {
             var filename = Path.GetTempFileName();
             var connectionString = new UriBuilder(filename) { Query = "?mode=rwc" }.Uri.ToString();

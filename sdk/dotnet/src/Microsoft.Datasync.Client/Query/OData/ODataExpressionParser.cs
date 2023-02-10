@@ -219,7 +219,7 @@ namespace Microsoft.Datasync.Client.Query.OData
                 {
                     lexer.Token.Text = $"-{lexer.Token.Text}";
                     lexer.Token.Position = operatorPosition;
-                    ParsePrimary();
+                    return ParsePrimary();
                 }
 
                 QueryNode expression = ParseUnary();

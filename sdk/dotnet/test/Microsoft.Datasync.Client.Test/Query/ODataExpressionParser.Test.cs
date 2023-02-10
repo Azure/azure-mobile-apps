@@ -347,6 +347,7 @@ namespace Microsoft.Datasync.Client.Test.Query
 		[InlineData("$filter=(not(bestPictureWinner) and (ceiling((duration div 60.0)) eq 2.0))")]
 		[InlineData("$filter=(not(bestPictureWinner) and (floor((duration div 60.0)) eq 2.0))")]
 		[InlineData("$filter=(year lt 1990.5f)")]
+        [InlineData("$filter=(nullableValue le -0.5)")]
         public void ODataExpressionParser_Roundtrips(string original)
         {
             var query = QueryDescription.Parse("movies", original);
