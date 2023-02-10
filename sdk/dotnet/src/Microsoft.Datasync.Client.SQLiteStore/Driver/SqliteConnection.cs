@@ -56,7 +56,8 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
             int rc = raw.sqlite3_open(connectionString, out connection);
             if (rc != raw.SQLITE_OK)
             {
-                throw new SQLiteException("Unable to open database connection to '{connectionString}'", rc, connection);
+                var errmsg = raw.sqlite3_errstr(rc).utf8_to_string();
+                throw new SQLiteException($"Unable to open database connection to '{connectionString}': {rc} {errmsg}", rc, connection);
             }
 
             int limit = raw.sqlite3_limit(connection, raw.SQLITE_LIMIT_VARIABLE_NUMBER, -1);
