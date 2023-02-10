@@ -58,7 +58,7 @@ namespace Microsoft.Datasync.Integration.Test.KitchenSink
             Assert.Null(client2dto.StringValue);
         }
 
-        [Fact(Skip = "Nullable Doubles don't work")]
+        [Fact]
         public async Task KS2_NullDoubleSearch()
         {
             // On client 1
@@ -71,9 +71,9 @@ namespace Microsoft.Datasync.Integration.Test.KitchenSink
             await InitializeAsync();
             var pullQuery = offlineTable!.CreateQuery();
             await offlineTable!.PullItemsAsync(pullQuery, new PullOptions());
-            //var client2dto = await offlineTable.GetItemAsync(remoteId);
-            //Assert.NotNull(client2dto);
-            //Assert.True(client2dto.NullableDouble < -0.5);
+            var client2dto = await offlineTable.GetItemAsync(remoteId);
+            Assert.NotNull(client2dto);
+            Assert.True(client2dto.NullableDouble < -0.5);
 
             // Finally, let's search!
             var elements = await offlineTable!.Where(x => x.NullableDouble < -0.5).ToListAsync();
