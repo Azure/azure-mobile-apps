@@ -330,55 +330,67 @@ namespace Microsoft.Datasync.Client.Offline
             SendPullStartedEvent(tableName);
             long itemCount = 0;
             long expectedItems = -1;
+            DateTimeOffset? updatedAt = null;
             var enumerable = table.GetAsyncItems(odataString);
-            await foreach (var instance in enumerable)
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                await foreach (var instance in enumerable)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                // If we have not read the expectedItem count yet, then read it from the pageable.
-                if (expectedItems == -1 && enumerable is FuncAsyncPageable<JToken> pageable)
-                {
-                    expectedItems = pageable.Count ?? -1;
-                }
+                    // If we have not read the expectedItem count yet, then read it from the pageable.
+                    if (expectedItems == -1 && enumerable is FuncAsyncPageable<JToken> pageable)
+                    {
+                        expectedItems = pageable.Count ?? -1;
+                    }
 
-                if (instance is not JObject item)
-                {
-                    SendPullFinishedEvent(tableName, itemCount, false);
-                    throw new DatasyncInvalidOperationException("Received item is not an object");
-                }
+                    if (instance is not JObject item)
+                    {
+                        SendPullFinishedEvent(tableName, itemCount, false);
+                        throw new DatasyncInvalidOperationException("Received item is not an object");
+                    }
 
-                string itemId = ServiceSerializer.GetId(item);
-                if (itemId == null)
-                {
-                    SendPullFinishedEvent(tableName, itemCount, false);
-                    throw new DatasyncInvalidOperationException("Received an item without an ID");
-                }
+                    string itemId = ServiceSerializer.GetId(item);
+                    if (itemId == null)
+                    {
+                        SendPullFinishedEvent(tableName, itemCount, false);
+                        throw new DatasyncInvalidOperationException("Received an item without an ID");
+                    }
 
-                var pendingOperation = await OperationsQueue.GetOperationByItemIdAsync(tableName, itemId, cancellationToken).ConfigureAwait(false);
-                if (pendingOperation != null)
-                {
-                    SendPullFinishedEvent(tableName, itemCount, false);
-                    throw new InvalidOperationException("Received an item for which there is a pending operation.");
+                    var pendingOperation = await OperationsQueue.GetOperationByItemIdAsync(tableName, itemId, cancellationToken).ConfigureAwait(false);
+                    if (pendingOperation != null)
+                    {
+                        SendPullFinishedEvent(tableName, itemCount, false);
+                        throw new InvalidOperationException("Received an item for which there is a pending operation.");
+                    }
+                    SendItemWillBeStoredEvent(tableName, itemId, itemCount, expectedItems);
+                    
+                    if (ServiceSerializer.IsDeleted(item))
+                    {
+                        await OfflineStore.DeleteAsync(tableName, new[] { itemId }, cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await OfflineStore.UpsertAsync(tableName, new[] { item }, true, cancellationToken).ConfigureAwait(false);
+                    }
+                    itemCount++;
+                    updatedAt = ServiceSerializer.GetUpdatedAt(item)?.ToUniversalTime();
+                    if (itemCount % options.WriteDeltaTokenInterval == 0 && updatedAt.HasValue)
+                    {
+                        await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, updatedAt.Value, cancellationToken).ConfigureAwait(false);
+                        updatedAt = null; // Easy way to prevent the finally block to not write twice.
+                    }
+                    SendItemWasStoredEvent(tableName, itemId, itemCount, expectedItems);
                 }
-                DateTimeOffset? updatedAt = ServiceSerializer.GetUpdatedAt(item)?.ToUniversalTime();
-                SendItemWillBeStoredEvent(tableName, itemId, itemCount, expectedItems);
-                if (ServiceSerializer.IsDeleted(item))
-                {
-                    await OfflineStore.DeleteAsync(tableName, new[] { itemId }, cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    await OfflineStore.UpsertAsync(tableName, new[] { item }, true, cancellationToken).ConfigureAwait(false);
-                }
-                itemCount++;
-                SendItemWasStoredEvent(tableName, itemId, itemCount, expectedItems);
-
+            }
+            finally
+            {
                 if (updatedAt.HasValue)
                 {
                     await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, updatedAt.Value, cancellationToken).ConfigureAwait(false);
                 }
+                SendPullFinishedEvent(tableName, itemCount, true);
             }
-            SendPullFinishedEvent(tableName, itemCount, true);
         }
 
         /// <summary>
