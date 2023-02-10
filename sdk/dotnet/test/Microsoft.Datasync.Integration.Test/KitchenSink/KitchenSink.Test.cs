@@ -99,5 +99,24 @@ namespace Microsoft.Datasync.Integration.Test.KitchenSink
             itemCount = await table.GetAsyncItems().CountAsync();
             Assert.Equal(Movies.Count, itemCount);
         }
+
+        [Fact]
+        public async Task KS4_WriteDeltaTokenInterval()
+        {
+            // On client 1
+            for (int i = 1; i <= 50; i++)
+            {
+                KitchenSinkDto dto = new() { StringValue = $"String {i}", IntValue = i };
+                await remoteTable.InsertItemAsync(dto);
+            }
+
+            // On client 2
+            await InitializeAsync();
+            var pullQuery = offlineTable!.CreateQuery();
+            await offlineTable!.PullItemsAsync(pullQuery, new PullOptions() { WriteDeltaTokenInterval = 25 });
+            // Make sure we have 50 values with IntValue > 0
+            var entities = await offlineTable.Where(x => x.IntValue > 0).ToListAsync();
+            Assert.Equal(50, entities.Count);
+        }
     }
 }
