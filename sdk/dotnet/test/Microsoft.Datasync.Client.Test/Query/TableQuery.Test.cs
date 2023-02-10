@@ -764,11 +764,38 @@ namespace Microsoft.Datasync.Client.Test.Query
             Assert.Equal("$orderby=releaseDate&foo=bar", actual);
         }
 
+        [Fact]
+        public void ToODataString_NegativeDouble_Works()
+        {
+            var client = GetMockClient();
+            var table = new RemoteTable<KSV>("ksv", client);
+            var query = new TableQuery<KSV>(table).Where(x => x.Value <= -0.5) as TableQuery<KSV>;
+            var actual = query.ToODataString();
+            Assert.Equal("$filter=(value le -0.5)", actual);
+        }
+
+        [Fact]
+        public void ToODataString_NegativeNullableDouble_Works()
+        {
+            var client = GetMockClient();
+            var table = new RemoteTable<KSV>("ksv", client);
+            var query = new TableQuery<KSV>(table).Where(x => x.NullableValue <= -0.5) as TableQuery<KSV>;
+            var actual = query.ToODataString();
+            Assert.Equal("$filter=(nullableValue le -0.5)", actual);
+        }
+
         #region Models
         public class SelectResult
         {
             public string Id { get; set; }
             public string Title { get; set; }
+        }
+
+        public class KSV : DatasyncClientData
+        {
+            public double Value { get; set; }
+
+            public double? NullableValue { get; set; }
         }
         #endregion
     }
