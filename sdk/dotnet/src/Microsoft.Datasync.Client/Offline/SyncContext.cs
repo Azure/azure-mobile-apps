@@ -343,18 +343,21 @@ namespace Microsoft.Datasync.Client.Offline
 
                 if (instance is not JObject item)
                 {
+                    SendPullFinishedEvent(tableName, itemCount, false);
                     throw new DatasyncInvalidOperationException("Received item is not an object");
                 }
 
                 string itemId = ServiceSerializer.GetId(item);
                 if (itemId == null)
                 {
+                    SendPullFinishedEvent(tableName, itemCount, false);
                     throw new DatasyncInvalidOperationException("Received an item without an ID");
                 }
 
                 var pendingOperation = await OperationsQueue.GetOperationByItemIdAsync(tableName, itemId, cancellationToken).ConfigureAwait(false);
                 if (pendingOperation != null)
                 {
+                    SendPullFinishedEvent(tableName, itemCount, false);
                     throw new InvalidOperationException("Received an item for which there is a pending operation.");
                 }
                 DateTimeOffset? updatedAt = ServiceSerializer.GetUpdatedAt(item)?.ToUniversalTime();
@@ -375,7 +378,7 @@ namespace Microsoft.Datasync.Client.Offline
                     await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, updatedAt.Value, cancellationToken).ConfigureAwait(false);
                 }
             }
-            SendPullFinishedEvent(tableName, itemCount);
+            SendPullFinishedEvent(tableName, itemCount, true);
         }
 
         /// <summary>
@@ -863,11 +866,12 @@ namespace Microsoft.Datasync.Client.Offline
             ServiceClient.SendSynchronizationEvent(new SynchronizationEventArgs
             {
                 EventType = SynchronizationEventType.PullStarted,
-                TableName = tableName
+                TableName = tableName,
+                IsSuccessful = null
             });
         }
 
-        private void SendPullFinishedEvent(string tableName, long itemsReceived)
+        private void SendPullFinishedEvent(string tableName, long itemsReceived, bool isSuccessful)
         {
             ServiceClient.SendSynchronizationEvent(new SynchronizationEventArgs
             {
@@ -882,7 +886,8 @@ namespace Microsoft.Datasync.Client.Offline
             ServiceClient.SendSynchronizationEvent(new SynchronizationEventArgs
             {
                 EventType = SynchronizationEventType.PushStarted,
-                QueueLength = OperationsQueue.PendingOperations
+                QueueLength = OperationsQueue.PendingOperations,
+                IsSuccessful = null
             });
         }
 
@@ -904,7 +909,8 @@ namespace Microsoft.Datasync.Client.Offline
                 ItemsProcessed = itemCount,
                 QueueLength = OperationsQueue.PendingOperations,
                 TableName = tableName,
-                ItemId = itemId
+                ItemId = itemId,
+                IsSuccessful = null
             });
         }
 
@@ -929,7 +935,8 @@ namespace Microsoft.Datasync.Client.Offline
                 ItemsProcessed = itemCount,
                 QueueLength = expectedItems,
                 TableName = tableName,
-                ItemId = itemId
+                ItemId = itemId,
+                IsSuccessful = null
             });
         }
 
@@ -941,7 +948,8 @@ namespace Microsoft.Datasync.Client.Offline
                 ItemsProcessed = itemCount,
                 QueueLength = expectedItems,
                 TableName = tableName,
-                ItemId = itemId
+                ItemId = itemId,
+                IsSuccessful = true
             });
         }
         #endregion

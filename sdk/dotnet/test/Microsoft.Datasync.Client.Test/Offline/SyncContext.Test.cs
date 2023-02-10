@@ -140,6 +140,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
             Assert.Equal(SynchronizationEventType.ItemWillBePushed, args.EventType);
             Assert.Equal(table, args.TableName);
             Assert.Equal(id, args.ItemId);
+            Assert.Null(args.IsSuccessful);
         }
 
         private static void AssertItemWasPushed(SynchronizationEventArgs args, string table, string id, bool success)
