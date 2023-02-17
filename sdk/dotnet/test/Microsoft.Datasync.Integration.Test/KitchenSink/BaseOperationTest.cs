@@ -1,16 +1,18 @@
-﻿using Datasync.Common.Test.Models;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Castle.Core.Logging;
 using Datasync.Common.Test;
+using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.SQLiteStore;
+using Microsoft.Datasync.Integration.Test.Helpers;
+using Microsoft.Extensions.Logging;
+using Moq;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
+using System.IO;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
-using Microsoft.Datasync.Client;
-using System.IO;
-using Microsoft.Datasync.Integration.Test.Helpers;
 
 namespace Microsoft.Datasync.Integration.Test.KitchenSink
 {
@@ -24,6 +26,7 @@ namespace Microsoft.Datasync.Integration.Test.KitchenSink
         protected readonly DatasyncClient client;
         protected IOfflineTable<KitchenSinkDto>? offlineTable;
         protected IRemoteTable<KitchenSinkDto> remoteTable;
+        protected Mock<ILogger<OfflineSQLiteStore>> storeLoggerMock;
 
         protected BaseOperationTest(ITestOutputHelper logger, bool useFile = true)
         {
@@ -37,7 +40,10 @@ namespace Microsoft.Datasync.Integration.Test.KitchenSink
             {
                 connectionString = "file:in-memory.db?mode=memory";
             }
-            store = new OfflineSQLiteStore(connectionString);
+
+            storeLoggerMock = new Mock<ILogger<OfflineSQLiteStore>>();
+            storeLoggerMock.Setup(x => x.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception?, string>>()));
+            store = new OfflineSQLiteStore(connectionString, storeLoggerMock.Object);
             store.DefineTable<KitchenSinkDto>("kitchensink");
             client = GetMovieClient(store: store);
             remoteTable = client.GetRemoteTable<KitchenSinkDto>("kitchensink");

@@ -1,11 +1,13 @@
-﻿using Datasync.Common.Test.Models;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.SQLiteStore;
 using Microsoft.Datasync.Integration.Test.Helpers;
-using Microsoft.Extensions.Logging;
-using Moq;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -58,6 +60,9 @@ namespace Microsoft.Datasync.Integration.Test.KitchenSink
             Assert.NotNull(client2dto);
             // Issue 408 - cannot replace a string with a null.
             Assert.Null(client2dto.StringValue);
+
+            // Check log statements here
+            Assert.True(storeLoggerMock.Invocations.Count > 0);
         }
 
         [Fact]
@@ -122,30 +127,28 @@ namespace Microsoft.Datasync.Integration.Test.KitchenSink
         }
 
         [Fact]
-        public async Task KS5_CanLogSqlStatements()
+        public async Task KS5_CanSearchByEnum()
         {
-            // Set up logger
-            var logger = new Mock<ILogger<OfflineSQLiteStore>>();
-            logger.Setup(x => x.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception?, string>>()));
-            store.Logger = logger.Object;
+            List<KitchenSinkDto> insertions = new()
+            {
+                new KitchenSinkDto { StringValue = "state=none", EnumValue = KitchenSinkDtoState.None },
+                new KitchenSinkDto { StringValue = "state=completed", EnumValue = KitchenSinkDtoState.Completed },
+                new KitchenSinkDto { StringValue = "state=failed", EnumValue = KitchenSinkDtoState.Failed }
+            };
+            foreach (var insertion in insertions)
+            {
+                await remoteTable.InsertItemAsync(insertion);
+            }
 
-            // On client 1
-            KitchenSinkDto client1dto = new() { StringValue = "This is a string" };
-            await remoteTable.InsertItemAsync(client1dto);
-            var remoteId = client1dto.Id;
-            Assert.NotEmpty(remoteId);
-
-            // On client 2
+            // Synchronize to offline table
             await InitializeAsync();
             var pullQuery = offlineTable!.CreateQuery();
             await offlineTable!.PullItemsAsync(pullQuery, new PullOptions());
-            var client2dto = await offlineTable.GetItemAsync(remoteId);
-            Assert.NotNull(client2dto);
-            Assert.Equal("This is a string", client2dto.StringValue);
 
-            // Check log statements here
-            Assert.True(logger.Invocations.Count > 0);
-
+            // Issue 610 - can we find the DTO that is completed?
+            var items = await offlineTable!.Where(x => x.EnumValue == KitchenSinkDtoState.Completed).ToListAsync();
+            Assert.Single(items);
+            Assert.Equal("state=completed", items[0].StringValue);
         }
     }
 }

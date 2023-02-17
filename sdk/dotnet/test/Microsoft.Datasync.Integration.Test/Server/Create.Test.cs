@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -71,6 +72,30 @@ namespace Microsoft.Datasync.Integration.Test.Server
             Assert.True(Guid.TryParse(result!.Id, out _));
             Assert.Equal(dateOnly, result.DateOnly);
             Assert.Equal(timeOnly, result.TimeOnly);
+        }
+
+        [Fact]
+        public async Task CanCreate_RoundTrip_Enum()
+        {
+            List<KitchenSinkDto> insertions = new()
+            {
+                new KitchenSinkDto { Id="ks01", StringValue = "state=none", EnumValue = KitchenSinkDtoState.None },
+                new KitchenSinkDto { Id="ks02", StringValue = "state=completed", EnumValue = KitchenSinkDtoState.Completed },
+                new KitchenSinkDto { Id="ks03", StringValue = "state=failed", EnumValue = KitchenSinkDtoState.Failed }
+            };
+            foreach (var insertion in insertions)
+            {
+                var insertResponse = await MovieServer.SendRequest<KitchenSinkDto>(HttpMethod.Post, $"tables/kitchensink", insertion);
+                await AssertResponseWithLoggingAsync(HttpStatusCode.Created, insertResponse);
+            }
+
+            var getResponse = await MovieServer.SendRequest(HttpMethod.Get, $"tables/kitchensink/ks02");
+            await AssertResponseWithLoggingAsync(HttpStatusCode.OK, getResponse);
+            var result = getResponse.DeserializeContent<Dictionary<string, JsonElement>>();
+            Assert.NotNull(result);
+            var enumValue = result["enumValue"];
+            Assert.Equal(JsonValueKind.String, enumValue.ValueKind);
+            Assert.Equal("Completed", enumValue.GetString());
         }
 
         [Theory, CombinatorialData]
