@@ -3,6 +3,8 @@ using Microsoft.Datasync.Client;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.SQLiteStore;
 using Microsoft.Datasync.Integration.Test.Helpers;
+using Microsoft.Extensions.Logging;
+using Moq;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -117,6 +119,33 @@ namespace Microsoft.Datasync.Integration.Test.KitchenSink
             // Make sure we have 50 values with IntValue > 0
             var entities = await offlineTable.Where(x => x.IntValue > 0).ToListAsync();
             Assert.Equal(50, entities.Count);
+        }
+
+        [Fact]
+        public async Task KS5_CanLogSqlStatements()
+        {
+            // Set up logger
+            var logger = new Mock<ILogger<OfflineSQLiteStore>>();
+            logger.Setup(x => x.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception?, string>>()));
+            store.Logger = logger.Object;
+
+            // On client 1
+            KitchenSinkDto client1dto = new() { StringValue = "This is a string" };
+            await remoteTable.InsertItemAsync(client1dto);
+            var remoteId = client1dto.Id;
+            Assert.NotEmpty(remoteId);
+
+            // On client 2
+            await InitializeAsync();
+            var pullQuery = offlineTable!.CreateQuery();
+            await offlineTable!.PullItemsAsync(pullQuery, new PullOptions());
+            var client2dto = await offlineTable.GetItemAsync(remoteId);
+            Assert.NotNull(client2dto);
+            Assert.Equal("This is a string", client2dto.StringValue);
+
+            // Check log statements here
+            Assert.True(logger.Invocations.Count > 0);
+
         }
     }
 }
