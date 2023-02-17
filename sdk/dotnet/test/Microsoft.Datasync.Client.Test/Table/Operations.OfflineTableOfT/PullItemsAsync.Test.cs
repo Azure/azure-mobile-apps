@@ -92,7 +92,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTableOfT
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<ClientMovie> { Items = new List<ClientMovie>() });
             store.GetOrCreateTable("movies");
 
-            await table.PullItemsAsync(table.CreateQuery(), new PullOptions());
+            await table.PullItemsAsync(table.CreateQuery(), new PullOptions() { AlwaysPullWithDeltaToken = true });
 
             // Items were pulled.
             var storedEntities = store.TableMap["movies"]?.Values.ToList() ?? new List<JObject>();
@@ -115,7 +115,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTableOfT
             store.GetOrCreateTable("movies");
 
             var query = table.Where(m => m.Rating == "PG-13");
-            await table.PullItemsAsync(query, new PullOptions());
+            await table.PullItemsAsync(query, new PullOptions() { AlwaysPullWithDeltaToken = true });
 
             // Items were pulled.
             var storedEntities = store.TableMap["movies"]?.Values.ToList() ?? new List<JObject>();
@@ -130,6 +130,29 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTableOfT
         }
 
         [Fact]
+        [Trait("method", "PullItemsAsync")]
+        public async Task PullItemsAsync_WithFilter_NoResponseORUpdatedAt_Works()
+        {
+            await table.ServiceClient.InitializeOfflineStoreAsync();
+            MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity> { Items = new List<IdEntity>() });
+            store.GetOrCreateTable("movies");
+
+            var query = table.Where(m => m.Rating == "PG-13");
+            await table.PullItemsAsync(query, new PullOptions());
+
+            // Items were pulled.
+            var storedEntities = store.TableMap["movies"]?.Values.ToList() ?? new List<JObject>();
+            Assert.Empty(storedEntities);
+
+            // Delta Token was not stored.
+            Assert.Empty(store.TableMap[SystemTables.Configuration]);
+
+            // Query was correct
+            Assert.Single(MockHandler.Requests);
+            Assert.Equal("/tables/movies?$filter=(rating eq 'PG-13')&$orderby=updatedAt&$count=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+        }
+
+        [Fact]
         [Trait("Method", "PullItemsAsync")]
         public async Task PullItemsAsync_ProducesCorrectQuery()
         {
@@ -137,7 +160,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTableOfT
             await table.ServiceClient.InitializeOfflineStoreAsync();
             var items = CreatePageOfMovies(10, lastUpdatedAt);
 
-            await table.PullItemsAsync(table.CreateQuery(), new PullOptions());
+            await table.PullItemsAsync(table.CreateQuery(), new PullOptions() { AlwaysPullWithDeltaToken = true });
 
             // Items were pulled.
             var storedEntities = store.TableMap["movies"].Values.ToList();
@@ -167,7 +190,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTableOfT
 
             // Query was correct
             Assert.Single(MockHandler.Requests);
-            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&$count=true&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+            Assert.Equal("/tables/movies?$orderby=updatedAt&$count=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
         }
 
         [Fact]
@@ -176,7 +199,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTableOfT
         {
             var lastUpdatedAt = DateTimeOffset.Parse("2021-03-24T12:50:44.000+00:00");
             await table.ServiceClient.InitializeOfflineStoreAsync();
-            var options = new PullOptions { QueryId = "abc123" };
+            var options = new PullOptions { AlwaysPullWithDeltaToken = true, QueryId = "abc123" };
             const string keyId = "dt.movies.abc123";
             var items = CreatePageOfMovies(10, lastUpdatedAt);
 
@@ -222,7 +245,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTableOfT
             var items = CreatePageOfMovies(10, lastUpdatedAt, 3);
             store.Upsert("movies", items); // store the 10 items in the store
 
-            await table.PullItemsAsync(table.CreateQuery(), new PullOptions());
+            await table.PullItemsAsync(table.CreateQuery(), new PullOptions() { AlwaysPullWithDeltaToken = true });
 
             // Items were pulled, and the deleted items were in fact deleted.
             var storedEntities = store.TableMap["movies"].Values.ToList();
@@ -301,7 +324,7 @@ namespace Microsoft.Datasync.Client.Test.Table.Operations.OfflineTableOfT
 
             var lastUpdatedAt = DateTimeOffset.Parse("2021-03-24T12:50:44.000+00:00");
             await table.ServiceClient.InitializeOfflineStoreAsync();
-            var options = new PullOptions { QueryId = "abc123" };
+            var options = new PullOptions { AlwaysPullWithDeltaToken = true, QueryId = "abc123" };
             const string keyId = "dt.movies.abc123";
             var items = CreatePageOfMovies(10, lastUpdatedAt);
 

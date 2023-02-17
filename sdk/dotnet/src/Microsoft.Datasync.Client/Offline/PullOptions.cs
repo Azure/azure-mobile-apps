@@ -9,6 +9,12 @@ namespace Microsoft.Datasync.Client.Offline
     public class PullOptions
     {
         /// <summary>
+        /// Internal testing - ensures that we always use a delta-token filter when
+        /// pulling data.
+        /// </summary>
+        internal bool AlwaysPullWithDeltaToken { get; set; } = false;
+
+        /// <summary>
         /// When a pull operation happens, the related push operation for this
         /// table is automatically done.  If you would like to push the entire
         /// operations queue, then set this to <c>true</c>.

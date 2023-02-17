@@ -317,16 +317,19 @@ namespace Microsoft.Datasync.Client.Offline
             }
 
             var deltaToken = await DeltaTokenStore.GetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
-            var deltaTokenFilter = new BinaryOperatorNode(BinaryOperatorKind.GreaterThan, new MemberAccessNode(null, SystemProperties.JsonUpdatedAtProperty), new ConstantNode(deltaToken));
-            queryDescription.Filter = queryDescription.Filter == null ? deltaTokenFilter : new BinaryOperatorNode(BinaryOperatorKind.And, queryDescription.Filter, deltaTokenFilter);
+            // Issue 601 - if the delta-token is 0L (in Unix ms), then it's a "new pull", so we don't need the "updatedAt" filter nor
+            // do we need the include deleted flag.
+            Dictionary<string, string> parameters = new();
+            if (options.AlwaysPullWithDeltaToken || deltaToken.ToUnixTimeMilliseconds() > 0L)
+            {
+                var deltaTokenFilter = new BinaryOperatorNode(BinaryOperatorKind.GreaterThan, new MemberAccessNode(null, SystemProperties.JsonUpdatedAtProperty), new ConstantNode(deltaToken));
+                queryDescription.Filter = queryDescription.Filter == null ? deltaTokenFilter : new BinaryOperatorNode(BinaryOperatorKind.And, queryDescription.Filter, deltaTokenFilter);
+                parameters.Add(ODataOptions.IncludeDeleted, "true");
+            }
             queryDescription.IncludeTotalCount = true;
             queryDescription.Ordering.Add(new OrderByNode(new MemberAccessNode(null, SystemProperties.JsonUpdatedAtProperty), true));
-            Dictionary<string, string> parameters = new()
-            {
-                { ODataOptions.IncludeDeleted, "true" }
-            };
-
             var odataString = queryDescription.ToODataString(parameters);
+
             SendPullStartedEvent(tableName);
             long itemCount = 0;
             long expectedItems = -1;
