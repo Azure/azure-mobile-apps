@@ -34,6 +34,13 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         public string Id { get; set; }
     }
 
+    public enum KitchenSinkDtoState
+    {
+        None,
+        Completed,
+        Failed
+    }
+
     [ExcludeFromCodeCoverage]
     public class KitchenSinkDto : DatasyncClientData
     {
@@ -58,6 +65,9 @@ namespace Microsoft.Datasync.Integration.Test.Helpers
         public DateTime? DateTimeValue { get; set; }
         public DateTimeOffset? DateTimeOffsetValue { get; set; }
         public Guid? GuidValue { get; set; }
+
+        // Enums
+        public KitchenSinkDtoState EnumValue { get; set; }
     }
 
     [ExcludeFromCodeCoverage]

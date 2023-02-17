@@ -6,6 +6,13 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Datasync.Common.Test.Models
 {
+    public enum KitchenSinkState
+    {
+        None,
+        Completed,
+        Failed
+    }
+
     /// <summary>
     /// A model used for validation tests.  It contains one of 
     /// every single supported type in a nullable form.
@@ -30,9 +37,13 @@ namespace Datasync.Common.Test.Models
         public char CharValue { get; set; }
         public string? StringValue { get; set; }
 
+        // Enums
+        public KitchenSinkState EnumValue { get; set; }
+
         // Complex types
         public DateTime? DateTimeValue { get; set; }
         public DateTimeOffset? DateTimeOffsetValue { get; set; }
         public Guid? GuidValue { get; set; }
+
     }
 }
