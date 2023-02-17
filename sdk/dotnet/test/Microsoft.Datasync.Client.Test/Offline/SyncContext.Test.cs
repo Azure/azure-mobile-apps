@@ -543,7 +543,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity> { Items = new List<IdEntity>() });
             store.GetOrCreateTable("movies");
 
-            await context.PullItemsAsync("movies", "", new PullOptions());
+            await context.PullItemsAsync("movies", "", new PullOptions() { AlwaysPullWithDeltaToken = true });
 
             // Items were pulled.
             var storedEntities = store.TableMap["movies"]?.Values.ToList() ?? new List<JObject>();
@@ -565,7 +565,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
             MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity> { Items = new List<IdEntity>() });
             store.GetOrCreateTable("movies");
 
-            await context.PullItemsAsync("movies", "$filter=(rating eq 'PG-13')", new PullOptions());
+            await context.PullItemsAsync("movies", "$filter=(rating eq 'PG-13')", new PullOptions() { AlwaysPullWithDeltaToken = true });
 
             // Items were pulled.
             var storedEntities = store.TableMap["movies"]?.Values.ToList() ?? new List<JObject>();
@@ -587,7 +587,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
             var context = await GetSyncContext();
             var items = CreatePageOfMovies(10, lastUpdatedAt);
 
-            await context.PullItemsAsync("movies", "", new PullOptions());
+            await context.PullItemsAsync("movies", "", new PullOptions() { AlwaysPullWithDeltaToken = true });
 
             // Items were pulled.
             var storedEntities = store.TableMap["movies"].Values.ToList();
@@ -618,7 +618,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             // Query was correct
             Assert.Single(MockHandler.Requests);
-            Assert.Equal("/tables/movies?$filter=(updatedAt gt cast(1970-01-01T00:00:00.000Z,Edm.DateTimeOffset))&$orderby=updatedAt&$count=true&__includedeleted=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
+            Assert.Equal("/tables/movies?$orderby=updatedAt&$count=true", Uri.UnescapeDataString(MockHandler.Requests[0].RequestUri.PathAndQuery));
 
             // Events were sent properly
             Assert.Equal(22, events.Count); // 2 for each event, plus start and finish.
@@ -649,7 +649,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
         {
             var lastUpdatedAt = DateTimeOffset.Parse("2021-03-24T12:50:44.000+00:00");
             var context = await GetSyncContext();
-            var options = new PullOptions { QueryId = "abc123" };
+            var options = new PullOptions { AlwaysPullWithDeltaToken = true, QueryId = "abc123" };
             const string keyId = "dt.movies.abc123";
             var items = CreatePageOfMovies(10, lastUpdatedAt);
 
@@ -697,7 +697,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
             var items = CreatePageOfMovies(10, lastUpdatedAt, 3);
             store.Upsert("movies", items); // store the 10 items in the store
 
-            await context.PullItemsAsync("movies", "", new PullOptions());
+            await context.PullItemsAsync("movies", "", new PullOptions() { AlwaysPullWithDeltaToken = true });
 
             // Items were pulled, and the deleted items were in fact deleted.
             var storedEntities = store.TableMap["movies"].Values.ToList();
@@ -776,7 +776,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             var lastUpdatedAt = DateTimeOffset.Parse("2021-03-24T12:50:44.000+00:00");
             var context = await GetSyncContext();
-            var options = new PullOptions { QueryId = "abc123" };
+            var options = new PullOptions { AlwaysPullWithDeltaToken = true, QueryId = "abc123" };
             const string keyId = "dt.movies.abc123";
             var items = CreatePageOfMovies(10, lastUpdatedAt);
 
