@@ -8,10 +8,12 @@ using Microsoft.Datasync.Client.SQLiteStore.Driver;
 using Microsoft.Datasync.Client.SQLiteStore.Utils;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -56,9 +58,32 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         }
 
         /// <summary>
+        /// Creates a new instance of <see cref="OfflineSQLiteStore"/> using the provided connection string.
+        /// </summary>
+        /// <remarks>
+        /// <para>If the connection string starts with <c>file:</c>, then it is considered to be a URI filename and
+        /// should be structured as such.  This allows the setting of any options (such as mode, cache, etc.)
+        /// if needed.</para>
+        /// <para>If the connection string does not start with file:, then it should be an absolute path (which starts
+        /// with a <c>/</c>).</para>
+        /// </remarks>
+        /// <see href="https://sqlite.org/c3ref/open.html"/>
+        /// <param name="connectionString">The connection string to use for persistent storage.</param>
+        /// <param name="logger">The logger to use for logging SQL requests.</param>
+        public OfflineSQLiteStore(string connectionString, ILogger logger) : this(connectionString)
+        {
+            Logger = logger;
+        }
+
+        /// <summary>
         /// The database connection.
         /// </summary>
         internal SqliteConnection DbConnection { get; }
+
+        /// <summary>
+        /// The logging service
+        /// </summary>
+        public ILogger Logger { get; set; }
 
         #region AbstractOfflineStore
         /// <summary>
@@ -73,6 +98,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
 
             if (!tableMap.ContainsKey(tableName))
             {
+                Logger?.LogDebug("Created table definition for table {tableName}", tableName);
                 tableMap.Add(tableName, new TableDefinition(tableName, tableDefinition));
             }
         }
@@ -395,11 +421,12 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// </summary>
         /// <param name="sqlStatement">The SQL statement to execute.</param>
         /// <param name="parameters">The parameters that are referenced in the SQL statement.</param>
-        protected void ExecuteNonQueryInternal(string sqlStatement, Dictionary<string, object> parameters = null)
+        protected void ExecuteNonQueryInternal(string sqlStatement, IDictionary<string, object> parameters = null)
         {
             Arguments.IsNotNullOrWhitespace(sqlStatement, nameof(sqlStatement));
-            parameters ??= new();
+            parameters ??= new Dictionary<string, object>();
 
+            LogSqlStatement(sqlStatement, parameters);
             using SqliteStatement stmt = DbConnection.PrepareStatement(sqlStatement);
             stmt.BindParameters(parameters);
             stmt.ExecuteNonQuery();
@@ -437,6 +464,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
             Arguments.IsNotNullOrWhitespace(sqlStatement, nameof(sqlStatement));
             parameters ??= new Dictionary<string, object>();
 
+            LogSqlStatement(sqlStatement, parameters);
             var rows = new List<JObject>();
             using var statement = DbConnection.PrepareStatement(sqlStatement);
             statement.BindParameters(parameters);
@@ -472,6 +500,23 @@ namespace Microsoft.Datasync.Client.SQLiteStore
                 return table;
             }
             throw new InvalidOperationException($"Table '{tableName}' is not defined.");
+        }
+
+        /// <summary>
+        /// Logs a SQL execution to the logging service.
+        /// </summary>
+        /// <param name="sqlStatement">The SQL Statement</param>
+        /// <param name="parameters">The List of parameters</param>
+        private void LogSqlStatement(string sqlStatement, IDictionary<string, object> parameters)
+        {
+            // Early return.
+            if (Logger == null) return;
+
+            Logger?.LogDebug("SQL STMT: {sqlStatement}", sqlStatement);
+            if (parameters.Count > 0)
+            {
+                Logger?.LogDebug("SQL PARAMS: {params}", string.Join(";", parameters.ToList().Select(x => $"{x.Key}={x.Value}")));
+            }
         }
 
         /// <summary>
