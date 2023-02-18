@@ -132,7 +132,10 @@ namespace Microsoft.Datasync.Client.Offline
                 // Clear the errors in the store.
                 var errorsEnumerable = new FuncAsyncPageable<TableOperationError>(nextLink => GetPageOfErrorsAsync("", nextLink, cancellationToken));
                 var errors = await errorsEnumerable.ToZumoListAsync(cancellationToken).ConfigureAwait(false);
-                //await RemoveErrorsAsync(errors, cancellationToken).ConfigureAwait(false);
+                if (errors.Any())
+                {
+                    await RemoveErrorsAsync(errors, cancellationToken).ConfigureAwait(false);
+                }
 
                 // We are now initialized.
                 IsInitialized = true;
