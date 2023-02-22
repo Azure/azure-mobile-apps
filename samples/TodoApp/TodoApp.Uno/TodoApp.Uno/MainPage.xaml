@@ -1,0 +1,56 @@
+<Page
+    x:Class="TodoApp.Uno.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:TodoApp.Uno"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	  xmlns:data="using:TodoApp.Data.Models"
+	  mc:Ignorable="d"    
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+	<!--<NavigationPage.TitleView>
+		<StackLayout Style="{StaticResource titleViewContainer}">
+			<Label Style="{StaticResource titleViewLabel}">TodoApp</Label>
+			<ImageButton Style="{StaticResource titleViewRefreshIcon}"
+						 Command="{Binding RefreshItemsCommand}" />
+		</StackLayout>
+	</NavigationPage.TitleView>-->
+
+	<Grid Background="Azure">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<!-- List of items -->
+		<ListView ItemsSource="{Binding Items}">
+			<!--ItemTapped="OnListItemTapped">-->
+			<ListView.ItemTemplate>
+				<DataTemplate x:DataType="data:TodoItem">
+						<Grid >
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+
+							<TextBlock Text="{Binding Title}" />
+						<Image Grid.Column="1" />
+						<!--IsVisible="{Binding IsComplete}"/>-->
+						</Grid>
+				</DataTemplate>
+			</ListView.ItemTemplate>
+		</ListView>
+
+		<!-- Entry box -->
+		<Grid Grid.Row="1" Grid.ColumnDefinitions="Auto,*">
+			<Image />
+			<!--Style="{StaticResource addItemIcon}" />-->
+			<TextBox x:Name="addItemEntry"
+					 Grid.Column="1"
+					 PlaceholderText="Enter Todo Item Text" />
+			<!--Command="{Binding AddItemCommand}"
+					   CommandParameter="{Binding Source={x:Reference addItemEntry}}" />-->
+		</Grid>
+	</Grid>
+</Page>
