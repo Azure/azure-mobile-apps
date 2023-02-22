@@ -24,7 +24,6 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         days-before-stale: 30
         days-before-close: 14
-        debug-only: true
         enable-statistics: true
         only-labels: 'blocked'
         remove-stale-when-updated: true
