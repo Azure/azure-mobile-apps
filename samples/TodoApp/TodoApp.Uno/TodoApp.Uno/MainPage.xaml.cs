@@ -1,91 +1,95 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using System.Diagnostics;
+using System;
 using System.Threading.Tasks;
-using TodoApp.Data.Models;
+using TodoApp.Data;
 using TodoApp.Data.MVVM;
 using TodoApp.Data.Services;
-using TodoApp.Data;
-using System.Windows.Input;
-using Windows.UI.Popups;
+using Windows.System;
 
-// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
 namespace TodoApp.Uno;
 
-/// <summary>
-/// An empty page that can be used on its own or navigated to within a Frame.
-/// </summary>
-public sealed partial class MainPage : Page, IMVVMHelper
-{
-    private readonly MainViewModel viewModel;
+public sealed partial class MainPage : Page, IMVVMHelper {
+    private readonly TodoListViewModel _viewModel;
+    private readonly ITodoService _service;
 
-    public ITodoService TodoService { get; }
+    public MainPage() {
+        this.InitializeComponent();
 
-    public MainPage()
-    {
-		this.InitializeComponent();
-        TodoService = new RemoteTodoService();
-        viewModel = new MainViewModel(this, TodoService);
-        DataContext = viewModel;
+        _service = new RemoteTodoService();
+        _viewModel = new TodoListViewModel(this, _service);
+        mainContainer.DataContext = _viewModel;
     }
 
-    protected override void OnNavigatedTo(NavigationEventArgs e)
-    {
-        base.OnNavigatedTo(e);
-        viewModel.OnActivated();
-    }
-
-    //public void OnListItemTapped(object sender, ItemTappedEventArgs e)
-    //{
-    //    if (e.Item is TodoItem item)
-    //    {
-    //        Debug.WriteLine($"[UI] >>> Item clicked: {item.Id}");
-    //        viewModel.SelectItemCommand.Execute(item);
-    //    }
-    //    if (sender is ListView itemList)
-    //    {
-    //        itemList.SelectedItem = null;
-    //    }
-    //}
 
     #region IMVVMHelper
-    public async Task RunOnUiThreadAsync(Action func)
-        => this.DispatcherQueue.TryEnqueue(()=>func());
-
-    public Task DisplayErrorAlertAsync(string title, string message)
-        => RunOnUiThreadAsync(async () =>
-        {
-            var dialog = new MessageDialog(title, message);
-            await dialog.ShowAsync();
-        });
-    #endregion
-}
-
-public class MainViewModel : TodoListViewModel
-{
-    public MainViewModel(IMVVMHelper helper, ITodoService service) : base(helper, service)
-    {
+    public Task RunOnUiThreadAsync(Action func) {
+        DispatcherQueue.TryEnqueue(() => func());
+        return Task.CompletedTask;
     }
 
-    //public ICommand AddItemCommand
-    //    => new Command<Entry>(async (Entry entry) => await AddItemAsync(entry.Text));
+    public async Task DisplayErrorAlertAsync(string title, string message) {
+        var dialog = new ContentDialog {
+            Title = title,
+            Content = message,
+            CloseButtonText = "OK"
+        };
+#if WINDOWS
+        dialog.XamlRoot = Content.XamlRoot;
+#endif
+        await dialog.ShowAsync();
+    }
+    #endregion
 
-    //public ICommand RefreshItemsCommand
-    //    => new Command(async () => await RefreshItemsAsync());
+    #region Event Handlers
 
-    //public ICommand SelectItemCommand
-    //    => new Command<TodoItem>(async (TodoItem item) => await UpdateItemAsync(item.Id, !item.IsComplete));
+    protected void GridLoadedEventHandler(object sender, RoutedEventArgs e) {
+        _viewModel.OnActivated();
+    }
+
+    protected void TextboxKeyDownHandler(object sender, KeyRoutedEventArgs e) {
+        if (e.Key == VirtualKey.Enter) {
+            AddItemToList();
+        }
+    }
+
+    /// <summary>
+    /// Event handler that is triggered when the Add Item button is clicked.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    protected void AddItemClickHandler(object sender, RoutedEventArgs e) {
+        AddItemToList();
+    }
+
+    private async void AddItemToList() {
+        await _viewModel.AddItemAsync(textboxControl.Text.Trim());
+        await RunOnUiThreadAsync(() => textboxControl.Text = String.Empty);
+    }
+
+    /// <summary>
+    /// Event handler that is triggered when the check box next to an item is clicked.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    protected async void CheckboxClickHandler(object sender, RoutedEventArgs e) {
+        if (sender is CheckBox cb) {
+            await _viewModel.UpdateItemAsync(cb.Tag as string, cb.IsChecked ?? false);
+        }
+    }
+
+    /// <summary>
+    /// Event handler that is triggered when the Refresh Items button is clicked.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    protected async void RefreshItemsClickHandler(object sender, RoutedEventArgs e) {
+        await _viewModel.RefreshItemsAsync();
+    }
+    #endregion
+
+
 }
