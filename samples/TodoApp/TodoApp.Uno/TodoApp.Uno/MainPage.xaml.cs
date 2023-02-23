@@ -46,11 +46,11 @@ public sealed partial class MainPage : Page, IMVVMHelper {
 
     #region Event Handlers
 
-    protected void GridLoadedEventHandler(object sender, RoutedEventArgs e) {
+    private void GridLoadedEventHandler(object sender, RoutedEventArgs e) {
         _viewModel.OnActivated();
     }
 
-    protected void TextboxKeyDownHandler(object sender, KeyRoutedEventArgs e) {
+    private void TextboxKeyDownHandler(object sender, KeyRoutedEventArgs e) {
         if (e.Key == VirtualKey.Enter) {
             AddItemToList();
         }
@@ -61,7 +61,7 @@ public sealed partial class MainPage : Page, IMVVMHelper {
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    protected void AddItemClickHandler(object sender, RoutedEventArgs e) {
+    private void AddItemClickHandler(object sender, RoutedEventArgs e) {
         AddItemToList();
     }
 
@@ -75,7 +75,7 @@ public sealed partial class MainPage : Page, IMVVMHelper {
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    protected async void CheckboxClickHandler(object sender, RoutedEventArgs e) {
+    private async void CheckboxClickHandler(object sender, RoutedEventArgs e) {
         if (sender is CheckBox cb) {
             await _viewModel.UpdateItemAsync(cb.Tag as string, cb.IsChecked ?? false);
         }
@@ -86,7 +86,7 @@ public sealed partial class MainPage : Page, IMVVMHelper {
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    protected async void RefreshItemsClickHandler(object sender, RoutedEventArgs e) {
+    private async void RefreshItemsClickHandler(object sender, RoutedEventArgs e) {
         await _viewModel.RefreshItemsAsync();
     }
     #endregion
