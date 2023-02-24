@@ -26,6 +26,20 @@ namespace Microsoft.Datasync.Client.Test.Query
         }
 
         [Fact]
+        public void Linq_DerivedTest()
+        {
+            var client = GetMockClient();
+            var table = client.GetRemoteTable<DerivedTestDatasyncEntity>("derived");
+            var queryString = GetDerivedQuery(table);
+            Assert.Equal("$filter=deleted", queryString);
+        }
+
+        public static string GetDerivedQuery<T>(IRemoteTable<T> table) where T : IDatasyncEntity
+        {
+            return table.Where(x => x.Deleted).ToODataString();
+        }
+
+        [Fact]
         public void Linq_EndsWith_NoStringComparison()
         {
             ExecuteWhereQuery(

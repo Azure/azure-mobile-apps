@@ -88,10 +88,18 @@ namespace Microsoft.Datasync.Client.Query.Linq
             Arguments.IsNotNull(expression, nameof(expression));
             Arguments.IsNotNull(contractResolver, nameof(contractResolver));
 
-            if (expression is MemberExpression member && member.Expression.NodeType == ExpressionType.Parameter)
+            if (expression is MemberExpression member)
             {
-                JsonProperty property = contractResolver.ResolveProperty(member.Member);
-                return property.PropertyName;
+                if (member.Expression.NodeType == ExpressionType.Parameter)
+                {
+                    JsonProperty property = contractResolver.ResolveProperty(member.Member);
+                    return property.PropertyName;
+                }
+                if (member.Expression.NodeType == ExpressionType.Convert && member.Member.MemberType == MemberTypes.Property)
+                {
+                    JsonProperty property = contractResolver.ResolveProperty(member.Member);
+                    return property.PropertyName;
+                }
             }
             return null;
         }

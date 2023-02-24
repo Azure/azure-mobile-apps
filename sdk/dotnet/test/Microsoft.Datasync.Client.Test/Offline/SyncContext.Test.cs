@@ -12,7 +12,6 @@ using Microsoft.Datasync.Client.Test.Helpers;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NuGet.Frameworks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -880,6 +879,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
             Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.Empty(store.TableMap[SystemTables.Configuration]);
             Assert.Empty(store.TableMap[tableName]);
+            Assert.Equal(0, context.PendingOperations);
         }
 
         [Fact]
@@ -896,6 +896,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
             Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.Empty(store.TableMap[SystemTables.Configuration]);
             Assert.Empty(store.TableMap[tableName]);
+            Assert.Equal(0, context.PendingOperations);
         }
 
         [Fact]
@@ -912,6 +913,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
             Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.Empty(store.TableMap[SystemTables.Configuration]);
             Assert.Empty(store.TableMap[tableName]);
+            Assert.Equal(0, context.PendingOperations);
         }
 
         [Fact]
@@ -928,6 +930,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
             Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.Empty(store.TableMap[SystemTables.Configuration]);
             Assert.Empty(store.TableMap[tableName]);
+            Assert.Equal(0, context.PendingOperations);
         }
 
         [Fact]
@@ -942,11 +945,14 @@ namespace Microsoft.Datasync.Client.Test.Offline
             const string query = "";
             var options = new PurgeOptions();
 
+            Assert.Equal(store.TableMap[SystemTables.OperationsQueue].Count, context.PendingOperations);
+
             await Assert.ThrowsAsync<InvalidOperationException>(() => context.PurgeItemsAsync(tableName, query, options));
 
             Assert.NotEmpty(store.TableMap["test"]);
             Assert.NotEmpty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.NotEmpty(store.TableMap[SystemTables.Configuration]["dt.test.abc123"]);
+            Assert.Equal(store.TableMap[SystemTables.OperationsQueue].Count, context.PendingOperations);
         }
 
         [Fact]
@@ -961,11 +967,14 @@ namespace Microsoft.Datasync.Client.Test.Offline
             const string query = "";
             var options = new PurgeOptions() { DiscardPendingOperations = true };
 
+            Assert.Equal(store.TableMap[SystemTables.OperationsQueue].Count, context.PendingOperations);
+
             await context.PurgeItemsAsync(tableName, query, options);
 
             Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.NotEmpty(store.TableMap[SystemTables.Configuration]["dt.test.abc123"]);
             Assert.Empty(store.TableMap[tableName]);
+            Assert.Equal(0, context.PendingOperations);
         }
 
         [Fact]
@@ -980,11 +989,14 @@ namespace Microsoft.Datasync.Client.Test.Offline
             const string query = "";
             var options = new PurgeOptions() { DiscardPendingOperations = true, QueryId = "abc123" };
 
+            Assert.Equal(store.TableMap[SystemTables.OperationsQueue].Count, context.PendingOperations);
+
             await context.PurgeItemsAsync(tableName, query, options);
 
             Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.Empty(store.TableMap[SystemTables.Configuration]);
             Assert.Empty(store.TableMap[tableName]);
+            Assert.Equal(0, context.PendingOperations);
         }
 
         [Fact]
@@ -999,11 +1011,14 @@ namespace Microsoft.Datasync.Client.Test.Offline
             const string query = "";
             var options = new PurgeOptions() { DiscardPendingOperations = false };
 
+            Assert.Equal(store.TableMap[SystemTables.OperationsQueue].Count, context.PendingOperations);
+
             await Assert.ThrowsAsync<InvalidOperationException>(() => context.PurgeItemsAsync(tableName, query, options));
 
             Assert.NotEmpty(store.TableMap["test"]);
             Assert.NotEmpty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.NotEmpty(store.TableMap[SystemTables.Configuration]["dt.test.abc123"]);
+            Assert.Equal(store.TableMap[SystemTables.OperationsQueue].Count, context.PendingOperations);
         }
 
         [Fact]
@@ -1018,11 +1033,34 @@ namespace Microsoft.Datasync.Client.Test.Offline
             const string query = "";
             var options = new PurgeOptions() { DiscardPendingOperations = false, QueryId = "abc123" };
 
+            Assert.Equal(store.TableMap[SystemTables.OperationsQueue].Count, context.PendingOperations);
+
             await Assert.ThrowsAsync<InvalidOperationException>(() => context.PurgeItemsAsync(tableName, query, options));
 
             Assert.NotEmpty(store.TableMap["test"]);
             Assert.NotEmpty(store.TableMap[SystemTables.OperationsQueue]);
             Assert.NotEmpty(store.TableMap[SystemTables.Configuration]["dt.test.abc123"]);
+            Assert.Equal(store.TableMap[SystemTables.OperationsQueue].Count, context.PendingOperations);
+        }
+
+        [Fact]
+        [Trait("Method", "PurgeItemsAsync")]
+        public async Task PurgeItems_WithSearch_WithRecords()
+        {
+            AddRandomOperations("test", 10);
+            AddRandomRecords("test", 10);
+            SetDeltaToken("test", "abc123");
+            var context = await GetSyncContext();
+            const string tableName = "test";
+            const string query = "deleted eq false";
+            var options = new PurgeOptions() { DiscardPendingOperations = true };
+
+            await context.PurgeItemsAsync(tableName, query, options);
+
+            Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
+            Assert.NotEmpty(store.TableMap[SystemTables.Configuration]);
+            Assert.Empty(store.TableMap[tableName]);
+            Assert.Equal(0, context.PendingOperations);
         }
         #endregion
 
