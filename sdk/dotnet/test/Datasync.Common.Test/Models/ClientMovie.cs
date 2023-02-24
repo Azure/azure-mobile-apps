@@ -11,8 +11,14 @@ using System.Text.Json.Serialization;
 
 namespace Datasync.Common.Test.Models
 {
+    public interface ISystemData
+    {
+        string Id { get; set; }
+        bool Deleted { get; set; }
+    }
+
     [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class ClientMovie : DatasyncClientData, IMovie, IEquatable<IMovie>
+    public class ClientMovie : DatasyncClientData, ISystemData, IMovie, IEquatable<IMovie>
     {
         /// <summary>
         /// True if the movie won the oscar for Best Picture

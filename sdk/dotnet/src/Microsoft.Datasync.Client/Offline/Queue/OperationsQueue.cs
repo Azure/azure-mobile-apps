@@ -133,6 +133,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
                     throw new InvalidOperationException("To delete an operation in the operations queue by query, ensure the operations queue is the target.");
                 }
                 await OfflineStore.DeleteAsync(query, cancellationToken).ConfigureAwait(false);
+                await UpdatePendingOperationsAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -236,8 +237,21 @@ namespace Microsoft.Datasync.Client.Offline.Queue
                 pendingOperations = page.Count ?? 0;
                 sequenceId = page.Items?.Select(v => v.Value<long>("sequence")).FirstOrDefault() ?? 0;
 
+
                 IsInitialized = true;
             }
+        }
+
+        /// <summary>
+        /// Updates the pendingOperations field securely.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the operation is complete.</returns>
+        private async Task UpdatePendingOperationsAsync(CancellationToken cancellationToken = default)
+        {
+            var query = new QueryDescription(SystemTables.OperationsQueue) { IncludeTotalCount = true, Top = 1 };
+            Page<JObject> page = await OfflineStore.GetPageAsync(query, cancellationToken).ConfigureAwait(false);
+            Interlocked.Exchange(ref pendingOperations, page.Count ?? 0);
         }
 
         /// <summary>

@@ -42,4 +42,25 @@ namespace Microsoft.Datasync.Client.Test.Helpers
     {
         public int Id { get; set; }
     }
+
+    public interface IDatasyncEntity
+    {
+        string Id { get; set; }
+        bool Deleted { get; set; }
+        DateTimeOffset? UpdatedAt { get; set; }
+        string Version { get; set; }
+    }
+
+    public class TestDatasyncEntity : IDatasyncEntity
+    {
+        public string Id { get; set; }
+        public bool Deleted { get; set; }
+        public DateTimeOffset? UpdatedAt { get; set; }
+        public string Version { get; set; }
+    }
+
+    public class DerivedTestDatasyncEntity : TestDatasyncEntity
+    {
+        public string StringValue { get; set; }
+    }
 }
