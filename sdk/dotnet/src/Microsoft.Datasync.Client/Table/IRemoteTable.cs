@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 namespace Microsoft.Datasync.Client
 {
     /// <summary>
-    /// Definition of the operations that can be done against a remote table
-    /// with untyped (JSON) object.
+    /// Definition of the operations that can be done against a remote table with untyped (JSON) objects.  This
+    /// covers the read portion of the API.  Write operations are covered separately.
     /// </summary>
-    public interface IRemoteTable
+    public interface IReadOnlyRemoteTable
     {
         /// <summary>
         /// The service client being used for communication.
@@ -35,14 +35,6 @@ namespace Microsoft.Datasync.Client
         Task<long> CountItemsAsync(string query, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Deletes an item from the remote table.
-        /// </summary>
-        /// <param name="instance">The instance to delete from the table.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that returns the response when complete.</returns>
-        Task<JToken> DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Execute a query against a remote table.
         /// </summary>
         /// <param name="query">The query to execute.</param>
@@ -56,6 +48,21 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the item when complete.</returns>
         Task<JToken> GetItemAsync(string id, CancellationToken cancellationToken = default);
+    }
+
+    /// <summary>
+    /// Definition of the operations that can be done against a remote table
+    /// with untyped (JSON) object.
+    /// </summary>
+    public interface IRemoteTable : IReadOnlyRemoteTable
+    {
+        /// <summary>
+        /// Deletes an item from the remote table.
+        /// </summary>
+        /// <param name="instance">The instance to delete from the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the response when complete.</returns>
+        Task<JToken> DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Inserts an item into the remote table.
@@ -85,7 +92,11 @@ namespace Microsoft.Datasync.Client
         Task<JToken> UndeleteItemAsync(JObject instance, CancellationToken cancellationToken = default);
     }
 
-    public interface IRemoteTable<T> : IRemoteTable, ILinqMethods<T>
+    /// <summary>
+    /// Typed read-only interface for a remote table.
+    /// </summary>
+    /// <typeparam name="T">The type of the entities that the table contains</typeparam>
+    public interface IReadOnlyRemoteTable<T> : IReadOnlyRemoteTable, ILinqMethods<T>
     {
         /// <summary>
         /// Creates a blank query for the current table.
@@ -101,14 +112,6 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the number of items that will be in the result set when the query finishes.</returns>
         Task<long> CountItemsAsync(ITableQuery<T> query, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Deletes an item from the remote table.
-        /// </summary>
-        /// <param name="instance">The instance to delete from the table.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that returns when the operation complete.</returns>
-        Task DeleteItemAsync(T instance, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns all instances from the table as an <see cref="IAsyncEnumerable{T}"/>.
@@ -141,20 +144,36 @@ namespace Microsoft.Datasync.Client
         new Task<T> GetItemAsync(string id, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Inserts the instance in the remote table.
-        /// </summary>
-        /// <param name="instance">The instance to insert.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that returns when the operation is complete.</returns>
-        Task InsertItemAsync(T instance, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Refreshes the current instance with the latest values from the table.
         /// </summary>
         /// <param name="instance">The instance to refresh.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns when the operation is complete.</returns>
         Task RefreshItemAsync(T instance, CancellationToken cancellationToken = default);
+    }
+
+    /// <summary>
+    /// Typed version of the remote table interface, which provides operations for working with
+    /// remote tables using a generic type.
+    /// </summary>
+    /// <typeparam name="T">The type of the entity contained in the table.</typeparam>
+    public interface IRemoteTable<T> : IRemoteTable, IReadOnlyRemoteTable<T>
+    {
+        /// <summary>
+        /// Deletes an item from the remote table.
+        /// </summary>
+        /// <param name="instance">The instance to delete from the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns when the operation complete.</returns>
+        Task DeleteItemAsync(T instance, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Inserts the instance in the remote table.
+        /// </summary>
+        /// <param name="instance">The instance to insert.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns when the operation is complete.</returns>
+        Task InsertItemAsync(T instance, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Replaces the current instance with the provided instance in the remote table.
