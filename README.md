@@ -38,6 +38,8 @@ Released and supported versions of the library will be distributed by the normal
 | [Microsoft.AspNetCore.Datasync.EFCore] | ![EFCore Library Version][v3] | ![EFCore Library Downloads][d3] |
 | [Microsoft.AspNetCore.Datasync.InMemory] | ![InMemory Library Version][v4] | ![InMemory Library Downloads][d4] |
 | [Microsoft.AspNetCore.Datasync.LiteDb] | ![LiteDb Library Version][v5] | ![LiteDb Library Downloads][d5] |
+| [Microsoft.AspNetCore.Datasync.NSwag] | ![NSwag Library Version][v6] | ![LiteDb Library Downloads][d6] |
+| [Microsoft.AspNetCore.Datasync.Swashbuckle] | ![Swashbuckle Library Version][v7] | ![LiteDb Library Downloads][d7] |
 | [Microsoft.Datasync.Client] | ![Client Library Version][vc1] | ![Client Library Downloads][dc1] |
 | [Microsoft.Datasync.Client.SQLiteStore] | ![SQLiteStore Library Version][vc2] | ![SQLiteStore Library Downloads][dc2] |
 
@@ -81,6 +83,8 @@ This project may contain trademarks or logos for projects, products, or services
 [Microsoft.AspNetCore.Datasync.EFCore]: https://www.nuget.org/packages/Microsoft.AspNetCore.Datasync.EFCore
 [Microsoft.AspNetCore.Datasync.InMemory]: https://www.nuget.org/packages/Microsoft.AspNetCore.Datasync.InMemory
 [Microsoft.AspNetCore.Datasync.LiteDb]: https://www.nuget.org/packages/Microsoft.AspNetCore.Datasync.LiteDb
+[Microsoft.AspNetCore.Datasync.NSwag]: https://www.nuget.org/packages/Microsoft.AspNetCore.Datasync.NSwag
+[Microsoft.AspNetCore.Datasync.Swashbuckle]: https://www.nuget.org/packages/Microsoft.AspNetCore.Datasync.Swashbuckle
 [Microsoft.Datasync.Client]: https://www.nuget.org/packages/Microsoft.Datasync.Client
 [Microsoft.Datasync.Client.SQLiteStore]: https://www.nuget.org/packages/Microsoft.Datasync.Client.SQLiteStore
 
@@ -90,6 +94,8 @@ This project may contain trademarks or logos for projects, products, or services
 [v3]: https://badgen.net/nuget/v/Microsoft.AspNetCore.Datasync.EFCore
 [v4]: https://badgen.net/nuget/v/Microsoft.AspNetCore.Datasync.InMemory
 [v5]: https://badgen.net/nuget/v/Microsoft.AspNetCore.Datasync.LiteDb
+[v6]: https://badgen.net/nuget/v/Microsoft.AspNetCore.Datasync.NSwag
+[v7]: https://badgen.net/nuget/v/Microsoft.AspNetCore.Datasync.Swashbuckle
 [vc1]: https://badgen.net/nuget/v/Microsoft.Datasync.Client
 [vc2]: https://badgen.net/nuget/v/Microsoft.Datasync.Client.SQLiteStore
 
@@ -98,5 +104,7 @@ This project may contain trademarks or logos for projects, products, or services
 [d3]: https://badgen.net/nuget/dt/Microsoft.AspNetCore.Datasync.EFCore
 [d4]: https://badgen.net/nuget/dt/Microsoft.AspNetCore.Datasync.InMemory
 [d5]: https://badgen.net/nuget/dt/Microsoft.AspNetCore.Datasync.LiteDb
+[d6]: https://badgen.net/nuget/dt/Microsoft.AspNetCore.Datasync.NSwag
+[d7]: https://badgen.net/nuget/dt/Microsoft.AspNetCore.Datasync.Swashbuckle
 [dc1]: https://badgen.net/nuget/dt/Microsoft.Datasync.Client
 [dc2]: https://badgen.net/nuget/dt/Microsoft.Datasync.Client.SQLiteStore
