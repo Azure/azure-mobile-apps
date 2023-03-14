@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Datasync
         /// <summary>
         /// The assembly to query for TableController instances, if any.  If none is provided, the calling assembly is queried.
         /// </summary>
-        private Assembly assemblyToQuery = null;
+        private readonly Assembly assemblyToQuery = null;
 
         /// <summary>
         /// Creates a new <see cref="DatasyncDocumentFilter"/>.
@@ -184,7 +184,7 @@ namespace Microsoft.AspNetCore.Datasync
         /// <param name="description">The <see cref="ApiDescription"/> being handled.</param>
         /// <param name="controllerType">The type of the controller being used.</param>
         /// <returns><c>true</c> if the Api description represents the controller.</returns>
-        internal bool IsApiDescriptionForController(ApiDescription description, Type controllerType)
+        internal static bool IsApiDescriptionForController(ApiDescription description, Type controllerType)
         {
             if (description.TryGetMethodInfo(out MethodInfo methodInfo))
             {
