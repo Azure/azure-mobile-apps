@@ -39,4 +39,6 @@
     <ProjectReference Include="..\Datasync.Common.Test\Datasync.Common.Test.csproj" />
   </ItemGroup>
 
+  <ProjectExtensions><VisualStudio><UserProperties swagger_1json__JsonSchema="openapi" /></VisualStudio></ProjectExtensions>
+
 </Project>

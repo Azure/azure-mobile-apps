@@ -23,6 +23,11 @@ namespace Microsoft.AspNetCore.Datasync.NSwag.Test.Service
         public DbSet<KitchenSink> KitchenSinks => Set<KitchenSink>();
 
         /// <summary>
+        /// The set of TodoItem values
+        /// </summary>
+        public DbSet<TodoItem> TodoItems => Set<TodoItem>();
+
+        /// <summary>
         /// Initializes the current database
         /// </summary>
         public void InitializeDatabase()

@@ -21,6 +21,11 @@ namespace Microsoft.AspNetCore.Datasync.Swashbuckle.Test.Service
         /// The set of kitchen sink values
         /// </summary>
         public DbSet<KitchenSink> KitchenSinks => Set<KitchenSink>();
+        
+        /// <summary>
+        /// The set of TodoItem values
+        /// </summary>
+        public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 
         /// <summary>
         /// Initializes the current database
