@@ -10,13 +10,13 @@ namespace Microsoft.AspNetCore.Datasync.Swashbuckle.Test
 {
     public class SwaggerGen_Tests
     {
-        private TestServer server = SwaggerServer.CreateTestServer();
+        private readonly TestServer server = SwaggerServer.CreateTestServer();
 
         private static string ReadExternalFile(string filename)
         {
             Assembly asm = Assembly.GetExecutingAssembly();
             using Stream s = asm.GetManifestResourceStream(asm.GetName().Name + "." + filename)!;
-            using StreamReader sr = new StreamReader(s);
+            using StreamReader sr = new(s);
             return sr.ReadToEnd();
         }
 
@@ -25,9 +25,12 @@ namespace Microsoft.AspNetCore.Datasync.Swashbuckle.Test
         {
             Assert.NotNull(server);
 
-            var controllers = DatasyncDocumentFilter.GetAllTableControllers();
-            Assert.Single(controllers);
-            Assert.Equal("KitchenSinkController", controllers.First().Name);
+            var controllers = DatasyncDocumentFilter.GetAllTableControllers().Select(m => m.Name).ToList();
+
+            // There should be two controllers
+            Assert.Equal(2, controllers.Count);
+            Assert.Contains("KitchenSinkController", controllers);
+            Assert.Contains("TodoItemController", controllers);
         }
 
         [Fact]

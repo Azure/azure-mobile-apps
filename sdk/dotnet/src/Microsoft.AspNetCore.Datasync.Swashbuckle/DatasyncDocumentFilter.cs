@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
@@ -68,11 +69,11 @@ namespace Microsoft.AspNetCore.Datasync
                 if (entityType == null)
                     continue;
 
-                var routeAttribute = controller.GetCustomAttribute<RouteAttribute>();
-                if (routeAttribute == null)
+                var routePath = context.ApiDescriptions.FirstOrDefault(m => IsApiDescriptionForController(m, controller))?.RelativePath;
+                if (routePath == null)
                     continue;
-                var allEntitiesPath = $"/{routeAttribute.Template}";
-                var singleEntityPath = $"/{routeAttribute.Template}/{{id}}";
+                var allEntitiesPath = $"/{routePath}";
+                var singleEntityPath = $"/{routePath}/{{id}}";
 
                 // Get the various operations
                 Dictionary<OpType, OpenApiOperation> operations = new()
@@ -175,6 +176,21 @@ namespace Microsoft.AspNetCore.Datasync
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Determines if the controller type is represented by the API Description.
+        /// </summary>
+        /// <param name="description">The <see cref="ApiDescription"/> being handled.</param>
+        /// <param name="controllerType">The type of the controller being used.</param>
+        /// <returns><c>true</c> if the Api description represents the controller.</returns>
+        internal bool IsApiDescriptionForController(ApiDescription description, Type controllerType)
+        {
+            if (description.TryGetMethodInfo(out MethodInfo methodInfo))
+            {
+                return methodInfo.ReflectedType == controllerType && (methodInfo.Name.Equals("GetAsync") || methodInfo.Name.Equals("CreateAsync"));
+            }
+            return false;
         }
         
         /// <summary>

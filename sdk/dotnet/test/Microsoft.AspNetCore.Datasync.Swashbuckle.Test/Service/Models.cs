@@ -5,10 +5,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Datasync.Swashbuckle.Test.Service
 {
-    /// <summary>
-    /// A model used for validation tests.  It contains one of 
-    /// every single supported type in a nullable form.
-    /// </summary>
+    [ExcludeFromCodeCoverage]
+    public class TodoItem : EntityTableData
+    {
+        public string? Title { get; set; }
+    }
+
     [ExcludeFromCodeCoverage]
     public class KitchenSink : EntityTableData
     {
