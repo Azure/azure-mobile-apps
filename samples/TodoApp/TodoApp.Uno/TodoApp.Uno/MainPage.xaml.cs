@@ -76,7 +76,7 @@ public sealed partial class MainPage : Page, IMVVMHelper {
     /// <param name="sender"></param>
     /// <param name="e"></param>
     private async void CheckboxClickHandler(object sender, RoutedEventArgs e) {
-        if (sender is CheckBox cb) {
+        if (sender is Microsoft.UI.Xaml.Controls.CheckBox cb) {
             await _viewModel.UpdateItemAsync(cb.Tag as string, cb.IsChecked ?? false);
         }
     }

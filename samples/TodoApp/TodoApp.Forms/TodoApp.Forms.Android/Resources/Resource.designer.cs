@@ -14,7 +14,7 @@ namespace TodoApp.Forms.Droid
 {
 	
 	
-	[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Xamarin.Android.Build.Tasks", "12.2.0.155")]
+	[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Xamarin.Android.Build.Tasks", "13.2.0.93")]
 	public partial class Resource
 	{
 		
@@ -33,9 +33,13 @@ namespace TodoApp.Forms.Droid
 			global::Microsoft.Datasync.Client.Resource.Attribute.fontProviderFetchTimeout = global::TodoApp.Forms.Droid.Resource.Attribute.fontProviderFetchTimeout;
 			global::Microsoft.Datasync.Client.Resource.Attribute.fontProviderPackage = global::TodoApp.Forms.Droid.Resource.Attribute.fontProviderPackage;
 			global::Microsoft.Datasync.Client.Resource.Attribute.fontProviderQuery = global::TodoApp.Forms.Droid.Resource.Attribute.fontProviderQuery;
+			global::Microsoft.Datasync.Client.Resource.Attribute.fontProviderSystemFontFamily = global::TodoApp.Forms.Droid.Resource.Attribute.fontProviderSystemFontFamily;
 			global::Microsoft.Datasync.Client.Resource.Attribute.fontStyle = global::TodoApp.Forms.Droid.Resource.Attribute.fontStyle;
 			global::Microsoft.Datasync.Client.Resource.Attribute.fontVariationSettings = global::TodoApp.Forms.Droid.Resource.Attribute.fontVariationSettings;
 			global::Microsoft.Datasync.Client.Resource.Attribute.fontWeight = global::TodoApp.Forms.Droid.Resource.Attribute.fontWeight;
+			global::Microsoft.Datasync.Client.Resource.Attribute.nestedScrollViewStyle = global::TodoApp.Forms.Droid.Resource.Attribute.nestedScrollViewStyle;
+			global::Microsoft.Datasync.Client.Resource.Attribute.queryPatterns = global::TodoApp.Forms.Droid.Resource.Attribute.queryPatterns;
+			global::Microsoft.Datasync.Client.Resource.Attribute.shortcutMatchRequired = global::TodoApp.Forms.Droid.Resource.Attribute.shortcutMatchRequired;
 			global::Microsoft.Datasync.Client.Resource.Attribute.ttcIndex = global::TodoApp.Forms.Droid.Resource.Attribute.ttcIndex;
 			global::Microsoft.Datasync.Client.Resource.Color.androidx_core_ripple_material_light = global::TodoApp.Forms.Droid.Resource.Color.androidx_core_ripple_material_light;
 			global::Microsoft.Datasync.Client.Resource.Color.androidx_core_secondary_text_default_material_light = global::TodoApp.Forms.Droid.Resource.Color.androidx_core_secondary_text_default_material_light;
@@ -145,10 +149,15 @@ namespace TodoApp.Forms.Droid
 			global::Microsoft.Datasync.Client.Resource.Id.tag_accessibility_clickable_spans = global::TodoApp.Forms.Droid.Resource.Id.tag_accessibility_clickable_spans;
 			global::Microsoft.Datasync.Client.Resource.Id.tag_accessibility_heading = global::TodoApp.Forms.Droid.Resource.Id.tag_accessibility_heading;
 			global::Microsoft.Datasync.Client.Resource.Id.tag_accessibility_pane_title = global::TodoApp.Forms.Droid.Resource.Id.tag_accessibility_pane_title;
+			global::Microsoft.Datasync.Client.Resource.Id.tag_on_apply_window_listener = global::TodoApp.Forms.Droid.Resource.Id.tag_on_apply_window_listener;
+			global::Microsoft.Datasync.Client.Resource.Id.tag_on_receive_content_listener = global::TodoApp.Forms.Droid.Resource.Id.tag_on_receive_content_listener;
+			global::Microsoft.Datasync.Client.Resource.Id.tag_on_receive_content_mime_types = global::TodoApp.Forms.Droid.Resource.Id.tag_on_receive_content_mime_types;
 			global::Microsoft.Datasync.Client.Resource.Id.tag_screen_reader_focusable = global::TodoApp.Forms.Droid.Resource.Id.tag_screen_reader_focusable;
+			global::Microsoft.Datasync.Client.Resource.Id.tag_state_description = global::TodoApp.Forms.Droid.Resource.Id.tag_state_description;
 			global::Microsoft.Datasync.Client.Resource.Id.tag_transition_group = global::TodoApp.Forms.Droid.Resource.Id.tag_transition_group;
 			global::Microsoft.Datasync.Client.Resource.Id.tag_unhandled_key_event_manager = global::TodoApp.Forms.Droid.Resource.Id.tag_unhandled_key_event_manager;
 			global::Microsoft.Datasync.Client.Resource.Id.tag_unhandled_key_listeners = global::TodoApp.Forms.Droid.Resource.Id.tag_unhandled_key_listeners;
+			global::Microsoft.Datasync.Client.Resource.Id.tag_window_insets_animation_callback = global::TodoApp.Forms.Droid.Resource.Id.tag_window_insets_animation_callback;
 			global::Microsoft.Datasync.Client.Resource.Id.text = global::TodoApp.Forms.Droid.Resource.Id.text;
 			global::Microsoft.Datasync.Client.Resource.Id.text2 = global::TodoApp.Forms.Droid.Resource.Id.text2;
 			global::Microsoft.Datasync.Client.Resource.Id.time = global::TodoApp.Forms.Droid.Resource.Id.time;
@@ -176,6 +185,9 @@ namespace TodoApp.Forms.Droid
 			global::Microsoft.Datasync.Client.Resource.Style.TextAppearance_Compat_Notification_Title = global::TodoApp.Forms.Droid.Resource.Style.TextAppearance_Compat_Notification_Title;
 			global::Microsoft.Datasync.Client.Resource.Style.Widget_Compat_NotificationActionContainer = global::TodoApp.Forms.Droid.Resource.Style.Widget_Compat_NotificationActionContainer;
 			global::Microsoft.Datasync.Client.Resource.Style.Widget_Compat_NotificationActionText = global::TodoApp.Forms.Droid.Resource.Style.Widget_Compat_NotificationActionText;
+			global::Microsoft.Datasync.Client.Resource.Styleable.Capability = global::TodoApp.Forms.Droid.Resource.Styleable.Capability;
+			global::Microsoft.Datasync.Client.Resource.Styleable.Capability_queryPatterns = global::TodoApp.Forms.Droid.Resource.Styleable.Capability_queryPatterns;
+			global::Microsoft.Datasync.Client.Resource.Styleable.Capability_shortcutMatchRequired = global::TodoApp.Forms.Droid.Resource.Styleable.Capability_shortcutMatchRequired;
 			global::Microsoft.Datasync.Client.Resource.Styleable.ColorStateListItem = global::TodoApp.Forms.Droid.Resource.Styleable.ColorStateListItem;
 			global::Microsoft.Datasync.Client.Resource.Styleable.ColorStateListItem_alpha = global::TodoApp.Forms.Droid.Resource.Styleable.ColorStateListItem_alpha;
 			global::Microsoft.Datasync.Client.Resource.Styleable.ColorStateListItem_android_alpha = global::TodoApp.Forms.Droid.Resource.Styleable.ColorStateListItem_android_alpha;
@@ -198,6 +210,7 @@ namespace TodoApp.Forms.Droid
 			global::Microsoft.Datasync.Client.Resource.Styleable.FontFamily_fontProviderFetchTimeout = global::TodoApp.Forms.Droid.Resource.Styleable.FontFamily_fontProviderFetchTimeout;
 			global::Microsoft.Datasync.Client.Resource.Styleable.FontFamily_fontProviderPackage = global::TodoApp.Forms.Droid.Resource.Styleable.FontFamily_fontProviderPackage;
 			global::Microsoft.Datasync.Client.Resource.Styleable.FontFamily_fontProviderQuery = global::TodoApp.Forms.Droid.Resource.Styleable.FontFamily_fontProviderQuery;
+			global::Microsoft.Datasync.Client.Resource.Styleable.FontFamily_fontProviderSystemFontFamily = global::TodoApp.Forms.Droid.Resource.Styleable.FontFamily_fontProviderSystemFontFamily;
 			global::Microsoft.Datasync.Client.Resource.Styleable.GradientColor = global::TodoApp.Forms.Droid.Resource.Styleable.GradientColor;
 			global::Microsoft.Datasync.Client.Resource.Styleable.GradientColorItem = global::TodoApp.Forms.Droid.Resource.Styleable.GradientColorItem;
 			global::Microsoft.Datasync.Client.Resource.Styleable.GradientColorItem_android_color = global::TodoApp.Forms.Droid.Resource.Styleable.GradientColorItem_android_color;

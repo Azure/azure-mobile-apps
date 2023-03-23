@@ -1,8 +1,10 @@
 {
   "profiles": {
-    "TodoApp.Uno.Windows": {
-      "commandName": "MsixPackage",
-      "alwaysReinstallApp": true
-    }
+	"TodoApp.Uno.Windows (Package)": {
+	  "commandName": "MsixPackage"
+	},
+	"TodoApp.Uno.Windows (Unpackaged)": {
+	  "commandName": "Project"
+	}
   }
 }

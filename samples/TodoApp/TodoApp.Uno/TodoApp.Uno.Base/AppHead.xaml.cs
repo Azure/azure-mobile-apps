@@ -1,35 +1,28 @@
-using System;
 using Microsoft.Extensions.Logging;
-using Windows.ApplicationModel;
-using Windows.ApplicationModel.Activation;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
+using System;
 
-namespace TodoApp.Uno;
-
-/// <summary>
-/// Provides application-specific behavior to supplement the default Application class.
-///
-/// Your own code may be placed in the TodoApp.Uno/App.cs class.
-/// </summary>
-public sealed partial class AppHead : App
+namespace TodoApp.Uno
 {
-    static AppHead()
-		=> InitializeLogging();
+    public sealed partial class AppHead : App
+    {
+        static AppHead() =>
+            InitializeLogging();
 
-    /// <summary>
-    /// Initializes the singleton application object. This is the first line of authored code
-    /// executed, and as such is the logical equivalent of main() or WinMain().
-    /// </summary>
-    public AppHead()
-		=> this.InitializeComponent();
+        /// <summary>
+        /// Initializes the singleton application object. This is the first line of authored code
+        /// executed, and as such is the logical equivalent of main() or WinMain().
+        /// </summary>
+        public AppHead()
+        {
+            this.InitializeComponent();
+        }
 
-    /// <summary>
-    /// Configures global Uno Platform logging
-    /// </summary>
-    private static void InitializeLogging()
-	{
+        /// <summary>
+        /// Configures global Uno Platform logging
+        /// </summary>
+        private static void InitializeLogging()
+        {
 #if DEBUG
 		// Logging is disabled by default for release builds, as it incurs a significant
 		// initialization cost from Microsoft.Extensions.Logging setup. If startup performance
@@ -42,7 +35,7 @@ public sealed partial class AppHead : App
 		{
 #if __WASM__
 			builder.AddProvider(new global::Uno.Extensions.Logging.WebAssembly.WebAssemblyConsoleLoggerProvider());
-#elif __IOS__ && !__MACCATALYST__
+#elif __IOS__ || __MACCATALYST__
 			builder.AddProvider(new global::Uno.Extensions.Logging.OSLogLoggerProvider());
 #elif NETFX_CORE
 			builder.AddDebug();
@@ -92,6 +85,6 @@ public sealed partial class AppHead : App
 		global::Uno.UI.Adapter.Microsoft.Extensions.Logging.LoggingAdapter.Initialize();
 #endif
 #endif
-	}
+        }
+    }
 }
-
