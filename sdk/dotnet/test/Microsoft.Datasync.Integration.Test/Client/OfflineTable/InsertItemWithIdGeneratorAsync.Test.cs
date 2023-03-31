@@ -4,9 +4,14 @@
 namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable;
 
 [ExcludeFromCodeCoverage]
-public class InsertItemAsync_Tests : BaseOperationTest
+public class InsertItemWithIdGeneratorAsync_Tests : BaseOperationTest
 {
-    public InsertItemAsync_Tests(ITestOutputHelper logger) : base(logger, false) { }
+    protected new readonly DatasyncClient client;
+
+    public InsertItemWithIdGeneratorAsync_Tests(ITestOutputHelper logger) : base(logger, false)
+    {
+        client = GetMovieClientWithIdGenerator(store: store);
+    }
 
     [Theory, CombinatorialData]
     [Trait("Method", "InsertItemAsync")]
@@ -17,7 +22,7 @@ public class InsertItemAsync_Tests : BaseOperationTest
         var movieToAdd = GetSampleMovie<ClientMovie>();
         if (hasId)
         {
-            movieToAdd.Id = Guid.NewGuid().ToString("N");
+            movieToAdd.Id = MyIdGenerator(table?.TableName);
         }
         var jsonDocument = CreateJsonDocument(movieToAdd);
 
@@ -54,7 +59,7 @@ public class InsertItemAsync_Tests : BaseOperationTest
         await InitializeAsync(true);
 
         var movieToAdd = GetSampleMovie<ClientMovie>();
-        movieToAdd.Id = Guid.NewGuid().ToString("N");
+        movieToAdd.Id = MyIdGenerator(table?.TableName);
         if (useUpdatedAt)
         {
             movieToAdd.UpdatedAt = DateTimeOffset.Parse("2018-12-31T01:01:01.000Z");
