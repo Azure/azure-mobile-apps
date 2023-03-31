@@ -2,43 +2,36 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test;
-using Microsoft.Datasync.Client.Query.Linq;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
-using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Query
+namespace Microsoft.Datasync.Client.Test.Query;
+
+[ExcludeFromCodeCoverage]
+public class BaseQueryTest : BaseTest
 {
-    [ExcludeFromCodeCoverage]
-    public class BaseQueryTest : BaseTest
+    private static IEnumerable<Type> GetBaseTypesAndSelf(Type type)
     {
-        private static IEnumerable<Type> GetBaseTypesAndSelf(Type type)
+        Assert.NotNull(type);
+
+        while (type != null)
         {
-            Assert.NotNull(type);
-
-            while (type != null)
-            {
-                yield return type;
-                type = type.GetTypeInfo().BaseType;
-            }
+            yield return type;
+            type = type.GetTypeInfo().BaseType;
         }
-
-        protected static IEnumerable<MethodInfo> GetMethods(Type type, string name, Type[] parameterTypes)
-            => GetBaseTypesAndSelf(type).SelectMany(t => t.GetRuntimeMethods().Where(m => m.Name == name)).Where(m => m.GetParameters().Select(p => p.ParameterType).SequenceEqual(parameterTypes));
-
-        protected static MethodInfo FindInstanceMethod(Type type, string name, params Type[] parameterTypes)
-            => GetMethods(type, name, parameterTypes).SingleOrDefault(m => !m.IsStatic);
-
-        protected static MemberInfo FindInstanceProperty(Type type, string name)
-            => GetBaseTypesAndSelf(type)
-                .SelectMany(t => t.GetRuntimeProperties().Where(p => p.Name == name && p.CanRead && !p.GetMethod.IsStatic))
-                .Cast<MemberInfo>()
-                .SingleOrDefault();
-
-        protected static MethodInfo FindStaticMethod(Type type, string name, params Type[] parameterTypes)
-            => GetMethods(type, name, parameterTypes).SingleOrDefault(m => m.IsStatic);
     }
+
+    protected static IEnumerable<MethodInfo> GetMethods(Type type, string name, Type[] parameterTypes)
+        => GetBaseTypesAndSelf(type).SelectMany(t => t.GetRuntimeMethods().Where(m => m.Name == name)).Where(m => m.GetParameters().Select(p => p.ParameterType).SequenceEqual(parameterTypes));
+
+    protected static MethodInfo FindInstanceMethod(Type type, string name, params Type[] parameterTypes)
+        => GetMethods(type, name, parameterTypes).SingleOrDefault(m => !m.IsStatic);
+
+    protected static MemberInfo FindInstanceProperty(Type type, string name)
+        => GetBaseTypesAndSelf(type)
+            .SelectMany(t => t.GetRuntimeProperties().Where(p => p.Name == name && p.CanRead && !p.GetMethod.IsStatic))
+            .Cast<MemberInfo>()
+            .SingleOrDefault();
+
+    protected static MethodInfo FindStaticMethod(Type type, string name, params Type[] parameterTypes)
+        => GetMethods(type, name, parameterTypes).SingleOrDefault(m => m.IsStatic);
 }
