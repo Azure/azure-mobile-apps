@@ -210,9 +210,9 @@ namespace Microsoft.Datasync.Client
             {
                 throw new InvalidOperationException("An offline store must be specified before using offline tables.");
             }
-            if (SyncContext.OfflineStore is AbstractOfflineStore store && !store.TableIsDefined(tableName))
+            if (!SyncContext.OfflineStore.TableIsDefined(tableName))
             {
-                store.DefineTable<T>(tableName);
+                SyncContext.OfflineStore.DefineTable<T>(tableName);
             }
             return new OfflineTable<T>(tableName, this);
         }
