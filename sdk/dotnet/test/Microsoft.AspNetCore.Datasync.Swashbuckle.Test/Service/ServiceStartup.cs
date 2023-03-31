@@ -3,85 +3,81 @@
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Datasync;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.AspNetCore.Datasync.Swashbuckle.Test.Service
+namespace Microsoft.AspNetCore.Datasync.Swashbuckle.Test.Service;
+
+/// <summary>
+/// Startup for the MovieAPI Service used for testing
+/// </summary>
+[ExcludeFromCodeCoverage(Justification = "Test suite")]
+internal class ServiceStartup
 {
     /// <summary>
-    /// Startup for the MovieAPI Service used for testing
+    /// Creates a new instance of the <see cref="Startup"/> class
     /// </summary>
-    [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    internal class ServiceStartup
+    /// <param name="configuration">The application configuration</param>
+    public ServiceStartup(IConfiguration configuration)
     {
-        /// <summary>
-        /// Creates a new instance of the <see cref="Startup"/> class
-        /// </summary>
-        /// <param name="configuration">The application configuration</param>
-        public ServiceStartup(IConfiguration configuration)
+        Configuration = configuration;
+        DbConnection = new SqliteConnection("Data Source=:memory:");
+        DbConnection.Open();
+    }
+
+    /// <summary>
+    /// The application configuration
+    /// </summary>
+    public IConfiguration Configuration { get; }
+
+    public SqliteConnection DbConnection { get; }
+
+    /// <summary>
+    /// The <see cref="ConfigureServices(IServiceCollection)"/> method is called by the host before the
+    /// <see cref="Configure(IApplicationBuilder, IWebHostEnvironment)"/> method to configure application
+    /// services.
+    /// </summary>
+    /// <param name="services">The service collection</param>
+    public void ConfigureServices(IServiceCollection services)
+    {
+        // Options for the database setup
+        var sqlConfiguration = new Action<DbContextOptionsBuilder>(options =>
         {
-            Configuration = configuration;
-            DbConnection = new SqliteConnection("Data Source=:memory:");
-            DbConnection.Open();
-        }
+            options.UseSqlite(DbConnection);
+            options.EnableDetailedErrors();
+            options.EnableSensitiveDataLogging();
+        });
 
-        /// <summary>
-        /// The application configuration
-        /// </summary>
-        public IConfiguration Configuration { get; }
+        // Add the database context
+        services.AddDbContext<ServiceDbContext>(sqlConfiguration, contextLifetime: ServiceLifetime.Transient, optionsLifetime: ServiceLifetime.Singleton);
 
-        public SqliteConnection DbConnection { get; }
+        // Add authentication - force enabling the authentication pipeline.
+        services.AddAuthentication(AzureAppServiceAuthentication.AuthenticationScheme)
+            .AddAzureAppServiceAuthentication(options => options.ForceEnable = true);
 
-        /// <summary>
-        /// The <see cref="ConfigureServices(IServiceCollection)"/> method is called by the host before the
-        /// <see cref="Configure(IApplicationBuilder, IWebHostEnvironment)"/> method to configure application
-        /// services.
-        /// </summary>
-        /// <param name="services">The service collection</param>
-        public void ConfigureServices(IServiceCollection services)
-        {
-            // Options for the database setup
-            var sqlConfiguration = new Action<DbContextOptionsBuilder>(options =>
-            {
-                options.UseSqlite(DbConnection);
-                options.EnableDetailedErrors();
-                options.EnableSensitiveDataLogging();
-            });
+        // Add Datasync-aware Controllers
+        services.AddDatasyncControllers();
 
-            // Add the database context
-            services.AddDbContext<ServiceDbContext>(sqlConfiguration, contextLifetime: ServiceLifetime.Transient, optionsLifetime: ServiceLifetime.Singleton);
+        services.AddSwaggerGen(options => { options.AddDatasyncControllers(); });
+        services.AddSwaggerGenNewtonsoftSupport();
+    }
 
-            // Add authentication - force enabling the authentication pipeline.
-            services.AddAuthentication(AzureAppServiceAuthentication.AuthenticationScheme)
-                .AddAzureAppServiceAuthentication(options => options.ForceEnable = true);
-
-            // Add Datasync-aware Controllers
-            services.AddDatasyncControllers();
-
-            services.AddSwaggerGen(options => { options.AddDatasyncControllers(); });
-            services.AddSwaggerGenNewtonsoftSupport();
-        }
-
-        /// <summary>
-        /// The <see cref="Configure(IApplicationBuilder)"/> method is used to specify how the app
-        /// responds to HTTP requests.  The request pipeline is configured by adding middleware components to an
-        /// <see cref="IApplicationBuilder"/> instance (provided by hosting)
-        /// </summary>
-        /// <param name="app"></param>
-        /// <param name="env"></param>
-        public static void Configure(IApplicationBuilder app)
-        {
-            app.UseSwagger();
-            app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints => endpoints.MapControllers());
-        }
+    /// <summary>
+    /// The <see cref="Configure(IApplicationBuilder)"/> method is used to specify how the app
+    /// responds to HTTP requests.  The request pipeline is configured by adding middleware components to an
+    /// <see cref="IApplicationBuilder"/> instance (provided by hosting)
+    /// </summary>
+    /// <param name="app"></param>
+    /// <param name="env"></param>
+    public static void Configure(IApplicationBuilder app)
+    {
+        app.UseSwagger();
+        app.UseRouting();
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseEndpoints(endpoints => endpoints.MapControllers());
     }
 }
 

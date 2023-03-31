@@ -4,18 +4,16 @@
 using Microsoft.AspNetCore.Datasync.EFCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.AspNetCore.Datasync.NSwag.Test.Service
+namespace Microsoft.AspNetCore.Datasync.NSwag.Test.Service;
+
+[Route("tables/[controller]")]
+[ExcludeFromCodeCoverage]
+public class TodoItemController : TableController<TodoItem>
 {
-    [Route("tables/[controller]")]
-    [ExcludeFromCodeCoverage]
-    public class TodoItemController : TableController<TodoItem>
+    public TodoItemController(ServiceDbContext context, ILogger<TodoItem> logger) : base()
     {
-        public TodoItemController(ServiceDbContext context, ILogger<TodoItem> logger) : base()
-        {
-            Repository = new EntityTableRepository<TodoItem>(context);
-            Logger = logger;
-        }
+        Repository = new EntityTableRepository<TodoItem>(context);
+        Logger = logger;
     }
 }

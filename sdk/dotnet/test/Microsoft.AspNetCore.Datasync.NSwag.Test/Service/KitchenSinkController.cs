@@ -4,18 +4,16 @@
 using Microsoft.AspNetCore.Datasync.EFCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.AspNetCore.Datasync.NSwag.Test.Service
+namespace Microsoft.AspNetCore.Datasync.NSwag.Test.Service;
+
+[Route("tables/kitchensink")]
+[ExcludeFromCodeCoverage]
+public class KitchenSinkController : TableController<KitchenSink>
 {
-    [Route("tables/kitchensink")]
-    [ExcludeFromCodeCoverage]
-    public class KitchenSinkController : TableController<KitchenSink>
+    public KitchenSinkController(ServiceDbContext context, ILogger<KitchenSink> logger) : base()
     {
-        public KitchenSinkController(ServiceDbContext context, ILogger<KitchenSink> logger) : base()
-        {
-            Repository = new EntityTableRepository<KitchenSink>(context);
-            Logger = logger;
-        }
+        Repository = new EntityTableRepository<KitchenSink>(context);
+        Logger = logger;
     }
 }

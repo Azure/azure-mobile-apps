@@ -2,61 +2,55 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test.Models;
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace Microsoft.AspNetCore.Datasync.Test
+namespace Microsoft.AspNetCore.Datasync.Test;
+
+[ExcludeFromCodeCoverage]
+public class IRepository_Tests
 {
-    public class IRepository_Tests
+    [Fact]
+    public async Task IRepository_AsQueryableAsync_HasDefault()
     {
-        [Fact]
-        public async Task IRepository_AsQueryableAsync_HasDefault()
-        {
-            var repository = new ConcreteRepository();
-            var iRepository = (IRepository<EFMovie>)repository;
+        var repository = new ConcreteRepository();
+        var iRepository = (IRepository<EFMovie>)repository;
 
-            var count = (await iRepository.AsQueryableAsync()).Count();
+        var count = (await iRepository.AsQueryableAsync()).Count();
 
-            Assert.Equal(0, count);
-            Assert.True(repository.HasCalled);
-        }
+        Assert.Equal(0, count);
+        Assert.True(repository.HasCalled);
+    }
+}
+
+[ExcludeFromCodeCoverage]
+internal class ConcreteRepository : IRepository<EFMovie>
+{
+    private readonly EFMovie[] _movies = Array.Empty<EFMovie>();
+
+    public bool HasCalled { get; set; } = false;
+
+    public IQueryable<EFMovie> AsQueryable()
+    {
+        HasCalled = true;
+        return _movies.AsQueryable();
     }
 
-    [ExcludeFromCodeCoverage]
-    internal class ConcreteRepository : IRepository<EFMovie>
+    public Task CreateAsync(EFMovie entity, CancellationToken token = default)
     {
-        private readonly EFMovie[] _movies = Array.Empty<EFMovie>();
+        throw new System.NotImplementedException();
+    }
 
-        public bool HasCalled { get; set; } = false;
+    public Task DeleteAsync(string id, byte[] version = null, CancellationToken token = default)
+    {
+        throw new System.NotImplementedException();
+    }
 
-        public IQueryable<EFMovie> AsQueryable()
-        {
-            HasCalled = true;
-            return _movies.AsQueryable();
-        }
+    public Task<EFMovie> ReadAsync(string id, CancellationToken token = default)
+    {
+        throw new System.NotImplementedException();
+    }
 
-        public Task CreateAsync(EFMovie entity, CancellationToken token = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task DeleteAsync(string id, byte[] version = null, CancellationToken token = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<EFMovie> ReadAsync(string id, CancellationToken token = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task ReplaceAsync(EFMovie entity, byte[] version = null, CancellationToken token = default)
-        {
-            throw new System.NotImplementedException();
-        }
+    public Task ReplaceAsync(EFMovie entity, byte[] version = null, CancellationToken token = default)
+    {
+        throw new System.NotImplementedException();
     }
 }

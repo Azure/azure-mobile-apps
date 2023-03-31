@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 global using Datasync.Common.Test;
-global using Datasync.Common.Test.Models;
-global using Datasync.Common.Test.TestData;
+global using Moq;
 global using System.Diagnostics.CodeAnalysis;
 global using Xunit;

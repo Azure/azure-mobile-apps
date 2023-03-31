@@ -2,17 +2,14 @@
 // Licensed under the MIT License.
 
 using AutoMapper;
-using Datasync.Common.Test.Models;
-using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.AspNetCore.Datasync.Automapper.Test.Helpers
+namespace Microsoft.AspNetCore.Datasync.Automapper.Test.Helpers;
+
+[ExcludeFromCodeCoverage]
+public class MapperProfile : Profile
 {
-    [ExcludeFromCodeCoverage]
-    public class MapperProfile : Profile
+    public MapperProfile()
     {
-        public MapperProfile()
-        {
-            CreateMap<EFMovie, MovieDto>().ReverseMap();
-        }
+        CreateMap<EFMovie, MovieDto>().ReverseMap();
     }
 }

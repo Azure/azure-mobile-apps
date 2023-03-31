@@ -4,44 +4,40 @@
 using Datasync.Common.Test.Models;
 using Datasync.Common.Test.TestData;
 using Microsoft.AspNetCore.Datasync.Models;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using Xunit;
 
-namespace Microsoft.AspNetCore.Datasync.Test.Models
+namespace Microsoft.AspNetCore.Datasync.Test.Models;
+
+[ExcludeFromCodeCoverage]
+public class PagedResult_Tests
 {
-    [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class PagedResult_Tests
+    [Fact]
+    public void Ctor_CanCreateEmptyModel()
     {
-        [Fact]
-        public void Ctor_CanCreateEmptyModel()
-        {
-            // Act
-            var actual = new PagedResult();
+        // Act
+        var actual = new PagedResult();
 
-            // Assert
-            Assert.NotNull(actual);
-            Assert.NotNull(actual.Items);
-            Assert.Empty(actual.Items);
-            Assert.Null(actual.Count);
-            Assert.Null(actual.NextLink);
-        }
+        // Assert
+        Assert.NotNull(actual);
+        Assert.NotNull(actual.Items);
+        Assert.Empty(actual.Items);
+        Assert.Null(actual.Count);
+        Assert.Null(actual.NextLink);
+    }
 
-        [Fact]
-        public void Ctor_CanCreateFilledModel()
-        {
-            // Arrange
-            var objects = Movies.OfType<InMemoryMovie>();
+    [Fact]
+    public void Ctor_CanCreateFilledModel()
+    {
+        // Arrange
+        var objects = Movies.OfType<InMemoryMovie>();
 
-            // Act
-            var actual = new PagedResult(objects);
+        // Act
+        var actual = new PagedResult(objects);
 
-            // Assert
-            Assert.NotNull(actual);
-            Assert.NotNull(actual.Items);
-            Assert.Equal(248, actual.Items.Count());
-            Assert.Null(actual.Count);
-            Assert.Null(actual.NextLink);
-        }
+        // Assert
+        Assert.NotNull(actual);
+        Assert.NotNull(actual.Items);
+        Assert.Equal(248, actual.Items.Count());
+        Assert.Null(actual.Count);
+        Assert.Null(actual.NextLink);
     }
 }
