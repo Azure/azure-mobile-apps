@@ -6,10 +6,12 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	  xmlns:data="using:TodoApp.Data.Models"
-	  mc:Ignorable="d"    
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+	  mc:Ignorable="d"
+	  xmlns:utu="using:Uno.Toolkit.UI"
+	  Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
 	<Grid x:Name="mainContainer"
+		  utu:SafeArea.Insets="All"
 		  Loaded="GridLoadedEventHandler">
 		<Grid.Resources>
 			<local:BoolToVisibilityConverter x:Key="vis" />

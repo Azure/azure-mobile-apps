@@ -9,10 +9,9 @@
 		<item name="android:windowNoTitle">true</item>
 
 		<!-- This property is used for the splash screen -->
-		<item name="android:windowSplashScreenBackground">#FFFFFF</item>
-		<item name="android:windowBackground">@drawable/splash_screen</item>
-		<item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_screen</item>
-		<!--<item name="android:windowSplashScreenBehavior">1</item>-->
+		<item name="android:windowSplashScreenBackground">@color/uno_splash_color</item>
+		<item name="android:windowBackground">@drawable/uno_splash_image</item>
+		<item name="android:windowSplashScreenAnimatedIcon">@drawable/uno_splash_image</item>
 
 	</style>
 	<style name="Theme.AppCompat.Translucent">
