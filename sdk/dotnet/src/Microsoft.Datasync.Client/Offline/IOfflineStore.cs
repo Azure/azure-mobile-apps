@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Query;
+using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Table;
 using Newtonsoft.Json.Linq;
 using System;
@@ -12,12 +13,25 @@ using System.Threading.Tasks;
 namespace Microsoft.Datasync.Client.Offline
 {
     /// <summary>
-    /// Allows saving and reading data in the local offline tables.  Implementors of
-    /// new offline stores should implement based on <see cref="AbstractOfflineStore"/>, and not
-    /// this interface.
+    /// Allows saving and reading data in the local offline tables.
     /// </summary>
     public interface IOfflineStore : IDisposable
     {
+        /// <summary>
+        /// Defines a table in the local store.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <param name="tableDefinition">The table definition as a sample JSON object.</param>
+        void DefineTable(string tableName, JObject tableDefinition);
+
+        /// <summary>
+        /// Defines a table for use with offline sync.
+        /// </summary>
+        /// <typeparam name="T">The type of entity stored in the table.</typeparam>
+        /// <param name="tableName">The name of the table.</param>
+        /// <param name="settings">The serializer settings.</param>
+        void DefineTable<T>(string tableName, DatasyncSerializerSettings settings);
+
         /// <summary>
         /// Deletes items from the table where the items are identified by a query.
         /// </summary>
@@ -65,6 +79,13 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the store is ready to use.</returns>
         Task InitializeAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Determines if a table is defined.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <returns>true if the table is defined.</returns>
+        bool TableIsDefined(string tableName);
 
         /// <summary>
         /// Updates or inserts the item(s) provided in the table.

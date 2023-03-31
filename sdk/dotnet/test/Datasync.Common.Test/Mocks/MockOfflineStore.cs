@@ -80,6 +80,19 @@ namespace Datasync.Common.Test.Mocks
         public Exception ReadExceptionToThrow { get; set; }
 
         #region IOfflineStore
+        public void DefineTable(string tableName, JObject definition)
+        {
+            _ = GetOrCreateTable(tableName);
+        }
+
+        public void DefineTable<T>(string tableName, DatasyncSerializerSettings settings)
+        {
+            _ = GetOrCreateTable(tableName);
+        }
+
+        public bool TableIsDefined(string tableName)
+            => TableMap.ContainsKey(tableName);
+
         /// <summary>
         /// Deletes items from the table where the items are identified by a query.
         /// </summary>

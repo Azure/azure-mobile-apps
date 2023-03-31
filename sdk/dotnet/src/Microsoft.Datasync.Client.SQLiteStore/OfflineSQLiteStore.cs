@@ -229,14 +229,15 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <returns>A task that completes when the store is initialized.</returns>
         protected override Task InitializeOfflineStoreAsync(CancellationToken cancellationToken)
         {
-            foreach (var table in tableMap)
-            {
-                if (!table.Value.IsInDatabase)
-                {
-                    // Do the creation if it hasn't already been done this time round.
-                    CreateTableFromDefinition(table.Value);
-                }
-            }
+            // Define the internal tables.
+            DefineTable(SystemTables.Configuration, SQLiteDeltaTokenStore.TableDefinition);
+
+            // Now that all the tables are defined, actually create the tables!
+            tableMap.Values
+                .Where(table => !table.IsInDatabase)
+                .ToList()
+                .ForEach(table => CreateTableFromDefinition(table));
+
             return Task.CompletedTask;
         }
 
