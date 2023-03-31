@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test;
 using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Offline;
+using Microsoft.Datasync.Client.Offline.DeltaToken;
 using Microsoft.Datasync.Client.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -373,30 +373,6 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Test
             Assert.Single(items);
             var id = IdEntityValues.Single(o => o.Value<string>("stringValue") == "item#1").Value<string>("id");
             Assert.Contains(id, items.Select(o => o.Value<string>("id")));
-        }
-
-        [Fact]
-        public async Task DeltaTokenStore_StoresWithMSAccuracy()
-        {
-            // Set up the default store and client.
-            var store = new OfflineSQLiteStore(ConnectionString);
-            var client = new DatasyncClient("https://localhost/", new DatasyncClientOptions { OfflineStore = store });
-            var context = new SyncContext(client, store);
-            await context.InitializeAsync();
-
-            var deltaTokenStore = context.DeltaTokenStore;
-            var deltaToken = DateTimeOffset.Parse("2022-08-01T13:48:23.123Z");
-            Assert.Equal(123, deltaToken.Millisecond);      // Just a double-check for us.
-
-            // Store the deltaToken
-            await deltaTokenStore.SetDeltaTokenAsync("testtable", "testquery", deltaToken);
-
-            // Now we will deliberately invalidate the cache so that we aren't fooled by the cache.
-            await deltaTokenStore.InvalidateCacheAsync("testtable", "testquery");
-
-            // Get the deltaToken back
-            var storedToken = await deltaTokenStore.GetDeltaTokenAsync("testtable", "testquery");
-            Assert.Equal(storedToken.Millisecond, deltaToken.Millisecond);
         }
 
         [Fact]

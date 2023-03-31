@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Offline.DeltaToken;
 using Microsoft.Datasync.Client.Offline.Queue;
 using System.Collections.Generic;
 
@@ -48,7 +49,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="store">The offline store.</param>
         public static void DefineAllSystemTables(AbstractOfflineStore store)
         {
-            store.DefineTable(Configuration, DeltaTokenStore.TableDefinition);
+            store.DefineTable(Configuration, DefaultDeltaTokenStore.TableDefinition);
             store.DefineTable(OperationsQueue, TableOperation.TableDefinition);
             store.DefineTable(SyncErrors, TableOperationError.TableDefinition);
         }

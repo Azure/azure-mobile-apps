@@ -9,12 +9,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Datasync.Client.Offline
+namespace Microsoft.Datasync.Client.Offline.DeltaToken
 {
     /// <summary>
     /// Reads and writes the delta tokens for each query in the __config system table.
     /// </summary>
-    internal class DeltaTokenStore
+    internal class DefaultDeltaTokenStore : IDeltaTokenStore
     {
         /// <summary>
         /// Definition for the __config system table in the persistent store.
@@ -36,10 +36,10 @@ namespace Microsoft.Datasync.Client.Offline
         private readonly Dictionary<string, DateTimeOffset> cache = new();
 
         /// <summary>
-        /// Creates a new <see cref="DeltaTokenStore"/> instance.
+        /// Creates a new <see cref="DefaultDeltaTokenStore"/> instance.
         /// </summary>
         /// <param name="store">The offline store used to persistently store the delta tokens</param>
-        public DeltaTokenStore(IOfflineStore store)
+        public DefaultDeltaTokenStore(IOfflineStore store)
         {
             Arguments.IsNotNull(store, nameof(store));
 
@@ -60,7 +60,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// </remarks>
         /// <param name="tableName">The name of the table.</param>
         /// <param name="queryId">The query ID of the table.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to acquire.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the delta token when complete.</returns>
         public virtual async Task<DateTimeOffset> GetDeltaTokenAsync(string tableName, string queryId, CancellationToken cancellationToken = default)
         {
@@ -88,7 +88,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// </remarks>
         /// <param name="tableName">The name of the table.</param>
         /// <param name="queryId">The query ID of the table.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to acquire.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the delta token has been reset.</returns>
         public virtual async Task ResetDeltaTokenAsync(string tableName, string queryId, CancellationToken cancellationToken = default)
         {
@@ -105,7 +105,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// </summary>
         /// <param name="tableName">The table name.</param>
         /// <param name="queryId">The query ID.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to acquire.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the delta token cache key is removed.</returns>
         internal async Task InvalidateCacheAsync(string tableName, string queryId, CancellationToken cancellationToken = default)
         {
@@ -126,7 +126,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="tableName">The name of the table.</param>
         /// <param name="queryId">The query ID of the table.</param>
         /// <param name="deltaToken">The value of the delta token.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to acquire.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to abserve.</param>
         /// <returns>A task that completes when the delta token has been set in the persistent store.</returns>
         public virtual async Task SetDeltaTokenAsync(string tableName, string queryId, DateTimeOffset deltaToken, CancellationToken cancellationToken = default)
         {

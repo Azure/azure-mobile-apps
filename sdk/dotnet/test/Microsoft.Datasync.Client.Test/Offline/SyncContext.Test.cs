@@ -5,6 +5,7 @@ using Datasync.Common.Test;
 using Datasync.Common.Test.Mocks;
 using Datasync.Common.Test.Models;
 using Microsoft.Datasync.Client.Offline;
+using Microsoft.Datasync.Client.Offline.DeltaToken;
 using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
@@ -193,11 +194,23 @@ namespace Microsoft.Datasync.Client.Test.Offline
 
             var opQueue = context.OperationsQueue;
             var tokenStore = context.DeltaTokenStore;
+            Assert.IsAssignableFrom<DefaultDeltaTokenStore>(tokenStore);
 
             await context.InitializeAsync();
 
             Assert.Same(opQueue, context.OperationsQueue);
             Assert.Same(tokenStore, context.DeltaTokenStore);
+        }
+
+        [Fact]
+        [Trait("Method", "InitializeAsync")]
+        public async Task InitializeAsync_UsesStoreProvider_ForDeltaTokenStore()
+        {
+            var store = new MockOfflineStore_WithDeltaToken();
+            var context = new SyncContext(client, store);
+            await context.InitializeAsync();
+
+            Assert.True(store.DeltaTokenStoreInitialized);
         }
         #endregion
 
@@ -1185,7 +1198,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
                 Assert.NotNull(request);
                 Assert.Equal(HttpMethod.Delete, request.Method);
                 Assert.Equal($"\"{movie.Version}\"", request.Headers.IfMatch.FirstOrDefault()?.Tag);
-            }           
+            }
         }
 
         [Fact]
@@ -2349,6 +2362,19 @@ namespace Microsoft.Datasync.Client.Test.Offline
                 return Task.FromResult(ResponseObjectFunc.Invoke());
             }
             return base.ExecuteRemoteOperationAsync(table, cancellationToken);
+        }
+    }
+
+    [ExcludeFromCodeCoverage]
+    internal class MockOfflineStore_WithDeltaToken : MockOfflineStore, IDeltaTokenStoreProvider
+    {
+        internal bool DeltaTokenStoreInitialized { get; set; } = false;
+
+        public Task<IDeltaTokenStore> GetDeltaTokenStoreAsync(CancellationToken cancellationToken = default)
+        {
+            DeltaTokenStoreInitialized = true;
+            var store = new DefaultDeltaTokenStore(this);
+            return Task.FromResult<IDeltaTokenStore>(store);
         }
     }
     #endregion

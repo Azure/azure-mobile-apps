@@ -13,7 +13,6 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,7 +21,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
     /// <summary>
     /// An implementation of <see cref="IOfflineStore"/> using SQLite as the persistent store.
     /// </summary>
-    public class OfflineSQLiteStore : AbstractOfflineStore
+    public class OfflineSQLiteStore : AbstractOfflineStore, IDeltaTokenStoreProvider
     {
         /// <summary>
         /// The mapping from the table name to the table definition.  This is built using the
@@ -215,6 +214,14 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         }
 
         /// <summary>
+        /// Creates the Delta Token Store implementation that works with this store.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that resolves to the delta token store when complete</returns>
+        public Task<IDeltaTokenStore> GetDeltaTokenStoreAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IDeltaTokenStore>(new SQLiteDeltaTokenStore(this));
+
+        /// <summary>
         /// Initialize the store.  This is over-ridden by the store implementation to provide a point
         /// where the tables can be created or updated.
         /// </summary>
@@ -261,7 +268,6 @@ namespace Microsoft.Datasync.Client.SQLiteStore
                 {
                     throw new InvalidOperationException($"Column '{prop.Name}' is not defined on table '{tableName}'");
                 }
-                
                 if (column != null)
                 {
                     columns.Add(column);

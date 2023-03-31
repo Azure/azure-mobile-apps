@@ -11,13 +11,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Offline
+namespace Microsoft.Datasync.Client.SQLiteStore.Test
 {
     [ExcludeFromCodeCoverage]
-    public class DeltaTokenStore_Tests
+    public class DeltaTokenStore_Tests : BaseStoreTest
     {
         private readonly MockOfflineStore store;
-        private readonly DeltaTokenStore sut;
+        private readonly SQLiteDeltaTokenStore sut;
         private const string testTBL = "movies";
         private const string testQID = "qid-1234-test";
         private readonly DateTimeOffset testDTO = DateTimeOffset.Parse("2022-03-15T14:22:20.050000+00:00");
@@ -28,7 +28,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
         public DeltaTokenStore_Tests()
         {
             store = new MockOfflineStore();
-            sut = new DeltaTokenStore(store);
+            sut = new SQLiteDeltaTokenStore(store);
             testVAL = testDTO.ToUnixTimeMilliseconds();
             json = $"{{\"id\":\"{testKEY}\",\"value\":{testVAL}}}";
         }
@@ -76,7 +76,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
         [Fact]
         public void TableDefinition_Serializes()
         {
-            var actual = DeltaTokenStore.TableDefinition.ToString(Formatting.None);
+            var actual = SQLiteDeltaTokenStore.TableDefinition.ToString(Formatting.None);
             const string expected = "{\"id\":\"\",\"value\":0}";
             Assert.Equal(expected, actual);
         }
@@ -84,7 +84,7 @@ namespace Microsoft.Datasync.Client.Test.Offline
         [Fact]
         public void Ctor_NullStore_Throws()
         {
-            Assert.Throws<ArgumentNullException>(() => new DeltaTokenStore(null));
+            Assert.Throws<ArgumentNullException>(() => new SQLiteDeltaTokenStore(null));
         }
 
         [Fact]
@@ -257,6 +257,34 @@ namespace Microsoft.Datasync.Client.Test.Offline
             await sut.SetDeltaTokenAsync(testTBL, testQID, dto);
             Assert.True(store.TableMap[SystemTables.Configuration].ContainsKey("1234"));
             Assert.Equal(42, store.TableMap[SystemTables.Configuration]["1234"]?.Value<long>("value"));
+        }
+
+        [Fact]
+        public async Task DeltaTokenStore_StoresWithMSAccuracy()
+        {
+            // Set up the default store and client.
+            var store = new OfflineSQLiteStore(ConnectionString);
+            var client = new DatasyncClient("https://localhost/", new DatasyncClientOptions { OfflineStore = store });
+            var context = new SyncContext(client, store);
+            await context.InitializeAsync();
+
+            Assert.IsAssignableFrom<SQLiteDeltaTokenStore>(context.DeltaTokenStore);
+            var deltaTokenStore = context.DeltaTokenStore as SQLiteDeltaTokenStore;
+            Assert.NotNull(deltaTokenStore);
+
+            var deltaToken = DateTimeOffset.Parse("2022-08-01T13:48:23.123Z");
+            Assert.Equal(123, deltaToken.Millisecond);      // Just a double-check for us.
+
+            // Store the deltaToken
+            await deltaTokenStore.SetDeltaTokenAsync("testtable", "testquery", deltaToken);
+
+            // Now we will deliberately invalidate the cache so that we aren't fooled by the cache.
+            // In this specific case, the delta token store is a DefaultDeltaTokenStore.
+            await deltaTokenStore.InvalidateCacheAsync("testtable", "testquery");
+
+            // Get the deltaToken back
+            var storedToken = await deltaTokenStore.GetDeltaTokenAsync("testtable", "testquery");
+            Assert.Equal(storedToken.Millisecond, deltaToken.Millisecond);
         }
     }
 }
