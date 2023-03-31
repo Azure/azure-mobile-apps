@@ -85,7 +85,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <summary>
         /// Persistent storage for delta-tokens.
         /// </summary>
-        internal DeltaTokenStore DeltaTokenStore { get; private set; }
+        internal IDeltaTokenStore DeltaTokenStore { get; private set; }
 
         /// <summary>
         /// The service client to use for communicating with the back end service.
@@ -127,7 +127,14 @@ namespace Microsoft.Datasync.Client.Offline
                 await OperationsQueue.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
                 // Initialize the delta token store.
-                DeltaTokenStore = new DeltaTokenStore(OfflineStore);
+                if (OfflineStore is IDeltaTokenStoreProvider provider)
+                {
+                    DeltaTokenStore = await provider.GetDeltaTokenStoreAsync(cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    DeltaTokenStore = new DeltaToken.DefaultDeltaTokenStore(OfflineStore);
+                }
 
                 // Clear the errors in the store.
                 var errorsEnumerable = new FuncAsyncPageable<TableOperationError>(nextLink => GetPageOfErrorsAsync("", nextLink, cancellationToken));
@@ -370,7 +377,7 @@ namespace Microsoft.Datasync.Client.Offline
                         throw new InvalidOperationException("Received an item for which there is a pending operation.");
                     }
                     SendItemWillBeStoredEvent(tableName, itemId, itemCount, expectedItems);
-                    
+
                     if (ServiceSerializer.IsDeleted(item))
                     {
                         await OfflineStore.DeleteAsync(tableName, new[] { itemId }, cancellationToken).ConfigureAwait(false);
@@ -520,9 +527,9 @@ namespace Microsoft.Datasync.Client.Offline
                 {
                     SendItemWillBePushedEvent(operation.TableName, operation.ItemId, itemCount[0]);
                     bool isSuccessful = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
-                    lock(itemCount) 
+                    lock(itemCount)
                     {
-                        itemCount[0]++; 
+                        itemCount[0]++;
                     }
                     SendItemWasPushedEvent(operation.ItemId, operation.ItemId, itemCount[0], isSuccessful);
                 });
@@ -855,7 +862,7 @@ namespace Microsoft.Datasync.Client.Offline
         }
 
         /// <summary>
-        /// Obtains the maximum number of parallel operations allowed, based on the passed in 
+        /// Obtains the maximum number of parallel operations allowed, based on the passed in
         /// <see cref="PushOptions"/> and/or the global options.
         /// </summary>
         /// <param name="options">The <see cref="PushOptions"/> for this operation, or null.</param>
