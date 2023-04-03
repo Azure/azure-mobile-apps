@@ -48,6 +48,8 @@
 				<MtouchExtraArgs>$(MtouchExtraArgs) --registrar:static</MtouchExtraArgs>
 				<!-- https://github.com/xamarin/xamarin-macios/issues/14812 -->
 				<MtouchExtraArgs>$(MtouchExtraArgs) --marshal-objectivec-exceptions:disable</MtouchExtraArgs>
+			
+				<CodesignEntitlements>iOS\Entitlements.plist</CodesignEntitlements>
 			</PropertyGroup>
 		</When>
 		<When Condition="$(IsMacCatalyst)">
