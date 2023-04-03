@@ -4,9 +4,6 @@
     "projects": [
       "TodoApp.Data\\TodoApp.Data.csproj",
       "TodoApp.Uno\\TodoApp.Uno.Mobile\\TodoApp.Uno.Mobile.csproj",
-      "TodoApp.Uno\\TodoApp.Uno.Skia.Gtk\\TodoApp.Uno.Skia.Gtk.csproj",
-      "TodoApp.Uno\\TodoApp.Uno.Skia.WPF\\TodoApp.Uno.Skia.WPF.csproj",
-      "TodoApp.Uno\\TodoApp.Uno.Wasm\\TodoApp.Uno.Wasm.csproj",
       "TodoApp.Uno\\TodoApp.Uno.Windows\\TodoApp.Uno.Windows.csproj",
       "TodoApp.Uno\\TodoApp.Uno\\TodoApp.Uno.csproj",
       "TodoAppService.NET6\\TodoAppService.NET6.csproj"
