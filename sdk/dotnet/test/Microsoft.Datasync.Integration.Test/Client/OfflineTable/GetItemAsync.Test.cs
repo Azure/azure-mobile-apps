@@ -1,53 +1,45 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test;
-using Datasync.Common.Test.Models;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
+namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable;
 
-namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable
+[ExcludeFromCodeCoverage]
+public class GetItemAsync_Tests : BaseOperationTest
 {
-    [ExcludeFromCodeCoverage]
-    public class GetItemAsync_Tests : BaseOperationTest
+    public GetItemAsync_Tests(ITestOutputHelper logger) : base(logger) { }
+
+    [Fact]
+    [Trait("Method", "GetItemAsync")]
+    public async Task GetItemAsync_Basic()
     {
-        public GetItemAsync_Tests(ITestOutputHelper logger) : base(logger) { }
+        await InitializeAsync(true);
 
-        [Fact]
-        [Trait("Method", "GetItemAsync")]
-        public async Task GetItemAsync_Basic()
-        {
-            await InitializeAsync(true);
+        // Arrange
+        var id = GetRandomId();
+        var expected = MovieServer.GetMovieById(id)!;
 
-            // Arrange
-            var id = GetRandomId();
-            var expected = MovieServer.GetMovieById(id)!;
+        // Act
+        var response = await table!.GetItemAsync(id);
 
-            // Act
-            var response = await table!.GetItemAsync(id);
+        // Assert
+        Assert.NotNull(response);
+        var movie = client.Serializer.Deserialize<ClientMovie>(response);
+        Assert.Equal<IMovie>(expected, movie);
+    }
 
-            // Assert
-            Assert.NotNull(response);
-            var movie = client.Serializer.Deserialize<ClientMovie>(response);
-            Assert.Equal<IMovie>(expected, movie);
-        }
+    [Fact]
+    [Trait("Method", "GetItemAsync")]
+    public async Task GetItemAsync_NotFound()
+    {
+        await InitializeAsync(true);
 
-        [Fact]
-        [Trait("Method", "GetItemAsync")]
-        public async Task GetItemAsync_NotFound()
-        {
-            await InitializeAsync(true);
+        // Arrange
+        const string id = "not-found";
 
-            // Arrange
-            const string id = "not-found";
+        // Act
+        var result = await table!.GetItemAsync(id);
 
-            // Act
-            var result = await table!.GetItemAsync(id);
-
-            // Assert
-            Assert.Null(result);
-        }
+        // Assert
+        Assert.Null(result);
     }
 }

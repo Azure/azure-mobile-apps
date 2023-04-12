@@ -5,17 +5,15 @@ using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics.CodeAnalysis;
 
-namespace Datasync.Common.Test.Service
+namespace Datasync.Common.Test.Service;
+
+[Route("tables/datetime")]
+[ExcludeFromCodeCoverage]
+public class DateTimeController : TableController<DateTimeModel>
 {
-    [Route("tables/datetime")]
-    [ExcludeFromCodeCoverage]
-    public class DateTimeController : TableController<DateTimeModel>
+    public DateTimeController(IRepository<DateTimeModel> repository, ILogger<DateTimeController> logger) : base(repository)
     {
-        public DateTimeController(IRepository<DateTimeModel> repository, ILogger<DateTimeController> logger) : base(repository)
-        {
-            Logger = logger;
-        }
+        Logger = logger;
     }
 }
