@@ -22,8 +22,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\Microsoft.Datasync.Client.SQLiteStore\Microsoft.Datasync.Client.SQLiteStore.csproj" />
-		<ProjectReference Include="..\..\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj" />
 		<ProjectReference Include="..\Datasync.Common.Test\Datasync.Common.Test.csproj" />
 	</ItemGroup>
 

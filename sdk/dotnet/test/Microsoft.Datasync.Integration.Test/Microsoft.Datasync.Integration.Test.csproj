@@ -31,8 +31,6 @@
 		<ProjectReference Include="..\..\src\Microsoft.AspNetCore.Datasync.EFCore\Microsoft.AspNetCore.Datasync.EFCore.csproj" />
 		<ProjectReference Include="..\..\src\Microsoft.AspNetCore.Datasync.InMemory\Microsoft.AspNetCore.Datasync.InMemory.csproj" />
 		<ProjectReference Include="..\..\src\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj" />
-		<ProjectReference Include="..\..\src\Microsoft.Datasync.Client.SQLiteStore\Microsoft.Datasync.Client.SQLiteStore.csproj" />
-		<ProjectReference Include="..\..\src\Microsoft.Datasync.Client\Microsoft.Datasync.Client.csproj" />
 		<ProjectReference Include="..\Datasync.Common.Test\Datasync.Common.Test.csproj" />
 	</ItemGroup>
 
