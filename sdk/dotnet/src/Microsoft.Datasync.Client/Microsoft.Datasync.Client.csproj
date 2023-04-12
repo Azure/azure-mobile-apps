@@ -18,7 +18,7 @@
 	<PropertyGroup>
 		<DebugType>portable</DebugType>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
-		<LangVersion>9.0</LangVersion>
+		<LangVersion>10.0</LangVersion>
 		<NeutralLanguage>en-US</NeutralLanguage>
 	</PropertyGroup>
 
