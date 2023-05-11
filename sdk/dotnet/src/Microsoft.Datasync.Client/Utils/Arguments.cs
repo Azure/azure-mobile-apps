@@ -32,7 +32,7 @@ namespace Microsoft.Datasync.Client.Utils
         /// as a path segment according to RFC 2396.  It must also be suitable for storing
         /// a GUID, and for storing in a database string.
         /// </remarks>
-        private static readonly Regex validIdRegex = new("^[a-zA-Z0-9][a-zA-Z0-9-_.]{0,126}$");
+        private static readonly Regex validIdRegex = new("^[a-zA-Z0-9][a-zA-Z0-9_.|:-]{0,126}$");
 
         /// <summary>
         /// Returns if the parameter is not null.
