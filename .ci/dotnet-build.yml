@@ -217,7 +217,7 @@ stages:
 
   - stage: postbuild
     displayName: Postbuild Checks
-    condition: eq('refs/heads/main', variables['Build.SourceBranch'])
+    condition: or(eq('refs/heads/main', variables['Build.SourceBranch']), eq(variables['Build.Reason'], 'PullRequest'))
     dependsOn: [ 'buildstage' ]
     jobs:
       - job: postbuild_checks
