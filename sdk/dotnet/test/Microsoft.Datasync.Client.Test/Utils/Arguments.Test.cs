@@ -110,7 +110,7 @@ public class Validate_Tests
 
     [Fact]
     [Trait("Method", "IsValidId")]
-    public void IsValidId_Null_Throws()dotne
+    public void IsValidId_Null_Throws()
     {
         const string sut = null;
         Assert.Throws<ArgumentNullException>(() => Arguments.IsValidId(sut, nameof(sut)));
