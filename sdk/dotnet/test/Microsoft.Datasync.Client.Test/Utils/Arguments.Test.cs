@@ -125,6 +125,7 @@ public class Validate_Tests
     [InlineData(";")]
     [InlineData("{EA235ADF-9F38-44EA-8DA4-EF3D24755767}")]
     [InlineData("###")]
+    [InlineData("!!!")]
     [Trait("Method", "IsValidId")]
     public void IsValidId_InvalidId_Throws(string sut)
     {
@@ -138,7 +139,6 @@ public class Validate_Tests
     [InlineData("2023|05|01_120000")]
     [InlineData("db0ec08d_46a9_465d_9f5e_0066a3ee5b5f")]
     [InlineData("db0ec08d.46a9.465d.9f5e.0066a3ee5b5f")]
-    [InlineData("!!!")]
     [Trait("Method", "IsValidId")]
     public void IsValidId_Passes(string sut)
     {
