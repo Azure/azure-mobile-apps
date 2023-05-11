@@ -64,6 +64,9 @@ public class KitchenSinkDto : DatasyncClientData
 
     // Enums
     public KitchenSinkDtoState EnumValue { get; set; }
+
+    // Nullable Enums
+    public KitchenSinkDtoState? EnumOfNullableValue { get; set; } // Nullable<KitchenSinkDtoState>
 }
 
 [ExcludeFromCodeCoverage]

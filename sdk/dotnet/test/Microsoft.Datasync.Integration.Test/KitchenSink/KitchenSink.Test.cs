@@ -13,15 +13,15 @@ namespace Microsoft.Datasync.Integration.Test.KitchenSink;
 [ExcludeFromCodeCoverage]
 public class KitchenSink_Tests : BaseOperationTest
 {
-    public KitchenSink_Tests(ITestOutputHelper logger) : base(logger) 
-    { 
+    public KitchenSink_Tests(ITestOutputHelper logger) : base(logger)
+    {
     }
 
     [Fact]
     public async Task KS1_NullRoundtrips()
     {
         // On client 1
-        KitchenSinkDto client1dto = new() { StringValue = "This is a string" };
+        KitchenSinkDto client1dto = new() { StringValue = "This is a string", EnumOfNullableValue = KitchenSinkDtoState.Completed };
         await remoteTable.InsertItemAsync(client1dto);
         var remoteId = client1dto.Id;
         Assert.NotEmpty(remoteId);
@@ -33,6 +33,7 @@ public class KitchenSink_Tests : BaseOperationTest
         var client2dto = await offlineTable.GetItemAsync(remoteId);
         Assert.NotNull(client2dto);
         Assert.Equal("This is a string", client2dto.StringValue);
+        Assert.Equal(KitchenSinkDtoState.Completed, client2dto.EnumOfNullableValue);
 
         // Now update client 1
         client1dto = await remoteTable.GetItemAsync(remoteId);
@@ -46,6 +47,8 @@ public class KitchenSink_Tests : BaseOperationTest
         Assert.NotNull(client2dto);
         // Issue 408 - cannot replace a string with a null.
         Assert.Null(client2dto.StringValue);
+
+        Assert.NotNull(client2dto.EnumOfNullableValue);
 
         // Check log statements here
         Assert.True(storeLoggerMock.Invocations.Count > 0);
@@ -99,7 +102,7 @@ public class KitchenSink_Tests : BaseOperationTest
         // On client 1
         for (int i = 1; i <= 50; i++)
         {
-            KitchenSinkDto dto = new() { StringValue = $"String {i}", IntValue = i };
+            KitchenSinkDto dto = new() { StringValue = $"String {i}", IntValue = i, EnumOfNullableValue = null, };
             await remoteTable.InsertItemAsync(dto);
         }
 

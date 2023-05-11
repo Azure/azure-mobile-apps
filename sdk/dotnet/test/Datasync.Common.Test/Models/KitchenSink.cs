@@ -41,6 +41,9 @@ public class KitchenSink : EntityTableData
     // Enums
     public KitchenSinkState EnumValue { get; set; }
 
+    // Nullable Enums
+    public KitchenSinkState? EnumOfNullableValue { get; set; } // Nullable<KitchenSinkState>
+
     // Complex types
     public DateTime? DateTimeValue { get; set; }
     public DateTimeOffset? DateTimeOffsetValue { get; set; }

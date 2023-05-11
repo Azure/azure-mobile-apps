@@ -130,6 +130,14 @@ namespace Microsoft.Datasync.Client.Offline
                         contractProperty.ValueProvider.SetValue(definition, firstValue);
                     }
                 }
+                else if (contractProperty.PropertyType.IsNullableEnum(out var enumPropertyType))
+                {
+                    object firstValue = Enum.GetValues(enumPropertyType).Cast<object>().FirstOrDefault();
+                    if (firstValue != null)
+                    {
+                        contractProperty.ValueProvider.SetValue(definition, firstValue);
+                    }
+                }
             }
 
             // Create a JObject out of the definition.
