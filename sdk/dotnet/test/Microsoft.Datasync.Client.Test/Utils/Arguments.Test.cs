@@ -110,7 +110,7 @@ public class Validate_Tests
 
     [Fact]
     [Trait("Method", "IsValidId")]
-    public void IsValidId_Null_Throws()
+    public void IsValidId_Null_Throws()dotne
     {
         const string sut = null;
         Assert.Throws<ArgumentNullException>(() => Arguments.IsValidId(sut, nameof(sut)));
@@ -121,7 +121,6 @@ public class Validate_Tests
     [InlineData(" ")]
     [InlineData("\t")]
     [InlineData("abcdef gh")]
-    [InlineData("!!!")]
     [InlineData("?")]
     [InlineData(";")]
     [InlineData("{EA235ADF-9F38-44EA-8DA4-EF3D24755767}")]
@@ -136,8 +135,10 @@ public class Validate_Tests
     [InlineData("db0ec08d-46a9-465d-9f5e-0066a3ee5b5f")]
     [InlineData("0123456789")]
     [InlineData("abcdefgh")]
+    [InlineData("2023|05|01_120000")]
     [InlineData("db0ec08d_46a9_465d_9f5e_0066a3ee5b5f")]
     [InlineData("db0ec08d.46a9.465d.9f5e.0066a3ee5b5f")]
+    [InlineData("!!!")]
     [Trait("Method", "IsValidId")]
     public void IsValidId_Passes(string sut)
     {

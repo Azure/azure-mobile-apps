@@ -28,11 +28,13 @@ namespace Microsoft.Datasync.Client.Utils
         /// The regular expression to match for a valid item ID.
         /// </summary>
         /// <remarks>
-        /// This has to meet multiple standards.  The first is that it must be valid
+        /// <p>This has to meet multiple standards.  The first is that it must be valid
         /// as a path segment according to RFC 2396.  It must also be suitable for storing
-        /// a GUID, and for storing in a database string.
+        /// a GUID, and for storing in a database string.</p>
+        /// <p>We remove some of these (&amp;, parens, star, and quotes) for simplicity. We do allow the
+        /// pipe symbol as well since this seems to be well supported when escaped.
         /// </remarks>
-        private static readonly Regex validIdRegex = new("^[a-zA-Z0-9][a-zA-Z0-9-_.]{0,126}$");
+        private static readonly Regex validIdRegex = new("^[a-zA-Z0-9][a-zA-Z0-9_.|!-:]{0,126}$");
 
         /// <summary>
         /// Returns if the parameter is not null.
