@@ -83,11 +83,7 @@ namespace Microsoft.Datasync.Client.Serialization
                 }
             }
 
-            var idProperty = type.GetProperties().Where(prop => prop.Name.Equals("id", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-            if (idProperty == null)
-            {
-                throw new ArgumentException($"Type {type.Name} must contain an Id property", nameof(type));
-            }
+            var idProperty = Array.Find(type.GetProperties(), prop => prop.Name.Equals("id", StringComparison.OrdinalIgnoreCase)) ?? throw new ArgumentException($"Type {type.Name} must contain an Id property", nameof(type));
             if (idProperty.PropertyType != typeof(string))
             {
                 throw new ArgumentException($"Property {type.Name}.Id must be a string", nameof(type));

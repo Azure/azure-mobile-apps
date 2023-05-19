@@ -11,9 +11,9 @@ namespace Microsoft.Datasync.Client.Test.Query;
 [ExcludeFromCodeCoverage]
 public class Linq_Tests : ClientBaseTest
 {
-    DatasyncClient _client;
-    RemoteTable<KitchenSink> _table;
-    TableQuery<KitchenSink> _query;
+    private readonly DatasyncClient _client;
+    private readonly RemoteTable<KitchenSink> _table;
+    private readonly TableQuery<KitchenSink> _query;
 
     public Linq_Tests()
     { 
