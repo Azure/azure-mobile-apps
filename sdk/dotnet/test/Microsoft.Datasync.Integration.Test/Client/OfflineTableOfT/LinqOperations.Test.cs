@@ -157,4 +157,20 @@ public class LinqOperation_Tests : BaseOperationTest
         }
         Assert.Equal(MovieCount, oc.Count);
     }
+
+    [Fact]
+    [Trait("Method", "Select")]
+    public async Task Select_Test_1()
+    {
+        // Arrange
+        await InitializeAsync();
+        var movieId = GetRandomId();
+        var expectedMovie = MovieServer.GetMovieById(movieId);
+
+        // Act
+        var items = await table!.Where(x => x.Id == movieId).Select(x => new { x.Title }).ToListAsync();
+
+        // Assert
+        Assert.Single(items);
+    }
 }

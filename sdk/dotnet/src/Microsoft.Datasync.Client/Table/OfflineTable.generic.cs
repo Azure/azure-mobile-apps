@@ -34,6 +34,16 @@ namespace Microsoft.Datasync.Client.Table
         }
 
         /// <summary>
+        /// Creates a new <see cref="OfflineTable{T}"/> instance to perform typed requests to an offline table.
+        /// </summary>
+        /// <param name="remoteTable">The associated remote table.</param>
+        internal OfflineTable(IRemoteTable<T> remoteTable) : base(remoteTable.TableName, remoteTable.ServiceClient)
+        {
+            RemoteTable = remoteTable;
+            Serializer = remoteTable.ServiceClient.Serializer;
+        }
+
+        /// <summary>
         /// The remote table associated with this table.
         /// </summary>
         internal IRemoteTable<T> RemoteTable { get; }
