@@ -139,4 +139,36 @@ public class KitchenSink_Tests : BaseOperationTest
         Assert.Single(items);
         Assert.Equal("state=completed", items[0].StringValue);
     }
+
+    [Theory]
+    [InlineData("A & B")]
+    [InlineData(@"A "" B")]
+    [InlineData("A ' B")]
+    [InlineData("A + B")]
+    [InlineData("A / B")]
+    public async Task KS6_SpecialCharacterOfflineWhere(string searchTarget)
+    {
+        var specialCharacters = @"!@#$%^&*)_-+={[}]|\:;""'<>,.?/".ToCharArray();
+        foreach (var ch in specialCharacters)
+        {
+            var insertion = new KitchenSinkDto { StringValue = $"A {ch} B" };
+            await remoteTable.InsertItemAsync(insertion);
+        }
+
+        // Synchronize to offline table
+        await InitializeAsync();
+        var pullQuery = offlineTable!.CreateQuery();
+        await offlineTable!.PullItemsAsync(pullQuery, new PullOptions());
+
+        // Check that all the data was stored
+        var nItems = await offlineTable!.CountItemsAsync();
+        Assert.Equal(specialCharacters.Length, nItems);
+
+        var allItems = await offlineTable!.ToListAsync();
+
+        // Issue 685 - can we find searches with specific characters
+        var items = await offlineTable!.Where(x => x.StringValue.Equals(searchTarget)).ToListAsync();
+        Assert.Single(items);
+        Assert.Equal(searchTarget, items[0].StringValue);
+    }
 }

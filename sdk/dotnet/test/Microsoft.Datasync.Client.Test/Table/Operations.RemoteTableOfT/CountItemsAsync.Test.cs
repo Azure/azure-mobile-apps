@@ -81,7 +81,7 @@ public class CountItemsAsync_Tests : BaseOperationTest
         var count = await table.CountItemsAsync(query);
 
         // Assert
-        var request = AssertSingleRequest(HttpMethod.Get, tableEndpoint + $"?$filter=(stringField eq 'id')&{CountArgs}");
+        var request = AssertSingleRequest(HttpMethod.Get, tableEndpoint + $"?$filter=%28stringField eq %27id%27%29&{CountArgs}");
     }
 
     [Fact]

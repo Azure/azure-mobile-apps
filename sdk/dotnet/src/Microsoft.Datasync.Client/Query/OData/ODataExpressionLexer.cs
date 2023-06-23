@@ -123,7 +123,7 @@ namespace Microsoft.Datasync.Client.Query.OData
             Token.Kind = tokenKind;
             Token.Text = Text.Substring(tokenPosition, TextPosition - tokenPosition);
             Token.Position = tokenPosition;
-            
+
             if (Token.Kind == QueryTokenKind.Identifier && identifierClassification.ContainsKey(Token.Text))
             {
                 Token.Kind = identifierClassification[Token.Text];

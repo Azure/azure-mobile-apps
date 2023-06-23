@@ -26,7 +26,7 @@ namespace Microsoft.Datasync.Client.Query.OData
             if (value.Filter != null)
             {
                 string filterStr = ODataExpressionVisitor.ToODataString(value.Filter);
-                queryFragments.Add($"{ODataOptions.Filter}={filterStr}");
+                queryFragments.Add($"{ODataOptions.Filter}={Uri.EscapeDataString(filterStr)}");
             }
 
             if (value.Ordering.Count > 0)

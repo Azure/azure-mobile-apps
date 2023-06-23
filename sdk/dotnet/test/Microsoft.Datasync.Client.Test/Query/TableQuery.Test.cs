@@ -424,7 +424,7 @@ public class TableQuery_Tests : ClientBaseTest
         RemoteTable<IdEntity> table = client.GetRemoteTable<IdEntity>("movies") as RemoteTable<IdEntity>;
         var query = new TableQuery<IdEntity>(table).Where(m => m.Id == "foo") as TableQuery<IdEntity>;
         var odata = query.ToODataString();
-        Assert.Equal("$filter=(id eq 'foo')", odata);
+        Assert.Equal("$filter=%28id%20eq%20%27foo%27%29", odata);
     }
 
     [Fact]
@@ -766,7 +766,7 @@ public class TableQuery_Tests : ClientBaseTest
         var table = new RemoteTable<KSV>("ksv", client);
         var query = new TableQuery<KSV>(table).Where(x => x.Value <= -0.5) as TableQuery<KSV>;
         var actual = query.ToODataString();
-        Assert.Equal("$filter=(value le -0.5)", actual);
+        Assert.Equal("$filter=%28value%20le%20-0.5%29", actual);
     }
 
     [Fact]
@@ -776,7 +776,7 @@ public class TableQuery_Tests : ClientBaseTest
         var table = new RemoteTable<KSV>("ksv", client);
         var query = new TableQuery<KSV>(table).Where(x => x.NullableValue <= -0.5) as TableQuery<KSV>;
         var actual = query.ToODataString();
-        Assert.Equal("$filter=(nullableValue le -0.5)", actual);
+        Assert.Equal("$filter=%28nullableValue%20le%20-0.5%29", actual);
     }
 
     #region Models

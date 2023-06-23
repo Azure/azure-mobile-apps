@@ -194,7 +194,7 @@ public class RemoteTable_generic_Tests : BaseTest
         var table = client.GetRemoteTable<IdEntity>("movies");
         var query = table.Where(m => m.Id == "foo") as TableQuery<IdEntity>;
         var odata = query.ToODataString();
-        Assert.Equal("$filter=(id eq 'foo')", odata);
+        Assert.Equal("$filter=%28id%20eq%20%27foo%27%29", odata);
     }
 
     [Fact]
