@@ -345,6 +345,8 @@ namespace Microsoft.Datasync.Client.Offline
             long expectedItems = -1;
             DateTimeOffset? updatedAt = null;
             var enumerable = table.GetAsyncItems(odataString);
+            var deletedIds = new List<string>();
+            var upsertList = new Dictionary<string, JObject>();
             try
             {
                 await foreach (var instance in enumerable)
@@ -380,24 +382,44 @@ namespace Microsoft.Datasync.Client.Offline
 
                     if (ServiceSerializer.IsDeleted(item))
                     {
-                        await OfflineStore.DeleteAsync(tableName, new[] { itemId }, cancellationToken).ConfigureAwait(false);
+                        deletedIds.Add(itemId);
                     }
                     else
                     {
-                        await OfflineStore.UpsertAsync(tableName, new[] { item }, true, cancellationToken).ConfigureAwait(false);
+                        upsertList.Add(itemId, item);
                     }
                     itemCount++;
                     updatedAt = ServiceSerializer.GetUpdatedAt(item)?.ToUniversalTime();
-                    if (itemCount % options.WriteDeltaTokenInterval == 0 && updatedAt.HasValue)
+                    if (itemCount % options.WriteDeltaTokenInterval == 0)
                     {
-                        await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, updatedAt.Value, cancellationToken).ConfigureAwait(false);
-                        updatedAt = null; // Easy way to prevent the finally block to not write twice.
+                        await OfflineStore.DeleteAsync(tableName, deletedIds, cancellationToken).ConfigureAwait(false);
+                        deletedIds.ForEach(x => SendItemWasStoredEvent(tableName, x, itemCount, expectedItems));
+                        deletedIds.Clear();
+
+                        await OfflineStore.UpsertAsync(tableName, upsertList.Values, ignoreMissingColumns: true, cancellationToken).ConfigureAwait(false);
+                        upsertList.Keys.ToList().ForEach(x => SendItemWasStoredEvent(tableName, x, itemCount, expectedItems));
+                        upsertList.Clear();
+
+                        if (updatedAt.HasValue)
+                        {
+                            await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, updatedAt.Value, cancellationToken).ConfigureAwait(false);
+                            updatedAt = null;
+                        }
                     }
-                    SendItemWasStoredEvent(tableName, itemId, itemCount, expectedItems);
                 }
             }
             finally
             {
+                if (deletedIds.Count > 0)
+                {
+                    await OfflineStore.DeleteAsync(tableName, deletedIds, cancellationToken).ConfigureAwait(false);
+                    deletedIds.ForEach(x => SendItemWasStoredEvent(tableName, x, itemCount, expectedItems));
+                }
+                if (upsertList.Count > 0)
+                {
+                    await OfflineStore.UpsertAsync(tableName, upsertList.Values, ignoreMissingColumns: true, cancellationToken).ConfigureAwait(false);
+                    upsertList.Keys.ToList().ForEach(x => SendItemWasStoredEvent(tableName, x, itemCount, expectedItems));
+                }
                 if (updatedAt.HasValue)
                 {
                     await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, updatedAt.Value, cancellationToken).ConfigureAwait(false);

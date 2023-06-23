@@ -40,7 +40,7 @@ public abstract class BaseOperationTest : BaseTest, IDisposable
         else
         {
             connectionString = "file:in-memory.db?mode=memory";
-        }           
+        }
         store = new OfflineSQLiteStore(connectionString);
         store.DefineTable<ClientMovie>("movies");
         store.DefineTable<ClientMovie>("soft");

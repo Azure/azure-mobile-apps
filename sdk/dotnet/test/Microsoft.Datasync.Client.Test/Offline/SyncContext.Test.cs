@@ -610,7 +610,7 @@ public class SyncContext_Tests : ClientBaseTest
     public async Task PullItemsAsync_ProducesCorrectQuery_WithoutUpdatedAt()
     {
         var context = await GetSyncContext();
-        _ = CreatePageOfItems(10, 10);
+        var pageOfItems = CreatePageOfItems(10, 10);
 
         await context.PullItemsAsync("movies", "", new PullOptions());
 
@@ -628,20 +628,19 @@ public class SyncContext_Tests : ClientBaseTest
         Assert.Equal("movies", events.First().TableName);
         Assert.Equal(SynchronizationEventType.PullFinished, events.Last().EventType);
         Assert.Equal("movies", events.Last().TableName);
-        for (int i = 1; i < events.Count - 1; i += 2)
-        {
-            Assert.Equal(SynchronizationEventType.ItemWillBeStored, events[i].EventType);
-            Assert.Equal("movies", events[i].TableName);
-            Assert.NotEmpty(events[i].ItemId);
-            Assert.Equal((i - 1) / 2, events[i].ItemsProcessed);
-            Assert.Equal(10, events[i].QueueLength);
 
-            Assert.Equal(SynchronizationEventType.ItemWasStored, events[i+1].EventType);
-            Assert.Equal("movies", events[i + 1].TableName);
-            Assert.NotEmpty(events[i + 1].ItemId);
-            Assert.Equal(((i - 1) / 2) + 1, events[i + 1].ItemsProcessed);
-            Assert.Equal(10, events[i + 1].QueueLength);
+        // New logic - because we do out of order storing of data now, we can't guarantee the sequencing
+        // of the synchronization events.  So we look at the events and say "was the appropriate event
+        // produced in the set"
+        foreach (var item in pageOfItems.Items)
+        {
+            var willStoreEvent = events.FindAll(m => m.EventType == SynchronizationEventType.ItemWillBeStored && m.ItemId == item.Id);
+            Assert.Single(willStoreEvent);
+
+            var storedEvent = events.FindAll(m => m.EventType == SynchronizationEventType.ItemWasStored && m.ItemId == item.Id);
+            Assert.Single(storedEvent);
         }
+
         Assert.Equal(10, events[2].QueueLength);
     }
 
