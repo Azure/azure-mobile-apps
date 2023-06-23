@@ -16,7 +16,7 @@ public class Linq_Tests : ClientBaseTest
     private readonly TableQuery<KitchenSink> _query;
 
     public Linq_Tests()
-    { 
+    {
         _client = GetMockClient();
         _table = _client.GetRemoteTable<KitchenSink>("kitchensink") as RemoteTable<KitchenSink>;
         _query = new TableQuery<KitchenSink>(_table);
@@ -41,7 +41,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.EndsWith("abc"),
-            "$filter=endswith(stringProperty,'abc')"
+            "$filter=endswith%28stringProperty%2C%27abc%27%29"
         );
     }
 
@@ -50,7 +50,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.EndsWith("abc", StringComparison.Ordinal),
-            "$filter=endswith(stringProperty,'abc')"
+            "$filter=endswith%28stringProperty%2C%27abc%27%29"
         );
     }
 
@@ -59,7 +59,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.EndsWith("abc", StringComparison.InvariantCulture),
-            "$filter=endswith(stringProperty,'abc')"
+            "$filter=endswith%28stringProperty%2C%27abc%27%29"
         );
     }
 
@@ -68,7 +68,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.EndsWith("abc", StringComparison.OrdinalIgnoreCase),
-            "$filter=endswith(tolower(stringProperty),tolower('abc'))"
+            "$filter=endswith%28tolower%28stringProperty%29%2Ctolower%28%27abc%27%29%29"
         );
     }
 
@@ -77,7 +77,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.EndsWith("abc", StringComparison.InvariantCultureIgnoreCase),
-            "$filter=endswith(tolower(stringProperty),tolower('abc'))"
+            "$filter=endswith%28tolower%28stringProperty%29%2Ctolower%28%27abc%27%29%29"
         );
     }
 
@@ -86,7 +86,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.Equals("abc"),
-            "$filter=(stringProperty eq 'abc')"
+            "$filter=%28stringProperty%20eq%20%27abc%27%29"
         );
     }
 
@@ -95,7 +95,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.Equals("abc", StringComparison.Ordinal),
-            "$filter=(stringProperty eq 'abc')"
+            "$filter=%28stringProperty%20eq%20%27abc%27%29"
         );
     }
 
@@ -104,7 +104,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.Equals("abc", StringComparison.InvariantCulture),
-            "$filter=(stringProperty eq 'abc')"
+            "$filter=%28stringProperty%20eq%20%27abc%27%29"
         );
     }
 
@@ -113,7 +113,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.Equals("abc", StringComparison.OrdinalIgnoreCase),
-            "$filter=(tolower(stringProperty) eq tolower('abc'))"
+            "$filter=%28tolower%28stringProperty%29%20eq%20tolower%28%27abc%27%29%29"
         );
     }
 
@@ -122,7 +122,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.Equals("abc", StringComparison.InvariantCultureIgnoreCase),
-            "$filter=(tolower(stringProperty) eq tolower('abc'))"
+            "$filter=%28tolower%28stringProperty%29%20eq%20tolower%28%27abc%27%29%29"
         );
     }
 
@@ -131,7 +131,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.StartsWith("abc"),
-            "$filter=startswith(stringProperty,'abc')"
+            "$filter=startswith%28stringProperty%2C%27abc%27%29"
         );
     }
 
@@ -140,7 +140,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.StartsWith("abc", StringComparison.Ordinal),
-            "$filter=startswith(stringProperty,'abc')"
+            "$filter=startswith%28stringProperty%2C%27abc%27%29"
         );
     }
 
@@ -149,7 +149,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.StartsWith("abc", StringComparison.InvariantCulture),
-            "$filter=startswith(stringProperty,'abc')"
+            "$filter=startswith%28stringProperty%2C%27abc%27%29"
         );
     }
 
@@ -158,7 +158,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.StartsWith("abc", StringComparison.OrdinalIgnoreCase),
-            "$filter=startswith(tolower(stringProperty),tolower('abc'))"
+            "$filter=startswith%28tolower%28stringProperty%29%2Ctolower%28%27abc%27%29%29"
         );
     }
 
@@ -167,7 +167,7 @@ public class Linq_Tests : ClientBaseTest
     {
         ExecuteWhereQuery(
             m => m.StringProperty.StartsWith("abc", StringComparison.InvariantCultureIgnoreCase),
-            "$filter=startswith(tolower(stringProperty),tolower('abc'))"
+            "$filter=startswith%28tolower%28stringProperty%29%2Ctolower%28%27abc%27%29%29"
         );
     }
 

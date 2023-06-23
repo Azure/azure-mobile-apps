@@ -303,7 +303,7 @@ public class OperationsQueue_Tests : BaseOperationTest
         Assert.Equal(SystemTables.OperationsQueue, query.TableName);
 
         var odata = query.ToODataString();
-        var expected = $"$filter={filter}&$orderby=sequence&$top=1";
+        var expected = $"$filter={Uri.EscapeDataString(filter)}&$orderby=sequence&$top=1";
         Assert.Equal(expected, odata);
     }
 
