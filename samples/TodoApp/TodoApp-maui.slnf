@@ -1,0 +1,10 @@
+{
+  "solution": {
+    "path": "TodoApp.sln",
+    "projects": [
+      "TodoApp.Data\\TodoApp.Data.csproj",
+      "TodoApp.MAUI\\TodoApp.MAUI.csproj",
+      "TodoAppService.NET6\\TodoAppService.NET6.csproj"
+    ]
+  }
+}
