@@ -6,7 +6,6 @@
 
     <Style x:Key="addItemEntry" TargetType="Entry">
         <Setter Property="BackgroundColor" Value="White" />
-        <Setter Property="ClearButtonVisibility" Value="WhileEditing" />
         <Setter Property="HorizontalOptions" Value="FillAndExpand" />
         <Setter Property="IsSpellCheckEnabled" Value="True" />
         <Setter Property="IsTextPredictionEnabled" Value="True" />
@@ -15,7 +14,7 @@
         <Setter Property="PlaceholderColor" Value="#C0C0C0" />
         <Setter Property="TextColor" Value="Blue" />
     </Style>
-    
+
     <Style x:Key="addItemIcon" TargetType="Image">
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="HeightRequest" Value="20" />
@@ -38,13 +37,13 @@
         <Setter Property="VerticalOptions" Value="Center" />
         <Setter Property="WidthRequest" Value="24" />
     </Style>
-    
+
     <Style x:Key="listItemTitle" TargetType="Label">
         <Setter Property="HorizontalOptions" Value="FillAndExpand" />
         <Setter Property="VerticalOptions" Value="CenterAndExpand" />
         <Setter Property="TextColor" Value="Black" />
     </Style>
-    
+
     <Style x:Key="roundedCornerFrame" TargetType="Frame">
         <Setter Property="BackgroundColor" Value="White" />
         <Setter Property="BorderColor" Value="#808080" />
@@ -53,7 +52,7 @@
         <Setter Property="Margin" Value="10" />
         <Setter Property="Padding" Value="2" />
     </Style>
-    
+
     <Style x:Key="titleViewContainer" TargetType="StackLayout">
         <Setter Property="Orientation" Value="Horizontal" />
         <Setter Property="HorizontalOptions" Value="FillAndExpand" />
@@ -71,11 +70,11 @@
         <Setter Property="VerticalOptions" Value="Center" />
         <Setter Property="HorizontalOptions" Value="End" />
     </Style>
-    
+
     <Style x:Key="titleViewRefreshIcon" TargetType="ImageButton" BasedOn="{StaticResource titleViewIcon}">
         <Setter Property="Source" Value="refresh.png" />
     </Style>
-    
+
     <Style TargetType="NavigationPage">
         <Setter Property="BarBackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Gray950}}" />
         <Setter Property="BarTextColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource White}}" />
