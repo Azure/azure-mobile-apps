@@ -35,8 +35,11 @@ public class NSwag_Tests
         Assert.True(swaggerDoc!.IsSuccessStatusCode);
 
         var expectedContent = ReadExternalFile("swagger.json").Replace("\r\n", "\n").TrimEnd();
-        var actualContent = await swaggerDoc!.Content.ReadAsStringAsync();
-        WriteExternalFile("swagger.json.out", actualContent);
+        var actualContent = (await swaggerDoc!.Content.ReadAsStringAsync()).Replace("\r\n", "\n").TrimEnd();
+        if (!expectedContent.Equals(actualContent))
+        {
+            WriteExternalFile("swagger.json.out", actualContent);
+        }
         Assert.Equal(expectedContent, actualContent.Replace("\r\n", "\n").TrimEnd());
     }
 }
