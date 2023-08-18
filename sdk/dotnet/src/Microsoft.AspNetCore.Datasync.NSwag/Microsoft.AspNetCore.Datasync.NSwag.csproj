@@ -17,7 +17,7 @@
 	<Import Project="..\..\Shared.Build.props" />
 
 	<ItemGroup>
-		<PackageReference Include="NSwag.AspNetCore" Version="13.18.2" />
+		<PackageReference Include="NSwag.AspNetCore" Version="13.20.0" />
 	</ItemGroup>
 
 	<ItemGroup>

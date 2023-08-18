@@ -20,6 +20,13 @@ public class NSwag_Tests
         return sr.ReadToEnd();
     }
 
+    private static void WriteExternalFile(string filename, string content)
+    {
+        var storePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        using StreamWriter outputFile = new StreamWriter(Path.Combine(storePath, filename));
+        outputFile.Write(content);
+    }
+
     [Fact]
     public async Task NSwag_GeneratesSwagger()
     {
@@ -29,6 +36,7 @@ public class NSwag_Tests
 
         var expectedContent = ReadExternalFile("swagger.json").Replace("\r\n", "\n").TrimEnd();
         var actualContent = await swaggerDoc!.Content.ReadAsStringAsync();
+        WriteExternalFile("swagger.json.out", actualContent);
         Assert.Equal(expectedContent, actualContent.Replace("\r\n", "\n").TrimEnd());
     }
 }
