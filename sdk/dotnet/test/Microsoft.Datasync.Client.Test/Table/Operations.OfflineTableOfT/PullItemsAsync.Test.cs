@@ -265,20 +265,17 @@ public class PullItemsAsync_Tests : BaseOperationTest
         var items = CreatePageOfMovies(10, lastUpdatedAt, 3);
         store.Upsert("movies", items); // store the 10 items in the store
 
-        var pushContext = new Mock<IPushContext>();
-        pushContext.Setup(x => x.PushItemsAsync(It.IsAny<string[]>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        table.ServiceClient.SyncContext.PushContext = pushContext.Object;
+        var pushContext = Substitute.For<IPushContext>();
+        pushContext.PushItemsAsync(Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+        table.ServiceClient.SyncContext.PushContext = pushContext;
 
         // We don't "consume" the operation, so PullItemsAsync() will throw an invalid operation because the table is dirty the second time.
         await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.PullItemsAsync(table.CreateQuery(), new PullOptions()));
 
-        // PushItemsAsync should be called once.
-        Assert.Single(pushContext.Invocations);
-
-        // Since we didn't alter the movies, then args[0] should be string[] { "movies" }
-        var relatedTables = pushContext.Invocations[0].Arguments[0] as string[];
-        Assert.Single(relatedTables);
-        Assert.Equal("movies", relatedTables[0]);
+        Received.InOrder(async () =>
+        {
+            await pushContext.Received(1).PushItemsAsync(Arg.Is<string[]>(t => t.Length == 1 && t[0] == "movies"), default);
+        });
     }
 
     [Fact]
@@ -292,19 +289,18 @@ public class PullItemsAsync_Tests : BaseOperationTest
         var items = CreatePageOfMovies(10, lastUpdatedAt, 3);
         store.Upsert("movies", items); // store the 10 items in the store
 
-        var pushContext = new Mock<IPushContext>();
-        pushContext.Setup(x => x.PushItemsAsync(It.IsAny<string[]>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        table.ServiceClient.SyncContext.PushContext = pushContext.Object;
+        var pushContext = Substitute.For<IPushContext>();
+        pushContext.PushItemsAsync(Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+        table.ServiceClient.SyncContext.PushContext = pushContext;
 
         // We don't "consume" the operation, so PullItemsAsync() will throw an invalid operation because the table is dirty the second time.
         var options = new PullOptions { PushOtherTables = true };
         await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => table.PullItemsAsync(table.CreateQuery(), options));
 
-        // PushItemsAsync should be called once.
-        Assert.Single(pushContext.Invocations);
-
-        // Since we are pushing other tables, the argument should be null
-        Assert.Null(pushContext.Invocations[0].Arguments[0]);
+        Received.InOrder(async () =>
+        {
+            await pushContext.Received(1).PushItemsAsync(Arg.Is<string[]>(arg => arg == null), default);
+        });
     }
 
     [Fact]
@@ -319,13 +315,9 @@ public class PullItemsAsync_Tests : BaseOperationTest
         const string keyId = "dt.movies.abc123";
         var items = CreatePageOfMovies(10, lastUpdatedAt);
 
-        var pushContext = new Mock<IPushContext>();
-        pushContext.Setup(x => x.PushItemsAsync(It.IsAny<string[]>(), It.IsAny<CancellationToken>())).Returns(() =>
-        {
-            store.TableMap[SystemTables.OperationsQueue].Clear();
-            return Task.CompletedTask;
-        });
-        table.ServiceClient.SyncContext.PushContext = pushContext.Object;
+        var pushContext = Substitute.For<IPushContext>();
+        pushContext.PushItemsAsync(Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask).AndDoes(_ => store.TableMap[SystemTables.OperationsQueue].Clear());
+        table.ServiceClient.SyncContext.PushContext = pushContext;
 
         await table.PullItemsAsync(table.CreateQuery(), options);
 

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NSubstitute;
 using System.Text.Encodings.Web;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Authentication;
@@ -184,27 +185,27 @@ public class AzureAppServiceAuthenticationHandler_Tests
     #region Helpers
     private static ILoggerFactory GetMockLoggerFactory()
     {
-        var logger = new Mock<ILogger<AzureAppServiceAuthenticationHandler>>();
-        var loggerFactory = new Mock<ILoggerFactory>(MockBehavior.Strict);
-        loggerFactory.Setup(x => x.CreateLogger(typeof(AzureAppServiceAuthenticationHandler).FullName)).Returns(logger.Object);
-        return loggerFactory.Object;
+        var logger = Substitute.For<ILogger<AzureAppServiceAuthenticationHandler>>();
+        var loggerFactory = Substitute.For<ILoggerFactory>();
+        loggerFactory.CreateLogger(typeof(AzureAppServiceAuthenticationHandler).FullName).Returns(logger);
+        return loggerFactory;
     }
 
     private static IOptionsMonitor<AzureAppServiceAuthenticationOptions> GetMockOptionsMonitor(AzureAppServiceAuthenticationOptions options)
     {
-        var monitor = new Mock<IOptionsMonitor<AzureAppServiceAuthenticationOptions>>();
-        monitor.Setup(x => x.Get(AzureAppServiceAuthentication.AuthenticationScheme)).Returns(options);
-        return monitor.Object;
+        var monitor = Substitute.For<IOptionsMonitor<AzureAppServiceAuthenticationOptions>>();
+        monitor.Get(AzureAppServiceAuthentication.AuthenticationScheme).Returns(options);
+        return monitor;
     }
 
     private static async Task<AzureAppServiceAuthenticationHandler> GetInitializedHandler(HttpContext context, AzureAppServiceAuthenticationOptions options = null)
     {
         var loggerFactory = GetMockLoggerFactory();
-        var encoder = new Mock<UrlEncoder>();
-        var clock = new Mock<ISystemClock>();
+        var encoder = Substitute.For<UrlEncoder>();
+        var clock = Substitute.For<ISystemClock>();
         var optionsMonitor = GetMockOptionsMonitor(options ?? new AzureAppServiceAuthenticationOptions());
         var authScheme = new AuthenticationScheme(AzureAppServiceAuthentication.AuthenticationScheme, AzureAppServiceAuthentication.DisplayName, typeof(AzureAppServiceAuthenticationHandler));
-        var handler = new AzureAppServiceAuthenticationHandler(optionsMonitor, loggerFactory, encoder.Object, clock.Object);
+        var handler = new AzureAppServiceAuthenticationHandler(optionsMonitor, loggerFactory, encoder, clock);
         await handler.InitializeAsync(authScheme, context).ConfigureAwait(false);
         return handler;
     }

@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.Extensions.Logging;
-using Moq;
+using NSubstitute;
 
 namespace Microsoft.Datasync.Integration.Test.KitchenSink;
 
@@ -16,7 +16,7 @@ public abstract class BaseOperationTest : BaseTest, IDisposable
     protected readonly DatasyncClient client;
     protected IOfflineTable<KitchenSinkDto>? offlineTable;
     protected IRemoteTable<KitchenSinkDto> remoteTable;
-    protected Mock<ILogger<OfflineSQLiteStore>> storeLoggerMock;
+    protected ILogger<OfflineSQLiteStore> storeLoggerMock;
 
     protected BaseOperationTest(ITestOutputHelper logger, bool useFile = true)
     {
@@ -31,9 +31,9 @@ public abstract class BaseOperationTest : BaseTest, IDisposable
             connectionString = "file:in-memory.db?mode=memory";
         }
 
-        storeLoggerMock = new Mock<ILogger<OfflineSQLiteStore>>();
-        storeLoggerMock.Setup(x => x.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<object>(), It.IsAny<Exception>(), It.IsAny<Func<object, Exception?, string>>()));
-        store = new OfflineSQLiteStore(connectionString, storeLoggerMock.Object);
+        storeLoggerMock = Substitute.For<ILogger<OfflineSQLiteStore>>();
+        storeLoggerMock.Log(Arg.Any<LogLevel>(), Arg.Any<EventId>(), Arg.Any<object>(), Arg.Any<Exception>(), Arg.Any<Func<object, Exception?, string>>());
+        store = new OfflineSQLiteStore(connectionString, storeLoggerMock);
         store.DefineTable<KitchenSinkDto>("kitchensink");
         client = GetMovieClient(store: store);
         remoteTable = client.GetRemoteTable<KitchenSinkDto>("kitchensink");

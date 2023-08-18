@@ -18,8 +18,8 @@ public class DatasyncClient_Tests : BaseTest
     #region Test Case Helpers
     public DatasyncClient_Tests() : base()
     {
-        var store = new Mock<IOfflineStore>();
-        clientOptions = new DatasyncClientOptions { OfflineStore = store.Object };
+        var store = Substitute.For<IOfflineStore>();
+        clientOptions = new DatasyncClientOptions { OfflineStore = store };
     }
 
     /// <summary>
