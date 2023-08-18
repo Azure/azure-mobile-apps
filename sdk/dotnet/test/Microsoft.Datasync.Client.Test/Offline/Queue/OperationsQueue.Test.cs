@@ -9,6 +9,7 @@ using Microsoft.Datasync.Client.Query.OData;
 using Microsoft.Datasync.Client.Table;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NSubstitute.ExceptionExtensions;
 
 namespace Microsoft.Datasync.Client.Test.Offline.Queue;
 
@@ -229,11 +230,12 @@ public class OperationsQueue_Tests : BaseOperationTest
     [Trait("Method", "GetOperationByItemIdAsync")]
     public async Task GetOperationByItemIdAsync_NullItems()
     {
-        var store = new Mock<IOfflineStore>();
+        var store = Substitute.For<IOfflineStore>();
         var page = new Page<JObject> { Items = null };
-        store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(page));
+        store.GetPageAsync(Arg.Any<QueryDescription>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(page));
+        //store.GetPageAsync(Arg.Any<QueryDescription>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(page));
 
-        var sut = new OperationsQueue(store.Object);
+        var sut = new OperationsQueue(store);
         await sut.InitializeAsync();
         var actual = await sut.GetOperationByItemIdAsync("test", "1234");
         Assert.Null(actual);
@@ -243,11 +245,12 @@ public class OperationsQueue_Tests : BaseOperationTest
     [Trait("Method", "GetOperationByItemIdAsync")]
     public async Task GetOperationByItemIdAsync_EmptyItems()
     {
-        var store = new Mock<IOfflineStore>();
+        var store = Substitute.For<IOfflineStore>();
         var page = new Page<JObject> { Items = Array.Empty<JObject>() };
-        store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(page));
+        store.GetPageAsync(Arg.Any<QueryDescription>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(page));
+        //store.GetPageAsync(Arg.Any<QueryDescription>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(page));
 
-        var sut = new OperationsQueue(store.Object);
+        var sut = new OperationsQueue(store);
         await sut.InitializeAsync();
         var actual = await sut.GetOperationByItemIdAsync("test", "1234");
         Assert.Null(actual);
@@ -257,12 +260,12 @@ public class OperationsQueue_Tests : BaseOperationTest
     [Trait("Method", "GetOperationByItemIdAsync")]
     public async Task GetOperationByItemIdAsync_JObjectItem()
     {
-        var store = new Mock<IOfflineStore>();
+        var store = Substitute.For<IOfflineStore>();
         var operation = new InsertOperation("test", "1234");
         var page = new Page<JObject> { Items = new JObject[] { operation.Serialize() } };
-        store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(page));
+        store.GetPageAsync(Arg.Any<QueryDescription>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(page));
 
-        var sut = new OperationsQueue(store.Object);
+        var sut = new OperationsQueue(store);
         await sut.InitializeAsync();
         var actual = await sut.GetOperationByItemIdAsync("test", "1234");
         Assert.Equal(operation, actual);
@@ -272,8 +275,8 @@ public class OperationsQueue_Tests : BaseOperationTest
     [Trait("Method", "PeekAsync")]
     public async Task PeekAsync_NegativeSequenceId_Throws()
     {
-        var store = new Mock<IOfflineStore>();
-        var sut = new OperationsQueue(store.Object);
+        var store = Substitute.For<IOfflineStore>();
+        var sut = new OperationsQueue(store);
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => sut.PeekAsync(-1, null));
     }
 
@@ -289,22 +292,22 @@ public class OperationsQueue_Tests : BaseOperationTest
     public async Task PeekAsync_GeneratesCorrectQuery(long sequenceId, string[] tableNames, string filter)
     {
         var response = new Page<JObject>();
-        var store = new Mock<IOfflineStore>();
-        store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(response));
-        var sut = new OperationsQueue(store.Object);
+        var store = Substitute.For<IOfflineStore>();
+        store.GetPageAsync(Arg.Any<QueryDescription>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(response));
+        var sut = new OperationsQueue(store);
 
         _ = await sut.PeekAsync(sequenceId, tableNames);
 
-        Assert.Single(store.Invocations);
-        var invocation = store.Invocations[0];
-        var query = invocation.Arguments[0] as QueryDescription;
-
-        Assert.NotNull(query);
-        Assert.Equal(SystemTables.OperationsQueue, query.TableName);
-
-        var odata = query.ToODataString();
-        var expected = $"$filter={Uri.EscapeDataString(filter)}&$orderby=sequence&$top=1";
-        Assert.Equal(expected, odata);
+        var checkQuery = new Func<QueryDescription, bool>(query =>
+        {
+            Assert.Equal(SystemTables.OperationsQueue, query.TableName);
+            Assert.Equal($"$filter={Uri.EscapeDataString(filter)}&$orderby=sequence&$top=1", query.ToODataString());
+            return true;
+        });
+        Received.InOrder(async () =>
+        {
+            await store.Received(1).GetPageAsync(Arg.Is<QueryDescription>(query => checkQuery(query)), default);
+        });
     }
 
     [Fact]
@@ -313,9 +316,9 @@ public class OperationsQueue_Tests : BaseOperationTest
     {
         var operation = new DeleteOperation("movies", Guid.NewGuid().ToString());
         var response = new Page<JObject>() { Items = new[] { operation.Serialize() } };
-        var store = new Mock<IOfflineStore>();
-        store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(response));
-        var sut = new OperationsQueue(store.Object);
+        var store = Substitute.For<IOfflineStore>();
+        store.GetPageAsync(Arg.Any<QueryDescription>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(response));
+        var sut = new OperationsQueue(store);
 
         var actual = await sut.PeekAsync(0L, new[] { "movies" });
 
@@ -326,8 +329,8 @@ public class OperationsQueue_Tests : BaseOperationTest
     [Trait("Method", "TryUpdateOperationStateAsync")]
     public async Task TryUpdateOperationState_Throws_NullOperation()
     {
-        var store = new Mock<IOfflineStore>();
-        var sut = new OperationsQueue(store.Object);
+        var store = Substitute.For<IOfflineStore>();
+        var sut = new OperationsQueue(store);
 
         await Assert.ThrowsAsync<ArgumentNullException>(() => sut.TryUpdateOperationStateAsync(null, TableOperationState.Failed));
     }
@@ -337,25 +340,27 @@ public class OperationsQueue_Tests : BaseOperationTest
     public async Task TryUpdateOperationState_SetsNewState_InStore()
     {
         var operation = new DeleteOperation("movies", Guid.NewGuid().ToString());
-        var store = new Mock<IOfflineStore>();
-        store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new Page<JObject>()));
-        store.Setup(x => x.UpsertAsync(It.IsAny<string>(), It.IsAny<IEnumerable<JObject>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        var context = new SyncContext(GetMockClient(), store.Object);
-        var sut = new OperationsQueue(store.Object);
+        var store = Substitute.For<IOfflineStore>();
+        store.GetPageAsync(Arg.Any<QueryDescription>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new Page<JObject>()));
+        store.UpsertAsync(Arg.Any<string>(), Arg.Any<IEnumerable<JObject>>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+        var context = new SyncContext(GetMockClient(), store);
+        var sut = new OperationsQueue(store);
         await sut.InitializeAsync();
 
         await sut.TryUpdateOperationStateAsync(operation, TableOperationState.Completed);
 
-        // Step 1: We should have exactly one invocation of the UpsertAsync method.
-        var invocations = store.Invocations.Where(x => x.Method.Name == "UpsertAsync").ToList();
-        Assert.Single(invocations);
-        Assert.Equal(SystemTables.OperationsQueue, invocations[0].Arguments[0] as string);
-
-        var ops = invocations[0].Arguments[1] as IEnumerable<JObject>;
-        Assert.Single(ops);
-        var actual = ops.First();
-        Assert.Equal(operation.Id, actual.Value<string>("id"));
-        Assert.Equal((int)TableOperationState.Completed, actual.Value<int>("state"));
+        var checkOps = new Func<IEnumerable<JObject>, bool>(ops =>
+        {
+            Assert.Single(ops);
+            var actual = ops.First();
+            Assert.Equal(operation.Id, actual.Value<string>("id"));
+            Assert.Equal((int)TableOperationState.Completed, actual.Value<int>("state"));
+            return true;
+        });
+        Received.InOrder(async () =>
+        {
+            await store.Received(1).UpsertAsync(Arg.Is<string>(t => t.Equals(SystemTables.OperationsQueue)), Arg.Is<IEnumerable<JObject>>(ops => checkOps(ops)), default, default);
+        });
     }
 
     [Fact]
@@ -364,11 +369,12 @@ public class OperationsQueue_Tests : BaseOperationTest
     {
         var operation = new DeleteOperation("movies", Guid.NewGuid().ToString());
         var exception = new ApplicationException();
-        var store = new Mock<IOfflineStore>();
-        store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new Page<JObject>()));
-        store.Setup(x => x.UpsertAsync(It.IsAny<string>(), It.IsAny<IEnumerable<JObject>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Throws(exception);
-        var context = new SyncContext(GetMockClient(), store.Object);
-        var sut = new OperationsQueue(store.Object);
+        var store = Substitute.For<IOfflineStore>();
+        store.GetPageAsync(Arg.Any<QueryDescription>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new Page<JObject>()));
+        store.UpsertAsync(Arg.Any<string>(), Arg.Any<IEnumerable<JObject>>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Throws(exception);
+
+        var context = new SyncContext(GetMockClient(), store);
+        var sut = new OperationsQueue(store);
         await sut.InitializeAsync();
 
         var batch = new OperationBatch(context);
@@ -390,11 +396,11 @@ public class OperationsQueue_Tests : BaseOperationTest
     {
         var operation = new DeleteOperation("movies", Guid.NewGuid().ToString());
         var exception = new ApplicationException();
-        var store = new Mock<IOfflineStore>();
-        store.Setup(x => x.GetPageAsync(It.IsAny<QueryDescription>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new Page<JObject>()));
-        store.Setup(x => x.UpsertAsync(It.IsAny<string>(), It.IsAny<IEnumerable<JObject>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Throws(exception);
-        var context = new SyncContext(GetMockClient(), store.Object);
-        var sut = new OperationsQueue(store.Object);
+        var store = Substitute.For<IOfflineStore>();
+        store.GetPageAsync(Arg.Any<QueryDescription>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new Page<JObject>()));
+        store.UpsertAsync(Arg.Any<string>(), Arg.Any<IEnumerable<JObject>>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Throws(exception);
+        var context = new SyncContext(GetMockClient(), store);
+        var sut = new OperationsQueue(store);
         await sut.InitializeAsync();
 
         var ex = await Assert.ThrowsAsync<OfflineStoreException>(() => sut.TryUpdateOperationStateAsync(operation, TableOperationState.Completed));

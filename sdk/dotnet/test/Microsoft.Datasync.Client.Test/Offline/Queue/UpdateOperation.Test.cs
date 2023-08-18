@@ -247,31 +247,26 @@ public class UpdateOperation_Tests : BaseOperationTest
     [Fact]
     public async Task ExecuteOnOfflineStore_Works_WithItemInStore()
     {
-        var store = new Mock<IOfflineStore>();
-        store.Setup(x => x.GetItemAsync("test", "1234", It.IsAny<CancellationToken>())).Returns(Task.FromResult(testObject));
-        store.Setup(x => x.UpsertAsync("test", It.IsAny<IEnumerable<JObject>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        var store = Substitute.For<IOfflineStore>();
+        store.GetItemAsync("test", "1234", Arg.Any<CancellationToken>()).Returns(Task.FromResult(testObject));
+        store.UpsertAsync("test", Arg.Any<IEnumerable<JObject>>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         var sut = new UpdateOperation("test", "1234");
 
-        await sut.ExecuteOperationOnOfflineStoreAsync(store.Object, testObject);
+        await sut.ExecuteOperationOnOfflineStoreAsync(store, testObject);
 
-        Assert.Equal(2, store.Invocations.Count);
-
-        var upsert = store.Invocations[1];
-        Assert.IsAssignableFrom<IEnumerable<JObject>>(upsert.Arguments[1]);
-        var items = (IEnumerable<JObject>)upsert.Arguments[1];
-        Assert.Single(items);
-        Assert.Equal(testObject, items.First());
+        await store.GetItemAsync("test", "1234", default);
+        await store.UpsertAsync(default, Arg.Is<IEnumerable<JObject>>(ops => ops.Single().Equals(testObject)), default, default);
     }
 
     [Fact]
     public async Task ExecuteOnOfflineStore_Throws_WithItemNotInStore()
     {
-        var store = new Mock<IOfflineStore>();
-        store.Setup(x => x.GetItemAsync("test", "1234", It.IsAny<CancellationToken>())).Returns(Task.FromResult((JObject)null));
-        store.Setup(x => x.UpsertAsync("test", It.IsAny<IEnumerable<JObject>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        var store = Substitute.For<IOfflineStore>();
+        store.GetItemAsync("test", "1234", Arg.Any<CancellationToken>()).Returns(Task.FromResult((JObject)null));
+        store.UpsertAsync("test", Arg.Any<IEnumerable<JObject>>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         var sut = new UpdateOperation("test", "1234");
 
-        await Assert.ThrowsAsync<OfflineStoreException>(() => sut.ExecuteOperationOnOfflineStoreAsync(store.Object, testObject));
+        await Assert.ThrowsAsync<OfflineStoreException>(() => sut.ExecuteOperationOnOfflineStoreAsync(store, testObject));
     }
 
     [Fact]

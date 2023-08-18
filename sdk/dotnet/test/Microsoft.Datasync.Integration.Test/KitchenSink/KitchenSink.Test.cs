@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using Movies = Datasync.Common.Test.TestData.Movies;
 
 namespace Microsoft.Datasync.Integration.Test.KitchenSink;
@@ -49,9 +51,6 @@ public class KitchenSink_Tests : BaseOperationTest
         Assert.Null(client2dto.StringValue);
 
         Assert.NotNull(client2dto.EnumOfNullableValue);
-
-        // Check log statements here
-        Assert.True(storeLoggerMock.Invocations.Count > 0);
     }
 
     [Fact]

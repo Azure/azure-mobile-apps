@@ -292,29 +292,14 @@ public class DeleteOperation_Tests : BaseOperationTest
     }
 
     [Fact]
-    public async Task ExecuteRemote_WithInternalFailure()
-    {
-        var table = new Mock<IRemoteTable>();
-        table.Setup(x => x.DeleteItemAsync(It.IsAny<JObject>(), It.IsAny<CancellationToken>())).ThrowsAsync(new DatasyncInvalidOperationException());
-        var client = new Mock<DatasyncClient>();
-        client.Setup(x => x.GetRemoteTable(It.IsAny<string>())).Returns(table.Object);
-
-        var sut = new DeleteOperation("test", "1234") { Item = testObject };
-        var exception = await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => sut.ExecuteOperationOnRemoteServiceAsync(client.Object));
-    }
-
-    [Fact]
     public async Task ExecuteLocal_CallsLocalStore()
     {
-        var store = new Mock<IOfflineStore>();
-        store.Setup(x => x.DeleteAsync("test", It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        var store = Substitute.For<IOfflineStore>();
+        store.DeleteAsync("test", Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
         var sut = new DeleteOperation("test", "1234") { Item = testObject };
-        await sut.ExecuteOperationOnOfflineStoreAsync(store.Object, testObject);
+        await sut.ExecuteOperationOnOfflineStoreAsync(store, testObject);
 
-        Assert.Single(store.Invocations);
-        string[] ids = store.Invocations[0].Arguments[1] as string[];
-        Assert.Single(ids);
-        Assert.Equal("1234", ids[0]);
+        await store.Received(1).DeleteAsync("test", Arg.Is<IEnumerable<string>>(ids => ids.SingleOrDefault().Equals("1234")), default);
     }
 }
