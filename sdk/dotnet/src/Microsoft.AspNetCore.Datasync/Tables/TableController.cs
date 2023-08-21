@@ -135,7 +135,12 @@ namespace Microsoft.AspNetCore.Datasync
                     Logger?.LogError("Error while {reason}: {Message}", reason, err.Message);
                     throw;
                 }
+            } 
+            else
+            {
+                throw ex;
             }
+            
         }
 
         /// <summary>
@@ -362,10 +367,6 @@ namespace Microsoft.AspNetCore.Datasync
             }
             catch (Exception ex)
             {
-                if (ex.InnerException?.Source == "Microsoft.Azure.Cosmos.Client")
-                {
-                    throw;
-                }
                 CatchClientSideEvaluationException(ex, "executing query", () =>
                 {
                     var message = ex.InnerException?.Message ?? ex.Message;

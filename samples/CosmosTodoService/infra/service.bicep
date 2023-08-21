@@ -61,8 +61,8 @@ resource cosmosContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/con
         ]
         compositeIndexes: [
           [
-            { path: '/updatedAt', order: 'ascending' }
-            { path: '/id', order: 'ascending' }
+            { path: '/UpdatedAt', order: 'ascending' }
+            { path: '/Id', order: 'ascending' }
           ]
         ]
       }
