@@ -42,6 +42,34 @@ resource cosmosDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2023
   }
 }
 
+resource cosmosContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2023-04-15' = {
+  name: 'TodoAppContext'
+  parent: cosmosDatabase
+  properties: {
+    resource: {
+      id: 'TodoAppContext'
+      partitionKey: {
+        paths: [
+          '/id'
+        ]
+        kind: 'Hash'
+      }
+      indexingPolicy: {
+        indexingMode: 'Consistent'
+        includedPaths: [
+          { path: '/*' }
+        ]
+        compositeIndexes: [
+          [
+            { path: '/updatedAt', order: 'ascending' }
+            { path: '/id', order: 'ascending' }
+          ]
+        ]
+      }
+    }
+  }
+}
+
 // App Service Plan
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
   name: 'asp-${resourceToken}'
