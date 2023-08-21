@@ -360,7 +360,7 @@ namespace Microsoft.AspNetCore.Datasync
                 results = (IEnumerable<object>)queryOptions.ApplyTo(dataset, querySettings);
                 resultCount = results.Count();
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex.InnerException != null && ex.InnerException.Source != "Microsoft.Azure.Cosmos.Client")
             {
                 CatchClientSideEvaluationException(ex, "executing query", () =>
                 {
