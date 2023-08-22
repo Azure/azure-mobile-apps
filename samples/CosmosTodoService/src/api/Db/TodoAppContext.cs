@@ -26,14 +26,13 @@ public class TodoAppContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        builder.Entity<TodoItem>().Property(model => model.EntityTag).IsETagConcurrency();
-
-        builder.Entity<TodoItem>(entity =>
+        builder.Entity<TodoItem>(builder =>
         {
-            entity.HasPartitionKey(x => x.Id);
-            entity.Property(x => x.EntityTag).IsETagConcurrency();
+            builder.ToContainer("TodoItems");
+            builder.HasNoDiscriminator();
+            builder.HasPartitionKey(model => model.Id);
+            builder.Property(model => model.EntityTag).IsETagConcurrency();
         });
-
         base.OnModelCreating(builder);
     }
 

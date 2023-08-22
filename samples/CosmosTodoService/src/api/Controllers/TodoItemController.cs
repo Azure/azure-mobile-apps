@@ -8,8 +8,9 @@ namespace api.Controllers;
 [Route("tables/todoitem")]
 public class TodoItemController : TableController<TodoItem>
 {
-    public TodoItemController(TodoAppContext context) : base(new EntityTableRepository<TodoItem>(context))
+    public TodoItemController(TodoAppContext context) : base()
     {
-        
+        Repository = new EntityTableRepository<TodoItem>(context);
+        Options = new TableControllerOptions { PageSize = 5 };
     }
 }

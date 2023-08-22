@@ -43,26 +43,40 @@ resource cosmosDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2023
 }
 
 resource cosmosContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2023-04-15' = {
-  name: 'TodoAppContext'
+  name: 'TodoItems'
   parent: cosmosDatabase
   properties: {
     resource: {
-      id: 'TodoAppContext'
+      id: 'TodoItems'
       partitionKey: {
         paths: [
-          '/id'
+          '/Id'
         ]
         kind: 'Hash'
       }
       indexingPolicy: {
-        indexingMode: 'Consistent'
+        indexingMode: 'consistent'
+        automatic: true
         includedPaths: [
-          { path: '/*' }
+          {
+            path: '/*'
+          }
+        ]
+        excludedPaths: [
+          {
+            path: '/"_etag"/?'
+          }
         ]
         compositeIndexes: [
           [
-            { path: '/UpdatedAt', order: 'ascending' }
-            { path: '/Id', order: 'ascending' }
+            {
+              path: '/UpdatedAt'
+              order: 'ascending'
+            }
+            {
+              path: '/Id'
+              order: 'ascending'
+            }
           ]
         ]
       }
