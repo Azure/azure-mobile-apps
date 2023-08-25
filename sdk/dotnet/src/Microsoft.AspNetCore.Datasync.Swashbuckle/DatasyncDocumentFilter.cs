@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
@@ -210,6 +211,7 @@ namespace Microsoft.AspNetCore.Datasync
         /// A type representing a single page of entities.
         /// </summary>
         /// <typeparam name="T">The type of the entity.</typeparam>
+        [ExcludeFromCodeCoverage(Justification = "Model class - coverage not needed")]
         internal class Page<T>
         {
             /// <summary>

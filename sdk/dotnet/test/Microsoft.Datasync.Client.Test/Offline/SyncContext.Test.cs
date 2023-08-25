@@ -10,6 +10,7 @@ using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Test.Helpers;
+using Microsoft.EntityFrameworkCore.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -25,6 +26,7 @@ public class SyncContext_Tests : ClientBaseTest
     private readonly IdEntity testObject;
     private readonly JObject jsonObject;
     private List<SynchronizationEventArgs> events = new();
+    private object eventLock = new object();
 
     public SyncContext_Tests()
     {
@@ -33,7 +35,8 @@ public class SyncContext_Tests : ClientBaseTest
 
         client.SynchronizationProgress += (sender, args) =>
         {
-            events.Add(args);
+            // Some tests are in parallel, so we have to be careful not to modify concurrently
+            lock(eventLock) { events.Add(args); }
         };
 
         testObject = new IdEntity { Id = Guid.NewGuid().ToString("N"), StringValue = "testValue" };
@@ -119,7 +122,8 @@ public class SyncContext_Tests : ClientBaseTest
 
     private void AssertEventsRecorded(int count, int qlen)
     {
-        Assert.Equal((count + 1) * 2, events.Count);
+        // push started, push finished, plus 2 events (before/after) for each count.
+        Assert.Equal((count * 2) + 2, events.Count);
         Assert.Equal(SynchronizationEventType.PushStarted, events.First().EventType);
         Assert.Equal(SynchronizationEventType.PushFinished, events.Last().EventType);
         Assert.Equal(qlen, events.First().QueueLength);
@@ -139,6 +143,15 @@ public class SyncContext_Tests : ClientBaseTest
         Assert.Equal(table, args.TableName);
         Assert.Equal(id, args.ItemId);
         Assert.Equal(success, args.IsSuccessful);
+    }
+
+    private void AssertEventsAreProduced(string table, string id, bool success)
+    {
+        // Find the Synchronization events for table + id - there should be 2
+        var foundEvents = events.Where(e => e.TableName == table && e.ItemId == id).ToList();
+        Assert.Equal(2, foundEvents.Count);
+        AssertItemWillBePushed(foundEvents[0], table, id);
+        AssertItemWasPushed(foundEvents[1], table, id, success);
     }
     #endregion
 
@@ -1196,7 +1209,11 @@ public class SyncContext_Tests : ClientBaseTest
 
         Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
         Assert.Equal(nItems, MockHandler.Requests.Count);
-        AssertEventsRecorded(nItems, nItems);
+        // PushStarted, PushFinished, plus nItems delete operations
+        Assert.Equal((nItems * 2) + 2, events.Count);
+        Assert.Equal(SynchronizationEventType.PushStarted, events.First().EventType);
+        Assert.Equal(SynchronizationEventType.PushFinished, events.Last().EventType);
+        Assert.Equal(nItems, events.First().QueueLength);
 
         foreach (var movie in movies)
         {
@@ -1204,6 +1221,7 @@ public class SyncContext_Tests : ClientBaseTest
             Assert.NotNull(request);
             Assert.Equal(HttpMethod.Delete, request.Method);
             Assert.Equal($"\"{movie.Version}\"", request.Headers.IfMatch.FirstOrDefault()?.Tag);
+            AssertEventsAreProduced("movies", movie.Id, true);
         }
     }
 
@@ -1223,6 +1241,9 @@ public class SyncContext_Tests : ClientBaseTest
 
         Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
         Assert.Single(MockHandler.Requests);
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", item.Id);
+        AssertItemWasPushed(events[2], "movies", item.Id, true);
 
         var request = MockHandler.Requests[0];
         Assert.Equal(HttpMethod.Delete, request.Method);
@@ -1246,6 +1267,9 @@ public class SyncContext_Tests : ClientBaseTest
 
         Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
         Assert.Single(MockHandler.Requests);
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", item.Id);
+        AssertItemWasPushed(events[2], "movies", item.Id, true);
 
         var request = MockHandler.Requests[0];
         Assert.Equal(HttpMethod.Delete, request.Method);
@@ -1282,6 +1306,11 @@ public class SyncContext_Tests : ClientBaseTest
         Assert.Equal(TableOperationState.Failed, op.State);
 
         Assert.Single(store.TableMap[SystemTables.SyncErrors]);
+
+        // TODO
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", item.Id);
+        AssertItemWasPushed(events[2], "movies", item.Id, false);
     }
 
     [Fact]
@@ -1313,6 +1342,11 @@ public class SyncContext_Tests : ClientBaseTest
         Assert.Equal(TableOperationState.Failed, op.State);
 
         Assert.Single(store.TableMap[SystemTables.SyncErrors]);
+
+        // TODO
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", item.Id);
+        AssertItemWasPushed(events[2], "movies", item.Id, false);
     }
 
     [Fact]
@@ -1366,6 +1400,9 @@ public class SyncContext_Tests : ClientBaseTest
 
         Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
         Assert.Single(MockHandler.Requests);
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", item.Id);
+        AssertItemWasPushed(events[2], "movies", item.Id, true);
 
         var request = MockHandler.Requests[0];
         Assert.Equal(HttpMethod.Post, request.Method);
@@ -1406,6 +1443,10 @@ public class SyncContext_Tests : ClientBaseTest
         Assert.Equal(TableOperationState.Failed, op.State);
 
         Assert.Single(store.TableMap[SystemTables.SyncErrors]);
+
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", item.Id);
+        AssertItemWasPushed(events[2], "movies", item.Id, false);
     }
 
     [Fact]
@@ -1436,6 +1477,10 @@ public class SyncContext_Tests : ClientBaseTest
         Assert.Equal(TableOperationState.Failed, op.State);
 
         Assert.Single(store.TableMap[SystemTables.SyncErrors]);
+
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", item.Id);
+        AssertItemWasPushed(events[2], "movies", item.Id, false);
     }
 
     [Fact]
@@ -1473,6 +1518,10 @@ public class SyncContext_Tests : ClientBaseTest
         // Item in the store has been updated.
         Assert.True(store.TableMap["movies"].ContainsKey(itemToUpdate.Id));
         Assert.Equal("2", store.TableMap["movies"][itemToUpdate.Id].Value<string>("version"));
+
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", itemToUpdate.Id);
+        AssertItemWasPushed(events[2], "movies", itemToUpdate.Id, true);
     }
 
     [Fact]
@@ -1510,6 +1559,10 @@ public class SyncContext_Tests : ClientBaseTest
         // Item in the store has been updated.
         Assert.True(store.TableMap["movies"].ContainsKey(itemToUpdate.Id));
         Assert.Equal("2", store.TableMap["movies"][itemToUpdate.Id].Value<string>("version"));
+
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", itemToUpdate.Id);
+        AssertItemWasPushed(events[2], "movies", itemToUpdate.Id, true);
     }
 
     [Fact]
@@ -1547,6 +1600,10 @@ public class SyncContext_Tests : ClientBaseTest
         // Item in the store has been updated.
         Assert.True(store.TableMap["movies"].ContainsKey(itemToUpdate.Id));
         Assert.Equal("2", store.TableMap["movies"][itemToUpdate.Id].Value<string>("version"));
+
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", itemToUpdate.Id);
+        AssertItemWasPushed(events[2], "movies", itemToUpdate.Id, true);
     }
 
     [Fact]
@@ -1584,6 +1641,10 @@ public class SyncContext_Tests : ClientBaseTest
         // Item in the store has been updated.
         Assert.True(store.TableMap["movies"].ContainsKey(itemToUpdate.Id));
         Assert.Equal("2", store.TableMap["movies"][itemToUpdate.Id].Value<string>("version"));
+
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", itemToUpdate.Id);
+        AssertItemWasPushed(events[2], "movies", itemToUpdate.Id, true);
     }
 
     [Fact]
@@ -1626,6 +1687,10 @@ public class SyncContext_Tests : ClientBaseTest
         Assert.Equal(TableOperationState.Failed, op.State);
 
         Assert.Single(store.TableMap[SystemTables.SyncErrors]);
+
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", itemToUpdate.Id);
+        AssertItemWasPushed(events[2], "movies", itemToUpdate.Id, false);
     }
 
     [Fact]
@@ -1667,6 +1732,10 @@ public class SyncContext_Tests : ClientBaseTest
         Assert.Equal(TableOperationState.Failed, op.State);
 
         Assert.Single(store.TableMap[SystemTables.SyncErrors]);
+
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", itemToUpdate.Id);
+        AssertItemWasPushed(events[2], "movies", itemToUpdate.Id, false);
     }
     #endregion
 

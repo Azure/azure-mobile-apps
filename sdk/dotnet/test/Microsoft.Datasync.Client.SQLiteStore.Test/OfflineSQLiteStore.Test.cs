@@ -378,7 +378,7 @@ public class OfflineSQLiteStore_Tests : BaseStoreTest
         await context.InitializeAsync();
 
         var tables = await context.OfflineStore.GetTablesAsync();
-        Assert.Equal(1, tables.Count);  // If it's 4, then the system tables are being returned as well.
+        Assert.Single(tables);  // If it's 4, then the system tables are being returned as well.
         Assert.Equal(TestTable, tables[0]);
     }
 

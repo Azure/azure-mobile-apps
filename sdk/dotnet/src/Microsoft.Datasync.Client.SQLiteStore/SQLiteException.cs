@@ -10,6 +10,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
     /// <summary>
     /// Indicates a SQLite error occurred.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class SQLiteException : Exception
     {
         public SQLiteException() : base()

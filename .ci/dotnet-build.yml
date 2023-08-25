@@ -177,6 +177,7 @@ stages:
               codeCoverageEnabled: true
               rerunFailedTests: true
               configuration: $(buildConfiguration)
+              runSettingsFile: '$(netSdkPath)\test\codecoverage.runsettings'
 
       - job: integrationtestnetsdk
         displayName: Integration Tests
