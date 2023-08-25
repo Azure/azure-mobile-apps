@@ -1115,6 +1115,31 @@ public class SyncContext_Tests : ClientBaseTest
 
     [Fact]
     [Trait("Method", "PushItemsAsync")]
+    public async Task PushItemsAsync_AllTables_HandlesDeleteOperation_WithVersionAndParallelOperations()
+    {
+        var context = await GetSyncContext();
+        var item = new ClientMovie { Id = Guid.NewGuid().ToString(), Version = "abc123" };
+        var instance = (JObject)client.Serializer.Serialize(item);
+        store.Upsert("movies", new[] { instance });
+        MockHandler.AddResponse(HttpStatusCode.NoContent);
+
+        await context.DeleteItemAsync("movies", instance);
+        await context.PushItemsAsync((string[])null, new PushOptions { ParallelOperations = 2 });
+
+        Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
+        Assert.Single(MockHandler.Requests);
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", item.Id);
+        AssertItemWasPushed(events[2], "movies", item.Id, true);
+
+        var request = MockHandler.Requests[0];
+        Assert.Equal(HttpMethod.Delete, request.Method);
+        Assert.Equal($"/tables/movies/{item.Id}", request.RequestUri.PathAndQuery);
+        Assert.Equal($"\"{item.Version}\"", request.Headers.IfMatch.FirstOrDefault()?.Tag);
+    }
+
+    [Fact]
+    [Trait("Method", "PushItemsAsync")]
     public async Task PushItemsAsync_SingleTable_HandlesDeleteOperation_WithVersion()
     {
         var context = await GetSyncContext();
@@ -1308,6 +1333,9 @@ public class SyncContext_Tests : ClientBaseTest
 
         Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
         Assert.Single(MockHandler.Requests);
+        AssertEventsRecorded(1, 1);
+        AssertItemWillBePushed(events[1], "movies", item.Id);
+        AssertItemWasPushed(events[2], "movies", item.Id, true);
 
         var request = MockHandler.Requests[0];
         Assert.Equal(HttpMethod.Post, request.Method);
