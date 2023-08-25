@@ -553,7 +553,7 @@ namespace Microsoft.Datasync.Client.Offline
                     {
                         itemCount[0]++;
                     }
-                    SendItemWasPushedEvent(operation.ItemId, operation.ItemId, itemCount[0], isSuccessful);
+                    SendItemWasPushedEvent(operation.TableName, operation.ItemId, itemCount[0], isSuccessful);
                 });
                 try
                 {
