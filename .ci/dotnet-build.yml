@@ -208,6 +208,7 @@ stages:
               rerunFailedTests: true
               resultsFolder: '$(Agent.TempDirectory)\TestResults'
               configuration: $(buildConfiguration)
+              runSettingsFile: '$(netSdkPath)\test\codecoverage.runsettings'
 
   - stage: signstage
     displayName: Sign SDK
