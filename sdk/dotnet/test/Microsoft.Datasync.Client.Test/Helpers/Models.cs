@@ -48,6 +48,7 @@ public interface IDatasyncEntity
     string Version { get; set; }
 }
 
+[ExcludeFromCodeCoverage]
 public class TestDatasyncEntity : IDatasyncEntity
 {
     public string Id { get; set; }
@@ -56,6 +57,7 @@ public class TestDatasyncEntity : IDatasyncEntity
     public string Version { get; set; }
 }
 
+[ExcludeFromCodeCoverage]
 public class DerivedTestDatasyncEntity : TestDatasyncEntity
 {
     public string StringValue { get; set; }

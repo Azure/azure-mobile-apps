@@ -57,6 +57,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Datasy
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Datasync.NSwag.Test", "test\Microsoft.AspNetCore.Datasync.NSwag.Test\Microsoft.AspNetCore.Datasync.NSwag.Test.csproj", "{CCA3A587-0060-4D71-BCFE-30477F408EE6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{432A961E-C1B9-4175-86C0-50EDCE2D390F}"
+	ProjectSection(SolutionItems) = preProject
+		test\codecoverage.runsettings = test\codecoverage.runsettings
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

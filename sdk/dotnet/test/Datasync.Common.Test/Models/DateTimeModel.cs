@@ -8,6 +8,7 @@ namespace Datasync.Common.Test.Models;
 /// <summary>
 /// A model for handling dateonly and timeonly tests.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class DateTimeModel : InMemoryTableData
 {
     public DateOnly DateOnly { get; set; }

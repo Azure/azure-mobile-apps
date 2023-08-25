@@ -10,6 +10,7 @@ using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Test.Helpers;
+using Microsoft.EntityFrameworkCore.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -25,6 +26,7 @@ public class SyncContext_Tests : ClientBaseTest
     private readonly IdEntity testObject;
     private readonly JObject jsonObject;
     private List<SynchronizationEventArgs> events = new();
+    private object eventLock = new object();
 
     public SyncContext_Tests()
     {
@@ -33,7 +35,8 @@ public class SyncContext_Tests : ClientBaseTest
 
         client.SynchronizationProgress += (sender, args) =>
         {
-            events.Add(args);
+            // Some tests are in parallel, so we have to be careful not to modify concurrently
+            lock(eventLock) { events.Add(args); }
         };
 
         testObject = new IdEntity { Id = Guid.NewGuid().ToString("N"), StringValue = "testValue" };
@@ -119,7 +122,8 @@ public class SyncContext_Tests : ClientBaseTest
 
     private void AssertEventsRecorded(int count, int qlen)
     {
-        Assert.Equal((count + 1) * 2, events.Count);
+        // push started, push finished, plus 2 events (before/after) for each count.
+        Assert.Equal((count * 2) + 2, events.Count);
         Assert.Equal(SynchronizationEventType.PushStarted, events.First().EventType);
         Assert.Equal(SynchronizationEventType.PushFinished, events.Last().EventType);
         Assert.Equal(qlen, events.First().QueueLength);
@@ -1205,7 +1209,11 @@ public class SyncContext_Tests : ClientBaseTest
 
         Assert.Empty(store.TableMap[SystemTables.OperationsQueue]);
         Assert.Equal(nItems, MockHandler.Requests.Count);
-        AssertEventsRecorded(nItems, nItems);
+        // PushStarted, PushFinished, plus nItems delete operations
+        Assert.Equal((nItems * 2) + 2, events.Count);
+        Assert.Equal(SynchronizationEventType.PushStarted, events.First().EventType);
+        Assert.Equal(SynchronizationEventType.PushFinished, events.Last().EventType);
+        Assert.Equal(nItems, events.First().QueueLength);
 
         foreach (var movie in movies)
         {
@@ -1682,7 +1690,7 @@ public class SyncContext_Tests : ClientBaseTest
 
         AssertEventsRecorded(1, 1);
         AssertItemWillBePushed(events[1], "movies", itemToUpdate.Id);
-        AssertItemWasPushed(events[2], "movies", itemToUpdate.Id, true);
+        AssertItemWasPushed(events[2], "movies", itemToUpdate.Id, false);
     }
 
     [Fact]
@@ -1727,7 +1735,7 @@ public class SyncContext_Tests : ClientBaseTest
 
         AssertEventsRecorded(1, 1);
         AssertItemWillBePushed(events[1], "movies", itemToUpdate.Id);
-        AssertItemWasPushed(events[2], "movies", itemToUpdate.Id, true);
+        AssertItemWasPushed(events[2], "movies", itemToUpdate.Id, false);
     }
     #endregion
 

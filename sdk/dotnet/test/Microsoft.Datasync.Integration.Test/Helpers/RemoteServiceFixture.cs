@@ -39,6 +39,7 @@ public class RemoteServiceCollection : ICollectionFixture<RemoteServiceFixture>
     // ICollectionFixture<> interfaces.
 }
 
+[ExcludeFromCodeCoverage]
 public class DateTimeClientModel : DatasyncClientData
 {
     public DateOnly DateOnly { get; set; }
