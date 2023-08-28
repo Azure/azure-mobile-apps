@@ -18,7 +18,6 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb
     {
         private readonly object writeLock = new();
         private readonly LiteDatabase connection;
-        private readonly ILiteCollection<TEntity> collection;
 
         /// <summary>
         /// Creates a new <see cref="LiteDbRepository{TEntity}"/>, using the provided database
@@ -31,9 +30,11 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb
             collectionName ??= typeof(TEntity).Name.ToLowerInvariant() + 's';
 
             connection = databaseConnection ?? throw new ArgumentNullException(nameof(databaseConnection));
-            collection = connection.GetCollection<TEntity>(collectionName);
-            collection.EnsureIndex(x => x.UpdatedAt);
+            Collection = connection.GetCollection<TEntity>(collectionName);
+            Collection.EnsureIndex(x => x.UpdatedAt);
         }
+
+        public ILiteCollection<TEntity> Collection { get; }
 
         /// <summary>
         /// Updates the system properties for the provided entity on write.
@@ -55,7 +56,7 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb
         /// <param name="token">A cancellation token</param>
         /// <returns>An <see cref="IQueryable{T}"/> for the entities in the data store</returns>
         public IQueryable<TEntity> AsQueryable()
-            => collection.FindAll().AsQueryable();
+            => Collection.FindAll().AsQueryable();
 
         /// <summary>
         /// Create a new entity within the backend data store.  If the entity does not
@@ -106,7 +107,7 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb
                 throw new BadRequestException();
             }
 
-            TEntity entity = collection.FindById(id);
+            TEntity entity = Collection.FindById(id);
             return Task.FromResult(entity);
         }
 
@@ -150,13 +151,13 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb
 
             lock (writeLock)
             {
-                TEntity existingEntity = collection.FindById(entity.Id);
+                TEntity existingEntity = Collection.FindById(entity.Id);
                 if (existingEntity != null)
                 {
                     throw new ConflictException(existingEntity);
                 }
                 UpdateEntity(entity);
-                collection.Insert(entity);
+                Collection.Insert(entity);
             }
         }
 
@@ -177,7 +178,7 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb
 
             lock (writeLock)
             {
-                TEntity existingEntity = collection.FindById(id);
+                TEntity existingEntity = Collection.FindById(id);
                 if (existingEntity == null)
                 {
                     throw new NotFoundException();
@@ -187,7 +188,7 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb
                 {
                     throw new PreconditionFailedException(existingEntity);
                 }
-                collection.Delete(id);
+                Collection.Delete(id);
             }
         }
 
@@ -213,7 +214,7 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb
 
             lock (writeLock)
             {
-                TEntity existingEntity = collection.FindById(entity.Id);
+                TEntity existingEntity = Collection.FindById(entity.Id);
                 if (existingEntity == null)
                 {
                     throw new NotFoundException();
@@ -224,7 +225,7 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb
                     throw new PreconditionFailedException(existingEntity);
                 }
                 UpdateEntity(entity);
-                collection.Update(entity);
+                Collection.Update(entity);
             }
         }
         #endregion
