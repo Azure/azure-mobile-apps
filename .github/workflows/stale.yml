@@ -25,7 +25,7 @@ jobs:
         days-before-stale: 30
         days-before-close: 14
         enable-statistics: true
-        only-labels: 'blocked'
+        any-of-labels: 'Question,blocked'
         remove-stale-when-updated: true
         stale-issue-message: 'We have noticed this issue has not been updated within 30 days.  If there is no action on this issue in the next 14 days, we will automatically close it.'
         stale-pr-message: 'We have noticed this PR has not been updated within 30 days.  If there is no action on this PR in the next 14 days, we will automatically close it.'
