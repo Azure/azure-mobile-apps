@@ -49,6 +49,24 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the item when complete.</returns>
         Task<JObject> GetItemAsync(string id, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Pulls the items matching the provided query from the remote table.
+        /// </summary>
+        /// <param name="query">The OData query that determines which items to pull from the remote table.</param>
+        /// <param name="options">The options used to configure the pull operation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the pull operation has finished.</returns>
+        Task PullItemsAsync(string query, PullOptions options, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Deletes all the items in the offline table that match the query.
+        /// </summary>
+        /// <param name="query">An OData query that determines which items to delete.</param>
+        /// <param name="options">The options used to configure the purge operation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the purge operation has finished.</returns>
+        Task PurgeItemsAsync(string query, PurgeOptions options, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
@@ -72,24 +90,6 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the inserted data when complete.</returns>
         Task<JObject> InsertItemAsync(JObject instance, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Pulls the items matching the provided query from the remote table.
-        /// </summary>
-        /// <param name="query">The OData query that determines which items to pull from the remote table.</param>
-        /// <param name="options">The options used to configure the pull operation.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that completes when the pull operation has finished.</returns>
-        Task PullItemsAsync(string query, PullOptions options, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Deletes all the items in the offline table that match the query.
-        /// </summary>
-        /// <param name="query">An OData query that determines which items to delete.</param>
-        /// <param name="options">The options used to configure the purge operation.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that completes when the purge operation has finished.</returns>
-        Task PurgeItemsAsync(string query, PurgeOptions options, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Pushes all operations for this table in the operations queue to the remote service.
@@ -159,6 +159,26 @@ namespace Microsoft.Datasync.Client
         new Task<T> GetItemAsync(string id, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Pulls the items matching the provided query from the remote table.
+        /// </summary>
+        /// <typeparam name="U">The type of the data transfer object (DTO) or model that is returned by the query.</typeparam>
+        /// <param name="query">The OData query that determines which items to pull from the remote table.</param>
+        /// <param name="options">The options used to configure the pull operation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the pull operation has finished.</returns>
+        Task PullItemsAsync<U>(ITableQuery<U> query, PullOptions options, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Deletes all the items in the offline table that match the query.
+        /// </summary>
+        /// <typeparam name="U">The type of the data transfer object (DTO) or model that is returned by the query.</typeparam>
+        /// <param name="query">An OData query that determines which items to delete.</param>
+        /// <param name="options">The options used to configure the purge operation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the purge operation has finished.</returns>
+        Task PurgeItemsAsync<U>(ITableQuery<U> query, PurgeOptions options, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Refreshes the current instance with the latest values from the table.
         /// </summary>
         /// <param name="instance">The instance to refresh.</param>
@@ -188,26 +208,6 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns when the operation is complete.</returns>
         Task InsertItemAsync(T instance, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Pulls the items matching the provided query from the remote table.
-        /// </summary>
-        /// <typeparam name="U">The type of the data transfer object (DTO) or model that is returned by the query.</typeparam>
-        /// <param name="query">The OData query that determines which items to pull from the remote table.</param>
-        /// <param name="options">The options used to configure the pull operation.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that completes when the pull operation has finished.</returns>
-        Task PullItemsAsync<U>(ITableQuery<U> query, PullOptions options, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Deletes all the items in the offline table that match the query.
-        /// </summary>
-        /// <typeparam name="U">The type of the data transfer object (DTO) or model that is returned by the query.</typeparam>
-        /// <param name="query">An OData query that determines which items to delete.</param>
-        /// <param name="options">The options used to configure the purge operation.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that completes when the purge operation has finished.</returns>
-        Task PurgeItemsAsync<U>(ITableQuery<U> query, PurgeOptions options, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Replaces the current instance with the provided instance in the remote table.

@@ -25,7 +25,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="table">The table reference.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the pull operation is complete.</returns>
-        public static Task PullItemsAsync(this IOfflineTable table, CancellationToken cancellationToken = default)
+        public static Task PullItemsAsync(this IReadOnlyOfflineTable table, CancellationToken cancellationToken = default)
            => table.PullItemsAsync(string.Empty, new PullOptions(), cancellationToken);
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="options">The pull options to use.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the pull operation is complete.</returns>
-        public static Task PullItemsAsync(this IOfflineTable table, PullOptions options, CancellationToken cancellationToken = default)
+        public static Task PullItemsAsync(this IReadOnlyOfflineTable table, PullOptions options, CancellationToken cancellationToken = default)
             => table.PullItemsAsync(string.Empty, options, cancellationToken);
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="query">The OData query string.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the pull operation is complete.</returns>
-        public static Task PullItemsAsync(this IOfflineTable table, string query, CancellationToken cancellationToken = default)
+        public static Task PullItemsAsync(this IReadOnlyOfflineTable table, string query, CancellationToken cancellationToken = default)
             => table.PullItemsAsync(query, new PullOptions(), cancellationToken);
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="query">The LINQ query.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the pull operation is complete.</returns>
-        public static Task PullItemsAsync<T, U>(this IOfflineTable<T> table, ITableQuery<U> query, CancellationToken cancellationToken = default)
+        public static Task PullItemsAsync<T, U>(this IReadOnlyOfflineTable<T> table, ITableQuery<U> query, CancellationToken cancellationToken = default)
             => table.PullItemsAsync(query, new PullOptions(), cancellationToken);
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Microsoft.Datasync.Client
         /// </summary>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the number of items that will be in the result set when the query finishes.</returns>
-        public static Task<long> CountItemsAsync<T>(this IOfflineTable<T> table, CancellationToken cancellationToken = default)
+        public static Task<long> CountItemsAsync<T>(this IReadOnlyOfflineTable<T> table, CancellationToken cancellationToken = default)
             => table.CountItemsAsync(table.CreateQuery(), cancellationToken);
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="table">The source table.</param>
         /// <param name="cancellationToken">The optional cancellation token to be used for cancelling the sequence at any time.</param>
         /// <returns>An array of the results.</returns>
-        public static ValueTask<TSource[]> ToArrayAsync<TSource>(this IOfflineTable<TSource> table, CancellationToken cancellationToken = default)
+        public static ValueTask<TSource[]> ToArrayAsync<TSource>(this IReadOnlyOfflineTable<TSource> table, CancellationToken cancellationToken = default)
             => table.ToAsyncEnumerable().ToZumoArrayAsync(cancellationToken);
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Microsoft.Datasync.Client
         /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
         /// <param name="table">The source table.</param>
         /// <returns>The result set as an <see cref="AsyncPageable{T}"/></returns>
-        public static AsyncPageable<TSource> ToAsyncPageable<TSource>(this IOfflineTable<TSource> table)
+        public static AsyncPageable<TSource> ToAsyncPageable<TSource>(this IReadOnlyOfflineTable<TSource> table)
             => (AsyncPageable<TSource>)table.ToAsyncEnumerable();
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="keySelector">A function to extract a key from each element.</param>
         /// <param name="cancellationToken">The optional cancellation token to be used for cancelling the sequence at any time.</param>
         /// <returns>A dictionary mapping unique key values onto the corresponding result's element.</returns>
-        public static ValueTask<Dictionary<TKey, TSource>> ToDictionaryAsync<TSource, TKey>(this IOfflineTable<TSource> table, Func<TSource, TKey> keySelector, CancellationToken cancellationToken = default) where TKey : notnull
+        public static ValueTask<Dictionary<TKey, TSource>> ToDictionaryAsync<TSource, TKey>(this IReadOnlyOfflineTable<TSource> table, Func<TSource, TKey> keySelector, CancellationToken cancellationToken = default) where TKey : notnull
             => table.ToAsyncEnumerable().ToZumoDictionaryAsync(keySelector, cancellationToken);
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="comparer">An equality comparer to compare keys.</param>
         /// <param name="cancellationToken">The optional cancellation token to be used for cancelling the sequence at any time.</param>
         /// <returns>A dictionary mapping unique key values onto the corresponding result's element.</returns>
-        public static ValueTask<Dictionary<TKey, TSource>> ToDictionaryAsync<TSource, TKey>(this IOfflineTable<TSource> table, Func<TSource, TKey> keySelector, IEqualityComparer<TKey>? comparer, CancellationToken cancellationToken = default) where TKey : notnull
+        public static ValueTask<Dictionary<TKey, TSource>> ToDictionaryAsync<TSource, TKey>(this IReadOnlyOfflineTable<TSource> table, Func<TSource, TKey> keySelector, IEqualityComparer<TKey>? comparer, CancellationToken cancellationToken = default) where TKey : notnull
             => table.ToAsyncEnumerable().ToZumoDictionaryAsync(keySelector, comparer, cancellationToken);
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace Microsoft.Datasync.Client
         /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
         /// <param name="table">The source table.</param>
         /// <returns>The enumerable sequence containing the elements in the result set.</returns>
-        public static IEnumerable<TSource> ToEnumerable<TSource>(this IOfflineTable<TSource> table)
+        public static IEnumerable<TSource> ToEnumerable<TSource>(this IReadOnlyOfflineTable<TSource> table)
             => table.ToAsyncEnumerable().ToZumoEnumerable();
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="table">The source table.</param>
         /// <param name="cancellationToken">The optional cancellation token to be used for cancelling the sequence at any time.</param>
         /// <returns>A hash set containing all the elements of the source sequence.</returns>
-        public static ValueTask<HashSet<TSource>> ToHashSetAsync<TSource>(this IOfflineTable<TSource> table, CancellationToken cancellationToken = default)
+        public static ValueTask<HashSet<TSource>> ToHashSetAsync<TSource>(this IReadOnlyOfflineTable<TSource> table, CancellationToken cancellationToken = default)
             => table.ToAsyncEnumerable().ToZumoHashSetAsync(cancellationToken);
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="comparer">An equality comparer to compare elements of the sequence.</param>
         /// <param name="cancellationToken">The optional cancellation token to be used for cancelling the sequence at any time.</param>
         /// <returns>A hash set containing all the elements of the source sequence.</returns>
-        public static ValueTask<HashSet<TSource>> ToHashSetAsync<TSource>(this IOfflineTable<TSource> table, IEqualityComparer<TSource>? comparer, CancellationToken cancellationToken = default)
+        public static ValueTask<HashSet<TSource>> ToHashSetAsync<TSource>(this IReadOnlyOfflineTable<TSource> table, IEqualityComparer<TSource>? comparer, CancellationToken cancellationToken = default)
             => table.ToAsyncEnumerable().ToZumoHashSetAsync(comparer, cancellationToken);
 
         /// <summary>
@@ -147,7 +147,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="table">The source table.</param>
         /// <param name="cancellationToken">The optional cancellation token to be used for cancelling the sequence at any time.</param>
         /// <returns>A list containing all the elements of the source sequence.</returns>
-        public static ValueTask<List<TSource>> ToListAsync<TSource>(this IOfflineTable<TSource> table, CancellationToken cancellationToken = default)
+        public static ValueTask<List<TSource>> ToListAsync<TSource>(this IReadOnlyOfflineTable<TSource> table, CancellationToken cancellationToken = default)
             => table.ToAsyncEnumerable().ToZumoListAsync(cancellationToken);
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="table">The source table.</param>
         /// <param name="cancellationToken">The optional cancellation token to be used for cancelling the sequence at any time.</param>
         /// <returns>A <see cref="ConcurrentObservableCollection{T}"/> containing all the elements of the source sequence.</returns>
-        public static ValueTask<ConcurrentObservableCollection<TSource>> ToObservableCollection<TSource>(this IOfflineTable<TSource> table, CancellationToken cancellationToken = default)
+        public static ValueTask<ConcurrentObservableCollection<TSource>> ToObservableCollection<TSource>(this IReadOnlyOfflineTable<TSource> table, CancellationToken cancellationToken = default)
             => table.ToAsyncEnumerable().ToZumoObservableCollectionAsync(cancellationToken);
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="collection">The <see cref="ConcurrentObservableCollection{T}"/> to update.</param>
         /// <param name="cancellationToken">The optional cancellation token to be used for cancelling the sequence at any time.</param>
         /// <returns>The <see cref="ConcurrentObservableCollection{T}"/> passed in containing all the elements of the source sequence (replacing the old content).</returns>
-        public static ValueTask<ConcurrentObservableCollection<TSource>> ToObservableCollection<TSource>(this IOfflineTable<TSource> table, ConcurrentObservableCollection<TSource> collection, CancellationToken cancellationToken = default)
+        public static ValueTask<ConcurrentObservableCollection<TSource>> ToObservableCollection<TSource>(this IReadOnlyOfflineTable<TSource> table, ConcurrentObservableCollection<TSource> collection, CancellationToken cancellationToken = default)
             => table.ToAsyncEnumerable().ToZumoObservableCollectionAsync(collection, cancellationToken);
     }
 }
