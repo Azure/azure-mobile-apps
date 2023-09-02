@@ -26,17 +26,22 @@ A clear and concise description of what you expected to happen.
 
 ## What platforms?
 
-* Server (ASP.NET Framework, ASP.NET Core, NodeJS):
+> **Note**: Any bug or feature request that is opened for an unsupported environment will be automatically closed.
+
+* Server:
+  * Version of dotnet being used to compile?
   * Library versions?
   * What database are you using?
   * Where are you running the server?
   * GitHub repository containing the code (optional, but helps!)
 
-* Client (.NET, JavaScript, iOS, Android):
+* Client:
+  * Version of dotnet being used to compile?
   * .NET Runtime Environment (WPF, UWP, Xamarin.Forms, etc.):
   * Library versions?
   * What platform versions are you running on?
   * Does it happen in an emulator / simulator, or only on a real device?
+  * GitHub repository containing the code (optional, but helps!)
 
 ## Screenshots
 
