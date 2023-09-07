@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: azure-mobile-apps-todoapp-sample
+metadata:
+  template: azure-mobile-apps-todoapp-sample@6.0.0
+hooks:
+  postdeploy:
+    run: ./hooks/postdeploy.ps1
+services:
+  syncserver:
+    project: ./TodoAppService.NET6
+    language: csharp
+    host: appservice
