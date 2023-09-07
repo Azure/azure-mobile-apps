@@ -1,0 +1,10 @@
+{
+  "solution": {
+    "path": "TodoApp.sln",
+    "projects": [
+      "TodoApp.Data\\TodoApp.Data.csproj",
+      "TodoApp.AvaloniaUI\\TodoApp.AvaloniaUI.csproj",
+      "TodoAppService.NET6\\TodoAppService.NET6.csproj"
+    ]
+  }
+}
