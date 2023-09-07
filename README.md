@@ -7,27 +7,29 @@ Azure Mobile Apps (also known as the Microsoft Datasync Framework) is a set of c
 
 Currently, we support:
 
-* ASP.NET Core for .NET 6.
-* .NET Standard 2.0 Client - Xamarin (Native and Forms), UWP, WPF.
-* .NET 6 Client - MAUI and Windows App SDK (WinUI3).
+* Server: ASP.NET Core for .NET 6.
+* Client: .NET Standard 2.0 and .NET 6.
+
+The client platforms that support .NET Standard 2.0 and .NET 6 include:
+
+* AvaloniaUI
+* .NET MAUI
+* Uno Platform
+* Windows (UWP, WinUI3, WPF)
+* Xamarin Forms
+* Xamarin Native (Android and iOS)
+
+Blazor and Unity are known to have issues with offline support since neither supports Sqlite natively.
 
 To get started, take a look at [our documentation](https://docs.microsoft.com/en-us/azure/developer/mobile-apps/azure-mobile-apps/overview).
 
-The following libraries have been archived and can be considered retired (links take you to the archive)
-
-* [Android Client](https://github.com/Azure/azure-mobile-apps/tree/archive/azure-mobile-apps-android-client)
-* [iOS Client](https://github.com/Azure/azure-mobile-apps/tree/archive/azure-mobile-apps-ios-client)
-* [JavaScript Client](https://github.com/Azure/azure-mobile-apps/tree/archive/azure-mobile-apps-js-client)
-* [Apache Cordova Client](https://github.com/Azure/azure-mobile-apps/tree/archive/azure-mobile-apps-cordova-client)
-* [Node Server](https://github.com/Azure/azure-mobile-apps/tree/archive/azure-mobile-apps-node)
-* [.NET Framework Server](https://github.com/Azure/azure-mobile-apps/tree/archive/azure-mobile-apps-net-server)
-* [.NET Framework Client](https://github.com/Azure/azure-mobile-apps/tree/archive/azure-mobile-apps-net-client)
+The older (v4.2.0 and earlier) libraries are retired and no longer supported.  You can find the source code in [the archive branch](https://github.com/Azure/azure-mobile-apps/tree/archive).
 
 ## Libraries
 
 ### .NET (sdk/dotnet)
 
-The .NET Library uses ASP.NET Core 6.0 and provides stores for in-memory data, LiteDb, and Entity Framework Core.  You can download pre-release versions from [GitHub Releases](https://github.com/Azure/azure-mobile-apps/releases).
+The server-side library uses ASP.NET Core 6.0 and provides stores for in-memory data, LiteDb, and Entity Framework Core.
 
 Released and supported versions of the library will be distributed by the normal [NuGet](https://www.nuget.org/) mechanism:
 
@@ -58,8 +60,6 @@ mkdir My.Datasync.Server
 cd My.Datasync.Server
 dotnet new datasync-server
 ```
-
-The Datasync Server template will be released to NuGet at the same time as the new libraries.
 
 ## Documentation
 
