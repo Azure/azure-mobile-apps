@@ -190,7 +190,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
             string tableName = obj.Value<string>("tableName");
 
             string itemStr = obj.Value<string>("item");
-            JObject item = itemStr == null ? null : JObject.Parse(itemStr);
+            JObject item = string.IsNullOrWhiteSpace(itemStr) ? null : JObject.Parse(itemStr);
             string rawResult = obj.Value<string>("rawResult");
             JObject result = null;
             if (rawResult != null)
