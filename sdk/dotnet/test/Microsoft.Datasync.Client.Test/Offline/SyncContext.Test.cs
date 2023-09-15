@@ -10,7 +10,6 @@ using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Test.Helpers;
-using Microsoft.EntityFrameworkCore.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -25,8 +24,8 @@ public class SyncContext_Tests : ClientBaseTest
 
     private readonly IdEntity testObject;
     private readonly JObject jsonObject;
-    private List<SynchronizationEventArgs> events = new();
-    private object eventLock = new object();
+    private readonly List<SynchronizationEventArgs> events = new();
+    private readonly object eventLock = new();
 
     public SyncContext_Tests()
     {
@@ -83,7 +82,7 @@ public class SyncContext_Tests : ClientBaseTest
     /// <param name="tableName">The name of the table holding the records.</param>
     /// <param name="itemCount">The number of items to create.</param>
     /// <returns>The list of items created.</returns>
-    private List<JObject> AddRandomRecords(string tableName, int itemCount = 0)
+    private List<JObject> AddRandomRecords(string tableName, int itemCount = 0, bool sleep = false)
     {
         if (itemCount <= 0)
         {
@@ -94,6 +93,8 @@ public class SyncContext_Tests : ClientBaseTest
         {
             var item = (JObject)jsonObject.DeepClone();
             item["id"] = Guid.NewGuid().ToString();
+            item["updatedAt"] = DateTimeOffset.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK");
+            if (sleep) Thread.Sleep(50);
             records.Add(item);
         }
         store.Upsert(tableName, records);
@@ -106,7 +107,8 @@ public class SyncContext_Tests : ClientBaseTest
     /// <param name="qid">The query ID.</param>
     private void SetDeltaToken(string tableName, string qid)
     {
-        var token = JObject.Parse($"{{\"id\":\"dt.{tableName}.{qid}\",\"value\":\"2021-03-12T03:30:04.000Z\"}}");
+        var dt = DateTimeOffset.Parse("2021-03-12T03:30:04.000Z");
+        var token = JObject.Parse($"{{\"id\":\"dt.{tableName}.{qid}\",\"value\":{dt.ToUnixTimeMilliseconds()}}}");
         store.Upsert(SystemTables.Configuration, new[] { token });
     }
 
@@ -1059,7 +1061,7 @@ public class SyncContext_Tests : ClientBaseTest
         SetDeltaToken("test", "abc123");
         var context = await GetSyncContext();
         const string tableName = "test";
-        const string query = "deleted eq false";
+        const string query = "$filter=deleted eq false";
         var options = new PurgeOptions() { DiscardPendingOperations = true };
 
         await context.PurgeItemsAsync(tableName, query, options);
@@ -1068,6 +1070,113 @@ public class SyncContext_Tests : ClientBaseTest
         Assert.NotEmpty(store.TableMap[SystemTables.Configuration]);
         Assert.Empty(store.TableMap[tableName]);
         Assert.Equal(0, context.PendingOperations);
+    }
+
+    [Fact]
+    [Trait("Method", "PurgeItemsAsync")]
+    public async Task PurgeItems_TimestampPolicy_NoUpdate()
+    {
+        const string tableName = "test";
+        const string queryId = "abc123";
+        const string query = "$filter=deleted eq false";
+
+        AddRandomRecords(tableName, 10);
+        SetDeltaToken(tableName, queryId);
+
+        var context = await GetSyncContext();
+        var expected = await context.DeltaTokenStore.GetDeltaTokenAsync(tableName, queryId);
+        var options = new PurgeOptions() { QueryId = queryId, TimestampUpdatePolicy = TimestampUpdatePolicy.NoUpdate };
+
+        await context.PurgeItemsAsync(tableName, query, options);
+
+        var actual = await context.DeltaTokenStore.GetDeltaTokenAsync(tableName, queryId);
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    [Trait("Method", "PurgeItemsAsync")]
+    public async Task PurgeItems_TimestampPolicy_UpdateToNow()
+    {
+        const string tableName = "test";
+        const string queryId = "abc123";
+        const string query = "$filter=deleted eq false";
+
+        AddRandomRecords(tableName, 10);
+        SetDeltaToken(tableName, queryId);
+
+        var context = await GetSyncContext();
+        var options = new PurgeOptions() { QueryId = queryId, TimestampUpdatePolicy = TimestampUpdatePolicy.UpdateToNow };
+        var expected = DateTimeOffset.UtcNow;
+
+        await context.PurgeItemsAsync(tableName, query, options);
+
+        var actual = await context.DeltaTokenStore.GetDeltaTokenAsync(tableName, queryId);
+        // Depending on speed, may need to update the interval.
+        AssertEx.CloseTo(expected, actual);
+    }
+
+    [Fact]
+    [Trait("Method", "PurgeItemsAsync")]
+    public async Task PurgeItems_TimestampPolicy_UpdateToEpoch()
+    {
+        const string tableName = "test";
+        const string queryId = "abc123";
+        const string query = "$filter=deleted eq false";
+
+        AddRandomRecords(tableName, 10);
+        SetDeltaToken(tableName, queryId);
+
+        var context = await GetSyncContext();
+        var options = new PurgeOptions() { QueryId = queryId, TimestampUpdatePolicy = TimestampUpdatePolicy.UpdateToEpoch };
+        var epoch = DateTimeOffset.FromUnixTimeMilliseconds(0L);
+
+        await context.PurgeItemsAsync(tableName, query, options);
+
+        var actual = await context.DeltaTokenStore.GetDeltaTokenAsync(tableName, queryId);
+        Assert.Equal(epoch, actual);
+    }
+
+    [Fact]
+    [Trait("Method", "PurgeItemsAsync")]
+    public async Task PurgeItems_TimestampPolicy_UpdateToLastEntity_NoItems()
+    {
+        const string tableName = "test";
+        const string queryId = "abc123";
+        const string query = "$filter=deleted eq false";
+
+        AddRandomRecords(tableName, 10);
+        SetDeltaToken(tableName, queryId);
+
+        var context = await GetSyncContext();
+        var options = new PurgeOptions() { QueryId = queryId, TimestampUpdatePolicy = TimestampUpdatePolicy.UpdateToLastEntity };
+        var epoch = DateTimeOffset.FromUnixTimeMilliseconds(0L);
+
+        await context.PurgeItemsAsync(tableName, query, options);
+
+        var actual = await context.DeltaTokenStore.GetDeltaTokenAsync(tableName, queryId);
+        Assert.Equal(epoch, actual);
+    }
+
+    [Fact]
+    [Trait("Method", "PurgeItemsAsync")]
+    public async Task PurgeItems_TimestampPolicy_UpdateToLastEntity_SomeItems()
+    {
+        const string tableName = "test";
+        const string queryId = "abc123";
+        const string query = "$filter=deleted eq true";
+
+        var insertedObjects = AddRandomRecords(tableName, 10, sleep: true);
+        var updatedAt = insertedObjects.Last().Value<string>("updatedAt");
+        var expected = DateTimeOffset.Parse(updatedAt);
+        SetDeltaToken(tableName, queryId);
+
+        var context = await GetSyncContext();
+        var options = new PurgeOptions() { QueryId = queryId, TimestampUpdatePolicy = TimestampUpdatePolicy.UpdateToLastEntity };
+
+        await context.PurgeItemsAsync(tableName, query, options);
+
+        var actual = await context.DeltaTokenStore.GetDeltaTokenAsync(tableName, queryId);
+        Assert.Equal(expected, actual);
     }
     #endregion
 

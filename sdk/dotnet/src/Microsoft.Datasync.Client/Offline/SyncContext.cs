@@ -203,11 +203,7 @@ namespace Microsoft.Datasync.Client.Offline
         {
             await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
             string itemId = ServiceSerializer.GetId(instance);
-            var originalInstance = await GetItemAsync(tableName, itemId, cancellationToken).ConfigureAwait(false);
-            if (originalInstance == null)
-            {
-                throw new InvalidOperationException($"The item with ID '{itemId}' is not in the offline store.");
-            }
+            var originalInstance = await GetItemAsync(tableName, itemId, cancellationToken).ConfigureAwait(false) ?? throw new InvalidOperationException($"The item with ID '{itemId}' is not in the offline store.");
             var operation = new DeleteOperation(tableName, itemId) { Item = originalInstance };
 
             await EnqueueOperationAsync(operation, originalInstance, cancellationToken).ConfigureAwait(false);
@@ -462,11 +458,42 @@ namespace Microsoft.Datasync.Client.Offline
                 // Execute the purge
                 using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    if (!string.IsNullOrEmpty(queryId))
-                    {
-                        await DeltaTokenStore.ResetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
-                    }
                     await OfflineStore.DeleteAsync(queryDescription, cancellationToken).ConfigureAwait(false);
+
+                    switch (options.TimestampUpdatePolicy)
+                    {
+                        case TimestampUpdatePolicy.Default:
+                            if (!string.IsNullOrEmpty(queryId))
+                            {
+                                await DeltaTokenStore.ResetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
+                            }
+                            break;
+                        case TimestampUpdatePolicy.NoUpdate:
+                            // Do not update the timestamp!
+                            break;
+                        case TimestampUpdatePolicy.UpdateToLastEntity:
+                            // Get the last entity (max UpdatedAt) in the table and update the timestamp to that value.
+                            var tsq = new QueryDescription(tableName) { IncludeTotalCount = false, Top = 1 };
+                            tsq.Ordering.Add(new OrderByNode(new MemberAccessNode(null, "updatedAt"), OrderByDirection.Descending));
+                            Page<JObject> page = await OfflineStore.GetPageAsync(tsq, cancellationToken).ConfigureAwait(false);
+                            try
+                            {
+                                var ts = DateTimeOffset.Parse(page?.Items?.LastOrDefault()?.Value<string>("updatedAt"));
+                                await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, ts, cancellationToken).ConfigureAwait(false);
+                            }
+                            catch (Exception)
+                            {
+                                await DeltaTokenStore.ResetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
+                            }
+                            break;
+                        case TimestampUpdatePolicy.UpdateToNow:
+                            await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, DateTimeOffset.UtcNow, cancellationToken).ConfigureAwait(false);
+                            break;
+                        case TimestampUpdatePolicy.UpdateToEpoch:
+                            await DeltaTokenStore.ResetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
+                            break;
+
+                    }
                 }
             }
         }
@@ -924,7 +951,8 @@ namespace Microsoft.Datasync.Client.Offline
             {
                 EventType = SynchronizationEventType.PullFinished,
                 TableName = tableName,
-                ItemsProcessed = itemsReceived
+                ItemsProcessed = itemsReceived,
+                IsSuccessful = isSuccessful
             });
         }
 
