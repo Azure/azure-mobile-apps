@@ -9,6 +9,7 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Azure/azure-mobile-apps</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
     <ProjectUrl>https://github.com/azure/azure-mobile-apps</ProjectUrl>
@@ -17,5 +18,6 @@
   
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)\..\images\icon.png" PackagePath="icon.png" Pack="True" />
+    <None Include="$(MSBuildThisFileDirectory)\..\..\README.md" PackagePath="README.md" Pack="True" />
   </ItemGroup>
 </Project>
