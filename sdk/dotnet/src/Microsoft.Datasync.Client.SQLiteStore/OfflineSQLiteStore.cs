@@ -283,9 +283,17 @@ namespace Microsoft.Datasync.Client.SQLiteStore
             using (operationLock.AcquireLock())
             {
                 ExecuteNonQueryInternal("BEGIN TRANSACTION");
-                BatchInsert(tableName, items, columns.Where(c => c.IsIdColumn).Take(1).ToList());
-                BatchUpdate(tableName, items, columns);
-                ExecuteNonQueryInternal("COMMIT TRANSACTION");
+                try
+                {
+                    BatchInsert(tableName, items, columns.Where(c => c.IsIdColumn).Take(1).ToList());
+                    BatchUpdate(tableName, items, columns);
+                    ExecuteNonQueryInternal("COMMIT TRANSACTION");
+                }
+                catch (SQLiteException)
+                {
+                    ExecuteNonQueryInternal("ROLLBACK");
+                    throw;
+                }
             }
         }
         #endregion
