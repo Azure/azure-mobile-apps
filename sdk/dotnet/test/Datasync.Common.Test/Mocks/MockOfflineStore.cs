@@ -330,6 +330,12 @@ public class MockOfflineStore : IOfflineStore
                 long sequence = GetFromConstantNode<long>(sequenceComparison.RightOperand);
                 items = items.Where(item => item.Value<long>("sequence") > sequence);
             }
+            else if (Regex.IsMatch(filter, "^\\(deleted eq (true|false)\\)$"))
+            {
+                BinaryOperatorNode deletedComparison = (BinaryOperatorNode)query.Filter;
+                bool elem = GetFromConstantNode<bool>(deletedComparison.RightOperand);
+                items = items.Where(item => item.Value<bool>("deleted") == elem);
+            }
             else
             {
                 throw new NotImplementedException();
