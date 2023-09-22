@@ -51,6 +51,6 @@ namespace Microsoft.Datasync.Client.Offline
         /// <summary>
         /// In the case of a result, whether the push was successful or not.
         /// </summary>
-        public bool IsSuccessful { get; internal set; }
+        public bool? IsSuccessful { get; internal set; }
     }
 }

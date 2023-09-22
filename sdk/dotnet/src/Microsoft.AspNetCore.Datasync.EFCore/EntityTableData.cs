@@ -13,23 +13,23 @@ namespace Microsoft.AspNetCore.Datasync.EFCore
     public abstract class EntityTableData : ITableData
     {
         [Key]
-        public string Id { get; set; }
+        public virtual string Id { get; set; }
 
         /// <summary>
         /// The date/time that the entity was updated.
         /// </summary>
-        public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+        public virtual DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
         /// <summary>
         /// The row version for the entity.
         /// </summary>
         [Timestamp]
-        public byte[] Version { get; set; }
+        public virtual byte[] Version { get; set; }
 
         /// <summary>
         /// True if the entity is marked as deleted.
         /// </summary>
-        public bool Deleted { get; set; }
+        public virtual bool Deleted { get; set; }
 
         /// <summary>
         /// Implements the <see cref="IEquatable{T}"/> interface to determine

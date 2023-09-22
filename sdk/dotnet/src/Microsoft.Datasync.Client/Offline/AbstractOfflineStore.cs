@@ -2,11 +2,16 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Query;
+using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -89,6 +94,92 @@ namespace Microsoft.Datasync.Client.Offline
         }
 
         /// <summary>
+        /// Defines a table in the local store.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <param name="tableDefinition">The table definition as a sample JSON object.</param>
+        public abstract void DefineTable(string tableName, JObject tableDefinition);
+
+        /// <summary>
+        /// Defines a table for use with offline sync.
+        /// </summary>
+        /// <typeparam name="T">The type of entity stored in the table.</typeparam>
+        /// <param name="tableName">The name of the table.</param>
+        /// <param name="settings">The serializer settings.</param>
+        public virtual void DefineTable<T>(string tableName, DatasyncSerializerSettings settings)
+        {
+            if (settings.ContractResolver.ResolveContract(typeof(T)) is not JsonObjectContract contract)
+            {
+                throw new ArgumentException($"The generic type '{typeof(T).Name}' is not an object");
+            }
+            if (contract.DefaultCreator == null)
+            {
+                throw new ArgumentException($"The generic type '{typeof(T).Name}' does not have a parameterless constructor.");
+            }
+
+            object definition = contract.DefaultCreator();
+
+            // Set enum values to their default.
+            foreach (JsonProperty contractProperty in contract.Properties)
+            {
+                if (contractProperty.PropertyType.GetTypeInfo().IsEnum)
+                {
+                    object firstValue = Enum.GetValues(contractProperty.PropertyType).Cast<object>().FirstOrDefault();
+                    if (firstValue != null)
+                    {
+                        contractProperty.ValueProvider.SetValue(definition, firstValue);
+                    }
+                }
+                else if (contractProperty.PropertyType.IsNullableEnum(out var enumPropertyType))
+                {
+                    object firstValue = Enum.GetValues(enumPropertyType).Cast<object>().FirstOrDefault();
+                    if (firstValue != null)
+                    {
+                        contractProperty.ValueProvider.SetValue(definition, firstValue);
+                    }
+                }
+            }
+
+            // Create a JObject out of the definition.
+            string json = JsonConvert.SerializeObject(definition, settings);
+            JObject jsonDefinition = JsonConvert.DeserializeObject<JObject>(json, settings);
+
+            // Ensure we have an ID field.
+            jsonDefinition[SystemProperties.JsonIdProperty] = string.Empty;
+
+            // Set anything with a null in it to the appropriate type.
+            foreach (JProperty prop in jsonDefinition.Properties().Where(i => i.Value.Type == JTokenType.Null))
+            {
+                JsonProperty cprop = contract.Properties[prop.Name];
+                if (cprop.PropertyType == typeof(string) || cprop.PropertyType == typeof(Uri))
+                {
+                    jsonDefinition[prop.Name] = string.Empty;
+                }
+                else if (cprop.PropertyType == typeof(byte[]))
+                {
+                    jsonDefinition[prop.Name] = Array.Empty<byte>();
+                }
+                else if (cprop.PropertyType.GetTypeInfo().IsGenericType && cprop.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    jsonDefinition[prop.Name] = new JValue(Activator.CreateInstance(cprop.PropertyType.GenericTypeArguments[0]));
+                }
+                else
+                {
+                    jsonDefinition[prop.Name] = new JObject();
+                }
+            }
+
+            DefineTable(tableName, jsonDefinition);
+        }
+
+        /// <summary>
+        /// Determines if a table is defined.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <returns>true if the table is defined.</returns>
+        public abstract bool TableIsDefined(string tableName);
+
+        /// <summary>
         /// Updates or inserts the item(s) provided in the table.
         /// </summary>
         /// <param name="tableName">The table to be used for the operation.</param>
@@ -99,19 +190,6 @@ namespace Microsoft.Datasync.Client.Offline
         public abstract Task UpsertAsync(string tableName, IEnumerable<JObject> items, bool ignoreMissingColumns, CancellationToken cancellationToken = default);
         #endregion
 
-        /// <summary>
-        /// Defines a table in the local store.
-        /// </summary>
-        /// <param name="tableName">The name of the table.</param>
-        /// <param name="tableDefinition">The table definition as a sample JSON object.</param>
-        public abstract void DefineTable(string tableName, JObject tableDefinition);
-
-        /// <summary>
-        /// Determines if a table is defined.
-        /// </summary>
-        /// <param name="tableName">The name of the table.</param>
-        /// <returns>true if the table is defined.</returns>
-        public abstract bool TableIsDefined(string tableName);
 
         /// <summary>
         /// Ensures that the store has been initialized.
@@ -120,13 +198,25 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the store has been initialized.</returns>
         protected async Task EnsureInitializedAsync(CancellationToken cancellationToken)
         {
+            // Short circuit - escape quickly without locking if the store is initialized.
+            if (Initialized)
+            {
+                return;
+            }
+
             using (await initializationLock.AcquireAsync(cancellationToken).ConfigureAwait(false))
             {
-                await InitializeOfflineStoreAsync(cancellationToken).ConfigureAwait(false);
-                //if (!Initialized)
-                //{
-                //    throw new InvalidOperationException("The offline store must be initialized before it can be used.");
-                //}
+                // In case we were blocked during the initialization lock acquisition...
+                if (!Initialized)
+                {
+                    await InitializeOfflineStoreAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                // Something went wrong...
+                if (!Initialized)
+                {
+                    throw new InvalidOperationException("The offline store must be initialized before it can be used.");
+                }
             }
         }
 

@@ -33,6 +33,26 @@ namespace Microsoft.Datasync.Client.Utils
         }
 
         /// <summary>
+        /// Determines if the type Nullable{Enum}.
+        /// </summary>
+        /// <param name="type">The subject type.</param>
+        /// <param name="enumPropertyType">On return, the first generic attribute which is contains the Enum type itself.</param>
+        /// <returns><c>true</c> if the subject type enum of nullable, <c>false</c> otherwise.</returns>
+        internal static bool IsNullableEnum(this Type type, out Type enumPropertyType)
+        {
+            if (type.IsGenericType &&
+                type.GetGenericTypeDefinition() == typeof(Nullable<>) &&
+                type.GetGenericArguments()[0].IsEnum)
+            {
+                enumPropertyType = type.GetGenericArguments()[0];
+                return true;
+            }
+
+            enumPropertyType = default;
+            return false;
+        }
+
+        /// <summary>
         /// Normalize an endpoint by removing any query and fragment, then ensuring that the
         /// path has a trailing slash.
         /// </summary>

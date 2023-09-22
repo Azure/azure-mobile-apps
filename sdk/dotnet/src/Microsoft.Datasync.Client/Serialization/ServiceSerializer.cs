@@ -83,11 +83,7 @@ namespace Microsoft.Datasync.Client.Serialization
                 }
             }
 
-            var idProperty = type.GetProperties().Where(prop => prop.Name.Equals("id", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-            if (idProperty == null)
-            {
-                throw new ArgumentException($"Type {type.Name} must contain an Id property", nameof(type));
-            }
+            var idProperty = Array.Find(type.GetProperties(), prop => prop.Name.Equals("id", StringComparison.OrdinalIgnoreCase)) ?? throw new ArgumentException($"Type {type.Name} must contain an Id property", nameof(type));
             if (idProperty.PropertyType != typeof(string))
             {
                 throw new ArgumentException($"Property {type.Name}.Id must be a string", nameof(type));
@@ -156,13 +152,7 @@ namespace Microsoft.Datasync.Client.Serialization
         /// <returns></returns>
         public static DateTimeOffset? GetUpdatedAt(JObject item)
         {
-            string updatedAt = item.Value<string>(SystemProperties.JsonUpdatedAtProperty);
-            if (updatedAt == null)
-            {
-                return null;
-            }
-            // Throw an error if the service returned a bad date format.
-            return DateTimeOffset.Parse(updatedAt, CultureInfo.InvariantCulture);
+            return item.SelectToken(SystemProperties.JsonUpdatedAtProperty)?.ToObject<DateTimeOffset>();
         }
 
         /// <summary>

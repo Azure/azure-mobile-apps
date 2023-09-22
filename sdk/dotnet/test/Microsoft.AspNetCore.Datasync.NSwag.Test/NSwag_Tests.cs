@@ -1,35 +1,45 @@
 // Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test;
 using Microsoft.AspNetCore.Datasync.NSwag.Test.Service;
 using Microsoft.AspNetCore.TestHost;
 using System.Reflection;
 
-namespace Microsoft.AspNetCore.Datasync.NSwag.Test
+namespace Microsoft.AspNetCore.Datasync.NSwag.Test;
+
+[ExcludeFromCodeCoverage]
+public class NSwag_Tests
 {
-    public class NSwag_Tests
+    private readonly TestServer server = NSwagServer.CreateTestServer();
+
+    private static string ReadExternalFile(string filename)
     {
-        private TestServer server = NSwagServer.CreateTestServer();
+        Assembly asm = Assembly.GetExecutingAssembly();
+        using Stream s = asm.GetManifestResourceStream(asm.GetName().Name + "." + filename)!;
+        using StreamReader sr = new StreamReader(s);
+        return sr.ReadToEnd();
+    }
 
-        private static string ReadExternalFile(string filename)
+    private static void WriteExternalFile(string filename, string content)
+    {
+        var storePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        using StreamWriter outputFile = new StreamWriter(Path.Combine(storePath, filename));
+        outputFile.Write(content);
+    }
+
+    [Fact]
+    public async Task NSwag_GeneratesSwagger()
+    {
+        var swaggerDoc = await server.SendRequest(HttpMethod.Get, "swagger/v1/swagger.json");
+        Assert.NotNull(swaggerDoc);
+        Assert.True(swaggerDoc!.IsSuccessStatusCode);
+
+        var expectedContent = ReadExternalFile("swagger.json").Replace("\r\n", "\n").TrimEnd();
+        var actualContent = (await swaggerDoc!.Content.ReadAsStringAsync()).Replace("\r\n", "\n").TrimEnd();
+        if (!expectedContent.Equals(actualContent))
         {
-            Assembly asm = Assembly.GetExecutingAssembly();
-            using Stream s = asm.GetManifestResourceStream(asm.GetName().Name + "." + filename)!;
-            using StreamReader sr = new StreamReader(s);
-            return sr.ReadToEnd();
+            WriteExternalFile("swagger.json.out", actualContent);
         }
-
-        [Fact]
-        public async Task NSwag_GeneratesSwagger()
-        {
-            var swaggerDoc = await server.SendRequest(HttpMethod.Get, "swagger/v1/swagger.json");
-            Assert.NotNull(swaggerDoc);
-            Assert.True(swaggerDoc!.IsSuccessStatusCode);
-
-            var expectedContent = ReadExternalFile("swagger.json").Replace("\r\n", "\n").TrimEnd();
-            var actualContent = await swaggerDoc!.Content.ReadAsStringAsync();
-            Assert.Equal(expectedContent, actualContent.Replace("\r\n", "\n").TrimEnd());
-        }
+        Assert.Equal(expectedContent, actualContent.Replace("\r\n", "\n").TrimEnd());
     }
 }

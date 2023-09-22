@@ -11,10 +11,10 @@ using System.Threading.Tasks;
 namespace Microsoft.Datasync.Client
 {
     /// <summary>
-    /// Definition of the operations that can be done against a remote table
-    /// with untyped (JSON) object.
+    /// The read portion of the offline table API, providing access to untyped (JSON) objects
+    /// within an offline table.
     /// </summary>
-    public interface IOfflineTable
+    public interface IReadOnlyOfflineTable
     {
         /// <summary>
         /// The service client being used for communication.
@@ -36,14 +36,6 @@ namespace Microsoft.Datasync.Client
         Task<long> CountItemsAsync(string query, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Deletes an item from the remote table.
-        /// </summary>
-        /// <param name="instance">The instance to delete from the table.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that returns the response when complete.</returns>
-        Task DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Execute a query against a remote table.
         /// </summary>
         /// <param name="query">The query to execute.</param>
@@ -57,14 +49,6 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the item when complete.</returns>
         Task<JObject> GetItemAsync(string id, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Inserts an item into the remote table.
-        /// </summary>
-        /// <param name="instance">The instance to insert into the table.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that returns the inserted data when complete.</returns>
-        Task<JObject> InsertItemAsync(JObject instance, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Pulls the items matching the provided query from the remote table.
@@ -83,6 +67,29 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the purge operation has finished.</returns>
         Task PurgeItemsAsync(string query, PurgeOptions options, CancellationToken cancellationToken = default);
+    }
+
+    /// <summary>
+    /// Definition of the operations that can be done against an offline table
+    /// with untyped (JSON) object.
+    /// </summary>
+    public interface IOfflineTable : IReadOnlyOfflineTable
+    {
+        /// <summary>
+        /// Deletes an item from the remote table.
+        /// </summary>
+        /// <param name="instance">The instance to delete from the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the response when complete.</returns>
+        Task DeleteItemAsync(JObject instance, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Inserts an item into the remote table.
+        /// </summary>
+        /// <param name="instance">The instance to insert into the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the inserted data when complete.</returns>
+        Task<JObject> InsertItemAsync(JObject instance, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Pushes all operations for this table in the operations queue to the remote service.
@@ -109,10 +116,10 @@ namespace Microsoft.Datasync.Client
     }
 
     /// <summary>
-    /// Definition of the operations that can be done against a remote table
-    /// with strongly typed objects.
+    /// The read portion of the API to operate on a strongly typed offline table.
     /// </summary>
-    public interface IOfflineTable<T> : IOfflineTable, ILinqMethods<T>
+    /// <typeparam name="T">The type of the entities that the offline table contains.</typeparam>
+    public interface IReadOnlyOfflineTable<T> : IReadOnlyOfflineTable, ILinqMethods<T>
     {
         /// <summary>
         /// Creates a blank query for the current table.
@@ -128,14 +135,6 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the number of items that will be in the result set when the query finishes.</returns>
         Task<long> CountItemsAsync(ITableQuery<T> query, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Deletes an item from the remote table.
-        /// </summary>
-        /// <param name="instance">The instance to delete from the table.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that returns when the operation complete.</returns>
-        Task DeleteItemAsync(T instance, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns all instances from the table as an <see cref="IAsyncEnumerable{T}"/>.
@@ -158,14 +157,6 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the item when complete.</returns>
         new Task<T> GetItemAsync(string id, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Inserts the instance in the remote table.
-        /// </summary>
-        /// <param name="instance">The instance to insert.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        /// <returns>A task that returns when the operation is complete.</returns>
-        Task InsertItemAsync(T instance, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Pulls the items matching the provided query from the remote table.
@@ -194,6 +185,29 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns when the operation is complete.</returns>
         Task RefreshItemAsync(T instance, CancellationToken cancellationToken = default);
+    }
+
+    /// <summary>
+    /// Definition of the operations that can be done against an offline table with strongly typed objects.
+    /// </summary>
+    /// <typeparam name="T">The type of the entities that the offline table contains.</typeparam>
+    public interface IOfflineTable<T> : IOfflineTable, IReadOnlyOfflineTable<T>
+    {
+        /// <summary>
+        /// Deletes an item from the remote table.
+        /// </summary>
+        /// <param name="instance">The instance to delete from the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns when the operation complete.</returns>
+        Task DeleteItemAsync(T instance, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Inserts the instance in the remote table.
+        /// </summary>
+        /// <param name="instance">The instance to insert.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns when the operation is complete.</returns>
+        Task InsertItemAsync(T instance, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Replaces the current instance with the provided instance in the remote table.

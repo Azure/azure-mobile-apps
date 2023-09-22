@@ -8,6 +8,7 @@ using Microsoft.Datasync.Client.SQLiteStore.Driver;
 using Microsoft.Datasync.Client.SQLiteStore.Utils;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
     /// <summary>
     /// An implementation of <see cref="IOfflineStore"/> using SQLite as the persistent store.
     /// </summary>
-    public class OfflineSQLiteStore : AbstractOfflineStore
+    public class OfflineSQLiteStore : AbstractOfflineStore, IDeltaTokenStoreProvider
     {
         /// <summary>
         /// The mapping from the table name to the table definition.  This is built using the
@@ -56,9 +57,32 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         }
 
         /// <summary>
+        /// Creates a new instance of <see cref="OfflineSQLiteStore"/> using the provided connection string.
+        /// </summary>
+        /// <remarks>
+        /// <para>If the connection string starts with <c>file:</c>, then it is considered to be a URI filename and
+        /// should be structured as such.  This allows the setting of any options (such as mode, cache, etc.)
+        /// if needed.</para>
+        /// <para>If the connection string does not start with file:, then it should be an absolute path (which starts
+        /// with a <c>/</c>).</para>
+        /// </remarks>
+        /// <see href="https://sqlite.org/c3ref/open.html"/>
+        /// <param name="connectionString">The connection string to use for persistent storage.</param>
+        /// <param name="logger">The logger to use for logging SQL requests.</param>
+        public OfflineSQLiteStore(string connectionString, ILogger logger) : this(connectionString)
+        {
+            Logger = logger;
+        }
+
+        /// <summary>
         /// The database connection.
         /// </summary>
         internal SqliteConnection DbConnection { get; }
+
+        /// <summary>
+        /// The logging service
+        /// </summary>
+        public ILogger Logger { get; set; }
 
         #region AbstractOfflineStore
         /// <summary>
@@ -73,6 +97,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
 
             if (!tableMap.ContainsKey(tableName))
             {
+                Logger?.LogDebug("Created table definition for table {tableName}", tableName);
                 tableMap.Add(tableName, new TableDefinition(tableName, tableDefinition));
             }
         }
@@ -189,6 +214,14 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         }
 
         /// <summary>
+        /// Creates the Delta Token Store implementation that works with this store.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that resolves to the delta token store when complete</returns>
+        public Task<IDeltaTokenStore> GetDeltaTokenStoreAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IDeltaTokenStore>(new SQLiteDeltaTokenStore(this));
+
+        /// <summary>
         /// Initialize the store.  This is over-ridden by the store implementation to provide a point
         /// where the tables can be created or updated.
         /// </summary>
@@ -196,14 +229,15 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <returns>A task that completes when the store is initialized.</returns>
         protected override Task InitializeOfflineStoreAsync(CancellationToken cancellationToken)
         {
-            foreach (var table in tableMap)
-            {
-                if (!table.Value.IsInDatabase)
-                {
-                    // Do the creation if it hasn't already been done this time round.
-                    CreateTableFromDefinition(table.Value);
-                }
-            }
+            // Define the internal tables.
+            DefineTable(SystemTables.Configuration, SQLiteDeltaTokenStore.TableDefinition);
+
+            // Now that all the tables are defined, actually create the tables!
+            tableMap.Values
+                .Where(table => !table.IsInDatabase)
+                .ToList()
+                .ForEach(table => CreateTableFromDefinition(table));
+
             return Task.CompletedTask;
         }
 
@@ -235,7 +269,6 @@ namespace Microsoft.Datasync.Client.SQLiteStore
                 {
                     throw new InvalidOperationException($"Column '{prop.Name}' is not defined on table '{tableName}'");
                 }
-                
                 if (column != null)
                 {
                     columns.Add(column);
@@ -250,9 +283,17 @@ namespace Microsoft.Datasync.Client.SQLiteStore
             using (operationLock.AcquireLock())
             {
                 ExecuteNonQueryInternal("BEGIN TRANSACTION");
-                BatchInsert(tableName, items, columns.Where(c => c.IsIdColumn).Take(1).ToList());
-                BatchUpdate(tableName, items, columns);
-                ExecuteNonQueryInternal("COMMIT TRANSACTION");
+                try
+                {
+                    BatchInsert(tableName, items, columns.Where(c => c.IsIdColumn).Take(1).ToList());
+                    BatchUpdate(tableName, items, columns);
+                    ExecuteNonQueryInternal("COMMIT TRANSACTION");
+                }
+                catch (SQLiteException)
+                {
+                    ExecuteNonQueryInternal("ROLLBACK");
+                    throw;
+                }
             }
         }
         #endregion
@@ -395,11 +436,12 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// </summary>
         /// <param name="sqlStatement">The SQL statement to execute.</param>
         /// <param name="parameters">The parameters that are referenced in the SQL statement.</param>
-        protected void ExecuteNonQueryInternal(string sqlStatement, Dictionary<string, object> parameters = null)
+        protected void ExecuteNonQueryInternal(string sqlStatement, IDictionary<string, object> parameters = null)
         {
             Arguments.IsNotNullOrWhitespace(sqlStatement, nameof(sqlStatement));
-            parameters ??= new();
+            parameters ??= new Dictionary<string, object>();
 
+            LogSqlStatement(sqlStatement, parameters);
             using SqliteStatement stmt = DbConnection.PrepareStatement(sqlStatement);
             stmt.BindParameters(parameters);
             stmt.ExecuteNonQuery();
@@ -437,6 +479,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
             Arguments.IsNotNullOrWhitespace(sqlStatement, nameof(sqlStatement));
             parameters ??= new Dictionary<string, object>();
 
+            LogSqlStatement(sqlStatement, parameters);
             var rows = new List<JObject>();
             using var statement = DbConnection.PrepareStatement(sqlStatement);
             statement.BindParameters(parameters);
@@ -472,6 +515,23 @@ namespace Microsoft.Datasync.Client.SQLiteStore
                 return table;
             }
             throw new InvalidOperationException($"Table '{tableName}' is not defined.");
+        }
+
+        /// <summary>
+        /// Logs a SQL execution to the logging service.
+        /// </summary>
+        /// <param name="sqlStatement">The SQL Statement</param>
+        /// <param name="parameters">The List of parameters</param>
+        private void LogSqlStatement(string sqlStatement, IDictionary<string, object> parameters)
+        {
+            // Early return.
+            if (Logger == null) return;
+
+            Logger?.LogDebug("SQL STMT: {sqlStatement}", sqlStatement);
+            if (parameters.Count > 0)
+            {
+                Logger?.LogDebug("SQL PARAMS: {params}", string.Join(";", parameters.ToList().Select(x => $"{x.Key}={x.Value}")));
+            }
         }
 
         /// <summary>

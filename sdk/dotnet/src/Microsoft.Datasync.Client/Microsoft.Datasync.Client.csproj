@@ -1,8 +1,7 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.44">
 
 	<PropertyGroup>
-		<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst;net6.0-windows10.0.19041.0;net6.0;netstandard2.0;monoandroid12.0;xamarin.ios10</TargetFrameworks>
-		<TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);uap10.0</TargetFrameworks>
+		<TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -18,7 +17,7 @@
 	<PropertyGroup>
 		<DebugType>portable</DebugType>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
-		<LangVersion>9.0</LangVersion>
+		<LangVersion>10.0</LangVersion>
 		<NeutralLanguage>en-US</NeutralLanguage>
 	</PropertyGroup>
 
@@ -26,86 +25,30 @@
 		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
 	
-	<PropertyGroup Condition="$(TargetFramework.StartsWith('net6.0-'))">
-		<UseMauiEssentials>true</UseMauiEssentials>
-		<SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-ios'))">10.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-tvos'))">10.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-maccatalyst'))">13.1</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-macos'))">10.14</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-android'))">21.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-windows10'))">10.0.19041.0</SupportedOSPlatformVersion>
-		<TargetPlatformMinVersion Condition="$(TargetFramework.Contains('-windows10'))">10.0.19041.0</TargetPlatformMinVersion>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<None Include="Platforms\**\*.cs" />
 		<Compile Remove="Platforms\**\*.cs" />
-	</ItemGroup>
-
-	<!-- Android Platform Support -->
-	<ItemGroup Condition="$(TargetFramework.StartsWith('monoandroid'))">
-		<Compile Include="Platforms\android\*.cs" />
-		<PackageReference Include="Xamarin.Essentials" Version="1.7.4" />
-		<PackageReference Include="Xamarin.AndroidX.Browser" Version="1.4.0.2" />
-		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
-	</ItemGroup>
-
-	<ItemGroup Condition="$(TargetFramework.StartsWith('net6.0-android'))">
-		<Compile Include="Platforms\net6-android\*.cs" />
-	</ItemGroup>
-
-	<!-- iOS Platform Support -->
-	<ItemGroup Condition="$(TargetFramework.StartsWith('xamarin.ios'))">
-		<Compile Include="Platforms\ios\*.cs" />
-		<PackageReference Include="Xamarin.Essentials" Version="1.7.4" />
-		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
-	</ItemGroup>
-
-	<ItemGroup Condition="$(TargetFramework.StartsWith('net6.0-ios'))">
-		<Compile Include="Platforms\net6-ios\*.cs" />
-	</ItemGroup>
-
-	<!-- Mac Platform Support -->
-	<ItemGroup Condition="$(TargetFramework.StartsWith('net6.0-mac'))">
-		<Compile Include="Platforms\net6-mac\*.cs" />
-	</ItemGroup>
-
-	<!-- UWP/UAP/Windows Store Platform Support -->
-	<PropertyGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
-		<TargetPlatformVersion>10.0.19041.0</TargetPlatformVersion>
-		<TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
-	</PropertyGroup>
-	<ItemGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
-		<Compile Include="Platforms\uap\*.cs" />
-		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
-		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
-	</ItemGroup>
-
-	<ItemGroup Condition="$(TargetFramework.StartsWith('net6.0-windows'))">
-		<Compile Include="Platforms\net6-windows\*.cs" />
 	</ItemGroup>
 	
 	<!-- .NET 6.0 Platform support -->
 	<ItemGroup Condition="$(TargetFramework.Equals('net6.0'))">
 		<Compile Include="Platforms\net6\*.cs" />
-		<PackageReference Include="Microsoft.JSInterop" Version="6.0.13" />
 	</ItemGroup>
 	
 	<PropertyGroup Condition="$(TargetFramework.StartsWith('net6.0'))">
 		<DefineConstants>$(DefineConstants);HAS_DATEONLY;HAS_TIMEONLY</DefineConstants>
 	</PropertyGroup>
-	
-		
+
 	<!-- .NET Standard 2.0 Platform Support -->
 	<ItemGroup Condition="$(TargetFramework.StartsWith('netstandard2.0'))">
 		<Compile Include="Platforms\netstandard\*.cs" />
-		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
-		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
-		<PackageReference Include="System.Memory" Version="4.5.4" PrivateAssets="compile;contentfiles;build;analyzers" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />
+		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="7.0.0" />
+		<PackageReference Include="System.Memory" Version="4.5.5" PrivateAssets="compile;contentfiles;build;analyzers" />
 	</ItemGroup>
 
 	<!-- Common package requirements -->
 	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	</ItemGroup>
 </Project>

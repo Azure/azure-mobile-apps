@@ -10,6 +10,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
     /// <summary>
     /// Indicates a SQLite error occurred.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class SQLiteException : Exception
     {
         public SQLiteException() : base()
@@ -52,6 +53,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <param name="db">The database connection.</param>
         private void SetSqliteMessage(int rc, sqlite3 db)
         {
+            SqliteErrorCode = rc;
             SqliteMessage = db == null ? raw.sqlite3_errstr(rc).utf8_to_string() : raw.sqlite3_errmsg(db).utf8_to_string();
         }
 
@@ -59,5 +61,10 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// The error message from SQLite.
         /// </summary>
         public string SqliteMessage { get; private set; }
+        
+        /// <summary>
+        /// The error code from SQLite.
+        /// </summary>
+        public int SqliteErrorCode { get; private set; }
     }
 }

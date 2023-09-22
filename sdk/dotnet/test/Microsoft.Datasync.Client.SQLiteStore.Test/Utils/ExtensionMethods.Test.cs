@@ -2,30 +2,25 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.SQLiteStore.Utils;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using Xunit;
 
-namespace Microsoft.Datasync.Client.SQLiteStore.Test.Utils
+namespace Microsoft.Datasync.Client.SQLiteStore.Test.Utils;
+
+[ExcludeFromCodeCoverage]
+public class ExtensionMethods_Tests
 {
-    [ExcludeFromCodeCoverage]
-    public class ExtensionMethods_Tests
+    [Fact]
+    public void Split_Works()
     {
-        [Fact]
-        public void Split_Works()
+        List<string> items = new();
+        for (int i = 0; i < 25; i++)
         {
-            List<string> items = new();
-            for (int i = 0; i < 25; i++)
-            {
-                items.Add(i.ToString());
-            }
-
-            var actual = items.Split(10).ToList();
-
-            Assert.Equal(items.Take(10).ToList(), actual[0].ToList());
-            Assert.Equal(items.Skip(10).Take(10).ToList(), actual[1].ToList());
-            Assert.Equal(items.Skip(20).ToList(), actual[2].ToList());
+            items.Add(i.ToString());
         }
+
+        var actual = items.Split(10).ToList();
+
+        Assert.Equal(items.Take(10).ToList(), actual[0].ToList());
+        Assert.Equal(items.Skip(10).Take(10).ToList(), actual[1].ToList());
+        Assert.Equal(items.Skip(20).ToList(), actual[2].ToList());
     }
 }

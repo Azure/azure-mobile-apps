@@ -4,38 +4,34 @@
 using Microsoft.AspNetCore.Datasync.Converters;
 using Microsoft.AspNetCore.OData.Query.Wrapper;
 using Newtonsoft.Json;
-using System;
-using System.Diagnostics.CodeAnalysis;
-using Xunit;
 
-namespace Microsoft.AspNetCore.Datasync.Test.Converters
+namespace Microsoft.AspNetCore.Datasync.Test.Converters;
+
+[ExcludeFromCodeCoverage]
+public class JDynamicTypeWrapperConverter_Tests
 {
-    [ExcludeFromCodeCoverage(Justification = "Test suite")]
-    public class JDynamicTypeWrapperConverter_Tests
+    private readonly JsonSerializerSettings _settings;
+
+    public JDynamicTypeWrapperConverter_Tests()
     {
-        private readonly JsonSerializerSettings _settings;
-
-        public JDynamicTypeWrapperConverter_Tests()
+        _settings = new JsonSerializerSettings()
         {
-            _settings = new JsonSerializerSettings()
-            {
-                NullValueHandling = NullValueHandling.Ignore
-            };
-            _settings.Converters.Add(new JDynamicTypeWrapperConverter());
-        }
+            NullValueHandling = NullValueHandling.Ignore
+        };
+        _settings.Converters.Add(new JDynamicTypeWrapperConverter());
+    }
 
-        [Fact]
-        public void JsonConverter_Basics()
-        {
-            var converter = new JDynamicTypeWrapperConverter();
+    [Fact]
+    public void JsonConverter_Basics()
+    {
+        var converter = new JDynamicTypeWrapperConverter();
 
-            Assert.False(converter.CanRead);
-            Assert.True(converter.CanWrite);
+        Assert.False(converter.CanRead);
+        Assert.True(converter.CanWrite);
 
-            Assert.True(converter.CanConvert(typeof(DynamicTypeWrapper)));
-            Assert.False(converter.CanConvert(typeof(string)));
+        Assert.True(converter.CanConvert(typeof(DynamicTypeWrapper)));
+        Assert.False(converter.CanConvert(typeof(string)));
 
-            Assert.Throws<ArgumentNullException>(() => converter.CanConvert(null));
-        }
+        Assert.Throws<ArgumentNullException>(() => converter.CanConvert(null));
     }
 }

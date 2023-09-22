@@ -1,0 +1,14 @@
+{
+  "solution": {
+    "path": "TodoApp.sln",
+    "projects": [
+      "TodoApp.Data\\TodoApp.Data.csproj",
+      "TodoApp.Forms\\TodoApp.Forms.Android\\TodoApp.Forms.Android.csproj",
+      "TodoApp.Forms\\TodoApp.Forms.iOS\\TodoApp.Forms.iOS.csproj",
+      "TodoApp.Forms\\TodoApp.Forms\\TodoApp.Forms.csproj",
+      "TodoApp.Android\\TodoApp.Android.csproj",
+      "TodoApp.iOS\\TodoApp.iOS.csproj",
+      "TodoAppService.NET6\\TodoAppService.NET6.csproj"
+    ]
+  }
+}

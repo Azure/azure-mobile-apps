@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Extensions;
 using Microsoft.Datasync.Client.Http;
 using Microsoft.Datasync.Client.Offline.Queue;
 using Microsoft.Datasync.Client.Query;
@@ -84,7 +85,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <summary>
         /// Persistent storage for delta-tokens.
         /// </summary>
-        internal DeltaTokenStore DeltaTokenStore { get; private set; }
+        internal IDeltaTokenStore DeltaTokenStore { get; private set; }
 
         /// <summary>
         /// The service client to use for communicating with the back end service.
@@ -126,10 +127,49 @@ namespace Microsoft.Datasync.Client.Offline
                 await OperationsQueue.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
                 // Initialize the delta token store.
-                DeltaTokenStore = new DeltaTokenStore(OfflineStore);
+                if (OfflineStore is IDeltaTokenStoreProvider provider)
+                {
+                    DeltaTokenStore = await provider.GetDeltaTokenStoreAsync(cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    DeltaTokenStore = new DeltaToken.DefaultDeltaTokenStore(OfflineStore);
+                }
 
+                // Clear the errors in the store.
+                var errorsEnumerable = new FuncAsyncPageable<TableOperationError>(nextLink => GetPageOfErrorsAsync("", nextLink, cancellationToken));
+                var errors = await errorsEnumerable.ToZumoListAsync(cancellationToken).ConfigureAwait(false);
+                if (errors.Any())
+                {
+                    await RemoveErrorsAsync(errors, cancellationToken).ConfigureAwait(false);
+                }
+
+                // We are now initialized.
                 IsInitialized = true;
             }
+        }
+
+        /// <summary>
+        /// Loads a single page from the SyncErrors table into memory.
+        /// </summary>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="nextLink">The next link.</param>
+        /// <returns>A page of operation error objects.</returns>
+        private async Task<Page<TableOperationError>> GetPageOfErrorsAsync(string query, string nextLink, CancellationToken cancellationToken)
+        {
+            if (nextLink != null)
+            {
+                var requestUri = new Uri(nextLink);
+                query = requestUri.Query.TrimStart('?');
+            }
+            var queryDescription = QueryDescription.Parse(SystemTables.SyncErrors, query);
+            Page<JObject> sourcePage = await OfflineStore.GetPageAsync(queryDescription, cancellationToken).ConfigureAwait(false);
+            return new Page<TableOperationError>()
+            {
+                Count = sourcePage.Count,
+                NextLink = sourcePage.NextLink,
+                Items = sourcePage.Items?.Select(err => TableOperationError.Deserialize(err, ServiceClient.Serializer.SerializerSettings))
+            };
         }
 
         #region Store Operations initiated from an OfflineTable
@@ -163,11 +203,7 @@ namespace Microsoft.Datasync.Client.Offline
         {
             await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
             string itemId = ServiceSerializer.GetId(instance);
-            var originalInstance = await GetItemAsync(tableName, itemId, cancellationToken).ConfigureAwait(false);
-            if (originalInstance == null)
-            {
-                throw new InvalidOperationException($"The item with ID '{itemId}' is not in the offline store.");
-            }
+            var originalInstance = await GetItemAsync(tableName, itemId, cancellationToken).ConfigureAwait(false) ?? throw new InvalidOperationException($"The item with ID '{itemId}' is not in the offline store.");
             var operation = new DeleteOperation(tableName, itemId) { Item = originalInstance };
 
             await EnqueueOperationAsync(operation, originalInstance, cancellationToken).ConfigureAwait(false);
@@ -287,65 +323,105 @@ namespace Microsoft.Datasync.Client.Offline
             }
 
             var deltaToken = await DeltaTokenStore.GetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
-            var deltaTokenFilter = new BinaryOperatorNode(BinaryOperatorKind.GreaterThan, new MemberAccessNode(null, SystemProperties.JsonUpdatedAtProperty), new ConstantNode(deltaToken));
-            queryDescription.Filter = queryDescription.Filter == null ? deltaTokenFilter : new BinaryOperatorNode(BinaryOperatorKind.And, queryDescription.Filter, deltaTokenFilter);
+            // Issue 601 - if the delta-token is 0L (in Unix ms), then it's a "new pull", so we don't need the "updatedAt" filter nor
+            // do we need the include deleted flag.
+            Dictionary<string, string> parameters = new();
+            if (options.AlwaysPullWithDeltaToken || deltaToken.ToUnixTimeMilliseconds() > 0L)
+            {
+                var deltaTokenFilter = new BinaryOperatorNode(BinaryOperatorKind.GreaterThan, new MemberAccessNode(null, SystemProperties.JsonUpdatedAtProperty), new ConstantNode(deltaToken));
+                queryDescription.Filter = queryDescription.Filter == null ? deltaTokenFilter : new BinaryOperatorNode(BinaryOperatorKind.And, queryDescription.Filter, deltaTokenFilter);
+                parameters.Add(ODataOptions.IncludeDeleted, "true");
+            }
             queryDescription.IncludeTotalCount = true;
             queryDescription.Ordering.Add(new OrderByNode(new MemberAccessNode(null, SystemProperties.JsonUpdatedAtProperty), true));
-            Dictionary<string, string> parameters = new()
-            {
-                { ODataOptions.IncludeDeleted, "true" }
-            };
-
             var odataString = queryDescription.ToODataString(parameters);
+
             SendPullStartedEvent(tableName);
             long itemCount = 0;
             long expectedItems = -1;
+            DateTimeOffset? updatedAt = null;
             var enumerable = table.GetAsyncItems(odataString);
-            await foreach (var instance in enumerable)
+            var deletedIds = new List<string>();
+            var upsertList = new Dictionary<string, JObject>();
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                await foreach (var instance in enumerable)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                // If we have not read the expectedItem count yet, then read it from the pageable.
-                if (expectedItems == -1 && enumerable is FuncAsyncPageable<JToken> pageable)
-                {
-                    expectedItems = pageable.Count ?? -1;
-                }
+                    // If we have not read the expectedItem count yet, then read it from the pageable.
+                    if (expectedItems == -1 && enumerable is FuncAsyncPageable<JToken> pageable)
+                    {
+                        expectedItems = pageable.Count ?? -1;
+                    }
 
-                if (instance is not JObject item)
-                {
-                    throw new DatasyncInvalidOperationException("Received item is not an object");
-                }
+                    if (instance is not JObject item)
+                    {
+                        SendPullFinishedEvent(tableName, itemCount, false);
+                        throw new DatasyncInvalidOperationException("Received item is not an object");
+                    }
 
-                string itemId = ServiceSerializer.GetId(item);
-                if (itemId == null)
-                {
-                    throw new DatasyncInvalidOperationException("Received an item without an ID");
-                }
+                    string itemId = ServiceSerializer.GetId(item);
+                    if (itemId == null)
+                    {
+                        SendPullFinishedEvent(tableName, itemCount, false);
+                        throw new DatasyncInvalidOperationException("Received an item without an ID");
+                    }
 
-                var pendingOperation = await OperationsQueue.GetOperationByItemIdAsync(tableName, itemId, cancellationToken).ConfigureAwait(false);
-                if (pendingOperation != null)
-                {
-                    throw new InvalidOperationException("Received an item for which there is a pending operation.");
-                }
-                DateTimeOffset? updatedAt = ServiceSerializer.GetUpdatedAt(item)?.ToUniversalTime();
-                SendItemWillBeStoredEvent(tableName, itemId, itemCount, expectedItems);
-                if (ServiceSerializer.IsDeleted(item))
-                {
-                    await OfflineStore.DeleteAsync(tableName, new[] { itemId }, cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    await OfflineStore.UpsertAsync(tableName, new[] { item }, true, cancellationToken).ConfigureAwait(false);
-                }
-                itemCount++;
-                SendItemWasStoredEvent(tableName, itemId, itemCount, expectedItems);
+                    var pendingOperation = await OperationsQueue.GetOperationByItemIdAsync(tableName, itemId, cancellationToken).ConfigureAwait(false);
+                    if (pendingOperation != null)
+                    {
+                        SendPullFinishedEvent(tableName, itemCount, false);
+                        throw new InvalidOperationException("Received an item for which there is a pending operation.");
+                    }
+                    SendItemWillBeStoredEvent(tableName, itemId, itemCount, expectedItems);
 
+                    if (ServiceSerializer.IsDeleted(item))
+                    {
+                        deletedIds.Add(itemId);
+                    }
+                    else
+                    {
+                        upsertList.Add(itemId, item);
+                    }
+                    itemCount++;
+                    updatedAt = ServiceSerializer.GetUpdatedAt(item)?.ToUniversalTime();
+                    if (itemCount % options.WriteDeltaTokenInterval == 0)
+                    {
+                        await OfflineStore.DeleteAsync(tableName, deletedIds, cancellationToken).ConfigureAwait(false);
+                        deletedIds.ForEach(x => SendItemWasStoredEvent(tableName, x, itemCount, expectedItems));
+                        deletedIds.Clear();
+
+                        await OfflineStore.UpsertAsync(tableName, upsertList.Values, ignoreMissingColumns: true, cancellationToken).ConfigureAwait(false);
+                        upsertList.Keys.ToList().ForEach(x => SendItemWasStoredEvent(tableName, x, itemCount, expectedItems));
+                        upsertList.Clear();
+
+                        if (updatedAt.HasValue)
+                        {
+                            await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, updatedAt.Value, cancellationToken).ConfigureAwait(false);
+                            updatedAt = null;
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                if (deletedIds.Count > 0)
+                {
+                    await OfflineStore.DeleteAsync(tableName, deletedIds, cancellationToken).ConfigureAwait(false);
+                    deletedIds.ForEach(x => SendItemWasStoredEvent(tableName, x, itemCount, expectedItems));
+                }
+                if (upsertList.Count > 0)
+                {
+                    await OfflineStore.UpsertAsync(tableName, upsertList.Values, ignoreMissingColumns: true, cancellationToken).ConfigureAwait(false);
+                    upsertList.Keys.ToList().ForEach(x => SendItemWasStoredEvent(tableName, x, itemCount, expectedItems));
+                }
                 if (updatedAt.HasValue)
                 {
                     await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, updatedAt.Value, cancellationToken).ConfigureAwait(false);
                 }
+                SendPullFinishedEvent(tableName, itemCount, true);
             }
-            SendPullFinishedEvent(tableName, itemCount);
         }
 
         /// <summary>
@@ -382,11 +458,42 @@ namespace Microsoft.Datasync.Client.Offline
                 // Execute the purge
                 using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    if (!string.IsNullOrEmpty(queryId))
-                    {
-                        await DeltaTokenStore.ResetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
-                    }
                     await OfflineStore.DeleteAsync(queryDescription, cancellationToken).ConfigureAwait(false);
+
+                    switch (options.TimestampUpdatePolicy)
+                    {
+                        case TimestampUpdatePolicy.Default:
+                            if (!string.IsNullOrEmpty(queryId))
+                            {
+                                await DeltaTokenStore.ResetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
+                            }
+                            break;
+                        case TimestampUpdatePolicy.NoUpdate:
+                            // Do not update the timestamp!
+                            break;
+                        case TimestampUpdatePolicy.UpdateToLastEntity:
+                            // Get the last entity (max UpdatedAt) in the table and update the timestamp to that value.
+                            var tsq = new QueryDescription(tableName) { IncludeTotalCount = false, Top = 1 };
+                            tsq.Ordering.Add(new OrderByNode(new MemberAccessNode(null, "updatedAt"), OrderByDirection.Descending));
+                            Page<JObject> page = await OfflineStore.GetPageAsync(tsq, cancellationToken).ConfigureAwait(false);
+                            try
+                            {
+                                var ts = DateTimeOffset.Parse(page?.Items?.LastOrDefault()?.Value<string>("updatedAt"));
+                                await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, ts, cancellationToken).ConfigureAwait(false);
+                            }
+                            catch (Exception)
+                            {
+                                await DeltaTokenStore.ResetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
+                            }
+                            break;
+                        case TimestampUpdatePolicy.UpdateToNow:
+                            await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, DateTimeOffset.UtcNow, cancellationToken).ConfigureAwait(false);
+                            break;
+                        case TimestampUpdatePolicy.UpdateToEpoch:
+                            await DeltaTokenStore.ResetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
+                            break;
+
+                    }
                 }
             }
         }
@@ -469,11 +576,11 @@ namespace Microsoft.Datasync.Client.Offline
                 {
                     SendItemWillBePushedEvent(operation.TableName, operation.ItemId, itemCount[0]);
                     bool isSuccessful = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
-                    lock(itemCount) 
+                    lock(itemCount)
                     {
-                        itemCount[0]++; 
+                        itemCount[0]++;
                     }
-                    SendItemWasPushedEvent(operation.ItemId, operation.ItemId, itemCount[0], isSuccessful);
+                    SendItemWasPushedEvent(operation.TableName, operation.ItemId, itemCount[0], isSuccessful);
                 });
                 try
                 {
@@ -509,7 +616,23 @@ namespace Microsoft.Datasync.Client.Offline
             {
                 List<TableOperationError> unhandledErrors = errors.Where(error => !error.Handled).ToList();
                 Exception innerException = batch.OtherErrors.Count > 0 ? new AggregateException(batch.OtherErrors) : null;
+                await RemoveErrorsAsync(errors.Where(e => e.Status != HttpStatusCode.Conflict && e.Status != HttpStatusCode.PreconditionFailed), cancellationToken).ConfigureAwait(false);
                 throw new PushFailedException(new PushCompletionResult(unhandledErrors, batchStatus), innerException);
+            }
+        }
+
+        /// <summary>
+        /// Removes a list of errors from the errors table.
+        /// </summary>
+        /// <param name="errors">The list of errors to remove.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the errors are removed.</returns>
+        internal async Task RemoveErrorsAsync(IEnumerable<TableOperationError> errors, CancellationToken cancellationToken = default)
+        {
+            List<string> ids = errors.Select(e => e.Id).Where(e => !string.IsNullOrWhiteSpace(e)).ToList();
+            if (ids.Any())
+            {
+                await OfflineStore.DeleteAsync(SystemTables.SyncErrors, ids, cancellationToken).ConfigureAwait(false);
             }
         }
         #endregion
@@ -788,7 +911,7 @@ namespace Microsoft.Datasync.Client.Offline
         }
 
         /// <summary>
-        /// Obtains the maximum number of parallel operations allowed, based on the passed in 
+        /// Obtains the maximum number of parallel operations allowed, based on the passed in
         /// <see cref="PushOptions"/> and/or the global options.
         /// </summary>
         /// <param name="options">The <see cref="PushOptions"/> for this operation, or null.</param>
@@ -817,17 +940,19 @@ namespace Microsoft.Datasync.Client.Offline
             ServiceClient.SendSynchronizationEvent(new SynchronizationEventArgs
             {
                 EventType = SynchronizationEventType.PullStarted,
-                TableName = tableName
+                TableName = tableName,
+                IsSuccessful = null
             });
         }
 
-        private void SendPullFinishedEvent(string tableName, long itemsReceived)
+        private void SendPullFinishedEvent(string tableName, long itemsReceived, bool isSuccessful)
         {
             ServiceClient.SendSynchronizationEvent(new SynchronizationEventArgs
             {
                 EventType = SynchronizationEventType.PullFinished,
                 TableName = tableName,
-                ItemsProcessed = itemsReceived
+                ItemsProcessed = itemsReceived,
+                IsSuccessful = isSuccessful
             });
         }
 
@@ -836,7 +961,8 @@ namespace Microsoft.Datasync.Client.Offline
             ServiceClient.SendSynchronizationEvent(new SynchronizationEventArgs
             {
                 EventType = SynchronizationEventType.PushStarted,
-                QueueLength = OperationsQueue.PendingOperations
+                QueueLength = OperationsQueue.PendingOperations,
+                IsSuccessful = null
             });
         }
 
@@ -858,7 +984,8 @@ namespace Microsoft.Datasync.Client.Offline
                 ItemsProcessed = itemCount,
                 QueueLength = OperationsQueue.PendingOperations,
                 TableName = tableName,
-                ItemId = itemId
+                ItemId = itemId,
+                IsSuccessful = null
             });
         }
 
@@ -883,7 +1010,8 @@ namespace Microsoft.Datasync.Client.Offline
                 ItemsProcessed = itemCount,
                 QueueLength = expectedItems,
                 TableName = tableName,
-                ItemId = itemId
+                ItemId = itemId,
+                IsSuccessful = null
             });
         }
 
@@ -895,7 +1023,8 @@ namespace Microsoft.Datasync.Client.Offline
                 ItemsProcessed = itemCount,
                 QueueLength = expectedItems,
                 TableName = tableName,
-                ItemId = itemId
+                ItemId = itemId,
+                IsSuccessful = true
             });
         }
         #endregion

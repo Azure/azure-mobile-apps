@@ -1,46 +1,39 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Test;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
+namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable;
 
-namespace Microsoft.Datasync.Integration.Test.Client.OfflineTable
+[ExcludeFromCodeCoverage]
+public class GetAsyncItems_Tests : BaseOperationTest
 {
-    [ExcludeFromCodeCoverage]
-    public class GetAsyncItems_Tests : BaseOperationTest
+    public GetAsyncItems_Tests(ITestOutputHelper logger) : base(logger) { }
+
+    [Fact]
+    [Trait("Method", "GetAsyncItems")]
+    public async Task GetAsyncItems_RetrievesItems()
     {
-        public GetAsyncItems_Tests(ITestOutputHelper logger) : base(logger) { }
+        await InitializeAsync(true);
 
-        [Fact]
-        [Trait("Method", "GetAsyncItems")]
-        public async Task GetAsyncItems_RetrievesItems()
+        // Arrange
+        int count = 0;
+
+        var enumerable = table!.GetAsyncItems("");
+        Assert.NotNull(enumerable);
+
+        var enumerator = enumerable!.GetAsyncEnumerator();
+        while (await enumerator.MoveNextAsync())
         {
-            await InitializeAsync(true);
+            count++;
+            var item = enumerator.Current;
+            var itemId = item.Value<string>("id");
 
-            // Arrange
-            int count = 0;
+            Assert.NotNull(item);
+            Assert.NotNull(itemId);
 
-            var enumerable = table!.GetAsyncItems("");
-            Assert.NotNull(enumerable);
-
-            var enumerator = enumerable!.GetAsyncEnumerator();
-            while (await enumerator.MoveNextAsync())
-            {
-                count++;
-                var item = enumerator.Current;
-                var itemId = item.Value<string>("id");
-
-                Assert.NotNull(item);
-                Assert.NotNull(itemId);
-
-                var expected = MovieServer.GetMovieById(itemId);
-                AssertVersionMatches(expected.Version, item.Value<string>("version")!);
-            }
-
-            Assert.Equal(MovieCount, count);
+            var expected = MovieServer.GetMovieById(itemId);
+            AssertVersionMatches(expected.Version, item.Value<string>("version")!);
         }
+
+        Assert.Equal(MovieCount, count);
     }
 }

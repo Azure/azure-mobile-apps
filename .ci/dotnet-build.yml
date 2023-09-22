@@ -49,7 +49,7 @@ variables:
   buildConfiguration: 'Release'
   netSdkPath: 'sdk/dotnet'
   AREA_PATH: 'DevDiv\Xamarin SDK'
-  BASE_VERSION: 5.0.0
+  BASE_VERSION: 6.0.0
   PREVIEW_LABEL: 'preview'
   BUILD_NUMBER: $[counter(format('{0}_{1}_{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['Build.SourceBranch']), 1)]
   NUGET_VERSION: $[format('{0}-{1}.{2}', variables['BASE_VERSION'], variables['PREVIEW_LABEL'], variables['BUILD_NUMBER'])]
@@ -177,6 +177,7 @@ stages:
               codeCoverageEnabled: true
               rerunFailedTests: true
               configuration: $(buildConfiguration)
+              runSettingsFile: '$(netSdkPath)\test\codecoverage.runsettings'
 
       - job: integrationtestnetsdk
         displayName: Integration Tests
@@ -207,6 +208,7 @@ stages:
               rerunFailedTests: true
               resultsFolder: '$(Agent.TempDirectory)\TestResults'
               configuration: $(buildConfiguration)
+              runSettingsFile: '$(netSdkPath)\test\codecoverage.runsettings'
 
   - stage: signstage
     displayName: Sign SDK
@@ -217,7 +219,7 @@ stages:
 
   - stage: postbuild
     displayName: Postbuild Checks
-    condition: eq('refs/heads/main', variables['Build.SourceBranch'])
+    condition: or(eq('refs/heads/main', variables['Build.SourceBranch']), eq(variables['Build.Reason'], 'PullRequest'))
     dependsOn: [ 'buildstage' ]
     jobs:
       - job: postbuild_checks
@@ -235,16 +237,15 @@ stages:
               echo "Using codebase: $CODEBASE_NAME"
               Write-Host "##vso[task.setvariable variable=CODEBASE_NAME]$CODEBASENAME"
 
-          - task: CredScan@2
+          - task: CredScan@3
             inputs:
               toolMajorVersion: 'V2'
 
-          - task: PoliCheck@1
+          - task: PoliCheck@2
             inputs:
-              inputType: 'Basic'
               targetType: 'F'
 
-          - task: SdtReport@1
+          - task: SdtReport@2
             displayName: 'Create security analysis report'
             inputs:
               AllTools: false

@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: todo-datasync-cosmosdb
+metadata:
+  template: todo-datasync-cosmosdb@0.0.1-beta
+services:
+  api:
+    project: ./src/api
+    language: csharp
+    host: appservice

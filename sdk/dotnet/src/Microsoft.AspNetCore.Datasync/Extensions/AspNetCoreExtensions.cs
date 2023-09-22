@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Datasync.Converters;
 using Microsoft.AspNetCore.OData;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using System;
 
@@ -47,6 +48,7 @@ namespace Microsoft.AspNetCore.Datasync
                     options.SerializerSettings.Converters.Add(new JSelectExpandWrapperConverter());
                     options.SerializerSettings.Converters.Add(new JDynamicTypeWrapperConverter());
                     options.SerializerSettings.Converters.Add(new DateTimeOffsetJsonConverter());
+                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
                 });
 
             return services;

@@ -2,43 +2,40 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Utils;
-using System.Diagnostics.CodeAnalysis;
-using Xunit;
 
-namespace Microsoft.Datasync.Client.Test.Utils
+namespace Microsoft.Datasync.Client.Test.Utils;
+
+[ExcludeFromCodeCoverage]
+public class DisposeAction_Tests
 {
-    [ExcludeFromCodeCoverage]
-    public class DisposeAction_Tests
+    [Fact]
+    public void DisposeAction_CallsAction_OnDispose()
     {
-        [Fact]
-        public void DisposeAction_CallsAction_OnDispose()
+        var isCalled = false;
+        using (var sut = new DisposeAction(() => isCalled = true))
         {
-            var isCalled = false;
-            using (var sut = new DisposeAction(() => isCalled = true))
-            {
-                Assert.False(isCalled);
-            }
-            Assert.True(isCalled);
+            Assert.False(isCalled);
         }
+        Assert.True(isCalled);
+    }
 
-        [Fact]
-        public void DisposeAction_CanDisposeTwice()
+    [Fact]
+    public void DisposeAction_CanDisposeTwice()
+    {
+        int isCalled = 0;
+        using (var sut = new DisposeAction(() => isCalled++))
         {
-            int isCalled = 0;
-            using (var sut = new DisposeAction(() => isCalled++))
-            {
-                Assert.Equal(0, isCalled);
-                sut.Dispose();
-                Assert.Equal(1, isCalled);
-            }
+            Assert.Equal(0, isCalled);
+            sut.Dispose();
             Assert.Equal(1, isCalled);
         }
+        Assert.Equal(1, isCalled);
+    }
 
-        [Fact]
-        public void AsyncLock_CanDispose()
-        {
-            var sut = new AsyncLock();
-            sut.Dispose(); // should not throw
-        }
+    [Fact]
+    public void AsyncLock_CanDispose()
+    {
+        var sut = new AsyncLock();
+        sut.Dispose(); // should not throw
     }
 }

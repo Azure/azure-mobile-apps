@@ -284,7 +284,7 @@ namespace Microsoft.Datasync.Client.Query
         {
             if (IsOfflineEnabled)
             {
-                var offlineTable = new OfflineTable<T>(RemoteTable.TableName, RemoteTable.ServiceClient);
+                var offlineTable = new OfflineTable<T>(RemoteTable);
                 return offlineTable.GetAsyncItems(this);
             }
             return RemoteTable.GetAsyncItems(this);

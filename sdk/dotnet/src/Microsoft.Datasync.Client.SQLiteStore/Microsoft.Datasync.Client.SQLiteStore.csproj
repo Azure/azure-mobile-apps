@@ -17,7 +17,7 @@
   <PropertyGroup>
     <DebugType>portable</DebugType>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <NeutralLanguage>en-US</NeutralLanguage>
   </PropertyGroup>
 
@@ -26,7 +26,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.6" />
   </ItemGroup>
 
   <ItemGroup>
