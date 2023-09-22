@@ -76,7 +76,8 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
             int rc = raw.sqlite3_prepare_v2(connection, sqlStatement, out sqlite3_stmt stmt);
             if (rc != raw.SQLITE_OK)
             {
-                throw new SQLiteException($"Cannot prepare statement for '{sqlStatement}'", rc, connection);
+                var errmsg = raw.sqlite3_errstr(rc).utf8_to_string();
+                throw new SQLiteException($"Cannot prepare statement for '{sqlStatement}': {rc} {errmsg}", rc, connection);
             }
 
             return new SqliteStatement(connection, stmt);
