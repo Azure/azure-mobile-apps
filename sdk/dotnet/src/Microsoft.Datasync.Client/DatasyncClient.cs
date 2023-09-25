@@ -8,7 +8,6 @@ using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
