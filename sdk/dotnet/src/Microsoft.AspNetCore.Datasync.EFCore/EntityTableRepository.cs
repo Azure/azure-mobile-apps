@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Datasync.EFCore
         /// paging requests.
         /// </summary>
         /// <returns>An <see cref="IQueryable{T}"/> for the entities in the data store.</returns>
-        public IQueryable<TEntity> AsQueryable() => DataSet.AsQueryable();
+        public IQueryable<TEntity> AsQueryable() => DataSet.AsNoTracking();
 
         /// <summary>
         /// Returns an unexecuted <see cref="IQueryable{T}"/> that represents the data store as a whole.
@@ -85,15 +85,11 @@ namespace Microsoft.AspNetCore.Datasync.EFCore
 
             try
             {
-                var storeEntity = entity.Id == null ? null : await LookupAsync(entity.Id, token).ConfigureAwait(false);
-                if (storeEntity != null)
+                if (entity.Id != null && DataSet.Any(x => x.Id == entity.Id)) 
                 {
-                    throw new ConflictException(Disconnect(storeEntity));
+                    throw new ConflictException(await LookupUntrackedAsync(entity.Id, token).ConfigureAwait(false));
                 }
-                if (entity.Id == null)
-                {
-                    entity.Id = Guid.NewGuid().ToString("N");
-                }
+                entity.Id ??= Guid.NewGuid().ToString("N");
                 entity.UpdatedAt = DateTimeOffset.UtcNow;
                 DataSet.Add(entity);
                 await Context.SaveChangesAsync(token).ConfigureAwait(false);
@@ -123,17 +119,11 @@ namespace Microsoft.AspNetCore.Datasync.EFCore
 
             try
             {
-                var storeEntity = await LookupAsync(id, token).ConfigureAwait(false);
-                if (storeEntity == null)
+                var storeEntity = await LookupAsync(id, token).ConfigureAwait(false) ?? throw new NotFoundException();
+                if (PreconditionFailed(version, storeEntity.Version))
                 {
-                    throw new NotFoundException();
+                    throw new PreconditionFailedException(await LookupUntrackedAsync(id, token).ConfigureAwait(false));
                 }
-
-                if (version != null && storeEntity.Version?.SequenceEqual(version) != true)
-                {
-                    throw new PreconditionFailedException(Disconnect(storeEntity));
-                }
-
                 DataSet.Remove(storeEntity);
                 await Context.SaveChangesAsync(token).ConfigureAwait(false);
             }
@@ -156,14 +146,13 @@ namespace Microsoft.AspNetCore.Datasync.EFCore
         /// <param name="token">A cancellation token</param>
         /// <returns>The entity, or null if the entity does not exist.</returns>
         /// <exception cref="RepositoryException">if an error occurs in the data store.</exception>
-        public async Task<TEntity> ReadAsync(string id, CancellationToken token = default)
+        public Task<TEntity> ReadAsync(string id, CancellationToken token = default)
         {
             if (string.IsNullOrEmpty(id))
             {
                 throw new BadRequestException();
             }
-
-            return Disconnect(await LookupAsync(id, token).ConfigureAwait(false));
+            return LookupUntrackedAsync(id, token);
         }
 
         /// <summary>
@@ -191,17 +180,11 @@ namespace Microsoft.AspNetCore.Datasync.EFCore
 
             try
             {
-                var storeEntity = await LookupAsync(entity.Id, token).ConfigureAwait(false);
-                if (storeEntity == null)
+                var storeEntity = await LookupAsync(entity.Id, token).ConfigureAwait(false) ?? throw new NotFoundException();
+                if (PreconditionFailed(version, storeEntity.Version))
                 {
-                    throw new NotFoundException();
+                    throw new PreconditionFailedException(await LookupUntrackedAsync(entity.Id, token).ConfigureAwait(false));
                 }
-
-                if (version != null && storeEntity.Version?.SequenceEqual(version) != true)
-                {
-                    throw new PreconditionFailedException(Disconnect(storeEntity));
-                }
-
                 entity.UpdatedAt = DateTimeOffset.UtcNow;
                 Context.Entry(storeEntity).CurrentValues.SetValues(entity);
                 await Context.SaveChangesAsync(token).ConfigureAwait(false);
@@ -226,11 +209,21 @@ namespace Microsoft.AspNetCore.Datasync.EFCore
             => DataSet.FindAsync(new[] { id }, token);
 
         /// <summary>
-        /// Gets a disconnected (as much as we can) copy of the entity provided.
+        /// Obtains a disconnected entity from the data set.
         /// </summary>
-        /// <param name="entity">The entity to disconnect</param>
-        /// <returns>A non-tracked version of the entity.</returns>
-        private TEntity Disconnect(TEntity entity)
-            => entity == null ? null : Context.Entry(entity).CurrentValues.Clone().ToObject() as TEntity;
+        /// <param name="id">The ID of the entity</param>
+        /// <param name="token">A <see cref="CancellationToken"/></param>
+        /// <returns>The entity, or null if no entity exists.</returns>
+        internal Task<TEntity> LookupUntrackedAsync(string id, CancellationToken token = default)
+            => DataSet.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, token);
+
+        /// <summary>
+        /// Checks that the version provided matches the version in the database.
+        /// </summary>
+        /// <param name="requiredVersion">The requ</param>
+        /// <param name="currentVersion"></param>
+        /// <returns>True if we need to throw a <see cref="PreconditionFailedException"/>.</returns>
+        internal static bool PreconditionFailed(byte[] expectedVersion, byte[] currentVersion)
+           => expectedVersion != null && currentVersion?.SequenceEqual(expectedVersion) != true;
     }
 }

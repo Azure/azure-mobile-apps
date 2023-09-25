@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AspNetCore.Datasync.LiteDb;
+
 namespace Microsoft.AspNetCore.Datasync.EFCore.Test;
 
 [ExcludeFromCodeCoverage]
@@ -412,5 +414,17 @@ public class EntityTableRepository_Tests
         var ex = await Assert.ThrowsAsync<RepositoryException>(() => repository.ReplaceAsync(entity));
 
         Assert.NotNull(ex.InnerException);
+    }
+
+    [Theory]
+    [InlineData(true, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, true)]
+    public void PreconditionFailed_Works(bool v1IsNull, bool v2IsNull, bool expected)
+    {
+        byte[] v1 = v1IsNull ? null : new byte[] { 0x0A, 0x0B, 0x0C };
+        byte[] v2 = v2IsNull ? null : new byte[] { 0x0A, 0x0B, 0x0C };
+
+        Assert.Equal(expected, EntityTableRepository<EFMovie>.PreconditionFailed(v1, v2));
     }
 }
