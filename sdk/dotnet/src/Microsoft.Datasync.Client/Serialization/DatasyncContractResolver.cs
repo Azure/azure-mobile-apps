@@ -206,9 +206,15 @@ namespace Microsoft.Datasync.Client.Serialization
                     // Default is the name of the type, but lower-case.
                     name = type.Name.ToLowerInvariant();
 
+                    // Note that the attributes are considered here in reverse order, so that
+                    // the highest-priority name is done last.
                     if (type.HasAttribute<JsonContainerAttribute>(out JsonContainerAttribute jsonattr))
                     {
-                        if (!string.IsNullOrWhiteSpace(jsonattr.Title))
+                        if (!string.IsNullOrWhiteSpace(jsonattr.Id))
+                        {
+                            name = jsonattr.Id;
+                        }
+                        else if (!string.IsNullOrWhiteSpace(jsonattr.Title))
                         {
                             name = jsonattr.Title;
                         }
