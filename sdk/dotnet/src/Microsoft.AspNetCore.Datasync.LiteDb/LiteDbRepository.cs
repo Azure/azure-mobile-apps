@@ -184,7 +184,7 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb
                     throw new NotFoundException();
                 }
 
-                if (version != null && existingEntity.Version?.SequenceEqual(version) != true)
+                if (PreconditionFailed(version, existingEntity.Version))
                 {
                     throw new PreconditionFailedException(existingEntity);
                 }
@@ -220,7 +220,7 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb
                     throw new NotFoundException();
                 }
 
-                if (version != null && existingEntity.Version?.SequenceEqual(version) != true)
+                if (PreconditionFailed(version, existingEntity.Version))
                 {
                     throw new PreconditionFailedException(existingEntity);
                 }
@@ -229,5 +229,14 @@ namespace Microsoft.AspNetCore.Datasync.LiteDb
             }
         }
         #endregion
+
+        /// <summary>
+        /// Checks that the version provided matches the version in the database.
+        /// </summary>
+        /// <param name="requiredVersion">The requ</param>
+        /// <param name="currentVersion"></param>
+        /// <returns>True if we need to throw a <see cref="PreconditionFailedException"/>.</returns>
+        internal static bool PreconditionFailed(byte[] expectedVersion, byte[] currentVersion)
+           => expectedVersion != null && currentVersion?.SequenceEqual(expectedVersion) != true;
     }
 }
