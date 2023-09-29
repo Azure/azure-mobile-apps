@@ -83,13 +83,11 @@ public class LiteDbRepository_Tests : IDisposable
         Assert.Equal(95, ratedMovies.Count);
     }
 
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
     [Fact]
     public async Task CreateAsync_Throws_Null()
     {
         await Assert.ThrowsAsync<ArgumentNullException>(() => repository.CreateAsync(null));
     }
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
     [Fact]
     public async Task CreateAsync_CreatesNewEntity_WithSpecifiedId()
@@ -284,13 +282,11 @@ public class LiteDbRepository_Tests : IDisposable
         Assert.Null(actual);
     }
 
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
     [Fact]
     public async Task ReplaceAsync_Throws_OnNull()
     {
         await Assert.ThrowsAsync<ArgumentNullException>(() => repository.ReplaceAsync(null));
     }
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
     [Theory]
     [InlineData(null)]
@@ -375,5 +371,17 @@ public class LiteDbRepository_Tests : IDisposable
 
         Assert.NotSame(original, ex.Payload);
         Assert.Equal(original, ex.Payload as IMovie);
+    }
+
+    [Theory]
+    [InlineData(true, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, true)]
+    public void PreconditionFailed_Works(bool v1IsNull, bool v2IsNull, bool expected)
+    {
+        byte[] v1 = v1IsNull ? null : new byte[] { 0x0A, 0x0B, 0x0C };
+        byte[] v2 = v2IsNull ? null : new byte[] { 0x0A, 0x0B, 0x0C };
+
+        Assert.Equal(expected, LiteDbRepository<LiteDbMovie>.PreconditionFailed(v1, v2));
     }
 }

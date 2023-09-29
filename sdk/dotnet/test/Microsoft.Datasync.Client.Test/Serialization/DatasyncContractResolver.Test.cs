@@ -33,6 +33,8 @@ public class DatasyncContractResolver_Tests : BaseTest
     [InlineData(typeof(DataTableType), "nameddatatabletype")]
     [InlineData(typeof(JsonContainerType), "namedjsoncontainertype")]
     [InlineData(typeof(UnnamedJsonContainerType), "unnamedjsoncontainertype")]
+    [InlineData(typeof(TitledJsonContainerType), "titledjsoncontainertype")]
+    [InlineData(typeof(TitledNamedJsonContainerType), "namedjsoncontainertype")]
     [Trait("Method", "ResolveTableName")]
     public void ResolveTableName_Tests(Type sut, string expected)
     {
@@ -110,8 +112,20 @@ public class DatasyncContractResolver_Tests : BaseTest
         public string JsonId { get; set; }
     }
 
-    [JsonObject(Title = "namedjsoncontainertype")]
+    [JsonObject("namedjsoncontainertype")]
     public class JsonContainerType
+    {
+        public string Id { get; set; }
+    }
+
+    [JsonObject(Title = "titledjsoncontainertype")]
+    public class TitledJsonContainerType
+    {
+        public string Id { get; set; }
+    }
+
+    [JsonObject("namedjsoncontainertype", Title = "titledjsoncontainertype")]
+    public class TitledNamedJsonContainerType
     {
         public string Id { get; set; }
     }

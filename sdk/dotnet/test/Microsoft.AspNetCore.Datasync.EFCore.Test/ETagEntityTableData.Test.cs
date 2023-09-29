@@ -84,4 +84,44 @@ public class EtagEntityTableData_Tests
         // Assert
         Assert.Equal(new byte[] { 0x61, 0x62, 0x63, 0x64 }, source.Version);
     }
+
+    [Fact]
+    public void Version_Empty_WhenEntityTagEmpty()
+    {
+        // Arrange
+        var source = new Entity { Id = "test", EntityTag = null, UpdatedAt = DateTimeOffset.Now };
+
+        // Assert
+        Assert.Empty(source.Version);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Deleted_CanBeRead(bool deleted)
+    {
+        // Arrange
+        var source = new Entity { Id = "test", EntityTag = null, UpdatedAt = DateTimeOffset.Now, Deleted = deleted };
+
+        // Assert
+        Assert.Equal(deleted, source.Deleted);
+    }
+
+    [Theory, CombinatorialData]
+    public void Equals_Works([CombinatorialRange(0, 5)] int offset)
+    {
+        DateTimeOffset dto = DateTimeOffset.Parse("2021-01-01T01:00:00Z");
+        List<Entity> testEntities = new()
+        {
+            null,
+            new Entity { Id = "nottest", EntityTag = "abcd", UpdatedAt = dto, Deleted = false },
+            new Entity { Id = "test", EntityTag = "efgh", UpdatedAt = dto, Deleted = false },
+            new Entity { Id = "test", EntityTag = "abcd", UpdatedAt = DateTimeOffset.UtcNow, Deleted = false },
+            new Entity { Id = "test", EntityTag = "abcd", UpdatedAt = dto, Deleted = true }
+        };
+        var test = testEntities[offset];
+        var source = new Entity { Id = "test", EntityTag = "abcd", UpdatedAt = DateTimeOffset.Parse("2021-01-01T01:00:00Z"), Deleted = false };
+
+        Assert.False(source.Equals(test));
+    }
 }
