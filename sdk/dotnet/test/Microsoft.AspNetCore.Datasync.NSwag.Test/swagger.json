@@ -11,6 +11,224 @@
     }
   ],
   "paths": {
+    "/tables/kitchenreader": {
+      "get": {
+        "tags": [
+          "KitchenReader"
+        ],
+        "operationId": "KitchenReader_Query",
+        "parameters": [
+          {
+            "name": "ZUMO-API-VERSION",
+            "in": "header",
+            "required": true,
+            "description": "Sets the Datasync API version to use.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "3.0.0",
+                "2.0.0"
+              ]
+            }
+          },
+          {
+            "name": "$count",
+            "in": "query",
+            "description": "If true, return the total number of items matched by the filter",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "An OData filter describing the entities to be returned",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "A comma-separated list of ordering instructions.  Each ordering instruction is a field name with an optional direction (asc or desc).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "A comma-separated list of fields to be returned in the result set.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "The number of items in the list to skip for paging support.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "The number of items in the list to return for paging support.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "__includedeleted",
+            "in": "query",
+            "description": "If true, soft-deleted items are returned as well as non-deleted items.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "A page of KitchenSink entities",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "readOnly": true,
+                      "description": "The entities in this page of results",
+                      "nullable": true,
+                      "items": {
+                        "$ref": "#/components/schemas/KitchenSink"
+                      }
+                    },
+                    "count": {
+                      "type": "integer",
+                      "readOnly": true,
+                      "description": "The count of all entities in the result set",
+                      "nullable": true
+                    },
+                    "nextLink": {
+                      "type": "string",
+                      "readOnly": true,
+                      "description": "The URI to the next page of entities",
+                      "format": "uri",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/tables/kitchenreader/{id}": {
+      "get": {
+        "tags": [
+          "KitchenReader"
+        ],
+        "operationId": "KitchenReader_Read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "ZUMO-API-VERSION",
+            "in": "header",
+            "required": true,
+            "description": "Sets the Datasync API version to use.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "3.0.0",
+                "2.0.0"
+              ]
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "description": "Conditionally execute only if the entity version does not match the provided string (RFC 9110 13.1.2).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KitchenSink"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "headers": {
+              "ETag": {
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KitchenSink"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition Failed",
+            "headers": {
+              "ETag": {
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KitchenSink"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/tables/kitchensink": {
       "post": {
         "tags": [
@@ -45,7 +263,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/KitchenSink"
+                "$ref": "#/components/schemas/KitchenSink2"
               }
             }
           },
@@ -558,7 +776,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/KitchenSink"
+                "$ref": "#/components/schemas/KitchenSink2"
               }
             }
           },
@@ -1257,6 +1475,93 @@
   "components": {
     "schemas": {
       "KitchenSink": {
+        "title": "KitchenSink",
+        "definitions": {
+          "EntityTableData": {
+            "type": "object",
+            "x-abstract": true,
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "nullable": true
+              },
+              "updatedAt": {
+                "type": "string",
+                "readOnly": true,
+                "format": "date-time"
+              },
+              "version": {
+                "type": "string",
+                "readOnly": true,
+                "format": "byte",
+                "nullable": true
+              },
+              "deleted": {
+                "type": "boolean",
+                "readOnly": true
+              }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/KitchenSink/definitions/EntityTableData"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "booleanValue": {
+                "type": "boolean"
+              },
+              "intValue": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "longValue": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "decimalValue": {
+                "type": "number",
+                "format": "decimal"
+              },
+              "doubleValue": {
+                "type": "number",
+                "format": "double"
+              },
+              "floatValue": {
+                "type": "number",
+                "format": "float"
+              },
+              "charValue": {
+                "type": "string"
+              },
+              "stringValue": {
+                "type": "string",
+                "nullable": true
+              },
+              "dateTimeValue": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
+              "dateTimeOffsetValue": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
+              "guidValue": {
+                "type": "string",
+                "format": "guid",
+                "nullable": true
+              }
+            }
+          }
+        ]
+      },
+      "KitchenSink2": {
         "allOf": [
           {
             "$ref": "#/components/schemas/EntityTableData"
