@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Datasync.Filters;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
@@ -200,12 +201,16 @@ namespace Microsoft.AspNetCore.Datasync
         /// <param name="assembly">The assembly to query.  Be default, the calling assembly is queried.</param>
         /// <returns>The list of table controllers in the assembly.</returns>
         internal static List<Type> GetAllTableControllers(Assembly assembly = null)
-        {
-            return (assembly ?? Assembly.GetCallingAssembly())
-                .GetTypes()
-                .Where(t => t.BaseType?.IsGenericType == true && t.BaseType.GetGenericTypeDefinition() == typeof(TableController<>))
-                .ToList();
-        }
+            => (assembly ?? Assembly.GetCallingAssembly()).GetTypes().Where(t => IsTableController(t)).ToList();
+
+        /// <summary>
+        /// Determines if the provided type is a table controller.
+        /// </summary>
+        /// <param name="type">The type to check.</param>
+        /// <returns><c>true</c> if the type is a table controller; <c>false</c> otherwise.</returns>
+        internal static bool IsTableController(Type type)
+            => type.BaseType?.IsGenericType == true && !type.IsAbstract 
+            && type.GetCustomAttributes().Any(s => s.GetType() == typeof(DatasyncControllerAttribute));
 
         /// <summary>
         /// A type representing a single page of entities.

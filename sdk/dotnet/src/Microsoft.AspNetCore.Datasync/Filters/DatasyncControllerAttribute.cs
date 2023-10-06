@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Datasync.Filters
     /// This includes the ETag and Last-Modified headers currently.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    internal class DatasyncControllerAttribute : ResultFilterAttribute
+    public class DatasyncControllerAttribute : ResultFilterAttribute
     {
         public override void OnResultExecuting(ResultExecutingContext context)
         {

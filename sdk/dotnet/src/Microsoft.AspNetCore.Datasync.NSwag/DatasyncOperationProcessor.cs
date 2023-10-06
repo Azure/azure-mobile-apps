@@ -7,6 +7,8 @@ using NSwag.Generation.Processors;
 using System.Net;
 using System;
 using System.Linq;
+using Microsoft.AspNetCore.Datasync.Filters;
+using System.Reflection;
 
 namespace Microsoft.AspNetCore.Datasync.NSwag
 {
@@ -15,18 +17,23 @@ namespace Microsoft.AspNetCore.Datasync.NSwag
     /// </summary>
     public class DatasyncOperationProcessor : IOperationProcessor
     {
-        private static readonly Type tableControllerType = typeof(TableController<>);
-
         public bool Process(OperationProcessorContext context)
         {
-            var baseType = context.ControllerType.BaseType;
-            if (baseType?.IsGenericType == true && baseType?.GetGenericTypeDefinition() == tableControllerType)
+            if (IsTableController(context.ControllerType))
             {
                 ProcessDatasyncOperation(context);
-                return true;
             }
             return true;
         }
+
+        /// <summary>
+        /// Determines if the controller type provided is a datasync table controller.
+        /// </summary>
+        /// <param name="type">The type of the table controller.</param>
+        /// <returns><c>true</c> if the type is a datasync table controller.</returns>
+        private static bool IsTableController(Type type)
+            => type.BaseType?.IsGenericType == true && !type.IsAbstract
+            && type.GetCustomAttributes().Any(s => s.GetType() == typeof(DatasyncControllerAttribute));
 
         private static void ProcessDatasyncOperation(OperationProcessorContext context)
         {
