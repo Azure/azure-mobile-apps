@@ -5,6 +5,40 @@
     "version": "1.0"
   },
   "paths": {
+    "/tables/kitchenreader": {
+      "get": {
+        "tags": [
+          "KitchenReader"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/tables/kitchenreader/{id}": {
+      "get": {
+        "tags": [
+          "KitchenReader"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/tables/kitchensink": {
       "post": {
         "tags": [

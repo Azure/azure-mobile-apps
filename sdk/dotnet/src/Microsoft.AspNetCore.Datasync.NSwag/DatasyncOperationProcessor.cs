@@ -42,8 +42,7 @@ namespace Microsoft.AspNetCore.Datasync.NSwag
             var path = context.OperationDescription.Path;
             Type entityType = context.ControllerType.BaseType?.GetGenericArguments().FirstOrDefault()
                 ?? throw new ArgumentException("Cannot process a non-generic table controller");
-            var entitySchema = context.SchemaResolver.GetSchema(entityType, false);
-            var entitySchemaRef = new JsonSchema { Reference = entitySchema };
+            JsonSchema entitySchemaRef = GetEntityReference(context, entityType);
 
             operation.AddDatasyncRequestHeaders();
             if (method.Equals("DELETE", StringComparison.InvariantCultureIgnoreCase))
@@ -92,6 +91,25 @@ namespace Microsoft.AspNetCore.Datasync.NSwag
                 operation.SetResponse(HttpStatusCode.NotFound);
                 operation.SetResponse(HttpStatusCode.Gone);
             }
+        }
+
+        /// <summary>
+        /// Either reads or generates the required entity type schema.
+        /// </summary>
+        /// <param name="context">The context for the operation processor.</param>
+        /// <param name="entityType">The entity type needed.</param>
+        /// <returns>A reference to the entity schema.</returns>
+        private static JsonSchema GetEntityReference(OperationProcessorContext context, Type entityType)
+        {
+            var schemaName = context.SchemaGenerator.Settings.SchemaNameGenerator.Generate(entityType);
+            if (!context.Document.Definitions.ContainsKey(schemaName))
+            {
+                var newSchema = context.SchemaGenerator.Generate(entityType);
+                context.Document.Definitions.Add(schemaName, newSchema);
+            }
+
+            var actualSchema = context.Document.Definitions[schemaName];
+            return new JsonSchema { Reference = actualSchema };
         }
 
         /// <summary>
