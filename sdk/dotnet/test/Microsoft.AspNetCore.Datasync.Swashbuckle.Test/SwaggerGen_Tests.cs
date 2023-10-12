@@ -19,6 +19,13 @@ public class SwaggerGen_Tests
         return sr.ReadToEnd();
     }
 
+    private static void WriteExternalFile(string filename, string content)
+    {
+        var storePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        using StreamWriter outputFile = new(Path.Combine(storePath, filename));
+        outputFile.Write(content);
+    }
+
     [Fact]
     public void DocumentFilter_ReadsAllControllers()
     {
@@ -27,7 +34,8 @@ public class SwaggerGen_Tests
         var controllers = DatasyncDocumentFilter.GetAllTableControllers().Select(m => m.Name).ToList();
 
         // There should be two controllers
-        Assert.Equal(2, controllers.Count);
+        Assert.Equal(3, controllers.Count);
+        Assert.Contains("KitchenReaderController", controllers);
         Assert.Contains("KitchenSinkController", controllers);
         Assert.Contains("TodoItemController", controllers);
     }
@@ -40,7 +48,11 @@ public class SwaggerGen_Tests
         Assert.True(swaggerDoc!.IsSuccessStatusCode);
 
         var expectedContent = ReadExternalFile("swagger.json").Replace("\r\n", "\n").TrimEnd();
-        var actualContent = await swaggerDoc!.Content.ReadAsStringAsync();
-        Assert.Equal(expectedContent, actualContent.Replace("\r\n", "\n").TrimEnd());
+        var actualContent = (await swaggerDoc!.Content.ReadAsStringAsync()).Replace("\r\n", "\n").TrimEnd();
+        if (!expectedContent.Equals(actualContent))
+        {
+            WriteExternalFile("swagger.json.out", actualContent);
+        }
+        Assert.Equal(expectedContent, actualContent);
     }
 }

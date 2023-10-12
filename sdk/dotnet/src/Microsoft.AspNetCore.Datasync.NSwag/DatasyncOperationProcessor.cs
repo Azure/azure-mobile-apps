@@ -7,6 +7,8 @@ using NSwag.Generation.Processors;
 using System.Net;
 using System;
 using System.Linq;
+using Microsoft.AspNetCore.Datasync.Filters;
+using System.Reflection;
 
 namespace Microsoft.AspNetCore.Datasync.NSwag
 {
@@ -15,18 +17,23 @@ namespace Microsoft.AspNetCore.Datasync.NSwag
     /// </summary>
     public class DatasyncOperationProcessor : IOperationProcessor
     {
-        private static readonly Type tableControllerType = typeof(TableController<>);
-
         public bool Process(OperationProcessorContext context)
         {
-            var baseType = context.ControllerType.BaseType;
-            if (baseType?.IsGenericType == true && baseType?.GetGenericTypeDefinition() == tableControllerType)
+            if (IsTableController(context.ControllerType))
             {
                 ProcessDatasyncOperation(context);
-                return true;
             }
             return true;
         }
+
+        /// <summary>
+        /// Determines if the controller type provided is a datasync table controller.
+        /// </summary>
+        /// <param name="type">The type of the table controller.</param>
+        /// <returns><c>true</c> if the type is a datasync table controller.</returns>
+        private static bool IsTableController(Type type)
+            => type.BaseType?.IsGenericType == true && !type.IsAbstract
+            && type.GetCustomAttributes().Any(s => s.GetType() == typeof(DatasyncControllerAttribute));
 
         private static void ProcessDatasyncOperation(OperationProcessorContext context)
         {
@@ -35,8 +42,7 @@ namespace Microsoft.AspNetCore.Datasync.NSwag
             var path = context.OperationDescription.Path;
             Type entityType = context.ControllerType.BaseType?.GetGenericArguments().FirstOrDefault()
                 ?? throw new ArgumentException("Cannot process a non-generic table controller");
-            var entitySchema = context.SchemaResolver.GetSchema(entityType, false);
-            var entitySchemaRef = new JsonSchema { Reference = entitySchema };
+            JsonSchema entitySchemaRef = GetEntityReference(context, entityType);
 
             operation.AddDatasyncRequestHeaders();
             if (method.Equals("DELETE", StringComparison.InvariantCultureIgnoreCase))
@@ -85,6 +91,25 @@ namespace Microsoft.AspNetCore.Datasync.NSwag
                 operation.SetResponse(HttpStatusCode.NotFound);
                 operation.SetResponse(HttpStatusCode.Gone);
             }
+        }
+
+        /// <summary>
+        /// Either reads or generates the required entity type schema.
+        /// </summary>
+        /// <param name="context">The context for the operation processor.</param>
+        /// <param name="entityType">The entity type needed.</param>
+        /// <returns>A reference to the entity schema.</returns>
+        private static JsonSchema GetEntityReference(OperationProcessorContext context, Type entityType)
+        {
+            var schemaName = context.SchemaGenerator.Settings.SchemaNameGenerator.Generate(entityType);
+            if (!context.Document.Definitions.ContainsKey(schemaName))
+            {
+                var newSchema = context.SchemaGenerator.Generate(entityType);
+                context.Document.Definitions.Add(schemaName, newSchema);
+            }
+
+            var actualSchema = context.Document.Definitions[schemaName];
+            return new JsonSchema { Reference = actualSchema };
         }
 
         /// <summary>

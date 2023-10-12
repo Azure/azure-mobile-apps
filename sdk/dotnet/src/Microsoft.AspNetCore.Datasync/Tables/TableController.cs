@@ -252,6 +252,7 @@ namespace Microsoft.AspNetCore.Datasync
             {
                 Logger?.LogInformation("Delete({Id}): Marking item as deleted (soft-delete)", id);
                 entity.Deleted = true;
+                await AccessControlProvider.PreCommitHookAsync(TableOperation.Delete, entity, token).ConfigureAwait(false);
                 await Repository.ReplaceAsync(entity, version, token).ConfigureAwait(false);
             }
             else
