@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Datasync.Filters
     /// check to the <see cref="HttpContext"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    internal class DatasyncProtocolVersionFilterAttribute : Attribute, IResourceFilter
+    public class DatasyncProtocolVersionFilterAttribute : Attribute, IResourceFilter
     {
         private const string ProtocolVersionHeader = "ZUMO-API-VERSION";
 

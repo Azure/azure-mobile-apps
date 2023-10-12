@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Datasync.Filters
     /// into an appropriate HTTP response.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    internal class DatasyncExceptionsAttribute : ExceptionFilterAttribute
+    public class DatasyncExceptionsAttribute : ExceptionFilterAttribute
     {
         public override void OnException(ExceptionContext context)
         {

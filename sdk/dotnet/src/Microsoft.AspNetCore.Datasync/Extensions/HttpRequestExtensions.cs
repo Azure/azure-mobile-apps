@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Datasync.Extensions
 {
-    internal static class HttpRequestExtensions
+    public static class HttpRequestExtensions
     {
         /// <summary>
         /// Creates the NextLink Uri for the next request in a paging request.
@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
         /// <param name="skip">The skip value</param>
         /// <param name="top">The top value</param>
         /// <returns>A URI representing the next page</returns>
-        internal static Uri CreateNextLink(this HttpRequest request, int skip = 0, int top = 0)
+        public static Uri CreateNextLink(this HttpRequest request, int skip = 0, int top = 0)
         {
             var builder = new UriBuilder(request.GetDisplayUrl());
             List<string> query = string.IsNullOrEmpty(builder.Query) ? new() : builder.Query.TrimStart('?').Split('&').Where(q => !q.StartsWith("$skip=") && !q.StartsWith("$top=")).ToList();
@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
         /// </summary>
         /// <param name="entity">The entity to use as comparison</param>
         /// <param name="version">The version that was requested</param>
-        internal static void ParseConditionalRequest<TEntity>(this HttpRequest request, TEntity entity, out byte[] version) where TEntity : ITableData
+        public static void ParseConditionalRequest<TEntity>(this HttpRequest request, TEntity entity, out byte[] version) where TEntity : ITableData
         {
             var headers = request.GetTypedHeaders();
             var isFetch = request.Method.Equals("get", StringComparison.InvariantCultureIgnoreCase);
@@ -105,7 +105,7 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
         /// </summary>
         /// <param name="request">The request</param>
         /// <returns>The body of the request</returns>
-        internal static async Task<string> GetBodyAsStringAsync(this HttpRequest request)
+        public static async Task<string> GetBodyAsStringAsync(this HttpRequest request)
         {
             using var streamReader = new StreamReader(request.Body, Encoding.UTF8);
             return await streamReader.ReadToEndAsync().ConfigureAwait(false);

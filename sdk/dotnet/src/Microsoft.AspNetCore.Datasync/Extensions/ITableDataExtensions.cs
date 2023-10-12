@@ -6,7 +6,7 @@ using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNetCore.Datasync.Extensions
 {
-    internal static class ITableDataExtensions
+    public static class ITableDataExtensions
     {
         /// <summary>
         /// Returns the ETag header value for the entity.
@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
         /// </summary>
         /// <param name="entity">The entity</param>
         /// <returns>True if the entities version is valid</returns>
-        internal static bool HasValidVersion(this ITableData entity)
+        public static bool HasValidVersion(this ITableData entity)
             => entity?.Version?.Length > 0;
 
         /// <summary>

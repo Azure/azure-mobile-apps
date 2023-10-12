@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Datasync.Filters
     /// </summary>
     /// <param name="resourceContext">The context for the request.</param>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    internal class AzureMobileBackwardsCompatibilityFilter : Attribute, IResourceFilter
+    public class AzureMobileBackwardsCompatibilityFilter : Attribute, IResourceFilter
     {
         private const string dateTimePattern = "datetime'([^']+)'";
         private const string dateTimeOffsetPattern = "datetimeoffset'([^']+)'";
