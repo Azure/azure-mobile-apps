@@ -459,7 +459,7 @@ namespace Microsoft.AspNetCore.Datasync
                 return NotFound();
             }
             await AuthorizeRequest(TableOperation.Read, entity, token).ConfigureAwait(false);
-            if (Options.EnableSoftDelete && entity.Deleted)
+            if (Options.EnableSoftDelete && entity.Deleted && !Request.ShouldIncludeDeletedItems())
             {
                 Logger?.LogWarning("Read({Id}): Item not found (soft-delete)", id);
                 return StatusCode(StatusCodes.Status410Gone);
