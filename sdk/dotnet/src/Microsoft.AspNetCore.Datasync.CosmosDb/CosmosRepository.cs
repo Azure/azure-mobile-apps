@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
         /// <param name="cosmosClient">The <see cref="cosmosClient"/> for the backend store.</param>
         /// <param name="databaseName">The name of the database.</param>
         /// <param name="containerName">The name of the container.</param>
-        public CosmosRepository(CosmosClient cosmosClient, string databaseName, string containerName)
+        public CosmosRepository(Container container)
         {
             // Type check - only known derivates are allowed.
             var typeInfo = typeof(TEntity);
@@ -38,26 +38,14 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
                 throw new InvalidCastException($"Entity type {typeof(TEntity).Name} is not a valid entity type.");
             }
 
-            ArgumentNullException.ThrowIfNull(cosmosClient, nameof(cosmosClient));
-            Database database;
+            ArgumentNullException.ThrowIfNull(container, nameof(container));
             try
             {
-                database = cosmosClient.GetDatabase(databaseName);
-                _ = database.ReadAsync().ConfigureAwait(false);
-            }
-            catch (CosmosException cosmosException) when (cosmosException.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                throw new ArgumentException($"Cosmos database does not exist: {databaseName}", nameof(databaseName));
-            }
-
-            try
-            {
-                container = database.GetContainer(containerName);
                 _ = container.ReadContainerAsync().ConfigureAwait(false);
             }
             catch (CosmosException cosmosException) when (cosmosException.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                throw new ArgumentException($"Container does not exist in {databaseName}: {containerName}", nameof(containerName));
+                throw new ArgumentException($"Container does not exist in {container.Database}: {container}", nameof(container));
             }
         }
 
