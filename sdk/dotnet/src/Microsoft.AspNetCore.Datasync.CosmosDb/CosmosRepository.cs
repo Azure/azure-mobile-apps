@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
         /// paging requests.
         /// </summary>
         /// <returns>An <see cref="IQueryable{T}"/> for the entities in the data store.</returns>
-        public IQueryable<TEntity> AsQueryable() => container.GetItemLinqQueryable<TEntity>();
+        public IQueryable<TEntity> AsQueryable() => container.GetItemLinqQueryable<TEntity>(true);
 
         /// <summary>
         /// Returns an unexecuted <see cref="IQueryable{T}"/> that represents the data store as a whole.
