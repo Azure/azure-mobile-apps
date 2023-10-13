@@ -34,4 +34,10 @@ public class JSelectExpandWrapperConverter_Tests
 
         Assert.Throws<ArgumentNullException>(() => converter.CanConvert(null));
     }
+
+    [Fact]
+    public void Ctor_NullMapperProvider_Throws()
+    {
+        Assert.Throws<ArgumentNullException>(() => new JSelectExpandWrapperConverter(null));
+    }
 }
