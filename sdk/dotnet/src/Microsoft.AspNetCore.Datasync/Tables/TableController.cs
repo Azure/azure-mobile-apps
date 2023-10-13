@@ -39,6 +39,11 @@ namespace Microsoft.AspNetCore.Datasync
         private IEdmModel EdmModel { get; init; }
 
         /// <summary>
+        /// The backing store for the <see cref="Repository"/> property.
+        /// </summary>
+        private IRepository<TEntity> _repository;
+
+        /// <summary>
         /// Creates a new <see cref="TableController{TEntity}"/> object with the specified
         /// repository, accessControlProvider, and options.
         /// </summary>
@@ -57,9 +62,7 @@ namespace Microsoft.AspNetCore.Datasync
             EdmModel = modelBuilder.GetEdmModel();
         }
 
-        #region Repository Property
-        private IRepository<TEntity> _repository;
-
+        #region Properties
         /// <summary>
         /// The <see cref="IRepository{TEntity}"/> to use for data store operations.
         /// </summary>
@@ -68,23 +71,23 @@ namespace Microsoft.AspNetCore.Datasync
             get { return _repository ?? throw new InvalidOperationException("Repository is not set"); }
             set { _repository = value ?? throw new ArgumentNullException(nameof(Repository)); }
         }
-        #endregion
 
-        #region Options Property
+        /// <summary>
+        /// An event handler to use (instead of <see cref="IAccessControlProvider{TEntity}.PostCommitHookAsync(TableOperation, TEntity, CancellationToken)"/>
+        /// for receiving updates to the repository.
+        /// </summary>
+        public event EventHandler<RepositoryUpdatedEventArgs> RepositoryUpdated;
+
         /// <summary>
         /// The <see cref="TableControllerOptions"/> object for configuring this controller.
         /// </summary>
         public TableControllerOptions Options { get; set; }
-        #endregion
 
-        #region AccessControlProvider Property
         /// <summary>
         /// The <see cref="IAccessControlProvider{TEntity}"/> object for securing the table controller.
         /// </summary>
         public IAccessControlProvider<TEntity> AccessControlProvider { get; set; }
-        #endregion
 
-        #region Logger Property
         /// <summary>
         /// Where to send request/response log messages.
         /// </summary>
@@ -197,6 +200,21 @@ namespace Microsoft.AspNetCore.Datasync
                 throw new BadRequestException(ex.Message, ex);
             }
         }
+
+        /// <summary>
+        /// Calls the appropriate <see cref="PostCommitHookAsync(TableOperation, TEntity, CancellationToken)"/> and raises the appropriate
+        /// event on the <see cref="RepositoryUpdated"/> event publisher.
+        /// </summary>
+        /// <param name="op">The operation being performed.</param>
+        /// <param name="entity">The entity that was updated (post update; except for hard delete)</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the post commit hook has been called.</returns>
+        protected virtual Task PostCommitHookAsync(TableOperation op, TEntity entity, CancellationToken cancellationToken = default)
+        {
+            RepositoryUpdatedEventArgs e = new(op, typeof(TEntity).Name, entity);
+            RepositoryUpdated?.Invoke(this, e);
+            return AccessControlProvider.PostCommitHookAsync(op, entity, cancellationToken);
+        }
         #endregion
 
         #region HTTP Methods
@@ -220,6 +238,7 @@ namespace Microsoft.AspNetCore.Datasync
             await AccessControlProvider.PreCommitHookAsync(TableOperation.Create, item, token).ConfigureAwait(false);
             await Repository.CreateAsync(item, token).ConfigureAwait(false);
             Logger?.LogInformation("Create: Item stored at {Id}", item.Id);
+            await PostCommitHookAsync(TableOperation.Create, item, token).ConfigureAwait(false);
             return CreatedAtAction(nameof(ReadAsync), new { id = item.Id }, item);
         }
 
@@ -254,11 +273,14 @@ namespace Microsoft.AspNetCore.Datasync
                 entity.Deleted = true;
                 await AccessControlProvider.PreCommitHookAsync(TableOperation.Delete, entity, token).ConfigureAwait(false);
                 await Repository.ReplaceAsync(entity, version, token).ConfigureAwait(false);
+                await PostCommitHookAsync(TableOperation.Update, entity, token).ConfigureAwait(false);
+
             }
             else
             {
                 Logger?.LogInformation("Delete({Id}): Deleting item (hard-delete)", id);
                 await Repository.DeleteAsync(id, version, token).ConfigureAwait(false);
+                await PostCommitHookAsync(TableOperation.Delete, entity, token).ConfigureAwait(false);
             }
             return NoContent();
         }
@@ -309,6 +331,7 @@ namespace Microsoft.AspNetCore.Datasync
 
             await AccessControlProvider.PreCommitHookAsync(TableOperation.Update, entity, token).ConfigureAwait(false);
             await Repository.ReplaceAsync(entity, version, token).ConfigureAwait(false);
+            await PostCommitHookAsync(TableOperation.Update, entity, token).ConfigureAwait(false);
             Logger?.LogDebug("Patch({Id}): successfully patched", id);
             return Ok(entity);
         }
@@ -482,6 +505,7 @@ namespace Microsoft.AspNetCore.Datasync
             Request.ParseConditionalRequest(entity, out byte[] version);
             await AccessControlProvider.PreCommitHookAsync(TableOperation.Update, item, token).ConfigureAwait(false);
             await Repository.ReplaceAsync(item, version, token).ConfigureAwait(false);
+            await PostCommitHookAsync(TableOperation.Update, item, token).ConfigureAwait(false);
             Logger?.LogInformation("Replace({Id}): Item replaced", id);
             return Ok(item);
         }
