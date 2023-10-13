@@ -62,6 +62,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		test\codecoverage.runsettings = test\codecoverage.runsettings
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.CosmosDb", "src\Microsoft.AspNetCore.Datasync.CosmosDb\Microsoft.AspNetCore.Datasync.CosmosDb.csproj", "{88D0153C-CE8C-4F1D-A044-3DF1C48D8E78}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.CosmosDb.Test", "test\Microsoft.AspNetCore.Datasync.CosmosDb.Test\Microsoft.AspNetCore.Datasync.CosmosDb.Test.csproj", "{387AA506-F96A-4266-BA54-5FCB84A789B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -152,6 +156,14 @@ Global
 		{CCA3A587-0060-4D71-BCFE-30477F408EE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCA3A587-0060-4D71-BCFE-30477F408EE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCA3A587-0060-4D71-BCFE-30477F408EE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88D0153C-CE8C-4F1D-A044-3DF1C48D8E78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88D0153C-CE8C-4F1D-A044-3DF1C48D8E78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88D0153C-CE8C-4F1D-A044-3DF1C48D8E78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88D0153C-CE8C-4F1D-A044-3DF1C48D8E78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{387AA506-F96A-4266-BA54-5FCB84A789B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{387AA506-F96A-4266-BA54-5FCB84A789B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{387AA506-F96A-4266-BA54-5FCB84A789B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{387AA506-F96A-4266-BA54-5FCB84A789B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -182,6 +194,8 @@ Global
 		{3ECDBFF9-B5DF-4D39-81C1-FBD1D471CC03} = {897BFB53-D437-4D6F-A581-DF708C560545}
 		{1D1F6B46-CE89-4277-81F5-4D4B614B7060} = {1675CF58-54FE-474F-80AD-8E494662F2A4}
 		{CCA3A587-0060-4D71-BCFE-30477F408EE6} = {897BFB53-D437-4D6F-A581-DF708C560545}
+		{88D0153C-CE8C-4F1D-A044-3DF1C48D8E78} = {1675CF58-54FE-474F-80AD-8E494662F2A4}
+		{387AA506-F96A-4266-BA54-5FCB84A789B0} = {897BFB53-D437-4D6F-A581-DF708C560545}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A0CEDA72-A2EB-4741-98C3-6E5CFA65DF02}
