@@ -22,8 +22,6 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
         /// </summary>
         private readonly Container container;
 
-        internal Func<string, (string id, PartitionKey partitionKey)> ParseIdAndPartitionKey { get; }
-
         /// <summary>
         /// Create a new <see cref="CosmosRepository{TEntity}"/> for accessing the database.
         /// This is the normal ctor for this repository.
@@ -51,6 +49,11 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
             }
             ParseIdAndPartitionKey = parseIdAndPartitionKey ?? CosmosUtils.DefaultParseIdAndPartitionKey;
         }
+
+        /// <summary>
+        /// Gets the delegate to parse the id and partition key.
+        /// </summary>
+        internal Func<string, (string id, PartitionKey partitionKey)> ParseIdAndPartitionKey { get; }
 
         /// <summary>
         /// Returns an unexecuted <see cref="IQueryable{T}"/> that represents the data store as a whole.
