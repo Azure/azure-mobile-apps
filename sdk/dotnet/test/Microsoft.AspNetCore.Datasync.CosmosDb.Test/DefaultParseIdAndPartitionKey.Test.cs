@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Datasync.CosmosDb.Test;
 
-public class IdAndPartitionKeyParserTests
+[ExcludeFromCodeCoverage]
+public class DefaultParseIdAndPartitionKey_Tests
 {
     [Fact]
     public void ShouldThrowBadRequestWhenInputIsEmpty()

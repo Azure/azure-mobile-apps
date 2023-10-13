@@ -3,6 +3,7 @@
 
 using Microsoft.Azure.Cosmos;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -21,6 +22,7 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
         /// Container where the <see cref="TEntity"/> is stored.
         /// </summary>
         private readonly Container container;
+        private readonly List<string> partitionKeyPropertyNames;
 
         /// <summary>
         /// Create a new <see cref="CosmosRepository{TEntity}"/> for accessing the database.
@@ -29,7 +31,7 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
         /// <param name="cosmosClient">The <see cref="cosmosClient"/> for the backend store.</param>
         /// <param name="databaseName">The name of the database.</param>
         /// <param name="containerName">The name of the container.</param>
-        public CosmosRepository(Container container, Func<string, (string id, PartitionKey partitionKey)> parseIdAndPartitionKey = null)
+        public CosmosRepository(Container container, List<string> partitionKeyPropertyNames = null, Func<string, (string id, PartitionKey partitionKey)> parseIdAndPartitionKey = null)
         {
             // Type check - only known derivates are allowed.
             var typeInfo = typeof(TEntity);
@@ -47,6 +49,8 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
             {
                 throw new ArgumentException($"Container does not exist in {container.Database}: {container}", nameof(container));
             }
+
+            this.partitionKeyPropertyNames = partitionKeyPropertyNames ?? new() { "id" };
             ParseIdAndPartitionKey = parseIdAndPartitionKey ?? CosmosUtils.DefaultParseIdAndPartitionKey;
         }
 
@@ -93,8 +97,8 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
             }
             catch (CosmosException cosmosException) when (cosmosException.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
-                //TODO need partition key to get existing
-                TEntity storeEntity = await container.ReadItemAsync<TEntity>(entity.Id, new PartitionKey(entity.Id));
+                var partitionKey = entity.BuildPartitionKey(partitionKeyPropertyNames);
+                TEntity storeEntity = await container.ReadItemAsync<TEntity>(entity.Id, partitionKey, cancellationToken: token);
                 throw new ConflictException(storeEntity);
             }
             catch (CosmosException cosmosException)
@@ -198,8 +202,8 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
 
             try
             {
-                //TODO need partition key to get existing
-                TEntity storeEntity = await container.ReadItemAsync<TEntity>(entity.Id, new Azure.Cosmos.PartitionKey(entity.Id), cancellationToken: token);
+                var partitionKey = entity.BuildPartitionKey(partitionKeyPropertyNames);
+                TEntity storeEntity = await container.ReadItemAsync<TEntity>(entity.Id, partitionKey, cancellationToken: token);
                 if (PreconditionFailed(version, storeEntity.Version))
                 {
                     throw new PreconditionFailedException(storeEntity);
