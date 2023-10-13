@@ -76,7 +76,6 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
         public async Task CreateAsync(TEntity entity, CancellationToken token = default)
         {
             ArgumentNullException.ThrowIfNull(entity, nameof(entity));
-            ArgumentNullException.ThrowIfNull(entity.Id, nameof(entity.Id));
 
             try
             {
