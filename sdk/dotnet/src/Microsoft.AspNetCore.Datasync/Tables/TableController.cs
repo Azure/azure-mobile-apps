@@ -388,16 +388,16 @@ namespace Microsoft.AspNetCore.Datasync
             try
             {
                 var query = (IQueryable<TEntity>)queryOptions.Filter?.ApplyTo(dataset, new ODataQuerySettings()) ?? dataset;
-                count = query.LongCount();
+                count = (long)query.Count();
             }
             catch (Exception ex)
             {
-                CatchClientSideEvaluationException(ex, "executing query for long count", () =>
+                CatchClientSideEvaluationException(ex, "executing query for count", () =>
                 {
                     var message = ex.InnerException?.Message ?? ex.Message;
                     Logger?.LogWarning("Error while executing query for long count: Possible client-side evaluation ({Message})", message);
                     var query = (IQueryable<TEntity>)queryOptions.Filter?.ApplyTo(dataset.ToList().AsQueryable(), new ODataQuerySettings()) ?? dataset.ToList().AsQueryable();
-                    count = query.LongCount();
+                    count = (long)query.Count();
                 });
             }
 
