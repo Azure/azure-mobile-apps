@@ -35,24 +35,34 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
         /// <returns></returns>
         internal static IQueryable<T> ApplyDeletedView<T>(this IQueryable<T> query, HttpRequest request, bool softDelete) where T : ITableData
         {
-            if (!softDelete)
+            if (!softDelete || request.ShouldIncludeDeletedItems())
             {
                 return query;
             }
+            return query.Where(m => !m.Deleted);
+        }
 
-            // Query string options: __includedeleted=true
+        /// <summary>
+        /// Determines if a request should include deleted items.
+        /// </summary>
+        /// <param name="request">The request</param>
+        /// <param name="softDelete"><c>true</c> if soft delete is enabled</param>
+        /// <returns><c>true</c> if the request should take into consideration deleted items.</returns>
+        internal static bool ShouldIncludeDeletedItems(this HttpRequest request)
+        {
+            // Query option: ?__includedeleted=true
             if (request.Query.ContainsKey(IncludeDeletedParameter) && request.Query[IncludeDeletedParameter][0].Equals("true", StringComparison.InvariantCultureIgnoreCase))
             {
-                return query;
+                return true;
             }
 
             // Header option: X-ZUMO-Options: __includedeleted
             if (request.Headers.ContainsKey(ZumoOptionsHeader) && request.Headers[ZumoOptionsHeader].Contains(IncludeDeletedOption, StringComparer.InvariantCultureIgnoreCase))
             {
-                return query;
+                return true;
             }
 
-            return query.Where(m => !m.Deleted);
+            return false;
         }
     }
 }

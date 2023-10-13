@@ -71,4 +71,21 @@ public class GetItemAsync_Tests : BaseOperationTest
         Assert.NotNull(exception.Response);
         Assert.Equal(HttpStatusCode.Gone, exception.Response?.StatusCode);
     }
+
+    [Fact]
+    [Trait("Method", "GetItemAsync")]
+    public async Task GetItemAsync_GetIfSoftDeleted()
+    {
+        // Arrange
+        var id = GetRandomId();
+        await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id).ConfigureAwait(false);
+        var expected = MovieServer.GetMovieById(id)!;
+
+        // Act
+        var response = await soft.GetItemAsync(id, true).ConfigureAwait(false);
+
+        // Assert
+        AssertEx.SystemPropertiesMatch(expected, response);
+        Assert.Equal<IMovie>(expected, response);
+    }
 }

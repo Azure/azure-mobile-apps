@@ -7,6 +7,7 @@ using System.Reflection;
 
 namespace Microsoft.AspNetCore.Datasync.Swashbuckle.Test;
 
+[ExcludeFromCodeCoverage]
 public class SwaggerGen_Tests
 {
     private readonly TestServer server = SwaggerServer.CreateTestServer();

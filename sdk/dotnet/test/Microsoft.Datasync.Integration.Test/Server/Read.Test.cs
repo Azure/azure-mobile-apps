@@ -162,4 +162,19 @@ public class Read_Tests : BaseTest
         var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/{table}/{id}");
         await AssertResponseWithLoggingAsync(HttpStatusCode.Gone, response);
     }
+
+    [Theory, CombinatorialData]
+    public async Task ReadSoftDeletedItem_ReturnsIfDeletedItemsIncluded([CombinatorialValues("soft", "soft_logged")] string table)
+    {
+        var id = GetRandomId();
+        await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id);
+        var expected = MovieServer.GetMovieById(id)!;
+
+        var response = await MovieServer.SendRequest(HttpMethod.Get, $"tables/{table}/{id}?__includedeleted=true");
+        await AssertResponseWithLoggingAsync(HttpStatusCode.OK, response);
+        var actual = response.DeserializeContent<ClientMovie>();
+        Assert.Equal<IMovie>(expected, actual!);
+        AssertEx.SystemPropertiesMatch(expected, actual);
+        AssertEx.ResponseHasConditionalHeaders(expected, response);
+    }
 }

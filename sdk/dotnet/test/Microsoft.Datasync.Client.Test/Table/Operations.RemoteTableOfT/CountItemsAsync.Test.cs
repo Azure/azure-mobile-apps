@@ -112,5 +112,20 @@ public class CountItemsAsync_Tests : BaseOperationTest
         _ = AssertSingleRequest(HttpMethod.Get, tableEndpoint + $"?{CountArgs}");
         Assert.Equal(42, count);
     }
+
+    [Fact]
+    [Trait("Method", "LongCountAsync")]
+    public async Task LongCountAsync_Count()
+    {
+        // Arrange
+        CreatePageOfJsonItems(1, 42);
+
+        // Act
+        var count = await table.LongCountAsync();
+
+        // Assert
+        _ = AssertSingleRequest(HttpMethod.Get, tableEndpoint + $"?{CountArgs}");
+        Assert.Equal(42, count);
+    }
 }
 

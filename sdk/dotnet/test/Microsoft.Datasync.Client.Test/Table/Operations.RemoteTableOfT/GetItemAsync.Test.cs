@@ -40,6 +40,21 @@ public class GetItemAsync_Tests : BaseOperationTest
 
     [Fact]
     [Trait("Method", "GetItemAsync")]
+    public async Task GetItemAsync_FormulatesCorrectRequest_IncludeDeleted()
+    {
+        // Arrange
+        MockHandler.AddResponse(HttpStatusCode.OK, payload);
+
+        // Act
+        var actual = await table.GetItemAsync(sId, true).ConfigureAwait(false);
+
+        // Assert
+        AssertSingleRequest(HttpMethod.Get, expectedEndpoint + "?__includedeleted=true");
+        Assert.Equal(payload, actual);
+    }
+
+    [Fact]
+    [Trait("Method", "GetItemAsync")]
     public async Task GetItemAsync_FormulatesCorrectRequest_WithAuth()
     {
         // Arrange
