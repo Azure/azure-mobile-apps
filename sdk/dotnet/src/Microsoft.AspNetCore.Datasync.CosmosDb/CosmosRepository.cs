@@ -31,7 +31,10 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
         /// <param name="cosmosClient">The <see cref="cosmosClient"/> for the backend store.</param>
         /// <param name="databaseName">The name of the database.</param>
         /// <param name="containerName">The name of the container.</param>
-        public CosmosRepository(Container container, List<string> partitionKeyPropertyNames = null, Func<string, (string id, PartitionKey partitionKey)> parseIdAndPartitionKey = null)
+        public CosmosRepository(
+            Container container,
+            List<string> partitionKeyPropertyNames = null,
+            Func<string, (string id, PartitionKey partitionKey)> parseIdAndPartitionKey = null)
         {
             // Type check - only known derivates are allowed.
             var typeInfo = typeof(TEntity);
@@ -50,7 +53,8 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
                 throw new ArgumentException($"Container does not exist in {container.Database}: {container}", nameof(container));
             }
 
-            this.partitionKeyPropertyNames = partitionKeyPropertyNames ?? new() { "id" };
+            this.container = container;
+            this.partitionKeyPropertyNames = partitionKeyPropertyNames ?? new() { "Id" };
             ParseIdAndPartitionKey = parseIdAndPartitionKey ?? CosmosUtils.DefaultParseIdAndPartitionKey;
         }
 
@@ -86,7 +90,6 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
         public async Task CreateAsync(TEntity entity, CancellationToken token = default)
         {
             ArgumentNullException.ThrowIfNull(entity, nameof(entity));
-            ArgumentNullException.ThrowIfNull(entity.Id, nameof(entity.Id));
 
             try
             {

@@ -22,6 +22,7 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
         /// The globally unique ID for this entity.
         /// </summary>
         [Key]
+        [JsonProperty("id")]
         public string Id { get; set; }
 
         /// <summary>
