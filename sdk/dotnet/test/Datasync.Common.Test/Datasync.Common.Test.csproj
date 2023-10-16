@@ -25,6 +25,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\src\Microsoft.AspNetCore.Datasync.CosmosDb\Microsoft.AspNetCore.Datasync.CosmosDb.csproj" />
 		<ProjectReference Include="..\..\src\Microsoft.AspNetCore.Datasync.EFCore\Microsoft.AspNetCore.Datasync.EFCore.csproj" />
 		<ProjectReference Include="..\..\src\Microsoft.AspNetCore.Datasync.InMemory\Microsoft.AspNetCore.Datasync.InMemory.csproj" />
 		<ProjectReference Include="..\..\src\Microsoft.AspNetCore.Datasync.LiteDb\Microsoft.AspNetCore.Datasync.LiteDb.csproj" />

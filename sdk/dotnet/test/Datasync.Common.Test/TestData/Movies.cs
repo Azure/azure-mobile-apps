@@ -40,9 +40,21 @@ public static class Movies
     /// <returns>A random ID</returns>
     public static string GetRandomId()
     {
-        List<string> Ids = Movies.OfType<EFMovie>().Where(m => m.Rating != null && m.Title.Length < 60).Select(m => m.Id).ToList();
+        List<string> Ids = OfType<EFMovie>().Where(m => m.Rating != null && m.Title.Length < 60).Select(m => m.Id).ToList();
         var random = new Random();
         return Ids[random.Next(Ids.Count)];
+    }
+
+    /// <summary>
+    /// Gets a random movie from the set.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static T GetRandomMovie<T>() where T : ITableData, IMovie, new()
+    {
+        var result = OfType<T>().Where(m => m.Rating != null && m.Title.Length < 60).ToList();
+        var random = new Random();
+        return result[random.Next(result.Count)];
     }
 
     /// <summary>

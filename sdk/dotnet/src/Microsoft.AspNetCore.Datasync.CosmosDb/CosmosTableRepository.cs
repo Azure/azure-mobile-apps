@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
     /// data in a Cosmos database.
     /// </summary>
     /// <typeparam name="TEntity">The type of entity being stored.</typeparam>
-    public class CosmosRepository<TEntity> : IRepository<TEntity> where TEntity : CosmosTableData, ITableData
+    public class CosmosTableRepository<TEntity> : IRepository<TEntity> where TEntity : CosmosTableData, ITableData
     {
         /// <summary>
         /// Container where the <see cref="TEntity"/> is stored.
@@ -25,13 +25,13 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
         private readonly List<string> partitionKeyPropertyNames;
 
         /// <summary>
-        /// Create a new <see cref="CosmosRepository{TEntity}"/> for accessing the database.
+        /// Create a new <see cref="CosmosTableRepository{TEntity}"/> for accessing the database.
         /// This is the normal ctor for this repository.
         /// </summary>
         /// <param name="cosmosClient">The <see cref="cosmosClient"/> for the backend store.</param>
         /// <param name="databaseName">The name of the database.</param>
         /// <param name="containerName">The name of the container.</param>
-        public CosmosRepository(
+        public CosmosTableRepository(
             Container container,
             List<string> partitionKeyPropertyNames = null,
             Func<string, (string id, PartitionKey partitionKey)> parseIdAndPartitionKey = null)
@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
                 entity.EntityTag = entity.UpdatedAt.ToUnixTimeSeconds().ToString();
                 await container.CreateItemAsync(entity, cancellationToken: token);
             }
-            catch (CosmosException cosmosException) when (cosmosException.StatusCode == System.Net.HttpStatusCode.Conflict)
+            catch (CosmosException cosmosException) when (cosmosException.StatusCode == HttpStatusCode.Conflict)
             {
                 var partitionKey = entity.BuildPartitionKey(partitionKeyPropertyNames);
                 TEntity storeEntity = await container.ReadItemAsync<TEntity>(entity.Id, partitionKey, cancellationToken: token);
@@ -140,6 +140,10 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
                     throw new PreconditionFailedException(storeEntity);
                 }
                 await container.DeleteItemAsync<TEntity>(parsedId, partitionKey, cancellationToken: token);
+            }
+            catch (CosmosException cosmosException) when (cosmosException.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new NotFoundException();
             }
             catch (CosmosException cosmosException)
             {
@@ -217,6 +221,10 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
                 TEntity newEntity = await container.ReplaceItemAsync(entity, entity.Id, cancellationToken: token);
                 entity.UpdatedAt = newEntity.UpdatedAt;
                 entity.Version = newEntity.Version;
+            }
+            catch (CosmosException cosmosException) when (cosmosException.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new NotFoundException();
             }
             catch (CosmosException cosmosException)
             {

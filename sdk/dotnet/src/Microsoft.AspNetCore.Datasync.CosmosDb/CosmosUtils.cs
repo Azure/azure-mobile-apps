@@ -1,9 +1,7 @@
-﻿using Microsoft.Azure.Cosmos;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.Azure.Cosmos;
 
 namespace Microsoft.AspNetCore.Datasync.CosmosDb;
 
@@ -29,7 +27,7 @@ internal static class CosmosUtils
         {
             throw new BadRequestException();
         }
-
+        // TODO need to handle bool and double keys
         if (!idPartitionKeyString.Contains(":"))
         {
             return (idPartitionKeyString, new PartitionKey(idPartitionKeyString));

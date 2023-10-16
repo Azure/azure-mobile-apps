@@ -101,6 +101,25 @@ public class EntityTableRepository_Tests
     }
 
     [Fact]
+    public void AsQueryable_CanRetrieveSingleItems()
+    {
+        var id = Movies.GetRandomId();
+
+        var actual = repository.AsQueryable().Single(m => m.Id == id);
+        var expected = context.GetMovieById(id);
+
+        Assert.Equal<IMovie>(expected, actual);
+        Assert.Equal<ITableData>(expected, actual);
+    }
+
+    [Fact]
+    public void AsQueryable_CanRetrieveFilteredLists()
+    {
+        var ratedMovies = repository.AsQueryable().Where(m => m.Rating == "R").ToList();
+        Assert.Equal(95, ratedMovies.Count);
+    }
+
+    [Fact]
     public async Task CreateAsync_Throws_OnNullEntity()
     {
         var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => repository.CreateAsync(null));
@@ -254,6 +273,7 @@ public class EntityTableRepository_Tests
         var id = Movies.GetRandomId();
         var entity = context.GetMovieById(id);
         var version = Guid.NewGuid().ToByteArray();
+        //TODO doesn't work with etag table data
         entity.Version = null;
 
         var ex = await Assert.ThrowsAsync<PreconditionFailedException>(() => repository.DeleteAsync(id, version));

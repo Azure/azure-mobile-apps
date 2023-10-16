@@ -1,10 +1,11 @@
-﻿using Microsoft.Azure.Cosmos;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.Azure.Cosmos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Datasync.CosmosDb
 {
@@ -46,6 +47,18 @@ namespace Microsoft.AspNetCore.Datasync.CosmosDb
                 {
                     case double doubleValue:
                         partitionKeyBuilder.Add(doubleValue);
+                        break;
+                    case float floatValue:
+                        partitionKeyBuilder.Add(floatValue);
+                        break;
+                    case decimal decimalValue:
+                        partitionKeyBuilder.Add((double)decimalValue);
+                        break;
+                    case int intValue:
+                        partitionKeyBuilder.Add(intValue);
+                        break;
+                    case uint uintValue:
+                        partitionKeyBuilder.Add(uintValue);
                         break;
                     case bool boolValue:
                         partitionKeyBuilder.Add(boolValue);
