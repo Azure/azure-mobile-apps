@@ -46,5 +46,18 @@ namespace Microsoft.AspNetCore.Datasync
         /// <param name="entity">The entity being used.</param>
         /// <param name="token">A cancellation token</param>
         Task PreCommitHookAsync(TableOperation operation, TEntity entity, CancellationToken token = default);
+
+        /// <summary>
+        /// Called by the <see cref="TableController{TEntity}"/> after the entity has been updated. 
+        /// </summary>
+        /// <remarks>
+        /// Do not change the entity in the <see cref="PostCommitHookAsync(TableOperation, TEntity, CancellationToken)"/>.
+        /// It will be sent to the client, but not recorded in the repository.
+        /// </remarks>
+        /// <param name="operation">The <see cref="TableOperation"/> being requested.</param>
+        /// <param name="entity">The entity being used.</param>
+        /// <param name="token">A cancellation token</param>
+        Task PostCommitHookAsync(TableOperation operation, TEntity entity, CancellationToken token = default)
+            => Task.CompletedTask;
     }
 }

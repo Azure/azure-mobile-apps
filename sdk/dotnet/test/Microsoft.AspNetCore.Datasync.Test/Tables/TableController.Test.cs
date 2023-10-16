@@ -3,6 +3,7 @@
 
 using Datasync.Common.Test.Models;
 using Microsoft.AspNetCore.Datasync.InMemory;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Tables;
 
@@ -41,14 +42,33 @@ public class TableController_Tests
         Assert.False(TableController<InMemoryMovie>.IsClientSideEvaluationException(new ApplicationException()));
     }
 
-    [Fact]
-    public void CatchClientSideEvaluationException_RethrowsInnerException()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CatchClientSideEvaluationException_RethrowsInnerException(bool hasLogger)
     {
         var repository = new InMemoryRepository<InMemoryMovie>();
         var controller = new TableController<InMemoryMovie>() { Repository = repository };
+        if (hasLogger) controller.Logger = new NullLogger<TableController<InMemoryMovie>>();
 
         static void evaluator() { throw new ApplicationException(); }
 
         Assert.Throws<ApplicationException>(() => controller.CatchClientSideEvaluationException(new NotSupportedException(), "foo", evaluator));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CatchClientSideEvaluationException_ThrowsOriginalException(bool hasLogger)
+    {
+        var repository = new InMemoryRepository<InMemoryMovie>();
+        var controller = new TableController<InMemoryMovie>() { Repository = repository };
+        if (hasLogger) controller.Logger = new NullLogger<TableController<InMemoryMovie>>();
+        var exception = new ApplicationException();
+
+        static void evaluator() { throw new ApplicationException(); }
+
+        var actual = Assert.Throws<ApplicationException>(() => controller.CatchClientSideEvaluationException(exception, "foo", evaluator));
+        Assert.Same(exception, actual);
     }
 }

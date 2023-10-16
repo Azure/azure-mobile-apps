@@ -42,6 +42,22 @@ public class GetItemAsync_Tests : BaseOperationTest
 
     [Fact]
     [Trait("Method", "GetItemAsync")]
+    public async Task GetItemAsync_FormulatesCorrectRequest_IncludeDeleted()
+    {
+        // Arrange
+        MockHandler.AddResponse(HttpStatusCode.OK, payload);
+
+        // Act
+        var response = await table.GetItemAsync(sId, true).ConfigureAwait(false);
+
+        // Assert
+        var request = AssertSingleRequest(HttpMethod.Get, expectedEndpoint + "?__includedeleted=true");
+        Assert.False(request.Headers.Contains("If-None-Match"));
+        AssertJsonMatches(response);
+    }
+
+    [Fact]
+    [Trait("Method", "GetItemAsync")]
     public async Task GetItemAsync_FormulatesCorrectRequest_WithAuth()
     {
         // Arrange
@@ -88,7 +104,7 @@ public class GetItemAsync_Tests : BaseOperationTest
 
     [Fact]
     [Trait("Method", "GetItemAsync")]
-    public async Task GetItemAsync_Fails_OnBdJson()
+    public async Task GetItemAsync_Fails_OnBadJson()
     {
         // Arrange
         ReturnBadJson(HttpStatusCode.OK);

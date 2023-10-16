@@ -116,12 +116,23 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the item when complete.</returns>
         public Task<JToken> GetItemAsync(string id, CancellationToken cancellationToken = default)
+            => GetItemAsync(id, false, cancellationToken);
+
+        /// <summary>
+        /// Retrieve an item from the remote table.
+        /// </summary>
+        /// <param name="id">The ID of the item to retrieve.</param>
+        /// <param name="includeDeleted">If <c>true</c>, a soft-deleted item will be returned; if <c>false</c>, GONE is returned.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the item when complete.</returns>
+        public Task<JToken> GetItemAsync(string id, bool includeDeleted, CancellationToken cancellationToken = default)
         {
             Arguments.IsValidId(id, nameof(id));
+            string query = includeDeleted ? "?__includedeleted=true" : string.Empty;
             ServiceRequest request = new()
             {
                 Method = HttpMethod.Get,
-                UriPathAndQuery = $"{TableEndpoint}/{id}",
+                UriPathAndQuery = $"{TableEndpoint}/{id}{query}",
                 EnsureResponseContent = true
             };
             return SendRequestAsync(request, cancellationToken);
