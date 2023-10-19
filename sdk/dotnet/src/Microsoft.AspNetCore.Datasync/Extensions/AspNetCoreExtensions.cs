@@ -23,14 +23,16 @@ namespace Microsoft.AspNetCore.Datasync
         /// </summary>
         /// <param name="services">The current service collection</param>
         /// <returns>The resulting service collection</returns>
-        public static IServiceCollection AddDatasyncControllers(this IServiceCollection services)
+        public static IServiceCollection AddDatasyncControllers(this IServiceCollection services, IContractResolver contractResolver = null)
         {
+            contractResolver ??= new CamelCasePropertyNamesContractResolver();
+
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
                 DateFormatHandling = DateFormatHandling.IsoDateFormat,
                 NullValueHandling = NullValueHandling.Include,
                 DefaultValueHandling = DefaultValueHandling.Include,
-                ContractResolver = new CamelCasePropertyNamesContractResolver()
+                ContractResolver = contractResolver
             };
 
             services
@@ -41,7 +43,7 @@ namespace Microsoft.AspNetCore.Datasync
                     options.SerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
                     options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
                     options.SerializerSettings.DefaultValueHandling = DefaultValueHandling.Include;
-                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                    options.SerializerSettings.ContractResolver = contractResolver;
 
                     // These will eventually be a part of Microsoft.AspNetCore.OData.NewtonsoftJson types
                     // but they aren't released as of 8.0.1, so need to have them explicitly included.
