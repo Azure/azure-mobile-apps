@@ -199,9 +199,9 @@ namespace Microsoft.Datasync.Client.Offline.Queue
                 {
                     result = JsonConvert.DeserializeObject<JObject>(rawResult, serializerSettings);
                 }
-                catch (JsonReaderException)
+                catch (JsonException)
                 {
-                    // Ignore JsonReaderException, because 'rawResult' might not be JSON.
+                    // Ignore JsonException, because 'rawResult' might not be JSON.
                 }
             }
 
