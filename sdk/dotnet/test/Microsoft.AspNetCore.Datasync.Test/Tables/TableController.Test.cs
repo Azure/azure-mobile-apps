@@ -2,8 +2,10 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test.Models;
+using FluentAssertions;
 using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.OData.ModelBuilder;
 
 namespace Microsoft.AspNetCore.Datasync.Test.Tables;
 
@@ -31,6 +33,27 @@ public class TableController_Tests
         var controller = new TableController<InMemoryMovie>() { Repository = repository };
         Assert.NotNull(controller.Repository);
         Assert.Equal(repository, controller.Repository);
+    }
+
+    [Fact]
+    public void Ctor_Accepts_EdmModel()
+    {
+        var repository = new InMemoryRepository<InMemoryMovie>();
+        var modelBuilder = new ODataConventionModelBuilder();
+        modelBuilder.AddEntityType(typeof(InMemoryMovie));
+
+        var controller = new TableController<InMemoryMovie>(repository, null, modelBuilder.GetEdmModel(), null);
+        controller.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Ctor_Throws_InvalidEdmModel()
+    {
+        var repository = new InMemoryRepository<InMemoryMovie>();
+        var modelBuilder = new ODataConventionModelBuilder();
+
+        Action act = () => _ = new TableController<InMemoryMovie>(repository, null, modelBuilder.GetEdmModel(), null);
+        act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]

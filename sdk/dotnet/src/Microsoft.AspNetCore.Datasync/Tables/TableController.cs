@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.AspNetCore.Datasync.Filters;
 using Microsoft.AspNetCore.Datasync.Models;
+using Microsoft.AspNetCore.Datasync.Tables;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
@@ -13,7 +14,6 @@ using Microsoft.AspNetCore.OData.Query.Validator;
 using Microsoft.Extensions.Logging;
 using Microsoft.OData;
 using Microsoft.OData.Edm;
-using Microsoft.OData.ModelBuilder;
 using Microsoft.OData.UriParser;
 using Newtonsoft.Json;
 using System;
@@ -50,16 +50,16 @@ namespace Microsoft.AspNetCore.Datasync
         /// <param name="repository">The repository to use as the data store.</param>
         /// <param name="accessControlProvider">The access control provider.</param>
         /// <param name="options">The <see cref="TableControllerOptions"/> for this controller.</param>
-        public TableController(IRepository<TEntity> repository = null, IAccessControlProvider<TEntity> accessControlProvider = null, TableControllerOptions options = null)
+        public TableController(IRepository<TEntity> repository = null, IAccessControlProvider<TEntity> accessControlProvider = null, IEdmModel edmModel = null, TableControllerOptions options = null)
         {
             _repository = repository;
             AccessControlProvider = accessControlProvider ?? new AccessControlProvider<TEntity>();
             Options = options ?? new TableControllerOptions();
-
-            var modelBuilder = new ODataConventionModelBuilder();
-            modelBuilder.EnableLowerCamelCase();
-            modelBuilder.AddEntityType(typeof(TEntity));
-            EdmModel = modelBuilder.GetEdmModel();
+            EdmModel = edmModel ?? ModelCache.GetEdmModel(typeof(TEntity));
+            if (EdmModel.FindType(typeof(TEntity).FullName) == null)
+            {
+                throw new InvalidOperationException($"The type {typeof(TEntity).FullName} is not registered in the OData model");
+            }
         }
 
         #region Properties
