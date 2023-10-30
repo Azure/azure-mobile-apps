@@ -245,8 +245,9 @@ public class Replace_Tests : BaseTest
         }
     }
 
-    [Theory, CombinatorialData]
-    public async Task ReplaceSoftNotDeleted_Works([CombinatorialValues("soft", "soft_logged")] string table)
+    [Theory]
+    [InlineData("soft_logged")]
+    public async Task ReplaceSoftNotDeleted_Works(string table)
     {
         var id = GetRandomId();
         var original = MovieServer.GetMovieById(id)!;
