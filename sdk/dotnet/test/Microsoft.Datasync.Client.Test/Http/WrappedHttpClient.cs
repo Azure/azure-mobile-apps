@@ -24,8 +24,6 @@ internal class WrappedHttpClient : ServiceHttpClient
 
     internal HttpMessageHandler HttpHandler { get => roothandler; }
 
-    internal HttpClient HttpClient { get => client; }
-
     internal void WrappedDispose(bool dispose)
         => base.Dispose(dispose);
 
