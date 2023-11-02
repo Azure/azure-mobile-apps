@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\Shared.Build.props" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Datasync.Common\Datasync.Common.csproj" />
+    <ProjectReference Include="..\..\..\src\server\Microsoft.AspNetCore.Datasync.InMemory\Microsoft.AspNetCore.Datasync.InMemory.csproj" />
+  </ItemGroup>
+</Project>

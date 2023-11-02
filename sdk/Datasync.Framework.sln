@@ -1,0 +1,68 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E26562C9-C33B-4567-8724-B1396F29BFFA}"
+	ProjectSection(SolutionItems) = preProject
+		src\Shared.Build.props = src\Shared.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{1578EA52-2216-40E0-ACAE-EE1DF336C0E8}"
+	ProjectSection(SolutionItems) = preProject
+		test\Shared.Build.props = test\Shared.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "server", "server", "{03E5C0CF-9727-47D6-927C-BF4DEBC35B20}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.Abstractions", "src\server\Microsoft.AspNetCore.Datasync.Abstractions\Microsoft.AspNetCore.Datasync.Abstractions.csproj", "{ECF40733-E543-4142-9A6B-A8A0FE32C611}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.InMemory", "src\server\Microsoft.AspNetCore.Datasync.InMemory\Microsoft.AspNetCore.Datasync.InMemory.csproj", "{E2F0F067-FCDC-4247-A377-AFCEFD4E0406}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "server", "server", "{5CB2D5E7-FE26-4CFE-B5B1-F8CFDB1D5587}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.InMemory.Tests", "test\server\Microsoft.AspNetCore.Datasync.InMemory.Tests\Microsoft.AspNetCore.Datasync.InMemory.Tests.csproj", "{84270525-E19D-4479-A422-30AE5289765A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{0333B636-D192-4766-B832-3864CB5FA54C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datasync.Common", "Datasync.Common\Datasync.Common.csproj", "{09342361-4E9B-4BC8-9746-B87D3E567D4B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ECF40733-E543-4142-9A6B-A8A0FE32C611}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECF40733-E543-4142-9A6B-A8A0FE32C611}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECF40733-E543-4142-9A6B-A8A0FE32C611}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECF40733-E543-4142-9A6B-A8A0FE32C611}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2F0F067-FCDC-4247-A377-AFCEFD4E0406}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2F0F067-FCDC-4247-A377-AFCEFD4E0406}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2F0F067-FCDC-4247-A377-AFCEFD4E0406}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2F0F067-FCDC-4247-A377-AFCEFD4E0406}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84270525-E19D-4479-A422-30AE5289765A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84270525-E19D-4479-A422-30AE5289765A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84270525-E19D-4479-A422-30AE5289765A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84270525-E19D-4479-A422-30AE5289765A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09342361-4E9B-4BC8-9746-B87D3E567D4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09342361-4E9B-4BC8-9746-B87D3E567D4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09342361-4E9B-4BC8-9746-B87D3E567D4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09342361-4E9B-4BC8-9746-B87D3E567D4B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{03E5C0CF-9727-47D6-927C-BF4DEBC35B20} = {E26562C9-C33B-4567-8724-B1396F29BFFA}
+		{ECF40733-E543-4142-9A6B-A8A0FE32C611} = {03E5C0CF-9727-47D6-927C-BF4DEBC35B20}
+		{E2F0F067-FCDC-4247-A377-AFCEFD4E0406} = {03E5C0CF-9727-47D6-927C-BF4DEBC35B20}
+		{5CB2D5E7-FE26-4CFE-B5B1-F8CFDB1D5587} = {1578EA52-2216-40E0-ACAE-EE1DF336C0E8}
+		{84270525-E19D-4479-A422-30AE5289765A} = {5CB2D5E7-FE26-4CFE-B5B1-F8CFDB1D5587}
+		{0333B636-D192-4766-B832-3864CB5FA54C} = {1578EA52-2216-40E0-ACAE-EE1DF336C0E8}
+		{09342361-4E9B-4BC8-9746-B87D3E567D4B} = {0333B636-D192-4766-B832-3864CB5FA54C}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F734C042-F8B1-4DA7-BAB7-A34A0D8D9122}
+	EndGlobalSection
+EndGlobal

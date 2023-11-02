@@ -1,0 +1,11 @@
+# This file controls which files are uploaded when you publish a
+# Universal Package or a Pipeline Artifact.  Using this file can 
+# help you to reduce your pipeline execution time by avoiding the
+# copy of unnecessary files into your staging directory.
+
+# Don't upload anything by default
+**/*
+
+# Precede anything you want to upload with a !
+!bin
+!obj

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Authors>Microsoft</Authors>
+    <Company>Microsoft</Company>
+    <Copyright>&#169; Microsoft Corporation. All rights reserved.</Copyright>
+    <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
+    <LicenseUrl>https://github.com/Azure/azure-mobile-apps/blob/main/LICENSE.txt</LicenseUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Azure/azure-mobile-apps</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageTags>microsoft;azure;cloud;datasync</PackageTags>
+    <Product>$(AssemblyName) ($(TargetFramework))</Product>
+    <ProjectUrl>https://github.com/azure/azure-mobile-apps</ProjectUrl>
+    <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <ImplicitUsings>true</ImplicitUsings>
+    <LangVersion>10.0</LangVersion>
+    <NeutralLanguage>en</NeutralLanguage>
+    <Nullable>enable</Nullable>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)\..\images\icon.png" PackagePath="icon.png" Pack="True" />
+    <None Include="$(MSBuildThisFileDirectory)\..\..\README.md" PackagePath="README.md" Pack="True" />
+  </ItemGroup>
+</Project>

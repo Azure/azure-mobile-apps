@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Abstractions for developing applications based on Azure Mobile Apps.</Description>
+  </PropertyGroup>
+
+  <Import Project="..\..\Shared.Build.props" />
+</Project>
