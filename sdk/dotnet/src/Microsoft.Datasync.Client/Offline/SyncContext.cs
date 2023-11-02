@@ -576,7 +576,7 @@ namespace Microsoft.Datasync.Client.Offline
                 {
                     SendItemWillBePushedEvent(operation.TableName, operation.ItemId, itemCount[0]);
                     bool isSuccessful = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
-                    lock(itemCount)
+                    lock (itemCount)
                     {
                         itemCount[0]++;
                     }
@@ -889,6 +889,12 @@ namespace Microsoft.Datasync.Client.Offline
             if (removeFromQueueOnSuccess && error == null)
             {
                 await OperationsQueue.DeleteOperationByIdAsync(operation.Id, operation.Version, cancellationToken).ConfigureAwait(false);
+                IList<TableOperationError> errors = (await batch.LoadErrorsAsync(cancellationToken).ConfigureAwait(false))
+                    .Where(e => e.TableName == operation.TableName && (string)e.Item["id"] == operation.Id).ToList();
+                if (errors.Count > 0)
+                {
+                    await RemoveErrorsAsync(errors, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             return error == null;
