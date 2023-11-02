@@ -92,6 +92,14 @@ namespace Microsoft.Datasync.Client.Http
         /// </summary>
         public Uri Endpoint { get; }
 
+        /// <summary>
+        /// The <see cref="HttpClient"/> to use for communication.
+        /// </summary>
+        internal HttpClient HttpClient => client;
+
+        /// <summary>
+        /// The installation ID to send with each request.
+        /// </summary>
         public string InstallationId { get; }
 
         /// <summary>
