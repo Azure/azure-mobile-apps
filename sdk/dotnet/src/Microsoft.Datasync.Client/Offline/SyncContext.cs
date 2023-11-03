@@ -576,7 +576,7 @@ namespace Microsoft.Datasync.Client.Offline
                 {
                     SendItemWillBePushedEvent(operation.TableName, operation.ItemId, itemCount[0]);
                     bool isSuccessful = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
-                    lock(itemCount)
+                    lock (itemCount)
                     {
                         itemCount[0]++;
                     }
@@ -603,7 +603,7 @@ namespace Microsoft.Datasync.Client.Offline
             PushStatus batchStatus = batch.AbortReason ?? PushStatus.Complete;
             try
             {
-                errors.AddRange(await batch.LoadErrorsAsync(cancellationToken).ConfigureAwait(false));
+                errors.AddRange(await batch.LoadErrorsAsync(tableNames, cancellationToken).ConfigureAwait(false));
             }
             catch (Exception ex)
             {
@@ -886,9 +886,19 @@ namespace Microsoft.Datasync.Client.Offline
                 }
             }
 
-            if (removeFromQueueOnSuccess && error == null)
+            if (error == null)
             {
-                await OperationsQueue.DeleteOperationByIdAsync(operation.Id, operation.Version, cancellationToken).ConfigureAwait(false);
+                if (removeFromQueueOnSuccess)
+                {
+                    await OperationsQueue.DeleteOperationByIdAsync(operation.Id, operation.Version, cancellationToken).ConfigureAwait(false);
+                }
+
+                IList<TableOperationError> errors = (await batch.LoadErrorsAsync(new string[] { operation.TableName }, cancellationToken).ConfigureAwait(false))
+                    .Where(e => (string)e.Item["id"] == operation.Id).ToList();
+                if (errors.Count > 0)
+                {
+                    await RemoveErrorsAsync(errors, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             return error == null;

@@ -116,18 +116,30 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <summary>
         /// Loads all the sync errors in local store that are recorded for this batch.
         /// </summary>
+        /// <param name="tableNames">The list of tables to load errors for.  If empty, all tables are loaded.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A list of sync errors.</returns>
-        public async Task<IList<TableOperationError>> LoadErrorsAsync(CancellationToken cancellationToken = default)
+        public async Task<IList<TableOperationError>> LoadErrorsAsync(string[] tableNames, CancellationToken cancellationToken = default)
         {
             var enumerable = new FuncAsyncPageable<TableOperationError>(nextLink => GetNextPageAsync("", nextLink, cancellationToken));
             var errors = new List<TableOperationError>();
             await foreach (var error in enumerable)
             {
-                error.Context = Context;
-                errors.Add(error);
+                if (tableNames == null || tableNames.Length == 0 || tableNames.Contains(error.TableName))
+                {
+                    error.Context = Context;
+                    errors.Add(error);
+                }
             }
             return errors;
         }
+
+        /// <summary>
+        /// Loads all the sync errors in local store that are recorded for this batch.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A list of sync errors.</returns>
+        public async Task<IList<TableOperationError>> LoadErrorsAsync(CancellationToken cancellationToken = default)
+            => await LoadErrorsAsync(null, cancellationToken);
     }
 }

@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -300,6 +301,27 @@ namespace Microsoft.Datasync.Client
             }
             await SyncContext.PushItemsAsync(tables.ToArray(), options, cancellationToken).ConfigureAwait(false);
         }
+
+        #region SendAsync
+        /// <summary>
+        /// Sends a HTTP request to the remote service, using the in-built HTTP client.
+        /// </summary>
+        /// <param name="request">The HTTP request message to send.</param>
+        /// <param name="completionOption">When the operation should complete (as soon as a response is available, or after reading the whole response content).</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the <see cref="HttpResponseMessage"/> for the response when complete.</returns>
+        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken = default)
+            => HttpClient.HttpClient.SendAsync(request, completionOption, cancellationToken);
+
+        /// <summary>
+        /// Sends a HTTP request to the remote service, using the in-built HTTP client.
+        /// </summary>
+        /// <param name="request">The HTTP request message to send.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the <see cref="HttpResponseMessage"/> for the response when complete.</returns>
+        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+            => HttpClient.HttpClient.SendAsync(request, cancellationToken);
+        #endregion
 
         /// <summary>
         /// Sends a synchronization event to the consumers.
