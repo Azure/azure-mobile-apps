@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\Shared.Build.props" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\server\Microsoft.AspNetCore.Datasync.LiteDb\Microsoft.AspNetCore.Datasync.LiteDb.csproj" />
+    <ProjectReference Include="..\..\shared\Datasync.Common\Datasync.Common.csproj" />
+  </ItemGroup>
+</Project>

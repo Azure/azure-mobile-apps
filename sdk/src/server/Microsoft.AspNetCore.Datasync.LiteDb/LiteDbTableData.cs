@@ -1,18 +1,18 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.AspNetCore.Datasync;
-using System.Diagnostics.CodeAnalysis;
+using LiteDB;
 
-namespace Datasync.Common;
+namespace Microsoft.AspNetCore.Datasync.LiteDb;
 
 /// <summary>
-/// A concrete implementation of ITableData with no data.
+/// An implementation of the <see cref="ITableData"/> interface for handling
+/// entities stored in a LiteDB database.
 /// </summary>
-[ExcludeFromCodeCoverage]
-public class TableData : ITableData
+public class LiteDbTableData : ITableData
 {
     /// <inheritdoc />
+    [BsonId]
     public string Id { get; set; } = string.Empty;
 
     /// <inheritdoc />
@@ -24,6 +24,7 @@ public class TableData : ITableData
     /// <inheritdoc />
     public byte[] Version { get; set; } = Array.Empty<byte>();
 
+    /// <inheritdoc />
     public bool Equals(ITableData? other)
-        => other is not null && Id == other.Id && Version.SequenceEqual(other.Version);
+        => other != null && Id == other.Id && Version.SequenceEqual(other.Version);
 }

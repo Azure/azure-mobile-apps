@@ -21,10 +21,21 @@ public static class Movies
     };
 
     /// <summary>
-    /// The number of movies in the list.  This must be a const so that it can be
-    /// used in attributes.
+    /// Counts the number of items in the list that match the predicate.
     /// </summary>
-    public const int Count = 248;
+    /// <typeparam name="T">A type of entity.</typeparam>
+    /// <param name="predicate">The predicate to count.</param>
+    /// <returns>The number of movies matching the predicate.</returns>
+    public static int Count<T>(Func<T, bool> predicate) where T : ITableData, IMovie, new()
+        => OfType<T>().Count(predicate);
+
+    /// <summary>
+    /// Counts the number of items in the list of movies.
+    /// </summary>
+    /// <typeparam name="T">A type of entity.</typeparam>
+    /// <returns>The number of movies matching the predicate.</returns>
+    public static int Count<T>() where T : ITableData, IMovie, new()
+        => OfType<T>().Count;
 
     /// <summary>
     /// Creates a list of movies based on an <see cref="IMovie"/> based type.

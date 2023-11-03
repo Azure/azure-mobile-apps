@@ -1,16 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>An in-memory repository for datasync servers based on Azure Mobile Apps.</Description>
+    <Description>A LiteDb-based repository for datasync servers based on Azure Mobile Apps.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.AspNetCore.Datasync.InMemory.Tests" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Datasync.LiteDb.Tests" />
   </ItemGroup>
 
   <Import Project="..\..\Shared.Build.props" />
 
   <ItemGroup>
-    <PackageReference Include="AnyClone" Version="1.1.6" />
+    <PackageReference Include="LiteDB" Version="5.0.17" />
   </ItemGroup>
 
   <ItemGroup>
