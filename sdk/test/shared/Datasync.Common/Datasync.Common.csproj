@@ -8,4 +8,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\server\Microsoft.AspNetCore.Datasync.Abstractions\Microsoft.AspNetCore.Datasync.Abstractions.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions">
+      <HintPath>..\..\..\..\..\..\..\..\..\Nuget\microsoft.extensions.logging.abstractions\6.0.0\lib\net6.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using LiteDB;
+using Microsoft.AspNetCore.Datasync.Abstractions;
 
 namespace Microsoft.AspNetCore.Datasync.LiteDb;
 
@@ -18,12 +19,6 @@ public class LiteDbRepository<TEntity> : IRepository<TEntity> where TEntity : Li
     // a singleton and we want to ensure that writes to the database are serialized. Thus, we
     // use an async semaphore to ensure that only one thread is writing to the database at a time.
     private readonly static SemaphoreSlim semaphore = new(1, 1);
-
-    // We include these to avoid bringing in a new Abstractions package just for four ints.
-    private const int Status400BadRequest = 400;
-    private const int Status404NotFound = 404;
-    private const int Status409Conflict = 409;
-    private const int Status412PreconditionFailed = 412;
 
     /// <summary>
     /// Creates a new <see cref="LiteDbRepository{TEntity}"/> using the provided database
@@ -50,13 +45,13 @@ public class LiteDbRepository<TEntity> : IRepository<TEntity> where TEntity : Li
     /// <summary>
     /// The collection within the LiteDb database that is used to store the entities.
     /// </summary>
-    public ILiteCollection<TEntity> Collection { get; }
+    public virtual ILiteCollection<TEntity> Collection { get; }
 
     /// <summary>
     /// Updates the system properties for the provided entity on write.
     /// </summary>
     /// <param name="entity">The entity to update.</param>
-    private static void UpdateEntity(TEntity entity)
+    protected static void UpdateEntity(TEntity entity)
     {
         entity.UpdatedAt = DateTimeOffset.UtcNow;
         entity.Version = Guid.NewGuid().ToByteArray();
@@ -68,7 +63,7 @@ public class LiteDbRepository<TEntity> : IRepository<TEntity> where TEntity : Li
     /// <param name="action">The action to execute.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
     /// <returns>A task that completes when the action is finished.</returns>
-    private async ValueTask LockCollectionAsync(Action action, CancellationToken cancellationToken = default)
+    protected async ValueTask LockCollectionAsync(Action action, CancellationToken cancellationToken = default)
     {
         await semaphore.WaitAsync(cancellationToken);
         try
@@ -83,11 +78,11 @@ public class LiteDbRepository<TEntity> : IRepository<TEntity> where TEntity : Li
 
     #region IRepository{TEntity}
     /// <inheritdoc/>
-    public ValueTask<IQueryable<TEntity>> AsQueryableAsync(CancellationToken cancellationToken = default)
+    public virtual ValueTask<IQueryable<TEntity>> AsQueryableAsync(CancellationToken cancellationToken = default)
         => ValueTask.FromResult(Collection.FindAll().AsQueryable());
 
     /// <inheritdoc/>
-    public async ValueTask CreateAsync(TEntity entity, CancellationToken cancellationToken = default)
+    public virtual async ValueTask CreateAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(entity.Id))
         {
@@ -98,7 +93,7 @@ public class LiteDbRepository<TEntity> : IRepository<TEntity> where TEntity : Li
             TEntity existingEntity = Collection.FindById(entity.Id);
             if (existingEntity != null)
             {
-                throw new HttpException(Status409Conflict) { Payload = existingEntity };
+                throw new HttpException(HttpStatusCodes.Status409Conflict) { Payload = existingEntity };
             }
             UpdateEntity(entity);
             Collection.Insert(entity);
@@ -106,47 +101,47 @@ public class LiteDbRepository<TEntity> : IRepository<TEntity> where TEntity : Li
     }
 
     /// <inheritdoc/>
-    public async ValueTask DeleteAsync(string id, byte[]? version = null, CancellationToken cancellationToken = default)
+    public virtual async ValueTask DeleteAsync(string id, byte[]? version = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(id))
         {
-            throw new HttpException(Status400BadRequest);
+            throw new HttpException(HttpStatusCodes.Status400BadRequest);
         }
         await LockCollectionAsync(() =>
         {
-            TEntity storedEntity = Collection.FindById(id) ?? throw new HttpException(Status404NotFound);
+            TEntity storedEntity = Collection.FindById(id) ?? throw new HttpException(HttpStatusCodes.Status404NotFound);
             if (version != null && !storedEntity.Version.SequenceEqual(version))
             {
-                throw new HttpException(Status412PreconditionFailed) { Payload = storedEntity };
+                throw new HttpException(HttpStatusCodes.Status412PreconditionFailed) { Payload = storedEntity };
             }
             Collection.Delete(id);
         }, cancellationToken);
     }
 
     /// <inheritdoc/>
-    public ValueTask<TEntity> ReadAsync(string id, CancellationToken cancellationToken = default)
+    public virtual ValueTask<TEntity> ReadAsync(string id, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(id))
         {
-            throw new HttpException(Status400BadRequest);
+            throw new HttpException(HttpStatusCodes.Status400BadRequest);
         }
-        TEntity entity = Collection.FindById(id) ?? throw new HttpException(Status404NotFound);
+        TEntity entity = Collection.FindById(id) ?? throw new HttpException(HttpStatusCodes.Status404NotFound);
         return ValueTask.FromResult(entity);
     }
 
     /// <inheritdoc/>
-    public async ValueTask ReplaceAsync(TEntity entity, byte[]? version = null, CancellationToken cancellationToken = default)
+    public virtual async ValueTask ReplaceAsync(TEntity entity, byte[]? version = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(entity.Id))
         {
-            throw new HttpException(Status400BadRequest);
+            throw new HttpException(HttpStatusCodes.Status400BadRequest);
         }
         await LockCollectionAsync(() =>
         {
-            TEntity storedEntity = Collection.FindById(entity.Id) ?? throw new HttpException(Status404NotFound);
+            TEntity storedEntity = Collection.FindById(entity.Id) ?? throw new HttpException(HttpStatusCodes.Status404NotFound);
             if (version != null && !storedEntity.Version.SequenceEqual(version))
             {
-                throw new HttpException(Status412PreconditionFailed) { Payload = storedEntity };
+                throw new HttpException(HttpStatusCodes.Status412PreconditionFailed) { Payload = storedEntity };
             }
             UpdateEntity(entity);
             Collection.Update(entity);

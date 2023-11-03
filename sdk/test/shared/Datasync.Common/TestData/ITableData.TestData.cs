@@ -28,11 +28,14 @@ public class ITableData_TestData : TheoryData<TableData, TableData, bool>
         DateTimeOffset.MaxValue
     };
 
+    // Note: PgEntityTableData uses a uint32 for the RowVersion, which is decoded
+    // into the Version byte array.  This means that, for testing purposes, we can
+    // only test 4-byte arrays with certainty.
     private readonly byte[][] versions = new byte[][]
     {
         Array.Empty<byte>(),
-        new byte[] { 0x01, 0x02, 0x03 },
-        Guid.NewGuid().ToByteArray()
+        new byte[] { 0x01, 0x02, 0x03, 0x04 },
+        new byte[] { 0x60, 0x50, 0x40, 0x30 }
     };
 
     public ITableData_TestData()

@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>An Entity Framework Core based repository for datasync servers based on Azure Mobile Apps.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Datasync.EFCore.Tests" />
+  </ItemGroup>
+
+  <Import Project="..\..\Shared.Build.props" />
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.24" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.AspNetCore.Datasync.Abstractions\Microsoft.AspNetCore.Datasync.Abstractions.csproj" />
+  </ItemGroup>
+</Project>
+

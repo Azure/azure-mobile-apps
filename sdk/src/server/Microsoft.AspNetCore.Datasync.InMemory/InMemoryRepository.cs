@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AspNetCore.Datasync.Abstractions;
 using System.Collections.Concurrent;
 
 namespace Microsoft.AspNetCore.Datasync.InMemory;
@@ -13,12 +14,6 @@ namespace Microsoft.AspNetCore.Datasync.InMemory;
 public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : InMemoryTableData
 {
     private readonly ConcurrentDictionary<string, TEntity> _entities = new();
-
-    // We include these to avoid bringing in a new Abstractions package just for four ints.
-    private const int Status400BadRequest = 400;
-    private const int Status404NotFound = 404;
-    private const int Status409Conflict = 409;
-    private const int Status412PreconditionFailed = 412;
 
     /// <summary>
     /// Creates a new empty <see cref="InMemoryRepository{TEntity}"/> instance.
@@ -35,7 +30,8 @@ public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : 
     {
         foreach (TEntity entity in seedEntities)
         {
-            CreateEntity(entity);
+            entity.Id ??= Guid.NewGuid().ToString();
+            StoreEntity(entity);
         }
     }
 
@@ -63,14 +59,14 @@ public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : 
     /// <summary>
     /// Produces a disconnected copy of the entity.
     /// </summary>
-    private static TEntity Disconnect(TEntity entity)
+    protected static TEntity Disconnect(TEntity entity)
         => AnyClone.CloneExtensions.Clone(entity);
 
     /// <summary>
     /// Updates the system properties and stores the new entity into the data store.
     /// </summary>
     /// <param name="entity">The entity to store.</param>
-    private void StoreEntity(TEntity entity)
+    protected void StoreEntity(TEntity entity)
     {
         entity.UpdatedAt = DateTimeOffset.UtcNow;
         entity.Version = Guid.NewGuid().ToByteArray();
@@ -80,7 +76,7 @@ public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : 
     /// <summary>
     /// If the <see cref="ThrowException"/> has been set, throw it.
     /// </summary>
-    private void ThrowExceptionIfSet()
+    protected void ThrowExceptionIfSet()
     {
         if (ThrowException != null)
         {
@@ -91,98 +87,81 @@ public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : 
 
     #region IRepository{TEntity}
     /// <inheritdoc />
-    public ValueTask<IQueryable<TEntity>> AsQueryableAsync(CancellationToken cancellationToken = default)
+    public virtual ValueTask<IQueryable<TEntity>> AsQueryableAsync(CancellationToken cancellationToken = default)
     {
         ThrowExceptionIfSet();
         return ValueTask.FromResult(_entities.Values.AsQueryable());
     }
 
     /// <inheritdoc />
-    public ValueTask CreateAsync(TEntity entity, CancellationToken cancellationToken = default)
+    public virtual ValueTask CreateAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
         ThrowExceptionIfSet();
-        CreateEntity(entity);
-        return ValueTask.CompletedTask;
-    }
-
-    /// <inheritdoc />
-    public ValueTask DeleteAsync(string id, byte[]? version = null, CancellationToken cancellationToken = default)
-    {
-        ThrowExceptionIfSet();
-        DeleteEntity(id, version);
-        return ValueTask.CompletedTask;
-    }
-
-    /// <inheritdoc />
-    public ValueTask<TEntity> ReadAsync(string id, CancellationToken cancellationToken = default)
-    {
-        ThrowExceptionIfSet();
-        if (string.IsNullOrEmpty(id))
-        {
-            throw new HttpException(Status400BadRequest);
-        }
-        if (!_entities.TryGetValue(id, out TEntity? entity))
-        {
-            throw new HttpException(Status404NotFound);
-        }
-        return ValueTask.FromResult(Disconnect(entity));
-    }
-
-    /// <inheritdoc />
-    public ValueTask ReplaceAsync(TEntity entity, byte[]? version = null, CancellationToken cancellationToken = default)
-    {
-        ThrowExceptionIfSet();
-        ReplaceEntity(entity, version);
-        return ValueTask.CompletedTask;
-    }
-    #endregion
-
-    #region Synchronous Methods
-    internal void CreateEntity(TEntity entity)
-    {
         if (string.IsNullOrEmpty(entity.Id))
         {
             entity.Id = Guid.NewGuid().ToString();
         }
         if (_entities.TryGetValue(entity.Id, out TEntity? storedEntity))
         {
-            throw new HttpException(Status409Conflict) { Payload = Disconnect(storedEntity) };
+            throw new HttpException(HttpStatusCodes.Status409Conflict) { Payload = Disconnect(storedEntity) };
         }
         StoreEntity(entity);
+        return ValueTask.CompletedTask;
     }
 
-    internal void DeleteEntity(string id, byte[]? version = null)
+    /// <inheritdoc />
+    public virtual ValueTask DeleteAsync(string id, byte[]? version = null, CancellationToken cancellationToken = default)
     {
+        ThrowExceptionIfSet();
         if (string.IsNullOrEmpty(id))
         {
-            throw new HttpException(Status400BadRequest);
+            throw new HttpException(HttpStatusCodes.Status400BadRequest);
         }
         if (!_entities.TryGetValue(id, out TEntity? storedEntity))
         {
-            throw new HttpException(Status404NotFound);
+            throw new HttpException(HttpStatusCodes.Status404NotFound);
         }
         if (version != null && !storedEntity.Version.SequenceEqual(version))
         {
-            throw new HttpException(Status412PreconditionFailed) { Payload = Disconnect(storedEntity) };
+            throw new HttpException(HttpStatusCodes.Status412PreconditionFailed) { Payload = Disconnect(storedEntity) };
         }
         _entities.TryRemove(id, out _);
+        return ValueTask.CompletedTask;
     }
 
-    internal void ReplaceEntity(TEntity entity, byte[]? version = null)
+    /// <inheritdoc />
+    public virtual ValueTask<TEntity> ReadAsync(string id, CancellationToken cancellationToken = default)
     {
+        ThrowExceptionIfSet();
+        if (string.IsNullOrEmpty(id))
+        {
+            throw new HttpException(HttpStatusCodes.Status400BadRequest);
+        }
+        if (!_entities.TryGetValue(id, out TEntity? entity))
+        {
+            throw new HttpException(HttpStatusCodes.Status404NotFound);
+        }
+        return ValueTask.FromResult(Disconnect(entity));
+    }
+
+    /// <inheritdoc />
+    public virtual ValueTask ReplaceAsync(TEntity entity, byte[]? version = null, CancellationToken cancellationToken = default)
+    {
+        ThrowExceptionIfSet();
         if (string.IsNullOrEmpty(entity.Id))
         {
-            throw new HttpException(Status400BadRequest);
+            throw new HttpException(HttpStatusCodes.Status400BadRequest);
         }
         if (!_entities.TryGetValue(entity.Id, out TEntity? storedEntity))
         {
-            throw new HttpException(Status404NotFound);
+            throw new HttpException(HttpStatusCodes.Status404NotFound);
         }
         if (version != null && !storedEntity.Version.SequenceEqual(version))
         {
-            throw new HttpException(Status412PreconditionFailed) { Payload = Disconnect(storedEntity) };
+            throw new HttpException(HttpStatusCodes.Status412PreconditionFailed) { Payload = Disconnect(storedEntity) };
         }
         StoreEntity(entity);
+        return ValueTask.CompletedTask;
     }
     #endregion
 }
