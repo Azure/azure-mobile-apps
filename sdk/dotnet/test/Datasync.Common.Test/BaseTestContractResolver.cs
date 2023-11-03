@@ -23,7 +23,7 @@ namespace Datasync.Common.Test;
 [ExcludeFromCodeCoverage]
 public class BaseTestContractResolver
 {
-    private readonly Lazy<TestServer> _server = new(() => MovieApiServer.CreateTestServer());
+    private readonly Lazy<TestServer> _server = new(() => MovieApiServerContractResolver.CreateTestServer());
     private readonly ITestOutputHelper logger;
 
     protected BaseTestContractResolver(ITestOutputHelper helper)
