@@ -39,6 +39,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasy
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.Automapper.Tests", "test\server\Microsoft.AspNetCore.Datasync.Automapper.Tests\Microsoft.AspNetCore.Datasync.Automapper.Tests.csproj", "{CD8F7DB3-3605-41CF-A1B1-73D6BD1F73A4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.CosmosDb", "src\server\Microsoft.AspNetCore.Datasync.CosmosDb\Microsoft.AspNetCore.Datasync.CosmosDb.csproj", "{2CB4683A-13D0-45BD-821C-FB893741ADFC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,10 @@ Global
 		{CD8F7DB3-3605-41CF-A1B1-73D6BD1F73A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD8F7DB3-3605-41CF-A1B1-73D6BD1F73A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD8F7DB3-3605-41CF-A1B1-73D6BD1F73A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CB4683A-13D0-45BD-821C-FB893741ADFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CB4683A-13D0-45BD-821C-FB893741ADFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CB4683A-13D0-45BD-821C-FB893741ADFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CB4683A-13D0-45BD-821C-FB893741ADFC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -103,6 +109,7 @@ Global
 		{AFADFDEB-0B09-4ABA-A8E2-02E931F81D4F} = {5CB2D5E7-FE26-4CFE-B5B1-F8CFDB1D5587}
 		{E607AF0A-09E3-45FD-B583-B7CA7749F271} = {03E5C0CF-9727-47D6-927C-BF4DEBC35B20}
 		{CD8F7DB3-3605-41CF-A1B1-73D6BD1F73A4} = {5CB2D5E7-FE26-4CFE-B5B1-F8CFDB1D5587}
+		{2CB4683A-13D0-45BD-821C-FB893741ADFC} = {03E5C0CF-9727-47D6-927C-BF4DEBC35B20}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F734C042-F8B1-4DA7-BAB7-A34A0D8D9122}

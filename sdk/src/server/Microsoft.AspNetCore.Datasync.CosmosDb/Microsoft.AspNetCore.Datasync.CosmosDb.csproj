@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>An Automapper based wrapper for repositories; used for developing applications based on Azure Mobile Apps.</Description>
+  </PropertyGroup>
+
+  <Import Project="..\..\Shared.Build.props" />
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.AspNetCore.Datasync.Abstractions\Microsoft.AspNetCore.Datasync.Abstractions.csproj" />
+  </ItemGroup>
+</Project>
