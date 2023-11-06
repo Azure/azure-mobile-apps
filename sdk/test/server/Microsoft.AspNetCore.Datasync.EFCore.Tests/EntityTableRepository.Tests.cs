@@ -43,4 +43,28 @@ public class EntityTableRepository_Tests : RepositoryTests<SqliteEntityMovie>
         Action act = () => _ = new EntityTableRepository<SqliteEntityMovie>(context);
         act.Should().NotThrow();
     }
+
+    [Fact]
+    public async void WrapExceptionAsync_ThrowsConflictException_WhenDbConcurrencyUpdateExceptionThrown()
+    {
+        const string id = "id-001";
+        SqliteEntityMovie expectedPayload = GetEntity(id);
+
+        static Task innerAction() => throw new DbUpdateConcurrencyException("Concurrency exception");
+
+        Func<Task> act = async () => await repository.WrapExceptionAsync(id, innerAction);
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(409).And.WithPayload(expectedPayload);
+    }
+
+    [Fact]
+    public async void WrapExceptionAsync_ThrowsRepositoryException_WhenDbUpdateExceptionThrown()
+    {
+        const string id = "id-001";
+        SqliteEntityMovie expectedPayload = GetEntity(id);
+
+        static Task innerAction() => throw new DbUpdateException("Non-concurrency exception");
+
+        Func<Task> act = async () => await repository.WrapExceptionAsync(id, innerAction);
+        await act.Should().ThrowAsync<RepositoryException>();
+    }
 }

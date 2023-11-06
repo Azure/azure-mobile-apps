@@ -41,6 +41,15 @@ public class InMemoryRepository_Tests : RepositoryTests<InMemoryMovie>
     }
 
     [Fact]
+    public void Ctor_Populated_NoId()
+    {
+        var movies = Movies.OfType<InMemoryMovie>().ConvertAll(m => { m.Id = null; return m; });
+        var repository = new InMemoryRepository<InMemoryMovie>(movies);
+        repository.Should().NotBeNull();
+        repository.GetEntities().Count.Should().Be(movies.Count);
+    }
+
+    [Fact]
     public async Task AsQueryableAsync_Throws()
     {
         SetException(new ApplicationException("test exception"));

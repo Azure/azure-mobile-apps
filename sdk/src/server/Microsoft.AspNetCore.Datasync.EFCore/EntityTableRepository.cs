@@ -76,7 +76,7 @@ public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity
     /// <returns>A task that completes when the operation is finished.</returns>
     /// <exception cref="HttpException">Thrown if a concurrency exception occurs.</exception>
     /// <exception cref="RepositoryException">Throw if an error in the backend occurs.</exception>
-    protected async Task WrapExceptionAsync(string id, Func<Task> action, CancellationToken cancellationToken = default)
+    internal async Task WrapExceptionAsync(string id, Func<Task> action, CancellationToken cancellationToken = default)
     {
         try
         {
