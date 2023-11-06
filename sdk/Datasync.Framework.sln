@@ -31,9 +31,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Datasy
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Datasync.LiteDb.Tests", "test\server\Microsoft.AspNetCore.Datasync.LiteDb.Tests\Microsoft.AspNetCore.Datasync.LiteDb.Tests.csproj", "{48E64C88-A2EA-44D7-84C2-5D2EA280A3C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.EFCore", "src\server\Microsoft.AspNetCore.Datasync.EFCore\Microsoft.AspNetCore.Datasync.EFCore.csproj", "{C2B18903-8EC6-48F6-87D8-99BD5AC9FB3F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Datasync.EFCore", "src\server\Microsoft.AspNetCore.Datasync.EFCore\Microsoft.AspNetCore.Datasync.EFCore.csproj", "{C2B18903-8EC6-48F6-87D8-99BD5AC9FB3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.EFCore.Tests", "test\server\Microsoft.AspNetCore.Datasync.EFCore.Tests\Microsoft.AspNetCore.Datasync.EFCore.Tests.csproj", "{AFADFDEB-0B09-4ABA-A8E2-02E931F81D4F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Datasync.EFCore.Tests", "test\server\Microsoft.AspNetCore.Datasync.EFCore.Tests\Microsoft.AspNetCore.Datasync.EFCore.Tests.csproj", "{AFADFDEB-0B09-4ABA-A8E2-02E931F81D4F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.Automapper", "src\server\Microsoft.AspNetCore.Datasync.Automapper\Microsoft.AspNetCore.Datasync.Automapper.csproj", "{E607AF0A-09E3-45FD-B583-B7CA7749F271}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Datasync.Automapper.Tests", "test\server\Microsoft.AspNetCore.Datasync.Automapper.Tests\Microsoft.AspNetCore.Datasync.Automapper.Tests.csproj", "{CD8F7DB3-3605-41CF-A1B1-73D6BD1F73A4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -73,6 +77,14 @@ Global
 		{AFADFDEB-0B09-4ABA-A8E2-02E931F81D4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFADFDEB-0B09-4ABA-A8E2-02E931F81D4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFADFDEB-0B09-4ABA-A8E2-02E931F81D4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E607AF0A-09E3-45FD-B583-B7CA7749F271}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E607AF0A-09E3-45FD-B583-B7CA7749F271}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E607AF0A-09E3-45FD-B583-B7CA7749F271}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E607AF0A-09E3-45FD-B583-B7CA7749F271}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD8F7DB3-3605-41CF-A1B1-73D6BD1F73A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD8F7DB3-3605-41CF-A1B1-73D6BD1F73A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD8F7DB3-3605-41CF-A1B1-73D6BD1F73A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD8F7DB3-3605-41CF-A1B1-73D6BD1F73A4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -89,6 +101,8 @@ Global
 		{48E64C88-A2EA-44D7-84C2-5D2EA280A3C1} = {5CB2D5E7-FE26-4CFE-B5B1-F8CFDB1D5587}
 		{C2B18903-8EC6-48F6-87D8-99BD5AC9FB3F} = {03E5C0CF-9727-47D6-927C-BF4DEBC35B20}
 		{AFADFDEB-0B09-4ABA-A8E2-02E931F81D4F} = {5CB2D5E7-FE26-4CFE-B5B1-F8CFDB1D5587}
+		{E607AF0A-09E3-45FD-B583-B7CA7749F271} = {03E5C0CF-9727-47D6-927C-BF4DEBC35B20}
+		{CD8F7DB3-3605-41CF-A1B1-73D6BD1F73A4} = {5CB2D5E7-FE26-4CFE-B5B1-F8CFDB1D5587}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F734C042-F8B1-4DA7-BAB7-A34A0D8D9122}

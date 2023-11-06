@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Xunit.Abstractions;
 using TestData = Datasync.Common.TestData;
 
-namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;
+namespace Microsoft.AspNetCore.Datasync.Automapper.Tests;
 
 [ExcludeFromCodeCoverage]
 public class TestDbContext : DbContext
@@ -27,7 +27,7 @@ public class TestDbContext : DbContext
         context.Database.EnsureCreated();
 
         Random random = new();
-        TestData.Movies.OfType<SqliteEntityMovie>().ForEach(movie =>
+        TestData.Movies.OfType<EntityMovie>().ForEach(movie =>
         {
             movie.Version = Guid.NewGuid().ToByteArray();
             movie.UpdatedAt = DateTimeOffset.UtcNow.AddDays(random.Next(180) * -1);
@@ -43,12 +43,12 @@ public class TestDbContext : DbContext
 
     public SqliteConnection Connection { get; set; }
 
-    public DbSet<SqliteEntityMovie> Movies { get; set; }
+    public DbSet<EntityMovie> Movies { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // SQLite stores date/times with second resolution, which isn't high enough for Azure Mobile Apps.
-        modelBuilder.Entity<SqliteEntityMovie>().Property(m => m.UpdatedAt).HasConversion(new SqliteDateTimeOffsetConverter());
+        modelBuilder.Entity<EntityMovie>().Property(m => m.UpdatedAt).HasConversion(new SqliteDateTimeOffsetConverter());
         base.OnModelCreating(modelBuilder);
     }
 

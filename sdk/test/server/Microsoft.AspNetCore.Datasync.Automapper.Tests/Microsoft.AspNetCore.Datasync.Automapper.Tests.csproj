@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\Shared.Build.props" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.24" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\server\Microsoft.AspNetCore.Datasync.Automapper\Microsoft.AspNetCore.Datasync.Automapper.csproj" />
+    <ProjectReference Include="..\..\..\src\server\Microsoft.AspNetCore.Datasync.EFCore\Microsoft.AspNetCore.Datasync.EFCore.csproj" />
+    <ProjectReference Include="..\..\shared\Datasync.Common\Datasync.Common.csproj" />
+  </ItemGroup>
+</Project>

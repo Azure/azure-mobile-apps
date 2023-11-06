@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>An Automapper based wrapper for repositories; used for developing applications based on Azure Mobile Apps.</Description>
+  </PropertyGroup>
+
+  <Import Project="..\..\Shared.Build.props" />
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.AspNetCore.Datasync.Abstractions\Microsoft.AspNetCore.Datasync.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>
