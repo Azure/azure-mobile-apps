@@ -9,6 +9,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Datasync.Automapper.Tests;
 
+[ExcludeFromCodeCoverage]
 public class MappedTableRepository_Tests : RepositoryTests<MovieDto>
 {
     #region Setup

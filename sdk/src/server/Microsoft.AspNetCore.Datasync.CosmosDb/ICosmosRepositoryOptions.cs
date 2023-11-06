@@ -3,6 +3,8 @@
 
 using Microsoft.AspNetCore.Datasync.Abstractions;
 using Microsoft.Azure.Cosmos;
+using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Datasync.CosmosDb;
 
@@ -41,17 +43,33 @@ public class CosmosRepositoryOptions<TEntity> : ICosmosRepositoryOptions<TEntity
     /// The separator between the ID and the partition key.  This must be a character that is not valid in an ID,
     /// but is valid in a HTTP path request.
     /// </summary>
-    protected const string SeparatorCharacter = ":";
+    protected const char SeparatorCharacter = ':';
+
+    /// <summary>
+    /// The separator between multiple partition key values.  This must be a character that is not valid in an ID,
+    /// </summary>
+    protected const char PartitonKeySeparator = '|';
 
     /// <inheritdoc />
-    public virtual ItemRequestOptions ItemRequestOptions { get; set; } = new ItemRequestOptions() { ConsistencyLevel = ConsistencyLevel.Session };
+    public virtual ItemRequestOptions ItemRequestOptions { get; set; } = new ItemRequestOptions()
+    {
+        ConsistencyLevel = ConsistencyLevel.Session
+    };
 
     /// <inheritdoc />
     public virtual ValueTask<string> CreateEntityIdAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
-        string id = string.IsNullOrEmpty(entity.Id) ? Guid.NewGuid().ToString("N") : entity.Id;
-        PartitionKey partitionKey = new(DefaultPartitionKeyValue);
-        return ValueTask.FromResult(BuildEntityId(id, partitionKey));
+        if (!string.IsNullOrEmpty(entity.Id) && !entity.Id.Contains(SeparatorCharacter))
+        {
+            throw new HttpException(HttpStatusCodes.Status400BadRequest);
+        }
+        if (string.IsNullOrEmpty(entity.Id))
+        {
+            string id = Guid.NewGuid().ToString("N");
+            PartitionKey partitionKey = new(DefaultPartitionKeyValue);
+            entity.Id = BuildEntityId(id, partitionKey);
+        }
+        return ValueTask.FromResult(entity.Id);
     }
 
     /// <inheritdoc />
@@ -62,7 +80,7 @@ public class CosmosRepositoryOptions<TEntity> : ICosmosRepositoryOptions<TEntity
             throw new HttpException(HttpStatusCodes.Status400BadRequest);
         }
         string[] segments = dtoId.Split(SeparatorCharacter);
-        if (segments.Length != 2)
+        if (segments.Length != 2 || string.IsNullOrWhiteSpace(segments[0]) || string.IsNullOrWhiteSpace(segments[1]))
         {
             throw new HttpException(HttpStatusCodes.Status400BadRequest);
         }
@@ -78,5 +96,10 @@ public class CosmosRepositoryOptions<TEntity> : ICosmosRepositoryOptions<TEntity
     /// <param name="partitionKey">The partition key.</param>
     /// <returns>An entity ID representing both the ID and partition key.</returns>
     protected virtual string BuildEntityId(string id, PartitionKey partitionKey)
-        => $"{id}{SeparatorCharacter}{partitionKey}";
+    {
+        // The partition key is stored as a JSON array, so we need to deserialize it into a list of strings,
+        // then join it with | to make a string that can be used in the ID.
+        List<string> partitionKeyValues = JsonSerializer.Deserialize<List<string>>(partitionKey.ToString())!;
+        return $"{id}{SeparatorCharacter}{string.Join(PartitonKeySeparator, partitionKeyValues)}";
+    }
 }

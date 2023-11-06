@@ -6,6 +6,10 @@
   <Import Project="..\..\Shared.Build.props" />
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Datasync.CosmosDb.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.4" />
   </ItemGroup>
 

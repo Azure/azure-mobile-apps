@@ -9,7 +9,7 @@ using CosmosContainer = Microsoft.Azure.Cosmos.Container;
 
 namespace Microsoft.AspNetCore.Datasync.CosmosDb;
 
-public class CosmosTableRepository<TEntity> : IRepository<TEntity> where TEntity : CosmosTableData
+public class CosmosRepository<TEntity> : IRepository<TEntity> where TEntity : CosmosTableData
 {
     private bool _containerChecked = false;
     private readonly SemaphoreSlim _checkSemaphore = new(1, 1);
@@ -17,35 +17,30 @@ public class CosmosTableRepository<TEntity> : IRepository<TEntity> where TEntity
     private readonly ICosmosRepositoryOptions<TEntity> _options;
 
     /// <summary>
-    /// Creates a new <see cref="CosmosTableRepository{TEntity}"/> using the provided container and
+    /// Creates a new <see cref="CosmosRepository{TEntity}"/> using the provided container and
     /// default options.
     /// </summary>
     /// <param name="container">The Cosmos container to use for storing data.</param>
-    public CosmosTableRepository(CosmosContainer container) : this(container, new CosmosRepositoryOptions<TEntity>())
+    public CosmosRepository(CosmosContainer container) : this(container, new CosmosRepositoryOptions<TEntity>())
     {
     }
 
     /// <summary>
-    /// Creates a new <see cref="CosmosTableRepository{TEntity}"/> using the provided container and
+    /// Creates a new <see cref="CosmosRepository{TEntity}"/> using the provided container and
     /// specific options.
     /// </summary>
     /// <param name="container">The Cosmos container to use for storing data.</param>
     /// <param name="options">The options to use for configuring this repository.</param>
     /// <exception cref="InvalidCastException">If the entity being used is invalid.</exception>
-    public CosmosTableRepository(CosmosContainer container, ICosmosRepositoryOptions<TEntity> options)
+    public CosmosRepository(CosmosContainer container, ICosmosRepositoryOptions<TEntity> options)
     {
-        _container = container;
-        _options = options;
-
         if (typeof(TEntity).Name.Equals("User", StringComparison.OrdinalIgnoreCase))
         {
             // User is a reserved entity type name in Cosmos and cannot be used with .AsQueryable()
             throw new InvalidCastException("User is a reserved entity type name");
         }
-
-        // Note: normally, we would check to ensure that the provided container is valid.
-        // However, that is an async operation in Cosmos, so we defer until the first
-        // operation.
+        _container = container;
+        _options = options;
     }
 
     /// <summary>
@@ -53,7 +48,7 @@ public class CosmosTableRepository<TEntity> : IRepository<TEntity> where TEntity
     /// </summary>
     /// <param name="version">The version required for the If-Match header.</param>
     /// <returns>The <see cref="ItemRequestOptions"/> to use for an operation.</returns>
-    private ItemRequestOptions ItemRequestOptionsWithVersion(byte[]? version)
+    protected ItemRequestOptions ItemRequestOptionsWithVersion(byte[]? version)
     {
         if (version == null || version.Length == 0)
         {
@@ -72,7 +67,7 @@ public class CosmosTableRepository<TEntity> : IRepository<TEntity> where TEntity
     /// <param name="partitionKey">On return, set to the required partition key.</param>
     /// <returns>The entity ID, as stored in the database.</returns>
     /// <exception cref="HttpException">If the provided ID is not valid.</exception>
-    private string ParseEntityId(string id, out PartitionKey partitionKey)
+    internal string ParseEntityId(string id, out PartitionKey partitionKey)
     {
         if (string.IsNullOrEmpty(id))
         {
@@ -92,7 +87,7 @@ public class CosmosTableRepository<TEntity> : IRepository<TEntity> where TEntity
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
     /// <returns>A task that completes when the operation is finished.</returns>
     /// <exception cref="InvalidOperationException">if the container does not exist.</exception>
-    private async ValueTask ValidateContainerExistsAsync(CancellationToken cancellationToken = default)
+    internal async ValueTask ValidateContainerExistsAsync(CancellationToken cancellationToken = default)
     {
         if (_containerChecked)
         {
@@ -220,7 +215,7 @@ public class CosmosTableRepository<TEntity> : IRepository<TEntity> where TEntity
     {
         await ValidateContainerExistsAsync(cancellationToken).ConfigureAwait(false);
         string entityId = ParseEntityId(id, out PartitionKey partitionKey);
-        return await CosmosTableRepository<TEntity>.WrapExceptionAsync(async () =>
+        return await CosmosRepository<TEntity>.WrapExceptionAsync(async () =>
         {
             TEntity entity = await _container.ReadItemAsync<TEntity>(entityId, partitionKey, _options.ItemRequestOptions, cancellationToken).ConfigureAwait(false);
             entity.Id = id; // We always get the same ID back, so we don't need to calculate it.
