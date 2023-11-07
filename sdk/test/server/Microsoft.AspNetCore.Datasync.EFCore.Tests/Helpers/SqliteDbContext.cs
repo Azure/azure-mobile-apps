@@ -10,20 +10,20 @@ using TestData = Datasync.Common.TestData;
 namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;
 
 [ExcludeFromCodeCoverage]
-public class TestDbContext : DbContext
+public class SqliteDbContext : DbContext
 {
-    public static TestDbContext CreateContext(ITestOutputHelper output = null)
+    public static SqliteDbContext CreateContext(ITestOutputHelper output = null)
     {
 
         SqliteConnection connection = new("Data Source=:memory:");
         connection.Open();
-        DbContextOptionsBuilder<TestDbContext> optionsBuilder = new DbContextOptionsBuilder<TestDbContext>().UseSqlite(connection);
+        DbContextOptionsBuilder<SqliteDbContext> optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>().UseSqlite(connection);
         if (output != null)
         {
             optionsBuilder.UseLoggerFactory(new TestLoggerFactory(output, new string[] { "DbLoggerCategory.Database.Command.Name" }));
             optionsBuilder.EnableSensitiveDataLogging().EnableDetailedErrors();
         }
-        TestDbContext context = new(optionsBuilder.Options) { Connection = connection };
+        SqliteDbContext context = new(optionsBuilder.Options) { Connection = connection };
         context.Database.EnsureCreated();
 
         Random random = new();
@@ -37,7 +37,7 @@ public class TestDbContext : DbContext
         return context;
     }
 
-    public TestDbContext(DbContextOptions<TestDbContext> options) : base(options)
+    public SqliteDbContext(DbContextOptions<SqliteDbContext> options) : base(options)
     {
     }
 

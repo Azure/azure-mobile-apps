@@ -12,9 +12,9 @@ public class EntityTableRepository_Tests : RepositoryTests<SqliteEntityMovie>
 {
     #region Setup
     private List<SqliteEntityMovie> movies;
-    private Lazy<TestDbContext> _context = new(() => TestDbContext.CreateContext());
+    private Lazy<SqliteDbContext> _context = new(() => SqliteDbContext.CreateContext());
 
-    private TestDbContext Context { get => _context.Value; }
+    private SqliteDbContext Context { get => _context.Value; }
 
     protected override Task<SqliteEntityMovie> GetEntityAsync(string id)
         => Task.FromResult(Context.Movies.AsNoTracking().SingleOrDefault(m => m.Id == id));
