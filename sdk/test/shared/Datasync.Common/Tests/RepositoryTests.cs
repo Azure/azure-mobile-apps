@@ -18,14 +18,14 @@ namespace Datasync.Common.Tests;
 public abstract class RepositoryTests<TEntity> where TEntity : class, ITableData, IMovie, new()
 {
     /// <summary>
-    /// The repository under test.
-    /// </summary>
-    protected IRepository<TEntity> Repository { get; init; }
-
-    /// <summary>
     /// The time that the current test started.
     /// </summary>
     protected DateTimeOffset StartTime { get; } = DateTimeOffset.UtcNow;
+
+    /// <summary>
+    /// Returns true if all the requirements for live tests are met.
+    /// </summary>
+    protected virtual bool CanRunLiveTests() => true;
 
     /// <summary>
     /// The actual test class must provide an implementation that retrieves the entity through
@@ -33,64 +33,112 @@ public abstract class RepositoryTests<TEntity> where TEntity : class, ITableData
     /// </summary>
     /// <param name="id">The ID of the entity to retrieve.</param>
     /// <returns>Either <c>null</c> if the entity does not exist, or the entity.</returns>
-    protected abstract TEntity GetEntity(string id);
+    protected abstract Task<TEntity> GetEntityAsync(string id);
 
     /// <summary>
     /// The actual test class must provide an implementation that retrieves the entity count in
     /// the backing data store.
     /// </summary>
     /// <returns>The number of entities in the store.</returns>
-    protected abstract int GetEntityCount();
+    protected abstract Task<int> GetEntityCountAsync();
+
+    /// <summary>
+    /// Retrieves a populated repository for testing.
+    /// </summary>
+    protected abstract Task<IRepository<TEntity>> GetPopulatedRepositoryAsync();
+
+    /// <summary>
+    /// Retrieves a random ID from the database for testing.
+    /// </summary>
+    protected abstract Task<string> GetRandomEntityIdAsync(bool exists);
 
     #region AsQueryableAsync
-    [Fact]
+    [SkippableFact]
     public async Task AsQueryableAsync_ReturnsQueryable()
     {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+
         var sut = await Repository.AsQueryableAsync();
+
         sut.Should().NotBeNull().And.BeAssignableTo<IQueryable<TEntity>>();
     }
 
-    [Theory]
-    [InlineData("id-001")]
-    public async Task AsQueryableAsync_CanRetrieveSingleItems(string id)
+    [SkippableFact]
+    public async Task AsQueryableAsync_CanRetrieveSingleItems()
     {
-        TEntity expected = GetEntity(id);
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(true);
+        TEntity expected = await GetEntityAsync(id);
+
         TEntity actual = (await Repository.AsQueryableAsync()).Single(m => m.Id == id);
+
         actual.Should().BeEquivalentTo(expected);
     }
 
-    [Fact]
-    public async Task AsQueryable_CanRetrieveFilteredLists()
+    [SkippableFact]
+    public async Task AsQueryableAsync_CanRetrieveFilteredLists()
     {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
         int expected = Movies.Count<TEntity>(m => m.Rating == MovieRating.R);
+
         List<TEntity> actual = (await Repository.AsQueryableAsync()).Where(m => m.Rating == MovieRating.R).ToList();
+
         actual.Should().HaveCount(expected);
+    }
+
+    [SkippableFact]
+    public async Task AsQueryableAsync_CanSelectFromList()
+    {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        int expected = Movies.Count<TEntity>(m => m.Rating == MovieRating.R);
+
+        var actual = (await Repository.AsQueryableAsync()).Where(m => m.Rating == MovieRating.R).Select(m => new { m.Id, m.Title }).ToList();
+
+        actual.Should().HaveCount(expected);
+    }
+
+    [SkippableFact]
+    public async Task AsQueryableAsync_CanUseTopAndSkip()
+    {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+
+        var actual = (await Repository.AsQueryableAsync()).Where(m => m.Rating == MovieRating.R).Skip(5).Take(20).ToList();
+
+        actual.Should().HaveCount(20);
     }
     #endregion
 
     #region CreateAsync
-    [Theory]
-    [InlineData("movie-blackpanther")]
-    public async Task CreateAsync_CreatesNewEntity_WithSpecifiedId(string id)
+    [SkippableFact]
+    public async Task CreateAsync_CreatesNewEntity_WithSpecifiedId()
     {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(false);
         TEntity addition = Movies.OfType<TEntity>(Movies.BlackPanther, id);
         TEntity sut = addition.Clone();
 
         await Repository.CreateAsync(sut);
 
-        TEntity actual = GetEntity(id);
+        TEntity actual = await GetEntityAsync(id);
         actual.Should().BeEquivalentTo<IMovie>(addition);
         actual.Should().NotBeEquivalentTo<ITableData>(addition).And.HaveEquivalentMetadataTo(sut);
-
         actual.Id.Should().Be(id);
         actual.UpdatedAt.Should().BeAfter(StartTime).And.BeBefore(DateTimeOffset.UtcNow);
     }
 
-    [Theory]
+    [SkippableTheory]
     [InlineData(null)]
     [InlineData("")]
     public async Task CreateAsync_CreatesNewEntity_WithNullId(string id)
     {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
         TEntity addition = Movies.OfType<TEntity>(Movies.BlackPanther);
         addition.Id = id;
         TEntity sut = addition.Clone();
@@ -98,28 +146,34 @@ public abstract class RepositoryTests<TEntity> where TEntity : class, ITableData
         await Repository.CreateAsync(sut);
 
         sut.Id.Should().NotBeNullOrEmpty();
-        TEntity actual = GetEntity(sut.Id);
+        TEntity actual = await GetEntityAsync(sut.Id);
         actual.Should().BeEquivalentTo<IMovie>(addition);
         actual.UpdatedAt.Should().BeAfter(StartTime).And.BeBefore(DateTimeOffset.UtcNow);
     }
 
-    [Theory]
-    [InlineData("id-002")]
-    public async Task CreateAsync_ThrowsConflict(string id)
+    [SkippableFact]
+    public async Task CreateAsync_ThrowsConflict()
     {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(true);
+
         TEntity addition = Movies.OfType<TEntity>(Movies.BlackPanther, id);
         TEntity sut = addition.Clone();
-        TEntity expected = GetEntity(id);
+        TEntity expected = await GetEntityAsync(id);
 
         Func<Task> act = async () => await Repository.CreateAsync(sut);
 
         (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(409).And.WithPayload(expected);
     }
 
-    [Theory]
-    [InlineData("create-test-metadata")]
-    public async Task CreateAsync_UpdatesMetadata(string id)
+    [SkippableFact]
+    public async Task CreateAsync_UpdatesMetadata()
     {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(false);
+
         TEntity addition = Movies.OfType<TEntity>(Movies.BlackPanther, id);
         TEntity sut = addition.Clone();
         sut.UpdatedAt = DateTimeOffset.UtcNow.AddDays(-1);
@@ -128,19 +182,21 @@ public abstract class RepositoryTests<TEntity> where TEntity : class, ITableData
 
         await Repository.CreateAsync(sut);
 
-        TEntity actual = GetEntity(id);
+        TEntity actual = await GetEntityAsync(id);
         actual.Should().BeEquivalentTo<IMovie>(addition);
         actual.Should().NotBeEquivalentTo<ITableData>(addition).And.HaveEquivalentMetadataTo(sut);
-
         actual.Id.Should().Be(id);
         actual.UpdatedAt.Should().BeAfter(StartTime).And.BeBefore(DateTimeOffset.UtcNow);
         actual.Version.Should().NotBeEquivalentTo(expectedVersion);
     }
 
-    [Theory]
-    [InlineData("create-test-disconnected")]
-    public async Task CreateAsync_StoresDisconnectedEntity(string id)
+    [SkippableFact]
+    public async Task CreateAsync_StoresDisconnectedEntity()
     {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(false);
+
         TEntity addition = Movies.OfType<TEntity>(Movies.BlackPanther, id);
         TEntity sut = addition.Clone();
         sut.UpdatedAt = DateTimeOffset.UtcNow.AddDays(-1);
@@ -149,132 +205,203 @@ public abstract class RepositoryTests<TEntity> where TEntity : class, ITableData
 
         await Repository.CreateAsync(sut);
 
-        TEntity actual = GetEntity(id);
+        TEntity actual = await GetEntityAsync(id);
         actual.Should().NotBeSameAs(sut);
     }
     #endregion
 
     #region DeleteAsync
-    [Theory]
-    [InlineData(null, 400)]
-    [InlineData("", 400)]
-    [InlineData("not-found", 404)]
-    public async Task DeleteAsync_Throws_OnBadIds(string id, int expectedStatusCode)
+    [SkippableTheory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task DeleteAsync_Throws_OnBadIds(string id)
     {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+
         Func<Task> act = async () => await Repository.DeleteAsync(id);
-        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(expectedStatusCode);
-        GetEntityCount().Should().Be(Movies.Count<TEntity>());
+
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(400);
+        (await GetEntityCountAsync()).Should().Be(Movies.Count<TEntity>());
     }
 
-    [Theory]
-    [InlineData("id-003")]
-    public async Task DeleteAsync_Throws_WhenVersionMismatch(string id)
+    [SkippableFact]
+    public async Task DeleteAsync_Throws_OnMissingIds()
     {
-        TEntity expected = GetEntity(id);
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(false);
+
+        Func<Task> act = async () => await Repository.DeleteAsync(id);
+
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(404);
+        (await GetEntityCountAsync()).Should().Be(Movies.Count<TEntity>());
+    }
+
+    [SkippableFact]
+    public async Task DeleteAsync_Throws_WhenVersionMismatch()
+    {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(true);
+
+        TEntity expected = await GetEntityAsync(id);
         byte[] version = Guid.NewGuid().ToByteArray();
 
         Func<Task> act = async () => await Repository.DeleteAsync(id, version);
+
         (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(412).And.WithPayload(expected);
     }
 
-    [Theory]
-    [InlineData("id-004")]
-    public async Task DeleteAsync_Deletes_WhenVersionMatch(string id)
+    [SkippableFact]
+    public async Task DeleteAsync_Deletes_WhenVersionMatch()
     {
-        TEntity expected = GetEntity(id);
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(true);
+
+        TEntity expected = await GetEntityAsync(id);
         byte[] version = expected.Version.ToArray();
 
         await Repository.DeleteAsync(id, version);
 
-        TEntity actual = GetEntity(id);
+        TEntity actual = await GetEntityAsync(id);
         actual.Should().BeNull();
     }
 
-    [Theory]
-    [InlineData("id-005")]
-    public async Task DeleteAsync_Deletes_WhenNoVersion(string id)
+    [SkippableFact]
+    public async Task DeleteAsync_Deletes_WhenNoVersion()
     {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(true);
+
         await Repository.DeleteAsync(id);
 
-        TEntity actual = GetEntity(id);
+        TEntity actual = await GetEntityAsync(id);
         actual.Should().BeNull();
     }
     #endregion
 
     #region ReadAsync
-    [Theory]
-    [InlineData("id-007")]
-    public async Task ReadAsync_ReturnsDisconnectedEntity(string id)
+    [SkippableFact]
+    public async Task ReadAsync_ReturnsDisconnectedEntity()
     {
-        TEntity expected = GetEntity(id);
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(true);
+
+        TEntity expected = await GetEntityAsync(id);
+
         TEntity actual = await Repository.ReadAsync(id);
+
         actual.Should().BeEquivalentTo(expected).And.NotBeSameAs(expected);
     }
 
-    [Theory]
-    [InlineData(null, 400)]
-    [InlineData("", 400)]
-    [InlineData("not-found", 404)]
-    public async Task ReadAsync_Throws_OnBadId(string id, int expectedStatusCode)
+    [SkippableTheory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task ReadAsync_Throws_OnBadId(string id)
     {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+
         Func<Task> act = async () => _ = await Repository.ReadAsync(id);
-        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(expectedStatusCode);
+
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(400);
+    }
+
+    [SkippableFact]
+    public async Task ReadAsync_Throws_OnMissingId()
+    {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(false);
+
+        Func<Task> act = async () => _ = await Repository.ReadAsync(id);
+
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(404);
     }
     #endregion
 
     #region ReplaceAsync
-    [Theory]
-    [InlineData(null, 400)]
-    [InlineData("", 400)]
-    [InlineData("not-found", 404)]
-    public async Task ReplaceAsync_Throws_OnBadId(string id, int expectedStatusCode)
+    [SkippableTheory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task ReplaceAsync_Throws_OnBadId(string id)
     {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
         TEntity replacement = Movies.OfType<TEntity>(Movies.BlackPanther);
         replacement.Id = id;
+
         Func<Task> act = async () => await Repository.ReplaceAsync(replacement);
-        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(expectedStatusCode);
+
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(400);
     }
 
-    [Theory]
-    [InlineData("id-009")]
-    public async Task ReplaceAsync_Throws_OnVersionMismatch(string id)
+    [SkippableFact]
+    public async Task ReplaceAsync_Throws_OnMissingId()
     {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(false);
         TEntity replacement = Movies.OfType<TEntity>(Movies.BlackPanther, id);
-        TEntity expected = GetEntity(id);
+
+        Func<Task> act = async () => await Repository.ReplaceAsync(replacement);
+
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(404);
+    }
+
+    [SkippableFact]
+    public async Task ReplaceAsync_Throws_OnVersionMismatch()
+    {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(true);
+
+        TEntity replacement = Movies.OfType<TEntity>(Movies.BlackPanther, id);
+        TEntity expected = await GetEntityAsync(id);
         byte[] version = Guid.NewGuid().ToByteArray();
 
         Func<Task> act = async () => await Repository.ReplaceAsync(replacement, version);
         (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(412).And.WithPayload(expected);
     }
 
-    [Theory]
-    [InlineData("id-010")]
-    public async Task ReplaceAsync_Replaces_OnVersionMatch(string id)
+    [SkippableFact]
+    public async Task ReplaceAsync_Replaces_OnVersionMatch()
     {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(true);
+
         TEntity replacement = Movies.OfType<TEntity>(Movies.BlackPanther, id);
-        TEntity expected = GetEntity(id);
+        TEntity expected = await GetEntityAsync(id);
         byte[] version = expected.Version.ToArray();
 
         await Repository.ReplaceAsync(replacement, version);
 
-        TEntity actual = GetEntity(id);
+        TEntity actual = await GetEntityAsync(id);
 
         actual.Should().BeEquivalentTo<IMovie>(replacement).And.NotBeEquivalentTo<ITableData>(expected);
         actual.Version.Should().NotBeEquivalentTo(version);
         actual.UpdatedAt.Should().BeAfter(StartTime).And.BeBefore(DateTimeOffset.UtcNow);
     }
 
-    [Theory]
-    [InlineData("id-011")]
-    public async Task ReplaceAsync_Replaces_OnNoVersion(string id)
+    [SkippableFact]
+    public async Task ReplaceAsync_Replaces_OnNoVersion()
     {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        string id = await GetRandomEntityIdAsync(true);
+
         TEntity replacement = Movies.OfType<TEntity>(Movies.BlackPanther, id);
-        TEntity expected = GetEntity(id);
+        TEntity expected = await GetEntityAsync(id);
         byte[] version = expected.Version.ToArray();
 
         await Repository.ReplaceAsync(replacement);
 
-        TEntity actual = GetEntity(id);
+        TEntity actual = await GetEntityAsync(id);
 
         actual.Should().BeEquivalentTo<IMovie>(replacement).And.NotBeEquivalentTo<ITableData>(expected);
         actual.Version.Should().NotBeEquivalentTo(version);

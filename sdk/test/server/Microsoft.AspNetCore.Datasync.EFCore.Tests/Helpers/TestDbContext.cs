@@ -12,18 +12,18 @@ namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;
 [ExcludeFromCodeCoverage]
 public class TestDbContext : DbContext
 {
-    public static TestDbContext CreateContext(ITestOutputHelper output)
+    public static TestDbContext CreateContext(ITestOutputHelper output = null)
     {
 
-        var connection = new SqliteConnection("Data Source=:memory:");
+        SqliteConnection connection = new("Data Source=:memory:");
         connection.Open();
-        var options = new DbContextOptionsBuilder<TestDbContext>()
-            .UseLoggerFactory(new TestLoggerFactory(output, new string[] { "DbLoggerCategory.Database.Command.Name" }))
-            .EnableSensitiveDataLogging()
-            .EnableDetailedErrors()
-            .UseSqlite(connection)
-            .Options;
-        var context = new TestDbContext(options) { Connection = connection };
+        DbContextOptionsBuilder<TestDbContext> optionsBuilder = new DbContextOptionsBuilder<TestDbContext>().UseSqlite(connection);
+        if (output != null)
+        {
+            optionsBuilder.UseLoggerFactory(new TestLoggerFactory(output, new string[] { "DbLoggerCategory.Database.Command.Name" }));
+            optionsBuilder.EnableSensitiveDataLogging().EnableDetailedErrors();
+        }
+        TestDbContext context = new(optionsBuilder.Options) { Connection = connection };
         context.Database.EnsureCreated();
 
         Random random = new();

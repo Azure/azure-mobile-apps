@@ -1,16 +1,59 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Tests;
 using Microsoft.Azure.Cosmos;
 using NSubstitute;
 using System.Reflection;
+using Xunit.Abstractions;
 using CosmosContainer = Microsoft.Azure.Cosmos.Container;
 
 namespace Microsoft.AspNetCore.Datasync.CosmosDb.Tests;
 
 [ExcludeFromCodeCoverage]
-public class CosmosRepository_Tests // TODO: : RepositoryTests<CosmosMovie>
+public class CosmosRepository_Tests : RepositoryTests<CosmosMovie>, IAsyncDisposable
 {
+    #region Setup
+    private readonly ITestOutputHelper output;
+    private readonly string connectionString;
+    private CosmosClient cosmosClient;
+    private CosmosContainer cosmosContainer;
+
+    public CosmosRepository_Tests(ITestOutputHelper output) : base()
+    {
+        connectionString = Environment.GetEnvironmentVariable("ZUMO_COSMOSDB_CONNECTIONSTRING");
+        this.output = output;
+    }
+
+    protected override bool CanRunLiveTests() => !string.IsNullOrWhiteSpace(connectionString);
+
+    protected override Task<CosmosMovie> GetEntityAsync(string id)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task<int> GetEntityCountAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task<IRepository<CosmosMovie>> GetPopulatedRepositoryAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task<string> GetRandomEntityIdAsync(bool exists)
+    {
+        throw new NotImplementedException();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        GC.SuppressFinalize(this);
+        throw new NotImplementedException();
+    }
+    #endregion
+
     [Fact]
     public void Ctor_UserEntity_Throws()
     {

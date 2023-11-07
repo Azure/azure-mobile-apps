@@ -9,35 +9,42 @@ namespace Microsoft.AspNetCore.Datasync.InMemory.Tests;
 public class InMemoryRepository_Tests : RepositoryTests<InMemoryMovie>
 {
     #region Setup
-    public InMemoryRepository_Tests() : base()
+    private InMemoryRepository<InMemoryMovie> repository;
+
+    protected override Task<InMemoryMovie> GetEntityAsync(string id)
+        => Task.FromResult(repository.GetEntity(id));
+
+    protected override Task<int> GetEntityCountAsync()
+        => Task.FromResult(repository.GetEntities().Count);
+
+    protected override Task<IRepository<InMemoryMovie>> GetPopulatedRepositoryAsync()
     {
-        Repository = new InMemoryRepository<InMemoryMovie>(Movies.OfType<InMemoryMovie>());
+        repository = new InMemoryRepository<InMemoryMovie>(Movies.OfType<InMemoryMovie>());
+        return Task.FromResult<IRepository<InMemoryMovie>>(repository);
     }
 
-    protected override InMemoryMovie GetEntity(string id)
-        => (Repository as InMemoryRepository<InMemoryMovie>).GetEntity(id);
-
-    protected override int GetEntityCount()
-        => (Repository as InMemoryRepository<InMemoryMovie>).GetEntities().Count;
-
-    protected void SetException(Exception ex)
-        => (Repository as InMemoryRepository<InMemoryMovie>).ThrowException = ex;
+    protected override Task<string> GetRandomEntityIdAsync(bool exists)
+    {
+        Random random = new();
+        return Task.FromResult(exists ? repository.GetEntities()[random.Next(repository.GetEntities().Count)].Id : Guid.NewGuid().ToString());
+    }
     #endregion
 
     [Fact]
     public void Ctor_Empty()
     {
         var repository = new InMemoryRepository<InMemoryMovie>();
-
         repository.Should().NotBeNull();
         repository.GetEntities().Should().BeEmpty();
     }
 
     [Fact]
-    public void Ctor_Populated()
+    public async Task Ctor_Populated()
     {
-        Repository.Should().NotBeNull();
-        GetEntityCount().Should().BeGreaterThan(0);
+        var repository = await GetPopulatedRepositoryAsync() as InMemoryRepository<InMemoryMovie>;
+        int movieCount = Movies.MovieList.Length;
+        repository.Should().NotBeNull();
+        repository.GetEntities().Count.Should().Be(movieCount);
     }
 
     [Fact]
@@ -52,18 +59,20 @@ public class InMemoryRepository_Tests : RepositoryTests<InMemoryMovie>
     [Fact]
     public async Task AsQueryableAsync_Throws()
     {
-        SetException(new ApplicationException("test exception"));
-        Func<Task> act = async () => _ = await Repository.AsQueryableAsync();
+        var repository = await GetPopulatedRepositoryAsync() as InMemoryRepository<InMemoryMovie>;
+        repository.ThrowException = new ApplicationException("test exception");
+        Func<Task> act = async () => _ = await repository.AsQueryableAsync();
         await act.Should().ThrowAsync<ApplicationException>();
     }
 
     [Fact]
     public async Task CreateAsync_Throws_OnForcedException()
     {
-        SetException(new ApplicationException("test exception"));
+        var repository = await GetPopulatedRepositoryAsync() as InMemoryRepository<InMemoryMovie>;
+        repository.ThrowException = new ApplicationException("test exception");
         InMemoryMovie addition = Movies.OfType<InMemoryMovie>(Movies.BlackPanther);
 
-        Func<Task> act = async () => await Repository.CreateAsync(addition);
+        Func<Task> act = async () => await repository.CreateAsync(addition);
         await act.Should().ThrowAsync<ApplicationException>();
     }
 
@@ -71,8 +80,9 @@ public class InMemoryRepository_Tests : RepositoryTests<InMemoryMovie>
     [InlineData("id-002")]
     public async Task DeleteAsync_Throws_OnForcedException(string id)
     {
-        SetException(new ApplicationException("test exception"));
-        Func<Task> act = async () => await Repository.DeleteAsync(id);
+        var repository = await GetPopulatedRepositoryAsync() as InMemoryRepository<InMemoryMovie>;
+        repository.ThrowException = new ApplicationException("test exception");
+        Func<Task> act = async () => await repository.DeleteAsync(id);
         await act.Should().ThrowAsync<ApplicationException>();
     }
 
@@ -80,8 +90,9 @@ public class InMemoryRepository_Tests : RepositoryTests<InMemoryMovie>
     [InlineData("id-006")]
     public async Task ReadAsync_Throws_OnForcedException(string id)
     {
-        SetException(new ApplicationException("test exception"));
-        Func<Task> act = async () => _ = await Repository.ReadAsync(id);
+        var repository = await GetPopulatedRepositoryAsync() as InMemoryRepository<InMemoryMovie>;
+        repository.ThrowException = new ApplicationException("test exception");
+        Func<Task> act = async () => _ = await repository.ReadAsync(id);
         await act.Should().ThrowAsync<ApplicationException>();
     }
 
@@ -89,9 +100,10 @@ public class InMemoryRepository_Tests : RepositoryTests<InMemoryMovie>
     [InlineData("id-008")]
     public async Task ReplaceAsync_Throws_OnForcedException(string id)
     {
-        SetException(new ApplicationException("test exception"));
+        var repository = await GetPopulatedRepositoryAsync() as InMemoryRepository<InMemoryMovie>;
+        repository.ThrowException = new ApplicationException("test exception");
         InMemoryMovie replacement = Movies.OfType<InMemoryMovie>(Movies.BlackPanther, id);
-        Func<Task> act = async () => await Repository.ReplaceAsync(replacement);
+        Func<Task> act = async () => await repository.ReplaceAsync(replacement);
         await act.Should().ThrowAsync<ApplicationException>();
     }
 }

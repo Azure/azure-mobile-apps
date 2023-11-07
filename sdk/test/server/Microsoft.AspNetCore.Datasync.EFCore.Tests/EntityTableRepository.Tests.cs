@@ -11,44 +11,51 @@ namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;
 public class EntityTableRepository_Tests : RepositoryTests<SqliteEntityMovie>
 {
     #region Setup
-    private readonly TestDbContext context;
-    private readonly EntityTableRepository<SqliteEntityMovie> repository;
+    private List<SqliteEntityMovie> movies;
+    private Lazy<TestDbContext> _context = new(() => TestDbContext.CreateContext());
 
-    public EntityTableRepository_Tests(ITestOutputHelper output) : base()
+    private TestDbContext Context { get => _context.Value; }
+
+    protected override Task<SqliteEntityMovie> GetEntityAsync(string id)
+        => Task.FromResult(Context.Movies.AsNoTracking().SingleOrDefault(m => m.Id == id));
+
+    protected override Task<int> GetEntityCountAsync()
+        => Task.FromResult(Context.Movies.Count());
+
+    protected override Task<IRepository<SqliteEntityMovie>> GetPopulatedRepositoryAsync()
     {
-        context = TestDbContext.CreateContext(output);
-        // This is for Sqlite because it doesn't support computed columns
+        movies = Context.Movies.AsNoTracking().ToList();
         EntityTableRepositoryOptions options = new() { DatabaseUpdatesTimestamp = false, DatabaseUpdatesVersion = false };
-        repository = new EntityTableRepository<SqliteEntityMovie>(context, options);
-        Repository = repository;
+        return Task.FromResult<IRepository<SqliteEntityMovie>>(new EntityTableRepository<SqliteEntityMovie>(Context, options));
     }
 
-    protected override SqliteEntityMovie GetEntity(string id)
-        => context.Movies.AsNoTracking().SingleOrDefault(m => m.Id == id);
-
-    protected override int GetEntityCount()
-        => context.Movies.Count();
+    protected override Task<string> GetRandomEntityIdAsync(bool exists)
+    {
+        Random random = new();
+        return Task.FromResult(exists ? movies[random.Next(Context.Movies.Count())].Id : Guid.NewGuid().ToString());
+    }
     #endregion
 
     [Fact]
     public void EntityTableRepository_BadDbSet_Throws()
     {
-        Action act = () => _ = new EntityTableRepository<EntityTableData>(context);
+        Action act = () => _ = new EntityTableRepository<EntityTableData>(Context);
         act.Should().Throw<ArgumentException>();
     }
 
     [Fact]
     public void EntityTableRepository_GoodDbSet_Works()
     {
-        Action act = () => _ = new EntityTableRepository<SqliteEntityMovie>(context);
+        Action act = () => _ = new EntityTableRepository<SqliteEntityMovie>(Context);
         act.Should().NotThrow();
     }
 
-    [Fact]
-    public async void WrapExceptionAsync_ThrowsConflictException_WhenDbConcurrencyUpdateExceptionThrown()
+    [Theory]
+    [InlineData("id-001")]
+    public async Task WrapExceptionAsync_ThrowsConflictException_WhenDbConcurrencyUpdateExceptionThrown(string id)
     {
-        const string id = "id-001";
-        SqliteEntityMovie expectedPayload = GetEntity(id);
+        EntityTableRepository<SqliteEntityMovie> repository = await GetPopulatedRepositoryAsync() as EntityTableRepository<SqliteEntityMovie>;
+        SqliteEntityMovie expectedPayload = await GetEntityAsync(id);
 
         static Task innerAction() => throw new DbUpdateConcurrencyException("Concurrency exception");
 
@@ -56,11 +63,12 @@ public class EntityTableRepository_Tests : RepositoryTests<SqliteEntityMovie>
         (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(409).And.WithPayload(expectedPayload);
     }
 
-    [Fact]
-    public async void WrapExceptionAsync_ThrowsRepositoryException_WhenDbUpdateExceptionThrown()
+    [Theory]
+    [InlineData("id-001")]
+    public async Task WrapExceptionAsync_ThrowsRepositoryException_WhenDbUpdateExceptionThrown(string id)
     {
-        const string id = "id-001";
-        SqliteEntityMovie expectedPayload = GetEntity(id);
+        EntityTableRepository<SqliteEntityMovie> repository = await GetPopulatedRepositoryAsync() as EntityTableRepository<SqliteEntityMovie>;
+        SqliteEntityMovie expectedPayload = await GetEntityAsync(id);
 
         static Task innerAction() => throw new DbUpdateException("Non-concurrency exception");
 
