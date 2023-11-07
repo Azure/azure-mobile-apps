@@ -1,7 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\Shared.Build.props" />
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\src\server\Microsoft.AspNetCore.Datasync.CosmosDb\Microsoft.AspNetCore.Datasync.CosmosDb.csproj" />
-    <ProjectReference Include="..\..\shared\Datasync.Common\Datasync.Common.csproj" />
-  </ItemGroup>
-</Project>
