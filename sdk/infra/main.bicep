@@ -18,6 +18,9 @@ param sqlAdminUsername string = 'testadmin'
 @description('SQL Server administrator password')
 param sqlAdminPassword string = newGuid()
 
+param flexibleServerSkuName string = 'Standard_B1ms'
+param flexibleServerSkuType string = 'Burstable'
+
 var resourceToken = toLower(uniqueString(subscription().id, resourceGroup().name, location))
 
 // Azure SQL Server and Database
@@ -68,8 +71,8 @@ resource pgsql_server 'Microsoft.DBforPostgreSQL/flexibleServers@2023-03-01-prev
   name: 'pgserver-${resourceToken}'
   location: location
   sku: {
-    name: 'Standard_B1ms'
-    tier: 'Burstable'
+    name: flexibleServerSkuName
+    tier: flexibleServerSkuType
   }
   properties: {
     administratorLogin: sqlAdminUsername
@@ -119,13 +122,68 @@ resource pgsql_database 'Microsoft.DBforPostgreSQL/flexibleServers/databases@202
   }
 }
 
+// MySQL server and database
+resource mysql_server 'Microsoft.DBforMySQL/flexibleServers@2023-06-30' = {
+  name: 'mysqlserver-${resourceToken}'
+  location: location
+  sku: {
+    name: flexibleServerSkuName
+    tier: flexibleServerSkuType
+  }
+  properties: {
+    administratorLogin: sqlAdminUsername
+    administratorLoginPassword: sqlAdminPassword
+    createMode: 'Default'
+    backup: {
+      backupRetentionDays: 7
+      geoRedundantBackup: 'Disabled'
+    }
+    highAvailability: {
+      mode: 'Disabled'
+    }
+    storage: {
+      storageSizeGB: 32
+      autoGrow: 'Disabled'
+    }
+    version: '8.0.21'
+  }
+
+  resource mysql_azurefw 'firewallRules' = {
+    name: 'AllowAllAzureIps'
+    properties: {
+      endIpAddress: '0.0.0.0'
+      startIpAddress: '0.0.0.0'
+    }
+  }
+
+  resource mysql_firewall 'firewallRules' = {
+    name: 'AllowPublicAccess'
+    properties: {
+      endIpAddress: '255.255.255.255'
+      startIpAddress: '0.0.0.0'
+    }
+  }
+}
+
+resource mysql_database 'Microsoft.DBforMySQL/flexibleServers/databases@2023-06-30' = {
+  name: 'mysqldb-${resourceToken}'
+  parent: mysql_server
+  properties: {
+    charset: 'UTF8'
+    collation: 'en_US.utf8'
+  }
+}
+
 // ----------------------------------------------------------------------------------------------------------
 //  OUTPUTS
 // ----------------------------------------------------------------------------------------------------------
 
 // These should become environment variables for the unit tests
 #disable-next-line outputs-should-not-contain-secrets // I'm ok with secrets being output for this deployment
-output ZUMO_PGSQL_CONNECTIONSTRING string = 'Host=${pgsql_server.properties.fullyQualifiedDomainName};Database=${pgsql_database.name};Username=${sqlAdminUsername};Password=${sqlAdminPassword}'
+output ZUMO_AZSQL_CONNECTIONSTRING string = 'Data Source=tcp:${azsql_server.properties.fullyQualifiedDomainName},1433;Initial Catalog=${azsql_database.name};User Id=${sqlAdminUsername}@${azsql_server.properties.fullyQualifiedDomainName};Password=${sqlAdminPassword};Encrypt=True;TrustServerCertificate=False'
 
 #disable-next-line outputs-should-not-contain-secrets // I'm ok with secrets being output for this deployment
-output ZUMO_AZSQL_CONNECTIONSTRING string = 'Data Source=tcp:${azsql_server.properties.fullyQualifiedDomainName},1433;Initial Catalog=${azsql_database.name};User Id=${sqlAdminUsername};Password=${sqlAdminPassword};Encrypt=True;TrustServerCertificate=False'
+output ZUMO_MYSQL_CONNECTIONSTRING string = 'Server=${mysql_server.properties.fullyQualifiedDomainName};Database=${mysql_database.name};Uid=${sqlAdminUsername}@${mysql_server.properties.fullyQualifiedDomainName};Password=${sqlAdminPassword};SslMode=Required'
+
+#disable-next-line outputs-should-not-contain-secrets // I'm ok with secrets being output for this deployment
+output ZUMO_PGSQL_CONNECTIONSTRING string = 'Host=${pgsql_server.properties.fullyQualifiedDomainName};Database=${pgsql_database.name};Username=${sqlAdminUsername};Password=${sqlAdminPassword}'
