@@ -50,7 +50,7 @@ public class TestLoggerFactory : ILoggerFactory
         public TestLogger(string categoryName, string[] categories, ITestOutputHelper output)
         {
             _categoryName = categoryName;
-            _categories = categories; ;
+            _categories = categories;
             _output = output;
         }
 
@@ -58,7 +58,7 @@ public class TestLoggerFactory : ILoggerFactory
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            _output.WriteLine(formatter(state, exception));
+            _output.WriteLine($"{_categoryName}>> {formatter(state, exception)}");
         }
 
         public IDisposable BeginScope<TState>(TState state) => null;

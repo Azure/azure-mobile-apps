@@ -2,12 +2,11 @@
 // Licensed under the MIT License.
 
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Microsoft.AspNetCore.Datasync.EFCore;
 
 /// <summary>
-/// The base class for in-memory table data.
+/// The base class for entity framework core-based table data.
 /// </summary>
 public abstract class BaseEntityTableData : ITableData
 {
@@ -19,7 +18,7 @@ public abstract class BaseEntityTableData : ITableData
     public virtual bool Deleted { get; set; } = false;
 
     /// <inheritdoc />
-    public virtual DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UnixEpoch;
+    public virtual DateTimeOffset? UpdatedAt { get; set; } = DateTimeOffset.UnixEpoch;
 
     /// <inheritdoc />
     public virtual byte[] Version { get; set; } = Array.Empty<byte>();

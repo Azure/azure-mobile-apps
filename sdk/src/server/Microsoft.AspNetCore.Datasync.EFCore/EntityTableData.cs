@@ -13,7 +13,7 @@ public class EntityTableData : BaseEntityTableData
 {
     /// <inheritdoc />
     [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-    public override DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UnixEpoch;
+    public override DateTimeOffset? UpdatedAt { get; set; } = DateTimeOffset.UnixEpoch;
 
     /// <inheritdoc />
     [Timestamp]

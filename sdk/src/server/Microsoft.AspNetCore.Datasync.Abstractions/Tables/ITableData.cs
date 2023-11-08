@@ -23,7 +23,7 @@ public interface ITableData : IEquatable<ITableData>
     /// <summary>
     /// The date/time of the last update to the entity.  This must support msec resolution.
     /// </summary>
-    DateTimeOffset UpdatedAt { get; set; }
+    DateTimeOffset? UpdatedAt { get; set; }
 
     /// <summary>
     /// An opaque blob that changes to indicate that the entity has been changed.

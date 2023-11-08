@@ -14,13 +14,13 @@ public class PgEntityTableData : BaseEntityTableData
 {
     /// <inheritdoc />
     [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-    public override DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UnixEpoch;
+    public override DateTimeOffset? UpdatedAt { get; set; } = DateTimeOffset.UnixEpoch;
 
     /// <inheritdoc />
     [NotMapped]
     public override byte[] Version
     {
-        get => RowVersion == 0 ? Array.Empty<byte>() : BitConverter.GetBytes(RowVersion);
+        get => BitConverter.GetBytes(RowVersion ?? 0);
         set => RowVersion = value.Length > 0 ? BitConverter.ToUInt32(value) : 0;
     }
 
@@ -29,7 +29,5 @@ public class PgEntityTableData : BaseEntityTableData
     /// </summary>
     /// <see href="https://www.postgresql.org/docs/current/ddl-system-columns.html"/>
     [Timestamp, JsonIgnore]
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-    [Column("xmin", TypeName = "xid")]
-    public uint RowVersion { get; set; }
+    public uint? RowVersion { get; set; }
 }

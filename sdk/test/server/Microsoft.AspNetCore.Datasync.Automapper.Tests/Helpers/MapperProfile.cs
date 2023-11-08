@@ -10,6 +10,6 @@ public class MapperProfile : Profile
 {
     public MapperProfile()
     {
-        CreateMap<EntityMovie, MovieDto>().ReverseMap();
+        CreateMap<SqliteEntityMovie, MovieDto>().ReverseMap();
     }
 }

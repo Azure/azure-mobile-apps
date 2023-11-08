@@ -15,7 +15,7 @@ public class InMemoryTableData : ITableData
     public bool Deleted { get; set; } = false;
 
     /// <inheritdoc />
-    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UnixEpoch;
+    public DateTimeOffset? UpdatedAt { get; set; } = DateTimeOffset.UnixEpoch;
 
     /// <inheritdoc />
     public byte[] Version { get; set; } = Array.Empty<byte>();

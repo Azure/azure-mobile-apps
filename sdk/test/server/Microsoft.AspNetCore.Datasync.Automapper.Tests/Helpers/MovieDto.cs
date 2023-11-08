@@ -16,7 +16,7 @@ public class MovieDto : ITableData, IMovie
     public bool Deleted { get; set; }
 
     /// <inheritdoc />
-    public DateTimeOffset UpdatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
 
     /// <inheritdoc />
     public byte[] Version { get; set; } = Array.Empty<byte>();

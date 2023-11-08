@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Xunit.Abstractions;
 using TestData = Datasync.Common.TestData;
 
-namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;
+namespace Microsoft.AspNetCore.Datasync.Automapper.Tests;
 
 [ExcludeFromCodeCoverage]
 public class SqliteDbContext : DbContext

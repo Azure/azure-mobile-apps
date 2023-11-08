@@ -16,7 +16,7 @@ public class CosmosTableData : ITableData
     public bool Deleted { get; set; }
 
     /// <inheritdoc />
-    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UnixEpoch;
+    public DateTimeOffset? UpdatedAt { get; set; } = DateTimeOffset.UnixEpoch;
 
     /// <inheritdoc />
     [JsonIgnore]

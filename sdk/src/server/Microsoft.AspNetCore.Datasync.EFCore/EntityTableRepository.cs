@@ -15,27 +15,15 @@ public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity
 {
     protected DbContext Context { get; }
     protected DbSet<TEntity> DataSet { get; }
-    protected EntityTableRepositoryOptions Options { get; }
-
-    /// <summary>
-    /// Creates a new instance of the <see cref="EntityTableRepository{TEntity}"/> class, using the default options.
-    /// </summary>
-    /// <param name="context">The database context for the backend store.</param>
-    /// <exception cref="ArgumentException">Thrown if the <typeparamref name="TEntity"/> is not registered with the <paramref name="context"/>.</exception>"
-    public EntityTableRepository(DbContext context) : this(context, new EntityTableRepositoryOptions())
-    {
-    }
 
     /// <summary>
     /// Creates a new instance of the <see cref="EntityTableRepository{TEntity}"/> class, using specific options.
     /// </summary>
     /// <param name="context">The database context for the backend store.</param>
-    /// <param name="options">The options to use for this instance.</param>
     /// <exception cref="ArgumentException">Thrown if the <typeparamref name="TEntity"/> is not registered with the <paramref name="context"/>.</exception>"
-    public EntityTableRepository(DbContext context, EntityTableRepositoryOptions options)
+    public EntityTableRepository(DbContext context)
     {
         Context = context;
-        Options = options;
         try
         {
             DataSet = context.Set<TEntity>();
@@ -48,24 +36,6 @@ public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity
     }
 
     #region Private Methods
-    /// <summary>
-    /// Updates the metadata in the entity.  Not all database drivers support the <see cref="TimestampAttribute"/>
-    /// or the <see cref="DatabaseGeneratedAttribute"/> in the correct way, so this method is used to ensure that
-    /// the right values are set.
-    /// </summary>
-    /// <param name="entity">The entity to update.</param>
-    protected void UpdateEntity(TEntity entity)
-    {
-        if (!Options.DatabaseUpdatesTimestamp)
-        {
-            entity.UpdatedAt = DateTimeOffset.UtcNow;
-        }
-        if (!Options.DatabaseUpdatesVersion)
-        {
-            entity.Version = Guid.NewGuid().ToByteArray();
-        }
-    }
-
     /// <summary>
     /// Runs the inner part of an operation on the database, catching all the normal exceptions and reformatting
     /// them as appropriate.
@@ -120,9 +90,9 @@ public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity
             {
                 throw new HttpException(HttpStatusCodes.Status409Conflict) { Payload = await GetEntityAsync(entity.Id, cancellationToken).ConfigureAwait(false) };
             }
-            UpdateEntity(entity);
             DataSet.Add(entity);
             await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            var storedEntity = await Context.Entry(entity).GetDatabaseValuesAsync();
             var updatedAt = Context.Entry(entity).Property(x => x.UpdatedAt).CurrentValue;
             var version = Context.Entry(entity).Property(x => x.Version).CurrentValue;
         }, cancellationToken);
@@ -155,11 +125,8 @@ public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity
         {
             throw new HttpException(HttpStatusCodes.Status400BadRequest);
         }
-        TEntity? entity = await DataSet.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken).ConfigureAwait(false);
-        if (entity == null)
-        {
-            throw new HttpException(HttpStatusCodes.Status404NotFound);
-        }
+        TEntity entity = await DataSet.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken).ConfigureAwait(false)
+            ?? throw new HttpException(HttpStatusCodes.Status404NotFound);
         return entity;
     }
 
@@ -177,7 +144,6 @@ public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity
             {
                 throw new HttpException(HttpStatusCodes.Status412PreconditionFailed) { Payload = await GetEntityAsync(entity.Id, cancellationToken).ConfigureAwait(false) };
             }
-            UpdateEntity(entity);
             Context.Entry(storedEntity).CurrentValues.SetValues(entity);
             await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             entity.UpdatedAt = storedEntity.UpdatedAt;

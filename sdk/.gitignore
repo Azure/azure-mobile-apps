@@ -1,3 +1,9 @@
+### Azure Developer CLI ###
+.azure/
+
+# Ignore .runsettings as it has environment settings in it, including passwords
+.runsettings
+
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudio,visualstudiocode,rider
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudio,visualstudiocode,rider
 

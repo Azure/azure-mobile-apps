@@ -56,7 +56,7 @@ public static class Extensions
             .FailWith("Expected {context:object} to have Deleted {0}, but found {1}", source.Deleted, metadata.Deleted)
         .Then
             .ForCondition(source.UpdatedAt - metadata.UpdatedAt < TimeSpan.FromMilliseconds(1))
-            .FailWith("Expected {context:object} to has UpdatedAt {0}, but found {1}", source.UpdatedAt.ToString(dateFormat), metadata.UpdatedAt.ToString(dateFormat));
+            .FailWith("Expected {context:object} to has UpdatedAt {0}, but found {1}", source.UpdatedAt?.ToString(dateFormat), metadata.UpdatedAt?.ToString(dateFormat));
 
         return new AndConstraint<ObjectAssertions>(current);
     }

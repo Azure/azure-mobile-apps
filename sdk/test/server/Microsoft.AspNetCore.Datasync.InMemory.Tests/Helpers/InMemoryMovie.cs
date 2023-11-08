@@ -60,31 +60,4 @@ public class InMemoryMovie : InMemoryTableData, IMovie, IEquatable<IMovie>
         && other.ReleaseDate == ReleaseDate
         && other.Title == Title
         && other.Year == Year;
-
-    /// <summary>
-    /// Clones this movie into another new movie.
-    /// </summary>
-    /// <returns>The new movie</returns>
-    public InMemoryMovie Clone() => new()
-    {
-        Id = this.Id,
-        Deleted = this.Deleted,
-        UpdatedAt = this.UpdatedAt,
-        Version = this.Version.ToArray(),
-        BestPictureWinner = this.BestPictureWinner,
-        Duration = this.Duration,
-        Rating = this.Rating,
-        ReleaseDate = this.ReleaseDate,
-        Title = this.Title,
-        Year = this.Year
-    };
-
-    /// <summary>
-    /// Converts this object to a dictionary.
-    /// </summary>
-    public Dictionary<string, object> ToDictionary()
-    {
-        string json = JsonSerializer.Serialize(this);
-        return JsonSerializer.Deserialize<Dictionary<string, object>>(json);
-    }
 }

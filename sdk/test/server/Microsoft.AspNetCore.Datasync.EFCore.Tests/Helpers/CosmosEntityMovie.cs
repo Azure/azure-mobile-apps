@@ -37,7 +37,7 @@ public class CosmosEntityMovie : PgEntityTableData, IMovie, IEquatable<IMovie>
     /// The title of the movie.
     /// </summary>
     [Required]
-    [StringLength(60, MinimumLength = 2)]
+    [StringLength(128, MinimumLength = 2)]
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
@@ -60,27 +60,4 @@ public class CosmosEntityMovie : PgEntityTableData, IMovie, IEquatable<IMovie>
         && other.ReleaseDate == ReleaseDate
         && other.Title == Title
         && other.Year == Year;
-
-    /// <summary>
-    /// Converts this object to a dictionary.
-    /// </summary>
-    public Dictionary<string, object> ToDictionary()
-    {
-        string json = JsonSerializer.Serialize(this);
-        return JsonSerializer.Deserialize<Dictionary<string, object>>(json);
-    }
-
-    public CosmosEntityMovie Clone() => new()
-    {
-        Id = this.Id,
-        Deleted = this.Deleted,
-        UpdatedAt = this.UpdatedAt,
-        Version = this.Version.ToArray(),
-        BestPictureWinner = this.BestPictureWinner,
-        Duration = this.Duration,
-        Rating = this.Rating,
-        ReleaseDate = this.ReleaseDate,
-        Title = this.Title,
-        Year = this.Year
-    };
 }

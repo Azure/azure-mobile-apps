@@ -14,10 +14,10 @@ public class MappedTableRepository_Tests : RepositoryTests<MovieDto>
 {
     #region Setup
     private readonly ITestOutputHelper output;
-    private TestDbContext context;
-    private EntityTableRepository<EntityMovie> innerRepository;
+    private SqliteDbContext context;
+    private EntityTableRepository<SqliteEntityMovie> innerRepository;
     private IMapper mapper;
-    private MappedTableRepository<EntityMovie, MovieDto> repository;
+    private MappedTableRepository<SqliteEntityMovie, MovieDto> repository;
     private List<MovieDto> movies;
 
     public MappedTableRepository_Tests(ITestOutputHelper output) : base()
@@ -33,12 +33,11 @@ public class MappedTableRepository_Tests : RepositoryTests<MovieDto>
 
     protected override Task<IRepository<MovieDto>> GetPopulatedRepositoryAsync()
     {
-        context = TestDbContext.CreateContext(output);
-        EntityTableRepositoryOptions options = new() { DatabaseUpdatesTimestamp = false, DatabaseUpdatesVersion = false };
-        innerRepository = new EntityTableRepository<EntityMovie>(context, options);
+        context = SqliteDbContext.CreateContext(output);
+        innerRepository = new EntityTableRepository<SqliteEntityMovie>(context);
 
         mapper = new MapperConfiguration(c => c.AddProfile(new MapperProfile())).CreateMapper();
-        repository = new MappedTableRepository<EntityMovie, MovieDto>(mapper, innerRepository);
+        repository = new MappedTableRepository<SqliteEntityMovie, MovieDto>(mapper, innerRepository);
         movies = context.Movies.AsNoTracking().ToList().ConvertAll(m => mapper.Map<MovieDto>(m));
         return Task.FromResult<IRepository<MovieDto>>(repository);
     }
