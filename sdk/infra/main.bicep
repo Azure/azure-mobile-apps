@@ -20,6 +20,7 @@ param sqlAdminPassword string = newGuid()
 
 param flexibleServerSkuName string = 'Standard_B1ms'
 param flexibleServerSkuType string = 'Burstable'
+param containerName string = 'Movies'
 
 var resourceToken = toLower(uniqueString(subscription().id, resourceGroup().name, location))
 
@@ -52,7 +53,7 @@ resource azsql_server 'Microsoft.Sql/servers@2023-05-01-preview' = {
 }
 
 resource azsql_database 'Microsoft.Sql/servers/databases@2023-05-01-preview' = {
-  name: 'azsqldb-${resourceToken}'
+  name: 'unittests'
   location: location
   parent: azsql_server
   sku: {
@@ -114,7 +115,7 @@ resource pgsql_server 'Microsoft.DBforPostgreSQL/flexibleServers@2023-03-01-prev
 }
 
 resource pgsql_database 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-03-01-preview' = {
-  name: 'pgdb-${resourceToken}'
+  name: 'unittests'
   parent: pgsql_server
   properties: {
     charset: 'UTF8'
@@ -123,57 +124,113 @@ resource pgsql_database 'Microsoft.DBforPostgreSQL/flexibleServers/databases@202
 }
 
 // MySQL server and database
-// resource mysql_server 'Microsoft.DBforMySQL/flexibleServers@2022-09-30-preview' = {
-//   name: 'mysqlserver-${resourceToken}'
-//   location: location
-//   sku: {
-//     name: flexibleServerSkuName
-//     tier: flexibleServerSkuType
-//   }
-//   properties: {
-//     administratorLogin: sqlAdminUsername
-//     administratorLoginPassword: sqlAdminPassword
-//     createMode: 'Default'
-//     backup: {
-//       backupRetentionDays: 7
-//       geoRedundantBackup: 'Disabled'
-//     }
-//     highAvailability: {
-//       mode: 'Disabled'
-//     }
-//     storage: {
-//       storageSizeGB: 32
-//       iops: 360
-//       autoGrow: 'Disabled'
-//     }
-//     version: '8.0.21'
-//   }
+resource mysql_server 'Microsoft.DBforMySQL/flexibleServers@2023-06-01-preview' = {
+  name: 'mysqlserver-${resourceToken}'
+  location: location
+  sku: {
+    name: flexibleServerSkuName
+    tier: flexibleServerSkuType
+  }
+  properties: {
+    administratorLogin: sqlAdminUsername
+    administratorLoginPassword: sqlAdminPassword
+    createMode: 'Default'
+    backup: {
+      backupRetentionDays: 7
+      geoRedundantBackup: 'Disabled'
+    }
+    highAvailability: {
+      mode: 'Disabled'
+    }
+    network: {
+      publicNetworkAccess: 'Enabled'
+    }
+    storage: {
+      storageSizeGB: 32
+      iops: 360
+      autoGrow: 'Disabled'
+      logOnDisk: 'Disabled'
+    }
+    version: '8.0.21'
+  }
 
-//   resource mysql_azurefw 'firewallRules@2022-01-01' = {
-//     name: 'AllowAllAzureIps'
-//     properties: {
-//       endIpAddress: '0.0.0.0'
-//       startIpAddress: '0.0.0.0'
-//     }
-//   }
+  resource mysql_firewall 'firewallRules@2022-01-01' = {
+    name: 'AllowPublicAccess'
+    properties: {
+      endIpAddress: '255.255.255.255'
+      startIpAddress: '0.0.0.0'
+    }
+  }
+}
 
-//   resource mysql_firewall 'firewallRules@2022-01-01' = {
-//     name: 'AllowPublicAccess'
-//     properties: {
-//       endIpAddress: '255.255.255.255'
-//       startIpAddress: '0.0.0.0'
-//     }
-//   }
-// }
+resource mysql_database 'Microsoft.DBforMySQL/flexibleServers/databases@2023-06-01-preview' = {
+  name: 'unittests'
+  parent: mysql_server
+  properties: {
+    charset: 'UTF8'
+    collation: 'en_US.utf8'
+  }
+}
 
-// resource mysql_database 'Microsoft.DBforMySQL/flexibleServers/databases@2023-06-30' = {
-//   name: 'mysqldb-${resourceToken}'
-//   parent: mysql_server
-//   properties: {
-//     charset: 'UTF8'
-//     collation: 'en_US.utf8'
-//   }
-// }
+// Cosmos SQL Account, Database, and Container
+resource cosmos_account 'Microsoft.DocumentDB/databaseAccounts@2023-09-15' = {
+  name: 'cosmos-${resourceToken}'
+  location: location
+  kind: 'GlobalDocumentDB'
+  properties: {
+    consistencyPolicy: {
+      defaultConsistencyLevel: 'Session'
+    }
+    locations: [
+      {
+        locationName: location
+        failoverPriority: 0
+        isZoneRedundant: false
+      }
+    ]
+    databaseAccountOfferType: 'Standard'
+    enableAutomaticFailover: false
+  }
+}
+
+resource cosmos_database 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2023-09-15' = {
+  name: 'unittests'
+  parent: cosmos_account
+  properties: {
+    resource: {
+      id: 'unittests'
+    }
+  }
+}
+
+resource cosmos_container 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2023-09-15' = {
+  name: containerName
+  parent: cosmos_database
+  properties: {
+    resource: {
+      id: containerName
+      partitionKey: {
+        paths: [ '/id' ]
+        kind: 'Hash'
+      }
+      indexingPolicy: {
+        indexingMode: 'consistent'
+        includedPaths: [
+          { path: '/*' }
+        ]
+        excludedPaths: [
+          { path: '/_etag/?' }
+        ]
+        compositeIndexes: [
+          [
+            { path: '/UpdatedAt', order: 'ascending' }
+            { path: '/Id', order: 'ascending' }
+          ]
+        ]
+      }
+    }
+  }
+}
 
 // ----------------------------------------------------------------------------------------------------------
 //  OUTPUTS
@@ -181,10 +238,13 @@ resource pgsql_database 'Microsoft.DBforPostgreSQL/flexibleServers/databases@202
 
 // These should become environment variables for the unit tests
 #disable-next-line outputs-should-not-contain-secrets // I'm ok with secrets being output for this deployment
+output ZUMO_COSMOS_CONNECTIONSTRING string = cosmos_account.listConnectionStrings().connectionStrings[0].connectionString
+
+#disable-next-line outputs-should-not-contain-secrets // I'm ok with secrets being output for this deployment
 output ZUMO_AZSQL_CONNECTIONSTRING string = 'Data Source=tcp:${azsql_server.properties.fullyQualifiedDomainName},1433;Initial Catalog=${azsql_database.name};User Id=${sqlAdminUsername}@${azsql_server.properties.fullyQualifiedDomainName};Password=${sqlAdminPassword};Encrypt=True;TrustServerCertificate=False'
 
-// #disable-next-line outputs-should-not-contain-secrets // I'm ok with secrets being output for this deployment
-// output ZUMO_MYSQL_CONNECTIONSTRING string = 'Server=${mysql_server.properties.fullyQualifiedDomainName};Database=${mysql_database.name};Uid=${sqlAdminUsername}@${mysql_server.properties.fullyQualifiedDomainName};Password=${sqlAdminPassword};SslMode=Required'
+#disable-next-line outputs-should-not-contain-secrets // I'm ok with secrets being output for this deployment
+output ZUMO_MYSQL_CONNECTIONSTRING string = 'Server=${mysql_server.properties.fullyQualifiedDomainName};Database=${mysql_database.name};Uid=${sqlAdminUsername}@${mysql_server.properties.fullyQualifiedDomainName};Password=${sqlAdminPassword};SslMode=Required'
 
 #disable-next-line outputs-should-not-contain-secrets // I'm ok with secrets being output for this deployment
 output ZUMO_PGSQL_CONNECTIONSTRING string = 'Host=${pgsql_server.properties.fullyQualifiedDomainName};Database=${pgsql_database.name};Username=${sqlAdminUsername};Password=${sqlAdminPassword}'
