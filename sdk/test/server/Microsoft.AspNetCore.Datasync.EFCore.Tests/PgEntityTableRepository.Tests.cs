@@ -3,16 +3,18 @@
 
 using Datasync.Common.Tests;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;
 
 [ExcludeFromCodeCoverage]
-public class PgEntityTableRepository_Tests : RepositoryTests<PgEntityMovie>
+public class PgEntityTableRepository_Tests : RepositoryTests<EntityMovie>
 {
     #region Setup
+    private readonly Random random = new();
     private readonly string connectionString;
-    private readonly List<PgEntityMovie> movies;
+    private readonly List<EntityMovie> movies;
     private readonly Lazy<PgDbContext> _context;
 
     public PgEntityTableRepository_Tests(ITestOutputHelper output) : base()
@@ -29,22 +31,17 @@ public class PgEntityTableRepository_Tests : RepositoryTests<PgEntityMovie>
 
     protected override bool CanRunLiveTests() => !string.IsNullOrEmpty(connectionString);
 
-    protected override Task<PgEntityMovie> GetEntityAsync(string id)
+    protected override Task<EntityMovie> GetEntityAsync(string id)
         => Task.FromResult(Context.Movies.AsNoTracking().SingleOrDefault(m => m.Id == id));
 
     protected override Task<int> GetEntityCountAsync()
         => Task.FromResult(Context.Movies.Count());
 
-    protected override Task<IRepository<PgEntityMovie>> GetPopulatedRepositoryAsync()
-    {
-        return Task.FromResult<IRepository<PgEntityMovie>>(new EntityTableRepository<PgEntityMovie>(Context));
-    }
+    protected override Task<IRepository<EntityMovie>> GetPopulatedRepositoryAsync()
+        => Task.FromResult<IRepository<EntityMovie>>(new EntityTableRepository<EntityMovie>(Context));
 
     protected override Task<string> GetRandomEntityIdAsync(bool exists)
-    {
-        Random random = new();
-        return Task.FromResult(exists ? movies[random.Next(movies.Count)].Id : Guid.NewGuid().ToString());
-    }
+       => Task.FromResult(exists ? movies[random.Next(movies.Count)].Id : Guid.NewGuid().ToString());
     #endregion
 
     [Fact]
@@ -59,7 +56,7 @@ public class PgEntityTableRepository_Tests : RepositoryTests<PgEntityMovie>
     public void EntityTableRepository_GoodDbSet_Works()
     {
         Skip.IfNot(CanRunLiveTests());
-        Action act = () => _ = new EntityTableRepository<PgEntityMovie>(Context);
+        Action act = () => _ = new EntityTableRepository<EntityMovie>(Context);
         act.Should().NotThrow();
     }
 
@@ -67,9 +64,9 @@ public class PgEntityTableRepository_Tests : RepositoryTests<PgEntityMovie>
     public async Task WrapExceptionAsync_ThrowsConflictException_WhenDbConcurrencyUpdateExceptionThrown()
     {
         Skip.IfNot(CanRunLiveTests());
-        EntityTableRepository<PgEntityMovie> repository = await GetPopulatedRepositoryAsync() as EntityTableRepository<PgEntityMovie>;
+        EntityTableRepository<EntityMovie> repository = await GetPopulatedRepositoryAsync() as EntityTableRepository<EntityMovie>;
         string id = await GetRandomEntityIdAsync(true);
-        PgEntityMovie expectedPayload = await GetEntityAsync(id);
+        EntityMovie expectedPayload = await GetEntityAsync(id);
 
         static Task innerAction() => throw new DbUpdateConcurrencyException("Concurrency exception");
 
@@ -81,9 +78,9 @@ public class PgEntityTableRepository_Tests : RepositoryTests<PgEntityMovie>
     public async Task WrapExceptionAsync_ThrowsRepositoryException_WhenDbUpdateExceptionThrown()
     {
         Skip.IfNot(CanRunLiveTests());
-        EntityTableRepository<PgEntityMovie> repository = await GetPopulatedRepositoryAsync() as EntityTableRepository<PgEntityMovie>;
+        EntityTableRepository<EntityMovie> repository = await GetPopulatedRepositoryAsync() as EntityTableRepository<EntityMovie>;
         string id = await GetRandomEntityIdAsync(true);
-        PgEntityMovie expectedPayload = await GetEntityAsync(id);
+        EntityMovie expectedPayload = await GetEntityAsync(id);
 
         static Task innerAction() => throw new DbUpdateException("Non-concurrency exception");
 

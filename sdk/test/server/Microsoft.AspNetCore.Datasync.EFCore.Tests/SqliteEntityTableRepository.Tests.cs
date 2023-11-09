@@ -3,6 +3,7 @@
 
 using Datasync.Common.Tests;
 using Microsoft.EntityFrameworkCore;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;
 
@@ -10,8 +11,15 @@ namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;
 public class SqliteEntityTableRepository_Tests : RepositoryTests<SqliteEntityMovie>
 {
     #region Setup
-    private List<SqliteEntityMovie> movies;
-    private Lazy<SqliteDbContext> lazyContext = new(() => SqliteDbContext.CreateContext());
+    private readonly Random random = new();
+    private readonly List<SqliteEntityMovie> movies;
+    private readonly Lazy<SqliteDbContext> lazyContext;
+
+    public SqliteEntityTableRepository_Tests(ITestOutputHelper output)
+    {
+        lazyContext = new(() => SqliteDbContext.CreateContext(output));
+        movies = Context.Movies.AsNoTracking().ToList();
+    }
 
     private SqliteDbContext Context { get => lazyContext.Value; }
 
@@ -22,16 +30,10 @@ public class SqliteEntityTableRepository_Tests : RepositoryTests<SqliteEntityMov
         => Task.FromResult(Context.Movies.Count());
 
     protected override Task<IRepository<SqliteEntityMovie>> GetPopulatedRepositoryAsync()
-    {
-        movies = Context.Movies.AsNoTracking().ToList();
-        return Task.FromResult<IRepository<SqliteEntityMovie>>(new EntityTableRepository<SqliteEntityMovie>(Context));
-    }
+        => Task.FromResult<IRepository<SqliteEntityMovie>>(new EntityTableRepository<SqliteEntityMovie>(Context));
 
     protected override Task<string> GetRandomEntityIdAsync(bool exists)
-    {
-        Random random = new();
-        return Task.FromResult(exists ? movies[random.Next(Context.Movies.Count())].Id : Guid.NewGuid().ToString());
-    }
+        => Task.FromResult(exists ? movies[random.Next(Context.Movies.Count())].Id : Guid.NewGuid().ToString());
     #endregion
 
     [Fact]

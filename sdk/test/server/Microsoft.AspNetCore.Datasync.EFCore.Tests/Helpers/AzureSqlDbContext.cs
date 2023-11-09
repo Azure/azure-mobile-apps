@@ -1,4 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Xunit.Abstractions;
 using TestData = Datasync.Common.TestData;
@@ -23,8 +26,14 @@ public class AzureSqlDbContext : DbContext
             optionsBuilder.EnableSensitiveDataLogging().EnableDetailedErrors();
         }
         AzureSqlDbContext context = new(optionsBuilder.Options);
-        context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
+
+        // Entity Framework Core does not support the update of DateTimeOffset properties.
+        // We need to add a specific trigger to update the UpdatedAt property.
+        context.InstallDatasyncTriggers();
+
+        // Remove all items from the Movies table.
+        context.Database.ExecuteSqlRaw("DELETE FROM \"Movies\"");
 
         TestData.Movies.OfType<EntityMovie>().ForEach(movie => context.Movies.Add(movie));
         context.SaveChanges();
@@ -36,6 +45,23 @@ public class AzureSqlDbContext : DbContext
     }
 
     public DbSet<EntityMovie> Movies { get; set; }
+
+    /// <summary>
+    /// Updates the schema for the database to include the triggers needed for Datasync.
+    /// </summary>
+    internal void InstallDatasyncTriggers()
+    {
+        const string trigger = @"
+            CREATE OR ALTER TRIGGER [dbo].[Movies_UpdatedAt] ON [dbo].[Movies]
+                AFTER INSERT, UPDATE
+            AS
+            BEGIN
+                SET NOCOUNT ON;
+                UPDATE [dbo].[Movies] SET [UpdatedAt] = GETUTCDATE() WHERE [Id] IN (SELECT [Id] FROM INSERTED);
+            END
+        ";
+        Database.ExecuteSqlRaw(trigger);
+    }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

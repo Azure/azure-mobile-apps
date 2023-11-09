@@ -44,6 +44,8 @@ public static class Extensions
             .FailWith("Expected {context:object} to be an ITableData", current.Subject);
 
         ITableData metadata = current.Subject as ITableData ?? throw new InvalidOperationException("Object is not an ITableData");
+        bool updatedAtEquals = source.UpdatedAt == metadata.UpdatedAt;
+        bool updatedAtClose = source.UpdatedAt != null && metadata.UpdatedAt != null && (source.UpdatedAt - metadata.UpdatedAt) < TimeSpan.FromMilliseconds(1);
         Execute.Assertion
             .BecauseOf(because, becauseArgs)
             .ForCondition(metadata.Id == source.Id)
@@ -55,8 +57,8 @@ public static class Extensions
             .ForCondition(metadata.Deleted == source.Deleted)
             .FailWith("Expected {context:object} to have Deleted {0}, but found {1}", source.Deleted, metadata.Deleted)
         .Then
-            .ForCondition(source.UpdatedAt - metadata.UpdatedAt < TimeSpan.FromMilliseconds(1))
-            .FailWith("Expected {context:object} to has UpdatedAt {0}, but found {1}", source.UpdatedAt?.ToString(dateFormat), metadata.UpdatedAt?.ToString(dateFormat));
+            .ForCondition(updatedAtEquals || updatedAtClose)
+            .FailWith("Expected {context:object} to have UpdatedAt {0}, but found {1}", source.UpdatedAt?.ToString(dateFormat), metadata.UpdatedAt?.ToString(dateFormat));
 
         return new AndConstraint<ObjectAssertions>(current);
     }

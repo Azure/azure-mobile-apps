@@ -20,13 +20,12 @@ public class SqliteDbContext : DbContext
         DbContextOptionsBuilder<SqliteDbContext> optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>().UseSqlite(connection);
         if (output != null)
         {
-            optionsBuilder.UseLoggerFactory(new TestLoggerFactory(output, new string[] { "DbLoggerCategory.Database.Command.Name" }));
+            optionsBuilder.UseLoggerFactory(new TestLoggerFactory(output, new string[] { "Microsoft.EntityFrameworkCore.Database.Command" }));
             optionsBuilder.EnableSensitiveDataLogging().EnableDetailedErrors();
         }
         SqliteDbContext context = new(optionsBuilder.Options) { Connection = connection };
         context.Database.EnsureCreated();
 
-        Random random = new();
         TestData.Movies.OfType<SqliteEntityMovie>().ForEach(movie => context.Movies.Add(movie));
         context.SaveChanges();
         return context;
@@ -39,13 +38,6 @@ public class SqliteDbContext : DbContext
     public SqliteConnection Connection { get; set; }
 
     public DbSet<SqliteEntityMovie> Movies { get; set; }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        // SQLite stores date/times with second resolution, which isn't high enough for Azure Mobile Apps.
-        modelBuilder.Entity<SqliteEntityMovie>().Property(m => m.UpdatedAt).HasConversion(new SqliteDateTimeOffsetConverter());
-        base.OnModelCreating(modelBuilder);
-    }
 
     #region SaveChanges
     public override int SaveChanges()
@@ -71,23 +63,26 @@ public class SqliteDbContext : DbContext
         UpdateTrackedEntities();
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
+    #endregion
 
-    /// <summary>
-    /// Updated the metadata of the entities on save.
-    /// </summary>
-    protected void UpdateTrackedEntities()
+    internal void UpdateTrackedEntities()
     {
         ChangeTracker.DetectChanges();
-        foreach (object entity in ChangeTracker.Entries().Where(e => e.State == EntityState.Added || e.State == EntityState.Modified).Select(t => t.Entity).ToList())
+        foreach (var change in ChangeTracker.Entries().Where(m => m.State == EntityState.Added || m.State == EntityState.Modified))
         {
-            if (entity is ITableData metadata)
+            if (change.Entity is ITableData movie)
             {
-                metadata.UpdatedAt = DateTimeOffset.UtcNow;
-                metadata.Version = Guid.NewGuid().ToByteArray();
+                movie.UpdatedAt = DateTimeOffset.UtcNow;
+                movie.Version = Guid.NewGuid().ToByteArray();
             }
         }
     }
-    #endregion
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<SqliteEntityMovie>().Property(m => m.UpdatedAt).HasConversion(new SqliteDateTimeOffsetConverter());
+        base.OnModelCreating(modelBuilder);
+    }
 
     internal class SqliteDateTimeOffsetConverter : ValueConverter<DateTimeOffset, long>
     {

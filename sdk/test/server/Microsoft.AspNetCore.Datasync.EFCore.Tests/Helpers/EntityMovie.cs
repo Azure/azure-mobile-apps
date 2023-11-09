@@ -3,7 +3,6 @@
 
 using Datasync.Common.Models;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;
 

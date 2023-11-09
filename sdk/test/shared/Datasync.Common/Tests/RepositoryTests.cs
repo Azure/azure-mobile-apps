@@ -130,6 +130,7 @@ public abstract class RepositoryTests<TEntity> where TEntity : class, ITableData
         actual.Should().NotBeEquivalentTo<ITableData>(addition).And.HaveEquivalentMetadataTo(sut);
         actual.Id.Should().Be(id);
         actual.UpdatedAt.Should().BeAfter(StartTime).And.BeBefore(DateTimeOffset.UtcNow);
+        actual.Version.Should().NotBeNullOrEmpty();
     }
 
     [SkippableTheory]

@@ -3,6 +3,7 @@
 
 using Datasync.Common.Tests;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;
@@ -11,6 +12,7 @@ namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;
 public class AzureSqlEntityTableRepository_Tests : RepositoryTests<EntityMovie>
 {
     #region Setup
+    private readonly Random random = new();
     private readonly string connectionString;
     private readonly List<EntityMovie> movies;
     private readonly Lazy<AzureSqlDbContext> _context;
@@ -36,15 +38,10 @@ public class AzureSqlEntityTableRepository_Tests : RepositoryTests<EntityMovie>
         => Task.FromResult(Context.Movies.Count());
 
     protected override Task<IRepository<EntityMovie>> GetPopulatedRepositoryAsync()
-    {
-        return Task.FromResult<IRepository<EntityMovie>>(new EntityTableRepository<EntityMovie>(Context));
-    }
+        => Task.FromResult<IRepository<EntityMovie>>(new EntityTableRepository<EntityMovie>(Context));
 
     protected override Task<string> GetRandomEntityIdAsync(bool exists)
-    {
-        Random random = new();
-        return Task.FromResult(exists ? movies[random.Next(movies.Count)].Id : Guid.NewGuid().ToString());
-    }
+        => Task.FromResult(exists ? movies[random.Next(movies.Count)].Id : Guid.NewGuid().ToString());
     #endregion
 
     [Fact]
