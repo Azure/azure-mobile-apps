@@ -138,12 +138,11 @@ namespace Microsoft.AspNetCore.Datasync
                     Logger?.LogError("Error while {reason}: {Message}", reason, err.Message);
                     throw;
                 }
-            } 
+            }
             else
             {
                 throw ex;
             }
-            
         }
 
         /// <summary>
@@ -152,6 +151,7 @@ namespace Microsoft.AspNetCore.Datasync
         /// <param name="ex">The exception that was thrown by the service-side evaluator</param>
         /// <returns>true if a client-side evaluation is required.</returns>
         [NonAction]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Roslynator", "RCS1158:Static member in generic type should use a type parameter.", Justification = "Agreed - fix in v8")]
         internal static bool IsClientSideEvaluationException(Exception ex)
             => ex != null && (ex is InvalidOperationException || ex is NotSupportedException);
 
@@ -274,7 +274,6 @@ namespace Microsoft.AspNetCore.Datasync
                 await AccessControlProvider.PreCommitHookAsync(TableOperation.Delete, entity, token).ConfigureAwait(false);
                 await Repository.ReplaceAsync(entity, version, token).ConfigureAwait(false);
                 await PostCommitHookAsync(TableOperation.Update, entity, token).ConfigureAwait(false);
-
             }
             else
             {
@@ -389,7 +388,7 @@ namespace Microsoft.AspNetCore.Datasync
                 results = (IEnumerable<object>)queryOptions.ApplyTo(dataset, querySettings);
                 resultCount = results.Count();
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!Options.DisableClientSideEvaluation)
             {
                 CatchClientSideEvaluationException(ex, "executing query", () =>
                 {
@@ -413,7 +412,7 @@ namespace Microsoft.AspNetCore.Datasync
                 var query = (IQueryable<TEntity>)queryOptions.Filter?.ApplyTo(dataset, new ODataQuerySettings()) ?? dataset;
                 count = (long)query.Count();
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!Options.DisableClientSideEvaluation)
             {
                 CatchClientSideEvaluationException(ex, "executing query for count", () =>
                 {
