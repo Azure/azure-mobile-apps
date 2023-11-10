@@ -9,6 +9,7 @@ using Xunit.Abstractions;
 
 namespace Datasync.Common.Database;
 
+[ExcludeFromCodeCoverage]
 public abstract class BaseDbContext<TContext, TEntity> : DbContext
     where TContext : DbContext
     where TEntity : class, IMovie, ITableData, new()

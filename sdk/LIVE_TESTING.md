@@ -2,7 +2,10 @@
 
 There are a set of live tests that are disabled by default, but can be enabled by provisioning the appropriate environment variables.  
 
-Note that file-based databases (in-memory, LiteDb, and Sqlite) are always run "live".  
+Notes:
+
+* File-based databases (in-memory, LiteDb, and Sqlite) are always run "live".  
+* If doing code-coverage, the live tests are needed for full coverage.
 
 Follow these instructions to enable live testing of the service based databases:
 

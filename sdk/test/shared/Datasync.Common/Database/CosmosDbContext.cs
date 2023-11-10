@@ -8,6 +8,7 @@ using Xunit.Abstractions;
 
 namespace Datasync.Common;
 
+[ExcludeFromCodeCoverage]
 public class CosmosDbContext : BaseDbContext<CosmosDbContext, CosmosEntityMovie>
 {
     public static CosmosDbContext CreateContext(string connectionString, ITestOutputHelper output = null)
