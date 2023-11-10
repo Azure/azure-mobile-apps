@@ -45,6 +45,13 @@ namespace Microsoft.AspNetCore.Datasync
         }
 
         /// <summary>
+        /// If <c>true</c>, then client-side evaluation of queries is disabled and clients
+        /// will get a 500 Internal Server Error if they attempt to use a query that cannot
+        /// be evaluated by the database.
+        /// </summary>
+        public bool DisableClientSideEvaluation { get; set; } = false;
+
+        /// <summary>
         /// True if soft delete is enabled.  By default, soft delete is turned off
         /// (for backwards compatibility with Azure Mobile Apps v2.0)
         /// </summary>
