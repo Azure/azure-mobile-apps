@@ -23,9 +23,9 @@ namespace Microsoft.AspNetCore.Datasync
         /// </summary>
         /// <param name="services">The current service collection</param>
         /// <returns>The resulting service collection</returns>
-        public static IServiceCollection AddDatasyncControllers(this IServiceCollection services, IContractResolver contractResolver = null)
+        public static IServiceCollection AddDatasyncControllers(this IServiceCollection services)
         {
-            contractResolver ??= new CamelCasePropertyNamesContractResolver();
+            IContractResolver contractResolver = new CamelCasePropertyNamesContractResolver();
 
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
