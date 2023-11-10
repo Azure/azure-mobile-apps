@@ -2,10 +2,11 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Models;
+using Microsoft.AspNetCore.Datasync.EFCore;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
+using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;
+namespace Datasync.Common;
 
 [ExcludeFromCodeCoverage]
 public class SqliteEntityMovie : SqliteEntityTableData, IMovie, IEquatable<IMovie>

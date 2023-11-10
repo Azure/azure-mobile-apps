@@ -111,6 +111,21 @@ public abstract class RepositoryTests<TEntity> where TEntity : class, ITableData
 
         actual.Should().HaveCount(20);
     }
+
+    /// <summary>
+    /// This test simulates a paged response from the client for a datasync operation.
+    /// </summary>
+    [SkippableFact]
+    public async Task AsQueryableAsync_CanRetrievePagedDatasyncQuery()
+    {
+        Skip.IfNot(CanRunLiveTests());
+        IRepository<TEntity> Repository = await GetPopulatedRepositoryAsync();
+        var actual = (await Repository.AsQueryableAsync())
+            .Where(m => m.UpdatedAt > DateTimeOffset.UnixEpoch && !m.Deleted)
+            .OrderBy(m => m.UpdatedAt)
+            .Skip(10).Take(10).ToList();
+        actual.Should().HaveCount(10);
+    }
     #endregion
 
     #region CreateAsync

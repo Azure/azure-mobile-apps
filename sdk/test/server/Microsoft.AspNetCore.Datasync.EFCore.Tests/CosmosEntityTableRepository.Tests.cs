@@ -8,39 +8,39 @@ using Xunit.Abstractions;
 namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;
 
 [ExcludeFromCodeCoverage]
-public class PgEntityTableRepository_Tests : RepositoryTests<EntityMovie>
+public class CosmosEntityTableRepository_Tests : RepositoryTests<CosmosEntityMovie>
 {
     #region Setup
     private readonly Random random = new();
     private readonly string connectionString;
-    private readonly List<EntityMovie> movies;
-    private readonly Lazy<PgDbContext> _context;
+    private readonly List<CosmosEntityMovie> movies;
+    private readonly Lazy<CosmosDbContext> _context;
 
-    public PgEntityTableRepository_Tests(ITestOutputHelper output) : base()
+    public CosmosEntityTableRepository_Tests(ITestOutputHelper output) : base()
     {
-        connectionString = Environment.GetEnvironmentVariable("ZUMO_PGSQL_CONNECTIONSTRING");
+        connectionString = Environment.GetEnvironmentVariable("ZUMO_COSMOS_CONNECTIONSTRING");
         if (!string.IsNullOrEmpty(connectionString))
         {
-            _context = new Lazy<PgDbContext>(() => PgDbContext.CreateContext(connectionString, output));
+            _context = new Lazy<CosmosDbContext>(() => CosmosDbContext.CreateContext(connectionString, output));
             movies = Context.Movies.AsNoTracking().ToList();
         }
     }
 
-    private PgDbContext Context { get => _context.Value; }
+    private CosmosDbContext Context { get => _context.Value; }
 
     protected override bool CanRunLiveTests() => !string.IsNullOrEmpty(connectionString);
 
-    protected override Task<EntityMovie> GetEntityAsync(string id)
+    protected override Task<CosmosEntityMovie> GetEntityAsync(string id)
         => Task.FromResult(Context.Movies.AsNoTracking().SingleOrDefault(m => m.Id == id));
 
     protected override Task<int> GetEntityCountAsync()
         => Task.FromResult(Context.Movies.Count());
 
-    protected override Task<IRepository<EntityMovie>> GetPopulatedRepositoryAsync()
-        => Task.FromResult<IRepository<EntityMovie>>(new EntityTableRepository<EntityMovie>(Context));
+    protected override Task<IRepository<CosmosEntityMovie>> GetPopulatedRepositoryAsync()
+        => Task.FromResult<IRepository<CosmosEntityMovie>>(new EntityTableRepository<CosmosEntityMovie>(Context));
 
     protected override Task<string> GetRandomEntityIdAsync(bool exists)
-       => Task.FromResult(exists ? movies[random.Next(movies.Count)].Id : Guid.NewGuid().ToString());
+        => Task.FromResult(exists ? movies[random.Next(movies.Count)].Id : Guid.NewGuid().ToString());
     #endregion
 
     [Fact]
@@ -55,7 +55,7 @@ public class PgEntityTableRepository_Tests : RepositoryTests<EntityMovie>
     public void EntityTableRepository_GoodDbSet_Works()
     {
         Skip.IfNot(CanRunLiveTests());
-        Action act = () => _ = new EntityTableRepository<EntityMovie>(Context);
+        Action act = () => _ = new EntityTableRepository<CosmosEntityMovie>(Context);
         act.Should().NotThrow();
     }
 
@@ -63,9 +63,9 @@ public class PgEntityTableRepository_Tests : RepositoryTests<EntityMovie>
     public async Task WrapExceptionAsync_ThrowsConflictException_WhenDbConcurrencyUpdateExceptionThrown()
     {
         Skip.IfNot(CanRunLiveTests());
-        EntityTableRepository<EntityMovie> repository = await GetPopulatedRepositoryAsync() as EntityTableRepository<EntityMovie>;
+        EntityTableRepository<CosmosEntityMovie> repository = await GetPopulatedRepositoryAsync() as EntityTableRepository<CosmosEntityMovie>;
         string id = await GetRandomEntityIdAsync(true);
-        EntityMovie expectedPayload = await GetEntityAsync(id);
+        CosmosEntityMovie expectedPayload = await GetEntityAsync(id);
 
         static Task innerAction() => throw new DbUpdateConcurrencyException("Concurrency exception");
 
@@ -77,9 +77,9 @@ public class PgEntityTableRepository_Tests : RepositoryTests<EntityMovie>
     public async Task WrapExceptionAsync_ThrowsRepositoryException_WhenDbUpdateExceptionThrown()
     {
         Skip.IfNot(CanRunLiveTests());
-        EntityTableRepository<EntityMovie> repository = await GetPopulatedRepositoryAsync() as EntityTableRepository<EntityMovie>;
+        EntityTableRepository<CosmosEntityMovie> repository = await GetPopulatedRepositoryAsync() as EntityTableRepository<CosmosEntityMovie>;
         string id = await GetRandomEntityIdAsync(true);
-        EntityMovie expectedPayload = await GetEntityAsync(id);
+        CosmosEntityMovie expectedPayload = await GetEntityAsync(id);
 
         static Task innerAction() => throw new DbUpdateException("Non-concurrency exception");
 

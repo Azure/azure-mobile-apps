@@ -6,7 +6,6 @@ using FluentAssertions.Execution;
 using FluentAssertions.Primitives;
 using FluentAssertions.Specialized;
 using Microsoft.AspNetCore.Datasync;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Datasync.Common;
 
@@ -14,26 +13,11 @@ namespace Datasync.Common;
 /// A set of extension methods to support the Azure Mobile Apps SDK tests.
 /// </summary>
 [ExcludeFromCodeCoverage]
-public static class Extensions
+public static class FluentAssertionExtensions
 {
     /// <summary>
-    /// Fills in the common metadata properties for an entity.
+    /// Checks that the current object is an <see cref="ITableData"/> and that it has the same metadata as the source.
     /// </summary>
-    /// <typeparam name="T">The type of the entity.</typeparam>
-    /// <param name="entity">The source metadata</param>
-    /// <returns>A new entity with the source metadata filled in.</returns>
-    public static T ToTableEntity<T>(this ITableData entity) where T : ITableData, new()
-       => new() { Id = entity.Id, Version = entity.Version, UpdatedAt = entity.UpdatedAt, Deleted = entity.Deleted };
-
-    /// <summary>
-    /// Creates a deep clone of an entity.
-    /// </summary>
-    /// <typeparam name="TEntity">The entity to clone.</typeparam>
-    /// <param name="source">The source entity.</param>
-    /// <returns>A copy of the source entity.</returns>
-    public static TEntity Clone<TEntity>(this TEntity entity)
-        => AnyClone.CloneExtensions.Clone(entity);
-
     public static AndConstraint<ObjectAssertions> HaveEquivalentMetadataTo(this ObjectAssertions current, ITableData source, string because = "", params object[] becauseArgs)
     {
         const string dateFormat = "yyyy-MM-ddTHH:mm:ss.fffK";

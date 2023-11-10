@@ -2,12 +2,14 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Models;
+using Microsoft.AspNetCore.Datasync.EFCore;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;
+namespace Datasync.Common;
 
 [ExcludeFromCodeCoverage]
-public class CosmosEntityMovie : CosmosEntityTableData, IMovie, IEquatable<IMovie>
+public class EntityMovie : EntityTableData, IMovie, IEquatable<IMovie>
 {
     /// <summary>
     /// True if the movie won the oscar for Best Picture

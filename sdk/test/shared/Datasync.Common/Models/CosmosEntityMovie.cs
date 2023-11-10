@@ -4,12 +4,12 @@
 using Datasync.Common.Models;
 using Microsoft.AspNetCore.Datasync.EFCore;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
+using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.AspNetCore.Datasync.Automapper.Tests;
+namespace Datasync.Common;
 
 [ExcludeFromCodeCoverage]
-public class SqliteEntityMovie : SqliteEntityTableData, IMovie, IEquatable<IMovie>
+public class CosmosEntityMovie : CosmosEntityTableData, IMovie, IEquatable<IMovie>
 {
     /// <summary>
     /// True if the movie won the oscar for Best Picture

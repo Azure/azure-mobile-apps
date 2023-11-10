@@ -3,7 +3,6 @@
 
 using Datasync.Common.Tests;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.CompilerServices;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Datasync.EFCore.Tests;

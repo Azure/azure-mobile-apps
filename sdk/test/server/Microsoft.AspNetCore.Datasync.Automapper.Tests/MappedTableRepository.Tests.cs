@@ -13,16 +13,18 @@ namespace Microsoft.AspNetCore.Datasync.Automapper.Tests;
 public class MappedTableRepository_Tests : RepositoryTests<MovieDto>
 {
     #region Setup
+    private readonly Random random = new();
     private readonly ITestOutputHelper output;
     private SqliteDbContext context;
     private EntityTableRepository<SqliteEntityMovie> innerRepository;
-    private IMapper mapper;
+    private readonly IMapper mapper;
     private MappedTableRepository<SqliteEntityMovie, MovieDto> repository;
     private List<MovieDto> movies;
 
     public MappedTableRepository_Tests(ITestOutputHelper output) : base()
     {
         this.output = output;
+        mapper = new MapperConfiguration(c => c.AddProfile(new MapperProfile())).CreateMapper();
     }
 
     protected override Task<MovieDto> GetEntityAsync(string id)
@@ -35,17 +37,12 @@ public class MappedTableRepository_Tests : RepositoryTests<MovieDto>
     {
         context = SqliteDbContext.CreateContext(output);
         innerRepository = new EntityTableRepository<SqliteEntityMovie>(context);
-
-        mapper = new MapperConfiguration(c => c.AddProfile(new MapperProfile())).CreateMapper();
         repository = new MappedTableRepository<SqliteEntityMovie, MovieDto>(mapper, innerRepository);
         movies = context.Movies.AsNoTracking().ToList().ConvertAll(m => mapper.Map<MovieDto>(m));
         return Task.FromResult<IRepository<MovieDto>>(repository);
     }
 
     protected override Task<string> GetRandomEntityIdAsync(bool exists)
-    {
-        Random random = new();
-        return Task.FromResult(exists ? movies[random.Next(movies.Count)].Id : Guid.NewGuid().ToString());
-    }
+        => Task.FromResult(exists ? movies[random.Next(movies.Count)].Id : Guid.NewGuid().ToString());
     #endregion
 }

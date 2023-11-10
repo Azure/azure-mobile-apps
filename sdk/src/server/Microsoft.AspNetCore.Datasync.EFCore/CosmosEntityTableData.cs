@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Datasync.EFCore;
 public class CosmosEntityTableData : BaseEntityTableData
 {
     /// <inheritdoc />
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+    [UpdatedByRepository]
     public override DateTimeOffset? UpdatedAt { get; set; } = DateTimeOffset.UnixEpoch;
 
     /// <inheritdoc />

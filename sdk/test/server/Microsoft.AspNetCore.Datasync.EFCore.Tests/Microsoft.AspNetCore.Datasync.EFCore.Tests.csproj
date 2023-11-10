@@ -1,13 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\Shared.Build.props" />
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Cosmos" Version="6.0.24" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.24" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.24" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.22" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\..\src\server\Microsoft.AspNetCore.Datasync.EFCore\Microsoft.AspNetCore.Datasync.EFCore.csproj" />
     <ProjectReference Include="..\..\shared\Datasync.Common\Datasync.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Helpers\" />
   </ItemGroup>
 </Project>

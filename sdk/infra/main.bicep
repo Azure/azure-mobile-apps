@@ -123,55 +123,6 @@ resource pgsql_database 'Microsoft.DBforPostgreSQL/flexibleServers/databases@202
   }
 }
 
-// MySQL server and database
-resource mysql_server 'Microsoft.DBforMySQL/flexibleServers@2023-06-01-preview' = {
-  name: 'mysqlserver-${resourceToken}'
-  location: location
-  sku: {
-    name: flexibleServerSkuName
-    tier: flexibleServerSkuType
-  }
-  properties: {
-    administratorLogin: sqlAdminUsername
-    administratorLoginPassword: sqlAdminPassword
-    createMode: 'Default'
-    backup: {
-      backupRetentionDays: 7
-      geoRedundantBackup: 'Disabled'
-    }
-    highAvailability: {
-      mode: 'Disabled'
-    }
-    network: {
-      publicNetworkAccess: 'Enabled'
-    }
-    storage: {
-      storageSizeGB: 32
-      iops: 360
-      autoGrow: 'Disabled'
-      logOnDisk: 'Disabled'
-    }
-    version: '8.0.21'
-  }
-
-  resource mysql_firewall 'firewallRules@2022-01-01' = {
-    name: 'AllowPublicAccess'
-    properties: {
-      endIpAddress: '255.255.255.255'
-      startIpAddress: '0.0.0.0'
-    }
-  }
-}
-
-resource mysql_database 'Microsoft.DBforMySQL/flexibleServers/databases@2023-06-01-preview' = {
-  name: 'unittests'
-  parent: mysql_server
-  properties: {
-    charset: 'UTF8'
-    collation: 'en_US.utf8'
-  }
-}
-
 // Cosmos SQL Account, Database, and Container
 resource cosmos_account 'Microsoft.DocumentDB/databaseAccounts@2023-09-15' = {
   name: 'cosmos-${resourceToken}'
@@ -242,9 +193,6 @@ output ZUMO_COSMOS_CONNECTIONSTRING string = cosmos_account.listConnectionString
 
 #disable-next-line outputs-should-not-contain-secrets // I'm ok with secrets being output for this deployment
 output ZUMO_AZSQL_CONNECTIONSTRING string = 'Data Source=tcp:${azsql_server.properties.fullyQualifiedDomainName},1433;Initial Catalog=${azsql_database.name};User Id=${sqlAdminUsername}@${azsql_server.properties.fullyQualifiedDomainName};Password=${sqlAdminPassword};Encrypt=True;TrustServerCertificate=False'
-
-#disable-next-line outputs-should-not-contain-secrets // I'm ok with secrets being output for this deployment
-output ZUMO_MYSQL_CONNECTIONSTRING string = 'Server=${mysql_server.properties.fullyQualifiedDomainName};Database=${mysql_database.name};Uid=${sqlAdminUsername}@${mysql_server.properties.fullyQualifiedDomainName};Password=${sqlAdminPassword};SslMode=Required'
 
 #disable-next-line outputs-should-not-contain-secrets // I'm ok with secrets being output for this deployment
 output ZUMO_PGSQL_CONNECTIONSTRING string = 'Host=${pgsql_server.properties.fullyQualifiedDomainName};Database=${pgsql_database.name};Username=${sqlAdminUsername};Password=${sqlAdminPassword}'

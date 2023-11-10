@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace Microsoft.AspNetCore.Datasync.EFCore;
@@ -8,6 +9,7 @@ namespace Microsoft.AspNetCore.Datasync.EFCore;
 /// <summary>
 /// The base class for entity framework core-based table data.
 /// </summary>
+[Index(nameof(UpdatedAt), nameof(Deleted))]
 public abstract class BaseEntityTableData : ITableData
 {
     /// <inheritdoc />

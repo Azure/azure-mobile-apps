@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Microsoft.Extensions.Logging;
-using System.Diagnostics.CodeAnalysis;
 using Xunit.Abstractions;
 
 namespace Datasync.Common;
@@ -43,9 +42,9 @@ public class TestLoggerFactory : ILoggerFactory
 
     class TestLogger : ILogger
     {
-        string _categoryName;
-        string[] _categories;
-        ITestOutputHelper _output;
+        private readonly string _categoryName;
+        private readonly string[] _categories;
+        private readonly ITestOutputHelper _output;
 
         public TestLogger(string categoryName, string[] categories, ITestOutputHelper output)
         {

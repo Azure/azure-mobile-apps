@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Datasync.Abstractions;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Datasync.EFCore;
 
@@ -13,8 +14,25 @@ namespace Microsoft.AspNetCore.Datasync.EFCore;
 /// <typeparam name="TEntity">The type of entity to store</typeparam>
 public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity : BaseEntityTableData
 {
+    /// <summary>
+    /// The <see cref="DbContext"/> used for saving changes to the entity set.
+    /// </summary>
     protected DbContext Context { get; }
+
+    /// <summary>
+    /// The entity set for the repository.
+    /// </summary>
     protected DbSet<TEntity> DataSet { get; }
+
+    /// <summary>
+    /// If <c>true</c>, then UpdatedAt is set to <see cref="DateTimeOffset.UtcNow"/> before saving.
+    /// </summary>
+    private bool shouldUpdateUpdatedAt;
+
+    /// <summary>
+    /// If <c>true</c>, then Version is set to a new GUID before saving.
+    /// </summary>
+    private bool shouldUpdateVersion;
 
     /// <summary>
     /// Creates a new instance of the <see cref="EntityTableRepository{TEntity}"/> class, using specific options.
@@ -33,9 +51,36 @@ public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity
         {
             throw new ArgumentException($"Unregistered entity type: {typeof(TEntity).Name}", nameof(context));
         }
+        shouldUpdateUpdatedAt = Attribute.IsDefined(typeof(TEntity).GetProperty(nameof(ITableData.UpdatedAt))!, typeof(UpdatedByRepositoryAttribute));
+        shouldUpdateVersion = Attribute.IsDefined(typeof(TEntity).GetProperty(nameof(ITableData.Version))!, typeof(UpdatedByRepositoryAttribute));
     }
 
     #region Private Methods
+    /// <summary>
+    /// Retrieves an untracked version of an entity from the database.
+    /// </summary>
+    /// <param name="id">The ID of the entity to retrieve.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+    /// <returns>An untracked version of the entity.</returns>
+    protected Task<TEntity> GetEntityAsync(string id, CancellationToken cancellationToken = default)
+        => DataSet.AsNoTracking().SingleAsync(x => x.Id == id, cancellationToken);
+
+    /// <summary>
+    /// Updates the managed properties for this entity if required.
+    /// </summary>
+    /// <param name="entity">The entity to be updated.</param>
+    internal void UpdateManagedProperties(TEntity entity)
+    {
+        if (shouldUpdateUpdatedAt)
+        {
+            entity.UpdatedAt = DateTimeOffset.UtcNow;
+        }
+        if (shouldUpdateVersion)
+        {
+            entity.Version = Guid.NewGuid().ToByteArray();
+        }
+    }
+
     /// <summary>
     /// Runs the inner part of an operation on the database, catching all the normal exceptions and reformatting
     /// them as appropriate.
@@ -61,15 +106,6 @@ public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity
             throw new RepositoryException(ex.Message, ex);
         }
     }
-
-    /// <summary>
-    /// Retrieves an untracked version of an entity from the database.
-    /// </summary>
-    /// <param name="id">The ID of the entity to retrieve.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-    /// <returns>An untracked version of the entity.</returns>
-    protected Task<TEntity> GetEntityAsync(string id, CancellationToken cancellationToken = default)
-        => DataSet.AsNoTracking().SingleAsync(x => x.Id == id, cancellationToken);
     #endregion
 
     #region IRepository{TEntity}
@@ -78,6 +114,7 @@ public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity
         => ValueTask.FromResult(DataSet.AsNoTracking());
 
     /// <inheritdoc />
+    [SuppressMessage("Performance", "CA1827:Do not use Count() or LongCount() when Any() can be used", Justification = "Cosmos EF Core driver does not support .Any()")]
     public virtual async ValueTask CreateAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(entity.Id))
@@ -86,15 +123,13 @@ public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity
         }
         await WrapExceptionAsync(entity.Id, async () =>
         {
-            if (DataSet.Any(x => x.Id == entity.Id))
+            if (DataSet.Count(x => x.Id == entity.Id) > 0)
             {
                 throw new HttpException(HttpStatusCodes.Status409Conflict) { Payload = await GetEntityAsync(entity.Id, cancellationToken).ConfigureAwait(false) };
             }
+            UpdateManagedProperties(entity);
             DataSet.Add(entity);
             await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            var storedEntity = await Context.Entry(entity).GetDatabaseValuesAsync();
-            var updatedAt = Context.Entry(entity).Property(x => x.UpdatedAt).CurrentValue;
-            var version = Context.Entry(entity).Property(x => x.Version).CurrentValue;
         }, cancellationToken);
     }
 
@@ -144,10 +179,9 @@ public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity
             {
                 throw new HttpException(HttpStatusCodes.Status412PreconditionFailed) { Payload = await GetEntityAsync(entity.Id, cancellationToken).ConfigureAwait(false) };
             }
+            UpdateManagedProperties(entity);
             Context.Entry(storedEntity).CurrentValues.SetValues(entity);
             await Context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            entity.UpdatedAt = storedEntity.UpdatedAt;
-            entity.Version = storedEntity.Version.ToArray();
         }, cancellationToken);
     }
     #endregion

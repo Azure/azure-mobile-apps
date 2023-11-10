@@ -7,12 +7,6 @@
     <Description>A test package for supporting the Azure Mobile Apps libraries.</Description>
     <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
     <LicenseUrl>https://github.com/Azure/azure-mobile-apps/blob/main/LICENSE.txt</LicenseUrl>
-    <PackageIcon>icon.png</PackageIcon>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/Azure/azure-mobile-apps</PackageProjectUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageTags>microsoft;azure;cloud;datasync</PackageTags>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
     <ProjectUrl>https://github.com/azure/azure-mobile-apps</ProjectUrl>
     <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
@@ -29,14 +23,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)\..\images\icon.png" PackagePath="icon.png" Pack="True" />
-    <None Include="$(MSBuildThisFileDirectory)\..\..\README.md" PackagePath="README.md" Pack="True" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.12.0"/>
     <PackageReference Include="FluentAssertions.Web" Version="1.2.5"/>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="NSubstitute" Version="5.1.0" />
     <PackageReference Include="xunit" Version="2.6.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
