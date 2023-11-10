@@ -47,6 +47,7 @@ namespace Microsoft.Datasync.Client.Offline
         private readonly AsyncLock initializationLock = new();
         private readonly AsyncReaderWriterLock queueLock = new();
         private readonly AsyncLockDictionary tableLock = new();
+        private readonly AsyncLockDictionary itemLock = new();
 
         /// <summary>
         /// The Id generator to use for item.
@@ -203,8 +204,11 @@ namespace Microsoft.Datasync.Client.Offline
         {
             await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
             string itemId = ServiceSerializer.GetId(instance);
-            var originalInstance = await GetItemAsync(tableName, itemId, cancellationToken).ConfigureAwait(false) ?? throw new InvalidOperationException($"The item with ID '{itemId}' is not in the offline store.");
-            var operation = new DeleteOperation(tableName, itemId) { Item = originalInstance };
+
+            using IDisposable itemLock = await this.itemLock.AcquireAsync(itemId, cancellationToken).ConfigureAwait(false);
+            JObject originalInstance = await GetItemAsync(tableName, itemId, cancellationToken).ConfigureAwait(false)
+                ?? throw new InvalidOperationException($"The item with ID '{itemId}' is not in the offline store.");
+            DeleteOperation operation = new(tableName, itemId) { Item = originalInstance };
 
             await EnqueueOperationAsync(operation, originalInstance, cancellationToken).ConfigureAwait(false);
         }
@@ -245,8 +249,6 @@ namespace Microsoft.Datasync.Client.Offline
         public async Task InsertItemAsync(string tableName, JObject instance, CancellationToken cancellationToken = default)
         {
             await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
-
-            // We have to pre-generate the ID when doing offline work.
             string itemId = ServiceSerializer.GetId(instance, allowDefault: true);
             if (itemId == null)
             {
@@ -254,7 +256,9 @@ namespace Microsoft.Datasync.Client.Offline
                 instance = (JObject)instance.DeepClone();
                 instance[SystemProperties.JsonIdProperty] = itemId;
             }
-            var operation = new InsertOperation(tableName, itemId);
+
+            using IDisposable itemLock = await this.itemLock.AcquireAsync(itemId, cancellationToken).ConfigureAwait(false);
+            InsertOperation operation = new InsertOperation(tableName, itemId);
             await EnqueueOperationAsync(operation, instance, cancellationToken).ConfigureAwait(false);
         }
 
@@ -275,7 +279,9 @@ namespace Microsoft.Datasync.Client.Offline
             {
                 instance[SystemProperties.JsonVersionProperty] = version;
             }
-            var operation = new UpdateOperation(tableName, itemId);
+
+            using IDisposable itemLock = await this.itemLock.AcquireAsync(itemId, cancellationToken).ConfigureAwait(false);
+            UpdateOperation operation = new UpdateOperation(tableName, itemId);
             await EnqueueOperationAsync(operation, instance, cancellationToken).ConfigureAwait(false);
         }
         #endregion
@@ -544,19 +550,24 @@ namespace Microsoft.Datasync.Client.Offline
 
             // Process the queue - only use the QueueHandler (new logic) if maxThreads > 1
             SendPushStartedEvent();
-            var maxThreads = GetMaximumParallelOperations(options);
+            int maxThreads = GetMaximumParallelOperations(options);
+            long itemCount = 0;
             if (maxThreads == 1)
             {
                 try
                 {
-                    long itemCount = 0;
                     TableOperation operation = await OperationsQueue.PeekAsync(0, tableNames, cancellationToken).ConfigureAwait(false);
                     while (operation != null)
                     {
-                        SendItemWillBePushedEvent(operation.TableName, operation.ItemId, itemCount);
-                        bool isSuccessful = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
-                        itemCount++;
-                        SendItemWasPushedEvent(operation.TableName, operation.ItemId, itemCount, isSuccessful);
+                        using (IDisposable itemLock = await this.itemLock.AcquireAsync(operation.ItemId, cancellationToken).ConfigureAwait(false))
+                        {
+                            // Get the operation again in case it changed while waiting for the lock.
+                            operation = await OperationsQueue.GetOperationByItemIdAsync(operation.TableName, operation.ItemId, cancellationToken).ConfigureAwait(false);
+                            SendItemWillBePushedEvent(operation.TableName, operation.ItemId, itemCount);
+                            bool isSuccessful = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
+                            Interlocked.Increment(ref itemCount);
+                            SendItemWasPushedEvent(operation.TableName, operation.ItemId, itemCount, isSuccessful);
+                        }
                         if (batch.AbortReason.HasValue)
                         {
                             break;
@@ -571,16 +582,17 @@ namespace Microsoft.Datasync.Client.Offline
             }
             else
             {
-                var itemCount = new long[] { 0 };
                 QueueHandler queueHandler = new(maxThreads, async (operation) =>
                 {
-                    SendItemWillBePushedEvent(operation.TableName, operation.ItemId, itemCount[0]);
+                    using IDisposable itemLock = await this.itemLock.AcquireAsync(operation.ItemId, cancellationToken).ConfigureAwait(false);
+
+                    // Get the operation again in case it changed while waiting for the lock.
+                    operation = await OperationsQueue.GetOperationByItemIdAsync(operation.TableName, operation.ItemId, cancellationToken).ConfigureAwait(false);
+                    SendItemWillBePushedEvent(operation.TableName, operation.ItemId, itemCount);
                     bool isSuccessful = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
-                    lock (itemCount)
-                    {
-                        itemCount[0]++;
-                    }
-                    SendItemWasPushedEvent(operation.TableName, operation.ItemId, itemCount[0], isSuccessful);
+                    Interlocked.Increment(ref itemCount);
+                    SendItemWasPushedEvent(operation.TableName, operation.ItemId, itemCount, isSuccessful);
+
                 });
                 try
                 {
