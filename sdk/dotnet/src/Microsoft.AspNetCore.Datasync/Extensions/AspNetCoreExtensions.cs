@@ -27,7 +27,16 @@ namespace Microsoft.AspNetCore.Datasync
         {
             services
                 .AddControllers()
-                .AddOData(options => options.EnableQueryFeatures());
+                .AddOData(options => options.EnableQueryFeatures())
+                .AddNewtonsoftJson(options =>
+                {
+                    // These will eventually be a part of Microsoft.AspNetCore.OData.NewtonsoftJson types
+                    // but they aren't released as of 8.0.1, so need to have them explicitly included.
+                    options.SerializerSettings.Converters.Add(new JSelectExpandWrapperConverter());
+                    options.SerializerSettings.Converters.Add(new JDynamicTypeWrapperConverter());
+                    options.SerializerSettings.Converters.Add(new DateTimeOffsetJsonConverter());
+                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
+                });
 
             return services;
         }

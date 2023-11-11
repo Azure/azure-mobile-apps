@@ -17,18 +17,20 @@ using Newtonsoft.Json.Converters;
 namespace Microsoft.AspNetCore.Datasync.Filters
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    public class CamelCasePropertyNamesContractResolverAttribute : ActionFilterAttribute
+    public class CamelCasePropertyNamesContractResolverAttribute : ResultFilterAttribute
     {
-        public override void OnActionExecuted(ActionExecutedContext ctx)
+        public override Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next)
         {
-            if (ctx.Result is ObjectResult objectResult)
+            if (context.Result is ObjectResult objectResult)
             {
+                IContractResolver contractResolver = new CamelCasePropertyNamesContractResolver();
+
                 JsonConvert.DefaultSettings = () => new JsonSerializerSettings
                 {
                     DateFormatHandling = DateFormatHandling.IsoDateFormat,
                     NullValueHandling = NullValueHandling.Include,
                     DefaultValueHandling = DefaultValueHandling.Include,
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                    ContractResolver = contractResolver
                 };
 
                 var jsonSerializerSettings = new JsonSerializerSettings
@@ -36,7 +38,7 @@ namespace Microsoft.AspNetCore.Datasync.Filters
                     DateFormatHandling = DateFormatHandling.IsoDateFormat,
                     NullValueHandling = NullValueHandling.Include,
                     DefaultValueHandling = DefaultValueHandling.Include,
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                    ContractResolver = contractResolver
                 };
 
                 jsonSerializerSettings.Converters.Add(new JSelectExpandWrapperConverter());
@@ -45,9 +47,11 @@ namespace Microsoft.AspNetCore.Datasync.Filters
                 jsonSerializerSettings.Converters.Add(new StringEnumConverter());
 
                 objectResult.Formatters.Add(new NewtonsoftJsonOutputFormatter(jsonSerializerSettings,
-                    ctx.HttpContext.RequestServices.GetRequiredService<ArrayPool<char>>(),
-                    ctx.HttpContext.RequestServices.GetRequiredService<IOptions<MvcOptions>>().Value));
+                    context.HttpContext.RequestServices.GetRequiredService<ArrayPool<char>>(),
+                    context.HttpContext.RequestServices.GetRequiredService<IOptions<MvcOptions>>().Value,
+                    new MvcNewtonsoftJsonOptions()));
             }
+            return base.OnResultExecutionAsync(context, next);
         }
     }
 }
