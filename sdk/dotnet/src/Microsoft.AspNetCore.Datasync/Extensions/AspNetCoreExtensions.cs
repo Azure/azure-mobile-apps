@@ -25,33 +25,9 @@ namespace Microsoft.AspNetCore.Datasync
         /// <returns>The resulting service collection</returns>
         public static IServiceCollection AddDatasyncControllers(this IServiceCollection services)
         {
-            IContractResolver contractResolver = new CamelCasePropertyNamesContractResolver();
-
-            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
-            {
-                DateFormatHandling = DateFormatHandling.IsoDateFormat,
-                NullValueHandling = NullValueHandling.Include,
-                DefaultValueHandling = DefaultValueHandling.Include,
-                ContractResolver = contractResolver
-            };
-
             services
                 .AddControllers()
-                .AddOData(options => options.EnableQueryFeatures())
-                .AddNewtonsoftJson(options =>
-                {
-                    options.SerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
-                    options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
-                    options.SerializerSettings.DefaultValueHandling = DefaultValueHandling.Include;
-                    options.SerializerSettings.ContractResolver = contractResolver;
-
-                    // These will eventually be a part of Microsoft.AspNetCore.OData.NewtonsoftJson types
-                    // but they aren't released as of 8.0.1, so need to have them explicitly included.
-                    options.SerializerSettings.Converters.Add(new JSelectExpandWrapperConverter());
-                    options.SerializerSettings.Converters.Add(new JDynamicTypeWrapperConverter());
-                    options.SerializerSettings.Converters.Add(new DateTimeOffsetJsonConverter());
-                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
-                });
+                .AddOData(options => options.EnableQueryFeatures());
 
             return services;
         }

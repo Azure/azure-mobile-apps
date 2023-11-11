@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 namespace Microsoft.AspNetCore.Datasync
 {
     [ApiController]
+    [CamelCasePropertyNamesContractResolver]
     [DatasyncController]
     [DatasyncExceptions]
     [DatasyncProtocolVersionFilter]
