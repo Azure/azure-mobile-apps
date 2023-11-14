@@ -4,7 +4,6 @@
 using Datasync.Common.Models;
 using Microsoft.AspNetCore.Datasync.EFCore;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Datasync.Common;
 

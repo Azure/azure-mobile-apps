@@ -2,94 +2,90 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.AspNetCore.Http.Headers;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
-using System.Text;
 
-namespace Microsoft.AspNetCore.Datasync;
+namespace Microsoft.AspNetCore.Datasync.Extensions;
 
 internal static class HttpRequestExtensions
 {
     /// <summary>
-    /// Creates the <c>nextLink</c> <see cref="Uri"/> for the next request in a paging set.
+    /// Used in checking the If-Modified-Since and If-Unmodified-Since headers for date/time comparisons with nulls.
     /// </summary>
-    /// <param name="request">The current <see cref="HttpRequest"/> object.</param>
-    /// <param name="skip">The new value of the <c>$skip</c> query parameter.</param>
-    /// <param name="top">The new value of the <c>$top</c> query parameter.</param>
-    /// <returns>A <see cref="Uri"/> representing the next page of results.</returns>
-    internal static Uri CreateNextLink(this HttpRequest request, int skip = 0, int top = 0)
-    {
-        UriBuilder builder = new(request.GetDisplayUrl());
-        List<string> query = string.IsNullOrEmpty(builder.Query) ? new()
-            : builder.Query.TrimStart('?').Split('&').Where(q => !q.StartsWith("$skip=") && !q.StartsWith("$top=")).ToList();
-        query.AddIf(skip > 0, $"$skip={skip}");
-        query.AddIf(top > 0, $"$top={top}");
-        builder.Query = $"?{string.Join("&", query).TrimStart('&')}";
-        if (builder.IsDefaultPort())
-        {
-            builder.Port = -1;
-        }
-        return builder.Uri;
-    }
+    internal static bool IsAfter(this DateTimeOffset left, DateTimeOffset? right)
+        => !right.HasValue || left > right.Value;
 
     /// <summary>
-    /// Reads the body of the request as a string.
+    /// Used in checking the If-Modified-Since and If-Unmodified-Since headers for date/time comparisons with nulls.
     /// </summary>
-    /// <param name="request">The <see cref="HttpRequest"/> to process.</param>
-    /// <returns>The body of the request.</returns>
-    internal static async Task<string> GetBodyAsStringAsync(this HttpRequest request)
-    {
-        using StreamReader streamReader = new(request.Body, Encoding.UTF8);
-        return await streamReader.ReadToEndAsync();
-    }
+    internal static bool IsBefore(this DateTimeOffset left, DateTimeOffset? right)
+        => !right.HasValue || left <= right.Value;
 
     /// <summary>
-    /// Returns <c>true</c> if the port specified in the <see cref="UriBuilder"/> object is the
-    /// default port for the protocol.
+    /// Determines if the entity tag in the If-Match or If-None-Match header matches the entity version.
     /// </summary>
-    /// <param name="builder">The <see cref="UriBuilder"/> object to check.</param>
-    /// <returns><c>true</c> if the current port is the default for the current scheme; <c>false</c> otherwise.</returns>
-    internal static bool IsDefaultPort(this UriBuilder builder)
-        => (builder.Port == 80 && builder.Scheme.EqualsIgnoreCase("http")) || (builder.Port == 443 && builder.Scheme.EqualsIgnoreCase("https"));
+    /// <param name="etag">The entity tag header value.</param>
+    /// <param name="version">The version in the entity.</param>
+    /// <returns><c>true</c> if the entity tag header value matches the version; <c>false</c> otherwise.</returns>
+    internal static bool Matches(this EntityTagHeaderValue etag, byte[] version)
+        => !etag.IsWeak && version.Length > 0 && (etag.Tag == "*" || etag.Tag.ToString().Trim('"').Equals(Convert.ToBase64String(version)));
 
     /// <summary>
-    /// Determines if the request has met the preconditions within the conditional headers according to RFC 7232 sections 5 and 6.
+    /// Determines if the request has met the preconditions within the conditional headers, according to RFC 7232 section 5 and 6.
     /// </summary>
-    /// <typeparam name="TEntity">The type of the entity being processed.</typeparam>
-    /// <param name="request">The current <see cref="HttpRequest"/> object.</param>
-    /// <param name="entity">The entity to use for comparisons.</param>
-    /// <param name="version">On exit, the version that was requested, or an empty array.</param>
+    /// <typeparam name="TEntity">The type of entity being checked.</typeparam>
+    /// <param name="request">The current <see cref="HttpRequest"/> object that contains the request headers.</param>
+    /// <param name="entity">The entity being checked.</param>
+    /// <param name="version">On conclusion, the version that was requested.</param>
+    /// <exception cref="HttpException">Thrown if the conditional request requirements are not met.</exception>
     internal static void ParseConditionalRequest<TEntity>(this HttpRequest request, TEntity entity, out byte[] version) where TEntity : ITableData
     {
-        RequestHeaders headers = request.GetTypedHeaders();
-        bool isFetchOperation = request.Method.EqualsIgnoreCase("GET");
-        EntityTagHeaderValue? etag = entity.ToEntityTagHeaderValue();
+        var headers = request.GetTypedHeaders();
+        bool isFetch = request.Method.Equals("GET", StringComparison.InvariantCultureIgnoreCase);
 
-        if (headers.IfMatch.Count > 0 && !headers.IfMatch.Any(e => e.Matches(etag)))
+        if (headers.IfMatch.Count > 0 && !headers.IfMatch.Any(e => e.Matches(entity.Version)))
         {
-            throw new HttpException(StatusCodes.Status412PreconditionFailed, "If-Match condition failed") { Payload = entity };
+            throw new HttpException(StatusCodes.Status412PreconditionFailed) { Payload = entity };
         }
 
-        if (headers.IfMatch.Count == 0 && headers.IfUnmodifiedSince?.IsAfter(entity.UpdatedAt) == false)
+        if (headers.IfMatch.Count == 0 && headers.IfUnmodifiedSince.HasValue && headers.IfUnmodifiedSince.Value.IsBefore(entity.UpdatedAt))
         {
-            throw new HttpException(StatusCodes.Status412PreconditionFailed, "If-Unmodified-Since condition failed") { Payload = entity };
+            throw new HttpException(StatusCodes.Status412PreconditionFailed) { Payload = entity };
         }
 
-        if (headers.IfNoneMatch.Count > 0 && headers.IfNoneMatch.Any(e => e.Matches(etag)))
+        if (headers.IfNoneMatch.Count > 0 && headers.IfNoneMatch.Any(e => e.Matches(entity.Version)))
         {
-            throw isFetchOperation
-                ? new HttpException(StatusCodes.Status304NotModified)
-                : new HttpException(StatusCodes.Status412PreconditionFailed, "If-None-Match condition failed") { Payload = entity };
+            throw isFetch ? new HttpException(StatusCodes.Status304NotModified) : new HttpException(StatusCodes.Status412PreconditionFailed) { Payload = entity };
         }
 
-        if (headers.IfNoneMatch.Count == 0 && headers.IfModifiedSince?.IsBefore(entity.UpdatedAt) == false)
+        if (headers.IfNoneMatch.Count == 0 && headers.IfModifiedSince.HasValue && headers.IfModifiedSince.Value.IsAfter(entity.UpdatedAt))
         {
-            throw isFetchOperation
-                ? new HttpException(StatusCodes.Status304NotModified)
-                : new HttpException(StatusCodes.Status412PreconditionFailed, "If-Modified-Since condition failed") { Payload = entity };
+            throw isFetch ? new HttpException(StatusCodes.Status304NotModified) : new HttpException(StatusCodes.Status412PreconditionFailed) { Payload = entity };
         }
 
         version = headers.IfMatch.Count > 0 ? headers.IfMatch.Single().ToByteArray() : Array.Empty<byte>();
     }
+
+    /// <summary>
+    /// Determines if the client requested that the deleted items should be considered to
+    /// be "in view".
+    /// </summary>
+    /// <param name="request">The <see cref="HttpRequest"/> being processed.</param>
+    /// <returns><c>true</c> if deleted items shoudl be considered "in view"; <c>false</c> otherwise.</returns>
+    internal static bool ShouldIncludeDeletedItems(this HttpRequest request)
+    {
+        if (request.Query.TryGetValue("__includedeleted", out StringValues deletedQueryParameter))
+        {
+            return deletedQueryParameter.Any(x => x.Equals("true", StringComparison.InvariantCultureIgnoreCase));
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Convertes the provided ETag into a byte array.
+    /// </summary>
+    /// <param name="etag">The ETag to convert.</param>
+    /// <returns>The ETag converted to a byte array.</returns>
+    internal static byte[] ToByteArray(this EntityTagHeaderValue etag)
+        => etag.Tag == "*" ? Array.Empty<byte>() : Convert.FromBase64String(etag.Tag.ToString().Trim('"'));
 }

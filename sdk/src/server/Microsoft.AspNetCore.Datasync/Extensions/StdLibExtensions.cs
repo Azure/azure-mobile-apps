@@ -1,58 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
 
-namespace Microsoft.AspNetCore.Datasync;
+// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using System.Text.Json;
+
+namespace Microsoft.AspNetCore.Datasync.Extensions;
 
 internal static class StdLibExtensions
 {
     /// <summary>
-    /// Adds an <paramref name="item"/> to the <paramref name="collection"/> only if the <paramref name="condition"/> is <c>true</c>.
+    /// Serializes an object to a JSON string.  This is used in logging, so we capture any
+    /// exceptions and return a default string.
     /// </summary>
-    /// <typeparam name="T">The type of object stored in the <paramref name="collection"/>.</typeparam>
-    /// <param name="collection">The collection to modify.</param>
-    /// <param name="condition">The condition under which the <paramref name="item"/> is added to the <paramref name="collection"/>.</param>
-    /// <param name="item">The item to be added to the <paramref name="collection"/>.</param>
-    internal static void AddIf<T>(this ICollection<T> collection, bool condition, T item)
+    /// <param name="object">The object to be serialized.</param>
+    /// <returns>The serialized object.</returns>
+    internal static string ToJsonString(this object @object)
     {
-        if (condition)
+        try
         {
-            collection.Add(item);
+            if (@object == null)
+            {
+                return "null";
+            }
+            return JsonSerializer.Serialize(@object, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        }
+        catch (Exception)
+        {
+            return "unserializable object";
         }
     }
-
-    /// <summary>
-    /// Determines if the two strings are equal, ignoring case.
-    /// </summary>
-    internal static bool EqualsIgnoreCase(this string source, string comparison)
-        => string.Equals(source, comparison, StringComparison.OrdinalIgnoreCase);
-
-    /// <summary>
-    /// Returns <c>true</c> if the provided source date is after the other date.
-    /// </summary>
-    /// <remarks>
-    /// Returns false if other is null or if source is before other.
-    /// </remarks>
-    /// <param name="source">The source date.</param>
-    /// <param name="other">The other date.</param>
-    /// <returns><c>true</c> if the provided source date is after the other date.</returns>
-    [ExcludeFromCodeCoverage]
-    internal static bool IsAfter(this DateTimeOffset source, DateTimeOffset? other)
-        => other.HasValue && source > other.Value;
-
-    /// <summary>
-    /// Returns <c>true</c> if the provided source date is before the other date.
-    /// </summary>
-    /// <remarks>
-    /// Returns false if other is null or if source is after other.
-    /// </remarks>
-    /// <param name="source">The source date.</param>
-    /// <param name="other">The other date.</param>
-    /// <returns><c>true</c> if the provided source date is before the other date.</returns>
-    [ExcludeFromCodeCoverage]
-    internal static bool IsBefore(this DateTimeOffset source, DateTimeOffset? other)
-        => other.HasValue && source <= other.Value;
 }

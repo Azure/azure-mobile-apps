@@ -43,7 +43,7 @@ public class CosmosEntityTableRepository_Tests : RepositoryTests<CosmosEntityMov
         => Task.FromResult(exists ? movies[random.Next(movies.Count)].Id : Guid.NewGuid().ToString());
     #endregion
 
-    [Fact]
+    [SkippableFact]
     public void EntityTableRepository_BadDbSet_Throws()
     {
         Skip.IfNot(CanRunLiveTests());
@@ -51,7 +51,7 @@ public class CosmosEntityTableRepository_Tests : RepositoryTests<CosmosEntityMov
         act.Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [SkippableFact]
     public void EntityTableRepository_GoodDbSet_Works()
     {
         Skip.IfNot(CanRunLiveTests());

@@ -5,7 +5,6 @@ using Datasync.Common.Models;
 using Datasync.Common.TestData;
 using FluentAssertions;
 using Microsoft.AspNetCore.Datasync;
-using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace Datasync.Common.Tests;

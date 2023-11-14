@@ -3,7 +3,6 @@
 
 using Datasync.Common.Models;
 using Microsoft.AspNetCore.Datasync;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Datasync.Common.TestData;
 

@@ -27,12 +27,12 @@ public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity
     /// <summary>
     /// If <c>true</c>, then UpdatedAt is set to <see cref="DateTimeOffset.UtcNow"/> before saving.
     /// </summary>
-    private bool shouldUpdateUpdatedAt;
+    private readonly bool shouldUpdateUpdatedAt;
 
     /// <summary>
     /// If <c>true</c>, then Version is set to a new GUID before saving.
     /// </summary>
-    private bool shouldUpdateVersion;
+    private readonly bool shouldUpdateVersion;
 
     /// <summary>
     /// Creates a new instance of the <see cref="EntityTableRepository{TEntity}"/> class, using specific options.

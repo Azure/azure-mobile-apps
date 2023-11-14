@@ -14,7 +14,7 @@ public class LiteDbRepository_Tests : RepositoryTests<LiteDbMovie>, IDisposable
     private LiteDatabase database;
     private ILiteCollection<LiteDbMovie> collection;
     private LiteDbRepository<LiteDbMovie> repository;
-    private List<LiteDbMovie> movies = new();
+    private readonly List<LiteDbMovie> movies = new();
 
     protected override Task<LiteDbMovie> GetEntityAsync(string id)
         => Task.FromResult(collection.FindById(id));

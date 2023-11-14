@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Datasync;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Datasync.Common;
 

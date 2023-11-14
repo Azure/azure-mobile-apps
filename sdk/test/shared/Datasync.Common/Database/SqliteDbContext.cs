@@ -15,7 +15,6 @@ public class SqliteDbContext : BaseDbContext<SqliteDbContext, SqliteEntityMovie>
 {
     public static SqliteDbContext CreateContext(ITestOutputHelper output = null)
     {
-
         SqliteConnection connection = new("Data Source=:memory:");
         connection.Open();
         DbContextOptionsBuilder<SqliteDbContext> optionsBuilder = new DbContextOptionsBuilder<SqliteDbContext>()
