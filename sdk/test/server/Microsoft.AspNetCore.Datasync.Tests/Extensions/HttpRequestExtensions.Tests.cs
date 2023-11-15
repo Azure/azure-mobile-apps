@@ -138,9 +138,10 @@ public class HttpRequestExtensions_Tests
     [InlineData("__includedeleted=true", true)]
     public void ShouldIncludeDeletedItems_Works(string queryString, bool expected)
     {
+        DefaultHttpContext context = new();
+
         NameValueCollection nvc = HttpUtility.ParseQueryString(queryString);
         Dictionary<string, StringValues> dict = nvc.AllKeys.ToDictionary(k => k, k => new StringValues(nvc[k]));
-        DefaultHttpContext context = new();
         context.Request.Query = new QueryCollection(dict);
 
         context.Request.ShouldIncludeDeletedItems().Should().Be(expected);
