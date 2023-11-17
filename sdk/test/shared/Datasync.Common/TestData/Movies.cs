@@ -4,6 +4,9 @@
 using Datasync.Common.Models;
 using Microsoft.AspNetCore.Datasync;
 
+// This makes the list of movies explicit, which is what I want.
+#pragma warning disable IDE0090 // Use 'new(...)'
+
 namespace Datasync.Common.TestData;
 
 [ExcludeFromCodeCoverage]

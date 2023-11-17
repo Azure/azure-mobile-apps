@@ -31,4 +31,7 @@ internal static class StdLibExtensions
             return "unserializable object";
         }
     }
+
+    internal static string ToEntityTagValue(this byte[] @version)
+        => Convert.ToBase64String(@version);
 }

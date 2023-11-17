@@ -14,12 +14,11 @@ using System.Web;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Helpers;
 
+[ExcludeFromCodeCoverage]
 public abstract class BaseTest
 {
-    protected static IAccessControlProvider<TEntity> FakeAccessControlProvider<TEntity>(TableOperation operation, bool isAuthorized) where TEntity : class, ITableData
+    protected static IAccessControlProvider<TEntity> FakeAccessControlProvider<TEntity>(TableOperation operation, bool isAuthorized, Expression<Func<TEntity, bool>> filter = null) where TEntity : class, ITableData
     {
-        Expression<Func<TEntity, bool>> filter = null;
-
         var mock = Substitute.For<IAccessControlProvider<TEntity>>();
         mock.IsAuthorizedAsync(operation, Arg.Any<TEntity>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(isAuthorized));
         mock.GetDataView().Returns(filter);

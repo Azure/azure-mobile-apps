@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-
 using Microsoft.AspNetCore.Datasync.Abstractions;
 using System.Linq.Expressions;
 

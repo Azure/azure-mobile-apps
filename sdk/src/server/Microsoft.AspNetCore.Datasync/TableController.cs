@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.AspNetCore.Datasync.Filters;
 using Microsoft.AspNetCore.Datasync.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 using Microsoft.Extensions.Logging;
@@ -19,7 +20,7 @@ namespace Microsoft.AspNetCore.Datasync;
 /// </summary>
 /// <typeparam name="TEntity">The type of the entity exposed to the client.</typeparam>
 [DatasyncController]
-public class TableController<TEntity> : ODataController where TEntity : ITableData
+public class TableController<TEntity> : ODataController where TEntity : class, ITableData
 {
     /// <summary>
     /// Creates a new <see cref="TableController{TEntity}"/>. The table options (such as repository,
@@ -137,6 +138,13 @@ public class TableController<TEntity> : ODataController where TEntity : ITableDa
         return CreatedAtAction(nameof(ReadAsync), new { id = entity.Id }, entity);
     }
 
+    /// <summary>
+    /// Requests that the repository deletes an entity or marks an entity as deleted (depending on the EnableSoftDelete option).
+    /// </summary>
+    /// <param name="id">Tne ID of the entity to be deleted.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+    /// <returns>A <see cref="NoContentResult"/> when complete.</returns>
+    /// <exception cref="HttpException">Thrown if there is an HTTP exception, such as unauthorized usage.</exception>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public virtual async Task<IActionResult> DeleteAsync([FromRoute] string id, CancellationToken cancellationToken = default)
@@ -146,7 +154,7 @@ public class TableController<TEntity> : ODataController where TEntity : ITableDa
         if (!AccessControlProvider.EntityIsInView(entity))
         {
             Logger.LogWarning("DeleteAsync: {id} statusCode=404 not in view", id);
-            return NotFound();
+            throw new HttpException(StatusCodes.Status404NotFound);
         }
         await AuthorizeRequestAsync(TableOperation.Delete, entity, cancellationToken).ConfigureAwait(false);
         if (Options.EnableSoftDelete && entity.Deleted)
@@ -172,6 +180,57 @@ public class TableController<TEntity> : ODataController where TEntity : ITableDa
         return NoContent();
     }
 
+    /// <summary>
+    /// Updates an existing entity according to the provided patch document.
+    /// </summary>
+    /// <param name="id">The ID of the entity being modified.</param>
+    /// <param name="patchDocument">The delta patch document.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+    /// <returns>An <see cref="OkObjectResult"/> encapsulating the resulting entity.</returns>
+    /// <exception cref="HttpException">Thrown if there is an HTTP exception, such as unauthorized usage.</exception>
+    [HttpPatch("{id}")]
+    [Consumes("application/json-patch+json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public virtual async Task<IActionResult> PatchAsync(string id, [FromBody] JsonPatchDocument<TEntity> patchDocument, CancellationToken cancellationToken = default)
+    {
+        Logger.LogInformation("PatchAsync: {id}", id);
+        TEntity entity = await Repository.ReadAsync(id, cancellationToken).ConfigureAwait(false);
+        if (!AccessControlProvider.EntityIsInView(entity))
+        {
+            Logger.LogWarning("PatchAsync: {id} statusCode=404 not in view", id);
+            throw new HttpException(StatusCodes.Status404NotFound);
+        }
+        if (patchDocument.ModifiesSystemProperties(entity, out Dictionary<string, string[]> systemPropertyValidationErrors))
+        {
+            Logger.LogWarning("PatchAsync: {id} Patch documnet changes system properties", id);
+            return ValidationProblem(new ValidationProblemDetails(systemPropertyValidationErrors));
+        }
+        await AuthorizeRequestAsync(TableOperation.Update, entity, cancellationToken).ConfigureAwait(false);
+        if (Options.EnableSoftDelete && entity.Deleted && !patchDocument.Contains("replace", "/deleted", false))
+        {
+            Logger.LogWarning("PatchAsync: {id} statusCode=410 deleted", id);
+            throw new HttpException(StatusCodes.Status410Gone);
+        }
+        Request.ParseConditionalRequest(entity, out byte[] version);
+        patchDocument.ApplyTo(entity);
+        if (!TryValidateModel(entity))
+        {
+            return ValidationProblem(new ValidationProblemDetails(ModelState));
+        }
+        await AccessControlProvider.PreCommitHookAsync(TableOperation.Update, entity, cancellationToken).ConfigureAwait(false);
+        await Repository.ReplaceAsync(entity, version, cancellationToken).ConfigureAwait(false);
+        await PostCommitHookAsync(TableOperation.Update, entity, cancellationToken).ConfigureAwait(false);
+        Logger.LogInformation("PatchAsync: {id} {entity} patched", id, entity.ToJsonString());
+        return Ok(entity);
+    }
+
+    /// <summary>
+    /// Retrieves an entity from the repository.
+    /// </summary>
+    /// <param name="id">The ID of the entity to be returned.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+    /// <returns>An <see cref="OkObjectResult"/> encapsulating the entity value.</returns>
+    /// <exception cref="HttpException">Thrown if there is an HTTP exception, such as unauthorized usage.</exception>
     [HttpGet("{id}")]
     [ActionName("ReadAsync")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -182,7 +241,7 @@ public class TableController<TEntity> : ODataController where TEntity : ITableDa
         if (!AccessControlProvider.EntityIsInView(entity))
         {
             Logger.LogWarning("ReadAsync: {id} statusCode=404 not in view", id);
-            return NotFound();
+            throw new HttpException(StatusCodes.Status404NotFound);
         }
         await AuthorizeRequestAsync(TableOperation.Read, entity, cancellationToken).ConfigureAwait(false);
         if (Options.EnableSoftDelete && entity.Deleted && !Request.ShouldIncludeDeletedItems())
@@ -195,6 +254,14 @@ public class TableController<TEntity> : ODataController where TEntity : ITableDa
         return Ok(entity);
     }
 
+    /// <summary>
+    /// Replaces the value of an entity within the repository with new data.
+    /// </summary>
+    /// <param name="id">The ID of the entity to be replaced.</param>
+    /// <param name="entity">The new value for the entity.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+    /// <returns>An <see cref="OkObjectResult"/> encapsulating the new value of the entity.</returns>
+    /// <exception cref="HttpException">Throw if there is an HTTP exception, such as unauthorized usage.</exception>
     [HttpPut("{id}")]
     [Consumes("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -210,7 +277,7 @@ public class TableController<TEntity> : ODataController where TEntity : ITableDa
         if (!AccessControlProvider.EntityIsInView(existing))
         {
             Logger.LogWarning("ReplaceAsync: {id} statusCode=404 not in view", id);
-            return NotFound();
+            throw new HttpException(StatusCodes.Status404NotFound);
         }
         await AuthorizeRequestAsync(TableOperation.Update, entity, cancellationToken).ConfigureAwait(false);
         if (Options.EnableSoftDelete && entity.Deleted && !Request.ShouldIncludeDeletedItems())

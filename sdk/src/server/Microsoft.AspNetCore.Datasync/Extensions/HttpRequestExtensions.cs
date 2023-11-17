@@ -28,7 +28,7 @@ internal static class HttpRequestExtensions
     /// <param name="version">The version in the entity.</param>
     /// <returns><c>true</c> if the entity tag header value matches the version; <c>false</c> otherwise.</returns>
     internal static bool Matches(this EntityTagHeaderValue etag, byte[] version)
-        => !etag.IsWeak && version.Length > 0 && (etag.Tag == "*" || etag.Tag.ToString().Trim('"').Equals(Convert.ToBase64String(version)));
+        => !etag.IsWeak && version.Length > 0 && (etag.Tag == "*" || etag.Tag.ToString().Trim('"').Equals(version.ToEntityTagValue()));
 
     /// <summary>
     /// Determines if the request has met the preconditions within the conditional headers, according to RFC 7232 section 5 and 6.
