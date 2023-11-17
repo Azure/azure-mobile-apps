@@ -31,10 +31,10 @@ public interface IAccessControlProvider<TEntity> where TEntity : ITableData
     /// default value and should be ignored.
     /// </remarks>
     /// <param name="operation">The operation being performed.</param>
-    /// <param name="entity">The entity that is being requested.</param>
+    /// <param name="entity">The entity that is being requested (null for queries).</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
     /// <returns>A task that returns <c>true</c> if the operation is allowed, and <c>false</c> otherwise.</returns>
-    ValueTask<bool> IsAuthorizedAsync(TableOperation operation, TEntity entity, CancellationToken cancellationToken = default);
+    ValueTask<bool> IsAuthorizedAsync(TableOperation operation, TEntity? entity, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// A hook to allow the developer to modify the entity prior to storage.

@@ -45,10 +45,12 @@ public abstract class BaseTest
 
         if (entity == null)
         {
+            mock.AsQueryableAsync(Arg.Any<CancellationToken>()).Throws(new HttpException(500));
             mock.ReadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new HttpException(404));
         }
         else
         {
+            mock.AsQueryableAsync(Arg.Any<CancellationToken>()).Returns(new TEntity[] { entity }.AsQueryable());
             mock.ReadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult<TEntity>(entity));
         }
         return mock;

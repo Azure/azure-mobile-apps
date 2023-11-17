@@ -8,9 +8,12 @@ using Microsoft.AspNetCore.Datasync.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Query.Validator;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using System.Linq.Expressions;
 
 namespace Microsoft.AspNetCore.Datasync;
 
@@ -88,16 +91,16 @@ public class TableController<TEntity> : ODataController where TEntity : class, I
     /// Checks that the requestor is authorized to perform the requested operation on the provided entity.
     /// </summary>
     /// <param name="operation">The operation to be performed.</param>
-    /// <param name="entity">The entity (pre-modification) to be operated on.</param>
+    /// <param name="entity">The entity (pre-modification) to be operated on (null for query).</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
     /// <returns>A task that completes when the authorization check is finished.</returns>
     /// <exception cref="HttpException">Thrown if the requestor is not authorized to perform the operation.</exception>
-    protected virtual async ValueTask AuthorizeRequestAsync(TableOperation operation, TEntity entity, CancellationToken cancellationToken = default)
+    protected virtual async ValueTask AuthorizeRequestAsync(TableOperation operation, TEntity? entity, CancellationToken cancellationToken = default)
     {
         bool isAuthorized = await AccessControlProvider.IsAuthorizedAsync(operation, entity, cancellationToken).ConfigureAwait(false);
         if (!isAuthorized)
         {
-            Logger.LogWarning("{operation} {entity} statusCode=401 unauthorized", operation, entity.ToJsonString());
+            Logger.LogWarning("{operation} {entity} statusCode=401 unauthorized", operation, entity?.ToJsonString() ?? "");
             throw new HttpException(Options.UnauthorizedStatusCode);
         }
     }
@@ -222,6 +225,31 @@ public class TableController<TEntity> : ODataController where TEntity : class, I
         await PostCommitHookAsync(TableOperation.Update, entity, cancellationToken).ConfigureAwait(false);
         Logger.LogInformation("PatchAsync: {id} {entity} patched", id, entity.ToJsonString());
         return Ok(entity);
+    }
+
+    /// <summary>
+    /// Perform an OData query against the data set.
+    /// </summary>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+    /// <returns>An <see cref="IQueryable{T}"/> for the data set under consideration.  This is handled by the OData library.</returns>
+    /// <exception cref="HttpException">Thrown if there is an HTTP exception, such as unauthorized usage.</exception>
+    [EnableQuery]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public virtual async Task<IQueryable<TEntity>> QueryAsync(CancellationToken cancellationToken = default)
+    {
+        Logger.LogInformation("QueryAsync: {querystring}", HttpContext.Request.QueryString);
+        await AuthorizeRequestAsync(TableOperation.Query, null, cancellationToken).ConfigureAwait(false);
+        IQueryable<TEntity> dataset = await Repository.AsQueryableAsync(cancellationToken).ConfigureAwait(false);
+        Expression<Func<TEntity, bool>>? filter = AccessControlProvider.GetDataView();
+        if (filter != null)
+        {
+            dataset = dataset.Where(filter);
+        }
+        if (!Request.ShouldIncludeDeletedItems())
+        {
+            dataset = dataset.Where(m => !m.Deleted);
+        }
+        return dataset;
     }
 
     /// <summary>

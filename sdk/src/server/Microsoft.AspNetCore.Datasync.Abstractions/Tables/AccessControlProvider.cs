@@ -18,7 +18,7 @@ public class AccessControlProvider<TEntity> : IAccessControlProvider<TEntity> wh
         => null;
 
     /// <inheritdoc />
-    public virtual ValueTask<bool> IsAuthorizedAsync(TableOperation operation, TEntity entity, CancellationToken cancellationToken = default)
+    public virtual ValueTask<bool> IsAuthorizedAsync(TableOperation operation, TEntity? entity, CancellationToken cancellationToken = default)
         => ValueTask.FromResult(true);
 
     /// <inheritdoc />

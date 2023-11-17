@@ -626,6 +626,100 @@ public class TableController_Tests : BaseTest
     }
     #endregion
 
+    #region QueryAsync
+    [Fact]
+    public async Task QueryAsync_Unauthorized_Throws()
+    {
+        TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
+
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Query, false);
+        IRepository<TableData> repository = FakeRepository<TableData>(entity, true);
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table");
+
+        Func<Task> act = async () => await controller.QueryAsync();
+
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(401);
+    }
+
+    [Fact]
+    public async Task QueryAsync_RepositoryException_Throws()
+    {
+        TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
+
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Query, true);
+        IRepository<TableData> repository = FakeRepository<TableData>(null, true);
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table");
+
+        Func<Task> act = async () => await controller.QueryAsync();
+
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(500);
+    }
+
+    [Fact]
+    public async Task QueryAsync_NoExtras_Works()
+    {
+        TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
+
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Query, true);
+        IRepository<TableData> repository = FakeRepository<TableData>(entity, true);
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table");
+
+        IQueryable<TableData> actual = await controller.QueryAsync();
+        actual.Should().HaveCount(1);
+    }
+
+    [Theory]
+    [InlineData("0da7fb24-3606-442f-9f68-c47c6e7d09d4", 1)]
+    [InlineData("1", 0)]
+    public async Task QueryAsync_DataView_Works(string filter, int count)
+    {
+        TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
+
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Query, true, m => m.Id == filter);
+        IRepository<TableData> repository = FakeRepository<TableData>(entity, true);
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table");
+
+        IQueryable<TableData> actual = await controller.QueryAsync();
+        actual.Should().HaveCount(count);
+    }
+
+    [Theory]
+    [InlineData(true, 0)]
+    [InlineData(false, 1)]
+    public async Task QueryAsync_DeletedSkipped_Works(bool isDeleted, int count)
+    {
+        TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4", Deleted = isDeleted };
+
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Query, true);
+        IRepository<TableData> repository = FakeRepository<TableData>(entity, true);
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table");
+
+        IQueryable<TableData> actual = await controller.QueryAsync();
+        actual.Should().HaveCount(count);
+    }
+
+    [Theory]
+    [InlineData(true, 1)]
+    [InlineData(false, 1)]
+    public async Task QueryAsync_DeletedIncluded_Works(bool isDeleted, int count)
+    {
+        TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4", Deleted = isDeleted };
+
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Query, true);
+        IRepository<TableData> repository = FakeRepository<TableData>(entity, true);
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table?__includedeleted=true");
+
+        IQueryable<TableData> actual = await controller.QueryAsync();
+        actual.Should().HaveCount(count);
+    }
+    #endregion
+
     #region ReadAsync
     [Fact]
     public async Task ReadAsync_RepositoryException_Throws()
