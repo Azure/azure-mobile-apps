@@ -10,7 +10,7 @@
   <Import Project="..\..\Shared.Build.props" />
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.24" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.14" />
   </ItemGroup>
 
   <ItemGroup>

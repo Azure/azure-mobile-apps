@@ -64,4 +64,16 @@ public static class FluentAssertionExtensions
         current.Subject.First().StatusCode.Should().Be(statusCode, because, becauseArgs);
         return new AndConstraint<ExceptionAssertions<HttpException>>(current);
     }
+
+    /// <summary>
+    /// An extension to FluentAssertions to validate that a string is a GUID.
+    /// </summary>
+    public static AndConstraint<StringAssertions> BeAGuid(this StringAssertions current, string because = "", params object[] becauseArgs)
+    {
+        Execute.Assertion
+            .BecauseOf(because, becauseArgs)
+            .ForCondition(Guid.TryParse(current.Subject, out _))
+            .FailWith("Expected {context:object} to be a Guid, but found {0}", current.Subject);
+        return new AndConstraint<StringAssertions>(current);
+    }
 }

@@ -23,7 +23,6 @@ public class SqliteDbContext : BaseDbContext<SqliteDbContext, SqliteEntityMovie>
         SqliteDbContext context = new(optionsBuilder.Options) { Connection = connection };
 
         context.InitializeDatabase();
-        context.PopulateDatabase();
         return context;
     }
 
@@ -33,10 +32,11 @@ public class SqliteDbContext : BaseDbContext<SqliteDbContext, SqliteEntityMovie>
 
     public SqliteConnection Connection { get; set; }
 
-    internal void InitializeDatabase()
+    public void InitializeDatabase()
     {
         Database.EnsureCreated();
         ExecuteRawSqlOnEachEntity(@"DELETE FROM ""{0}""");
+        PopulateDatabase();
     }
 
     #region SaveChanges
