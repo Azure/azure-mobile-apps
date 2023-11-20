@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.OData;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OData;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
 
@@ -32,7 +33,13 @@ public static class AspNetCoreExtensions
     /// <returns>The modified service collection.</returns>
     public static IServiceCollection AddDatasyncControllers(this IServiceCollection services, IEdmModel model)
     {
-        services.AddControllers().AddOData(options => options.EnableQueryFeatures().AddRouteComponents(model));
+        services.AddSingleton(model);
+        services.AddControllers().AddOData(options =>
+        {
+            options.EnableQueryFeatures();
+            options.AddRouteComponents("tables", model);
+            options.EnableAttributeRouting = true;
+        });
         return services;
     }
 }

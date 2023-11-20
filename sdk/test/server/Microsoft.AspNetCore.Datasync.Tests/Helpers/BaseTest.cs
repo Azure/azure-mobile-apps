@@ -74,7 +74,7 @@ public abstract class BaseTest
         {
             foreach (var header in headers)
             {
-                context.Request.Headers.Add(header.Key, new StringValues(header.Value));
+                context.Request.Headers.Append(header.Key, new StringValues(header.Value));
             }
         }
 
