@@ -412,7 +412,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
             ExecuteNonQueryInternal(createTableSql);
 
             string tableInfoSql = SqlStatements.GetTableInformation(tableDefinition.TableName);
-            IDictionary<string, JObject> existingColumns = ExecuteQueryInternal(tableInfoSql).ToDictionary(c => c.Value<string>("name"), StringComparer.OrdinalIgnoreCase);
+            var existingColumns = ExecuteQueryInternal(tableInfoSql).ToDictionary(c => c.Value<string>("name"), StringComparer.OrdinalIgnoreCase);
 
             // Process changes to the table definition - column(s) added
             foreach (var column in tableDefinition.Columns.Where(c => !existingColumns.ContainsKey(c.Name)))

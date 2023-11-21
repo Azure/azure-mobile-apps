@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test.Mocks;
+using FluentAssertions;
 using Microsoft.Datasync.Client.Offline;
 using Microsoft.Datasync.Client.Offline.DeltaToken;
 using Newtonsoft.Json;
@@ -253,5 +254,20 @@ public class DefaultDeltaTokenStore_Tests
         await sut.SetDeltaTokenAsync(testTBL, testQID, dto);
         Assert.True(store.TableMap[SystemTables.Configuration].ContainsKey("1234"));
         Assert.Equal(42, store.TableMap[SystemTables.Configuration]["1234"]?.Value<long>("value"));
+    }
+
+    [Fact]
+    public async Task DeltaTokenStore_GetQueryIds_Works()
+    {
+        store.Upsert(SystemTables.Configuration, new[]
+        {
+            JObject.Parse("{\"id\":\"dt.movies.default\", \"value\":0 }"),
+            JObject.Parse("{\"id\":\"dt.movies.qid-1\", \"value\":0 }"),
+            JObject.Parse("{\"id\":\"dt.test.qid-2\", \"value\":0 }")
+        });
+
+        var actual = (await sut.GetDeltaTokenQueryIdsForTableAsync("movies")).ToList();
+
+        actual.Should().BeEquivalentTo(new[] { "default", "qid-1", "qid-2" });
     }
 }

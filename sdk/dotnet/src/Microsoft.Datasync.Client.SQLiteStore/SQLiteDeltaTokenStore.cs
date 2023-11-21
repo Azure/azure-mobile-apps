@@ -2,11 +2,14 @@
 // Licensed under the MIT License.
 
 using Microsoft.Datasync.Client.Offline;
+using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Serialization;
 using Microsoft.Datasync.Client.SQLiteStore.Utils;
+using Microsoft.Datasync.Client.Table;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,11 +54,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <param name="store">The offline store used to persistently store the delta tokens</param>
         public SQLiteDeltaTokenStore(IOfflineStore store)
         {
-            if (store == null)
-            {
-                throw new ArgumentNullException(nameof(store));
-            }
-            OfflineStore = store;
+            OfflineStore = store ?? throw new ArgumentNullException(nameof(store));
         }
 
         /// <summary>
@@ -89,6 +88,14 @@ namespace Microsoft.Datasync.Client.SQLiteStore
                 cache[key] = DateTimeOffset.FromUnixTimeMilliseconds(unixms);
                 return cache[key];
             }
+        }
+
+        /// <inheritdoc />
+        public virtual async Task<IEnumerable<string>> GetDeltaTokenQueryIdsForTableAsync(string tableName, CancellationToken cancellationToken = default)
+        {
+            QueryDescription queryDescription = QueryDescription.Parse(SystemTables.Configuration, $"$filter=startswith(id, 'dt.{tableName}.')");
+            Page<JObject> list = await OfflineStore.GetPageAsync(queryDescription, cancellationToken).ConfigureAwait(false);
+            return list.Items.Select(item => item.Value<string>(SystemProperties.JsonIdProperty).Split('.')[2]);
         }
 
         /// <summary>
