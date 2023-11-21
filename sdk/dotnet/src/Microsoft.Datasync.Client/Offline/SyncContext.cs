@@ -258,7 +258,7 @@ namespace Microsoft.Datasync.Client.Offline
             }
 
             using IDisposable itemLock = await this.itemLock.AcquireAsync(itemId, cancellationToken).ConfigureAwait(false);
-            InsertOperation operation = new InsertOperation(tableName, itemId);
+            var operation = new InsertOperation(tableName, itemId);
             await EnqueueOperationAsync(operation, instance, cancellationToken).ConfigureAwait(false);
         }
 
@@ -281,7 +281,7 @@ namespace Microsoft.Datasync.Client.Offline
             }
 
             using IDisposable itemLock = await this.itemLock.AcquireAsync(itemId, cancellationToken).ConfigureAwait(false);
-            UpdateOperation operation = new UpdateOperation(tableName, itemId);
+            var operation = new UpdateOperation(tableName, itemId);
             await EnqueueOperationAsync(operation, instance, cancellationToken).ConfigureAwait(false);
         }
         #endregion
@@ -465,41 +465,7 @@ namespace Microsoft.Datasync.Client.Offline
                 using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
                 {
                     await OfflineStore.DeleteAsync(queryDescription, cancellationToken).ConfigureAwait(false);
-
-                    switch (options.TimestampUpdatePolicy)
-                    {
-                        case TimestampUpdatePolicy.Default:
-                            if (!string.IsNullOrEmpty(queryId))
-                            {
-                                await DeltaTokenStore.ResetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
-                            }
-                            break;
-                        case TimestampUpdatePolicy.NoUpdate:
-                            // Do not update the timestamp!
-                            break;
-                        case TimestampUpdatePolicy.UpdateToLastEntity:
-                            // Get the last entity (max UpdatedAt) in the table and update the timestamp to that value.
-                            var tsq = new QueryDescription(tableName) { IncludeTotalCount = false, Top = 1 };
-                            tsq.Ordering.Add(new OrderByNode(new MemberAccessNode(null, "updatedAt"), OrderByDirection.Descending));
-                            Page<JObject> page = await OfflineStore.GetPageAsync(tsq, cancellationToken).ConfigureAwait(false);
-                            try
-                            {
-                                var ts = DateTimeOffset.Parse(page?.Items?.LastOrDefault()?.Value<string>("updatedAt"));
-                                await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, ts, cancellationToken).ConfigureAwait(false);
-                            }
-                            catch (Exception)
-                            {
-                                await DeltaTokenStore.ResetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
-                            }
-                            break;
-                        case TimestampUpdatePolicy.UpdateToNow:
-                            await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, DateTimeOffset.UtcNow, cancellationToken).ConfigureAwait(false);
-                            break;
-                        case TimestampUpdatePolicy.UpdateToEpoch:
-                            await DeltaTokenStore.ResetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
-                            break;
-
-                    }
+                    await SetDeltaTokenAsync(tableName, queryId, options, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -592,7 +558,6 @@ namespace Microsoft.Datasync.Client.Offline
                     bool isSuccessful = await ExecutePushOperationAsync(operation, batch, true, cancellationToken).ConfigureAwait(false);
                     Interlocked.Increment(ref itemCount);
                     SendItemWasPushedEvent(operation.TableName, operation.ItemId, itemCount, isSuccessful);
-
                 });
                 try
                 {
@@ -942,6 +907,68 @@ namespace Microsoft.Datasync.Client.Offline
             => (options == null || options.ParallelOperations == 0)
             ? ServiceClient.ClientOptions.ParallelOperations
             : options.ParallelOperations;
+
+        /// <summary>
+        /// Sets the delta token for a query.  If the resetAssociatedQueries flag is set, then all the
+        /// queries for a specific table are reset in the same way.
+        /// </summary>
+        /// <param name="tableName">The name of the table</param>
+        /// <param name="queryId">The ID of the query</param>
+        /// <param name="options">A options for the purge operation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that completes when the operation is finished.</returns>
+        internal async Task SetDeltaTokenAsync(string tableName, string queryId, PurgeOptions options, CancellationToken cancellationToken = default)
+        {
+            DateTimeOffset? timestamp = null;
+            switch (options.TimestampUpdatePolicy)
+            {
+                case TimestampUpdatePolicy.NoUpdate:
+                    // Do not update the timestamp - this whole method becomes a no-op
+                    return;
+                case TimestampUpdatePolicy.UpdateToLastEntity:
+                    // Get the last entity (max UpdatedAt) in the table and update the timestamp to that value.
+                    var tsq = new QueryDescription(tableName) { IncludeTotalCount = false, Top = 1 };
+                    tsq.Ordering.Add(new OrderByNode(new MemberAccessNode(null, "updatedAt"), OrderByDirection.Descending));
+                    Page<JObject> page = await OfflineStore.GetPageAsync(tsq, cancellationToken).ConfigureAwait(false);
+                    if (page?.Items?.LastOrDefault() != null)
+                    {
+                        timestamp = DateTimeOffset.Parse(page?.Items?.LastOrDefault()?.Value<string>("updatedAt"));
+                    }
+                    break;
+                case TimestampUpdatePolicy.UpdateToNow:
+                    timestamp = DateTimeOffset.UtcNow;
+                    break;
+                    // Anything else resets the timestamp to the epoch.
+            }
+
+            if (timestamp.HasValue)
+            {
+                await DeltaTokenStore.SetDeltaTokenAsync(tableName, queryId, timestamp.Value, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await DeltaTokenStore.ResetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (options.ResetAssociatedQueries)
+            {
+                var queryIds = (await DeltaTokenStore.GetDeltaTokenQueryIdsForTableAsync(tableName, cancellationToken).ConfigureAwait(false)).ToList();
+                foreach (string qid in queryIds)
+                {
+                    if (qid != queryId)
+                    {
+                        if (timestamp.HasValue)
+                        {
+                            await DeltaTokenStore.SetDeltaTokenAsync(tableName, qid, timestamp.Value, cancellationToken).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            await DeltaTokenStore.ResetDeltaTokenAsync(tableName, qid, cancellationToken).ConfigureAwait(false);
+                        }
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Determines if the table is dirty (i.e. has pending operations)

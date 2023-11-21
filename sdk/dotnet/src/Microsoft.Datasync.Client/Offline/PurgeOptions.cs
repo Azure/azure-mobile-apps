@@ -60,10 +60,16 @@ namespace Microsoft.Datasync.Client.Offline
 
         /// <summary>
         /// How should the purge operation update the timestamp for a table?  Normally,
-        /// we do not change the timestamp, but if you are purging all records, you 
+        /// we do not change the timestamp, but if you are purging all records, you
         /// likely want to reset the timestamp to something else.
         /// </summary>
         public TimestampUpdatePolicy TimestampUpdatePolicy { get; set; } = TimestampUpdatePolicy.Default;
+
+        /// <summary>
+        /// If there are multiple (named) queries referencing the same table, then
+        /// also reset the timestamp for those queries.
+        /// </summary>
+        public bool ResetAssociatedQueries { get; set; } = false;
 
         /// <summary>
         /// If set, this is used as a query ID.  The query ID is a key to store

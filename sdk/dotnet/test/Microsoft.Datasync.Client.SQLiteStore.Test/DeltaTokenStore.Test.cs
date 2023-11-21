@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Test.Mocks;
+using FluentAssertions;
 using Microsoft.Datasync.Client.Offline;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -280,5 +281,21 @@ public class DeltaTokenStore_Tests : BaseStoreTest
         // Get the deltaToken back
         var storedToken = await deltaTokenStore.GetDeltaTokenAsync("testtable", "testquery");
         Assert.Equal(storedToken.Millisecond, deltaToken.Millisecond);
+    }
+
+    [Fact]
+    public async Task DeltaTokenStore_GetQueryIds_Works()
+    {
+        store.Upsert(SystemTables.Configuration, new[]
+        {
+            JObject.Parse("{\"id\":\"dt.movies.default\", \"value\":0 }"),
+            JObject.Parse("{\"id\":\"dt.movies.qid-1\", \"value\":0 }"),
+            JObject.Parse("{\"id\":\"dt.test.qid-2\", \"value\":0 }")
+        });
+
+        var actual = (await sut.GetDeltaTokenQueryIdsForTableAsync("movies")).ToList();
+
+        // Because we are usign a mock store, this returns everything, so not a true test.
+        actual.Should().BeEquivalentTo(new[] { "default", "qid-1", "qid-2" });
     }
 }

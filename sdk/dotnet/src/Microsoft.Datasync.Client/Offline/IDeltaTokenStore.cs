@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using System.Threading.Tasks;
-using System.Threading;
 using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Datasync.Client.Offline
 {
@@ -25,6 +26,14 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the delta token when complete.</returns>
         Task<DateTimeOffset> GetDeltaTokenAsync(string tableName, string queryId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns a list of the query IDs for a table that have delta tokens.
+        /// </summary>
+        /// <param name="tableName">The name of the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns an enumeration of the query IDs associated with a table.</returns>
+        Task<IEnumerable<string>> GetDeltaTokenQueryIdsForTableAsync(string tableName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Resets the delta token for a table/queryId from persistent store.

@@ -1,11 +1,16 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Datasync.Client.Query;
+using Microsoft.Datasync.Client.Query.Linq.Nodes;
 using Microsoft.Datasync.Client.Serialization;
+using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -77,6 +82,14 @@ namespace Microsoft.Datasync.Client.Offline.DeltaToken
                 cache[key] = DateTimeOffset.FromUnixTimeMilliseconds(unixms);
                 return cache[key];
             }
+        }
+
+        /// <inheritdoc />
+        public virtual async Task<IEnumerable<string>> GetDeltaTokenQueryIdsForTableAsync(string tableName, CancellationToken cancellationToken = default)
+        {
+            QueryDescription queryDescription = QueryDescription.Parse(SystemTables.Configuration, $"$filter=startswith(id, 'dt.{tableName}.')");
+            Page<JObject> list = await OfflineStore.GetPageAsync(queryDescription, cancellationToken).ConfigureAwait(false);
+            return list.Items.Select(item => item.Value<string>(SystemProperties.JsonIdProperty).Split('.')[2]);
         }
 
         /// <summary>
