@@ -141,9 +141,27 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// <param name="item">The item to update in local store.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>Task that completes when operation is updated.</returns>
-        public async Task UpdateOperationAsync(JObject item, CancellationToken cancellationToken = default)
+        public Task UpdateOperationAsync(JObject item, CancellationToken cancellationToken = default)
+            => UpdateOperationAsync(item, false, cancellationToken);
+
+        /// <summary>
+        /// Updates the table operation and updates the local instance of the item with the given item.
+        /// Clears the error and sets the operation state to pending.
+        /// </summary>
+        /// <param name="item">The item to update in local store.</param>
+        /// <param name="updateVersion">If <c>true</c>, the items version is updated to the server version, allowing us to resolve the conflict.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>Task that completes when operation is updated.</returns>
+        public async Task UpdateOperationAsync(JObject item, bool updateVersion, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(item, nameof(item));
+            if (updateVersion)
+            {
+                if (Result.ContainsKey("version"))
+                    item["version"] = Result["version"];
+                else if (item.ContainsKey("version"))
+                    item.Remove("version");
+            }
             await Context.UpdateOperationAsync(this, item, cancellationToken).ConfigureAwait(false);
             Handled = true;
         }
