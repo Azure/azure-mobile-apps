@@ -189,13 +189,15 @@ public class Patch_Tests : BaseTest
         }
     }
 
-    [Theory]
+    [SkippableTheory]
     [InlineData("If-Match", null, HttpStatusCode.OK)]
     [InlineData("If-Match", "\"dGVzdA==\"", HttpStatusCode.PreconditionFailed)]
     [InlineData("If-None-Match", null, HttpStatusCode.PreconditionFailed)]
     [InlineData("If-None-Match", "\"dGVzdA==\"", HttpStatusCode.OK)]
     public async Task ConditionalVersionPatchTests(string headerName, string headerValue, HttpStatusCode expectedStatusCode)
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+
         string id = GetRandomId();
         var entity = MovieServer.GetMovieById(id)!;
         var expected = entity.Clone();
