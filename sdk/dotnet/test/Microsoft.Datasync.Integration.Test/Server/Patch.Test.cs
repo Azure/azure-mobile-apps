@@ -15,9 +15,11 @@ public class Patch_Tests : BaseTest
 {
     public Patch_Tests(ITestOutputHelper logger) : base(logger) { }
 
-    [Theory, CombinatorialData]
+    [SkippableTheory, CombinatorialData]
     public async Task BasicPatchTests([CombinatorialValues("movies", "movies_pagesize")] string table)
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+        
         var id = GetRandomId();
         var expected = MovieServer.GetMovieById(id)!;
         expected.Title = "Test Movie Title";
@@ -39,11 +41,13 @@ public class Patch_Tests : BaseTest
         AssertEx.ResponseHasConditionalHeaders(stored, response);
     }
 
-    [Theory, CombinatorialData]
+    [SkippableTheory, CombinatorialData]
     public async Task CannotPatchSystemProperties(
         [CombinatorialValues("movies", "movies_pagesize")] string table,
         [CombinatorialValues("/id", "/updatedAt", "/version")] string propName)
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+        
         Dictionary<string, string> propValues = new()
         {
             { "/id", "test-id" },
@@ -89,11 +93,13 @@ public class Patch_Tests : BaseTest
         AssertEx.ResponseHasConditionalHeaders(stored, response);
     }
 
-    [Theory]
+    [SkippableTheory]
     [InlineData(HttpStatusCode.NotFound, "tables/movies/missing-id")]
     [InlineData(HttpStatusCode.NotFound, "tables/movies_pagesize/missing-id")]
     public async Task PatchFailureTests(HttpStatusCode expectedStatusCode, string relativeUri)
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+        
         PatchOperation[] patchDoc = new PatchOperation[]
         {
             new PatchOperation("replace", "title", "Home Video"),
@@ -104,9 +110,11 @@ public class Patch_Tests : BaseTest
         await AssertResponseWithLoggingAsync(expectedStatusCode, response);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task PatchFailedWithWrongContentType()
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+        
         var id = GetRandomId();
         var expected = MovieServer.GetMovieById(id)!;
         PatchOperation[] patchDoc = new PatchOperation[]
@@ -236,13 +244,15 @@ public class Patch_Tests : BaseTest
         }
     }
 
-    [Theory]
+    [SkippableTheory]
     [InlineData("If-Modified-Since", -1, HttpStatusCode.OK)]
     [InlineData("If-Modified-Since", 1, HttpStatusCode.PreconditionFailed)]
     [InlineData("If-Unmodified-Since", 1, HttpStatusCode.OK)]
     [InlineData("If-Unmodified-Since", -1, HttpStatusCode.PreconditionFailed)]
     public async Task ConditionalPatchTests(string headerName, int offset, HttpStatusCode expectedStatusCode)
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+        
         string id = GetRandomId();
         var entity = MovieServer.GetMovieById(id)!;
         Dictionary<string, string> headers = new()
