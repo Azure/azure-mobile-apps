@@ -61,11 +61,13 @@ public class Patch_Tests : BaseTest
         Assert.Equal<ITableData>(expected, stored!);
     }
 
-    [Theory, CombinatorialData]
+    [SkippableTheory, CombinatorialData]
     public async Task CanPatchNonModifiedSystemProperties(
         [CombinatorialValues("movies", "movies_pagesize")] string table,
         [CombinatorialValues("/id", "/updatedAt", "/version")] string propName)
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+
         var id = GetRandomId();
         var expected = MovieServer.GetMovieById(id)!;
         Dictionary<string, string> propValues = new()

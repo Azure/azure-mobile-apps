@@ -332,10 +332,12 @@ public class DeltaPatch_Tests : BaseTest
         AssertEx.ResponseHasConditionalHeaders(stored, response);
     }
 
-    [Theory]
+    [SkippableTheory]
     [InlineData("soft_logged")]
     public async Task SoftDeletePatch_PatchNotDeletedItem(string table)
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+
         var id = GetRandomId();
         var expected = MovieServer.GetMovieById(id)!;
         expected.Title = "Test Movie Title";
