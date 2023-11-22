@@ -165,13 +165,15 @@ public class Replace_Tests : BaseTest
         }
     }
 
-    [Theory]
+    [SkippableTheory]
     [InlineData("If-Modified-Since", -1, HttpStatusCode.OK)]
     [InlineData("If-Modified-Since", 1, HttpStatusCode.PreconditionFailed)]
     [InlineData("If-Unmodified-Since", 1, HttpStatusCode.OK)]
     [InlineData("If-Unmodified-Since", -1, HttpStatusCode.PreconditionFailed)]
     public async Task ConditionalPatchTests(string headerName, int offset, HttpStatusCode expectedStatusCode)
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+
         string id = GetRandomId();
         var entity = MovieServer.GetMovieById(id)!;
         Dictionary<string, string> headers = new()

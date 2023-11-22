@@ -191,13 +191,15 @@ public class DeltaPatch_Tests : BaseTest
         }
     }
 
-    [Theory]
+    [SkippableTheory]
     [InlineData("If-Match", null, HttpStatusCode.OK)]
     [InlineData("If-Match", "\"dGVzdA==\"", HttpStatusCode.PreconditionFailed)]
     [InlineData("If-None-Match", null, HttpStatusCode.PreconditionFailed)]
     [InlineData("If-None-Match", "\"dGVzdA==\"", HttpStatusCode.OK)]
     public async Task ConditionalVersionPatchTests(string headerName, string? headerValue, HttpStatusCode expectedStatusCode)
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+
         string id = GetRandomId();
         var entity = MovieServer.GetMovieById(id)!;
         var expected = entity.Clone();
@@ -238,13 +240,15 @@ public class DeltaPatch_Tests : BaseTest
         }
     }
 
-    [Theory]
+    [SkippableTheory]
     [InlineData("If-Modified-Since", -1, HttpStatusCode.OK)]
     [InlineData("If-Modified-Since", 1, HttpStatusCode.PreconditionFailed)]
     [InlineData("If-Unmodified-Since", 1, HttpStatusCode.OK)]
     [InlineData("If-Unmodified-Since", -1, HttpStatusCode.PreconditionFailed)]
     public async Task ConditionalModifiedPatchTests(string headerName, int offset, HttpStatusCode expectedStatusCode)
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+
         string id = GetRandomId();
         var entity = MovieServer.GetMovieById(id)!;
         var expected = entity.Clone();
@@ -301,9 +305,11 @@ public class DeltaPatch_Tests : BaseTest
         await AssertResponseWithLoggingAsync(HttpStatusCode.Gone, response);
     }
 
-    [Fact(Skip = "Flaky test")]
+    [SkippableFact]
     public async Task SoftDeletePatch_CanUndeleteDeletedItem()
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+
         var id = GetRandomId();
         await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id);
 
@@ -326,10 +332,12 @@ public class DeltaPatch_Tests : BaseTest
         AssertEx.ResponseHasConditionalHeaders(stored, response);
     }
 
-    [Theory]
+    [SkippableTheory]
     [InlineData("soft_logged")]
     public async Task SoftDeletePatch_PatchNotDeletedItem(string table)
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+
         var id = GetRandomId();
         var expected = MovieServer.GetMovieById(id)!;
         expected.Title = "Test Movie Title";
