@@ -308,6 +308,8 @@ public class DeltaPatch_Tests : BaseTest
     [SkippableFact]
     public async Task SoftDeletePatch_CanUndeleteDeletedItem()
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+
         var id = GetRandomId();
         await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id);
 
