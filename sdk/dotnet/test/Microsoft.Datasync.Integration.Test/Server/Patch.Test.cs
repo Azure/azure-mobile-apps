@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Datasync.Extensions;
 using System.Globalization;
 
+#pragma warning disable IDE0090 // Use 'new(...)'
+
 namespace Microsoft.Datasync.Integration.Test.Server;
 
 [ExcludeFromCodeCoverage]
@@ -291,9 +293,11 @@ public class Patch_Tests : BaseTest
         await AssertResponseWithLoggingAsync(HttpStatusCode.Gone, response);
     }
 
-    [Fact(Skip = "Flaky test")]
+    [SkippableFact]
     public async Task SoftDeletePatch_CanUndeleteDeletedItem()
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+
         var id = GetRandomId();
         await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id);
 
@@ -315,7 +319,7 @@ public class Patch_Tests : BaseTest
         AssertEx.ResponseHasConditionalHeaders(stored, response);
     }
 
-    [Theory(Skip = "Flaky test")]
+    [SkippableTheory]
     [InlineData("soft")]
     [InlineData("soft_logged")]
     public async Task SoftDeletePatch_PatchNotDeletedItem(string table)
