@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Models;
+using Microsoft.AspNetCore.Datasync.InMemory;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
 
-namespace Microsoft.AspNetCore.Datasync.InMemory.Tests;
+namespace Datasync.Common.Models;
 
 [ExcludeFromCodeCoverage]
 public class InMemoryMovie : InMemoryTableData, IMovie, IEquatable<IMovie>

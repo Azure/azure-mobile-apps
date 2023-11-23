@@ -1,10 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\Shared.Build.props" />
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.14" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="7.0.14" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\..\src\server\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj" />
     <ProjectReference Include="..\..\shared\Datasync.Common\Datasync.Common.csproj" />
   </ItemGroup>

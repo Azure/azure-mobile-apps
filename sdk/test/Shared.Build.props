@@ -22,6 +22,10 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <UserSecretsId>089dd5ad-bd0a-48bb-89a4-adb8c30a4a53</UserSecretsId>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.12.0"/>
     <PackageReference Include="FluentAssertions.Web" Version="1.2.5"/>
