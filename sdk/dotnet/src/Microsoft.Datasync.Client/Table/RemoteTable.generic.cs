@@ -108,7 +108,6 @@ namespace Microsoft.Datasync.Client.Table
         public new Task<T> GetItemAsync(string id, CancellationToken cancellationToken = default)
             => GetItemAsync(id, false, cancellationToken);
 
-
         /// <summary>
         /// Retrieve an item from the remote table.
         /// </summary>
@@ -296,7 +295,6 @@ namespace Microsoft.Datasync.Client.Table
         public ITableQuery<T> WithParameters(IEnumerable<KeyValuePair<string, string>> parameters)
             => CreateQuery().WithParameters(parameters);
 
-
         /// <summary>
         /// Count the number of items that would be returned by the provided query, without returning all the values.
         /// </summary>
@@ -323,9 +321,12 @@ namespace Microsoft.Datasync.Client.Table
         internal async Task<Page<U>> GetNextPageAsync<U>(string query, string nextLink, CancellationToken cancellationToken = default)
         {
             Page<JToken> json = await base.GetNextPageAsync(query, nextLink, cancellationToken).ConfigureAwait(false);
-            Page<U> result = new() { Count = json.Count, NextLink = json.NextLink };
-            result.Items = json.Items?.Select(item => ServiceClient.Serializer.Deserialize<U>(item));
-            return result;
+            return new()
+            {
+                Count = json.Count,
+                NextLink = json.NextLink,
+                Items = json.Items?.Select(item => ServiceClient.Serializer.Deserialize<U>(item))
+            };
         }
 
         /// <summary>

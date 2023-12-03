@@ -33,5 +33,10 @@ namespace Microsoft.Datasync.Client.Http
         /// The <c>User-Agent</c> header name (so we don't need to bring in a NuGet for it)
         /// </summary>
         internal const string UserAgent = "User-Agent";
+
+        /// <summary>
+        /// The ZUMO options header.
+        /// </summary>
+        internal const string ZumoOptions = "X-ZUMO-Options";
     }
 }

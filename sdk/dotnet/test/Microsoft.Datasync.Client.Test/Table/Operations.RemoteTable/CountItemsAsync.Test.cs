@@ -21,7 +21,7 @@ public class CountItemsAsync_Tests : BaseOperationTest
     /// <param name="totalCount"></param>
     /// <param name="nextLink"></param>
     /// <returns></returns>
-    private Page<JObject> CreatePageOfJsonItems(int count, long? totalCount = null, Uri nextLink = null)
+    private Page<JObject> CreatePageOfJsonItems(int count, long? totalCount = null, string nextLink = null)
     {
         List<JObject> items = new();
         List<IdEntity> entities = new();
