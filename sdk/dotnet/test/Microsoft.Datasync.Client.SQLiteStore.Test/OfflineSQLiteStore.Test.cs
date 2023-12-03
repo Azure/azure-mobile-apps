@@ -269,7 +269,7 @@ public class OfflineSQLiteStore_Tests : BaseStoreTest
 
         store.DefineTable(TestTable, JObjectWithAllTypes);
         await store.InitializeAsync();
-        var upserted = new JObject[] { new JObject() };
+        var upserted = new JObject[] { new() };
         await store.UpsertAsync(TestTable, upserted, false);
 
         var query = new QueryDescription(TestTable);
@@ -382,25 +382,26 @@ public class OfflineSQLiteStore_Tests : BaseStoreTest
         Assert.Equal(TestTable, tables[0]);
     }
 
-    [Fact(Skip = "Flaky test after #838 - investigate this later on")]
-    public async Task Dispose_ReleasesFileHandle()
-    {
-        // Set up store as a file.
-        var dbFile = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
-        var store = new OfflineSQLiteStore($"file:///{dbFile}");
-        store.DefineTable(TestTable, IdEntityDefinition);
-        await store.InitializeAsync();
+    // Issue #838 - this may not be possible any more.  Skip for now.
+    //[Fact]
+    //public async Task Dispose_ReleasesFileHandle()
+    //{
+    //    // Set up store as a file.
+    //    var dbFile = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+    //    var store = new OfflineSQLiteStore($"file:///{dbFile}");
+    //    store.DefineTable(TestTable, IdEntityDefinition);
+    //    await store.InitializeAsync();
 
-        // Act - dispose the store
-        store.Dispose();
+    //    // Act - dispose the store
+    //    store.Dispose();
 
-        // Sleep a little bit to give the system time to release the file handle.
-        await Task.Delay(1000);
+    //    // Sleep a little bit to give the system time to release the file handle.
+    //    await Task.Delay(1000);
 
-        // Assert - Should be able to File.Delete the store file.
-        File.Delete(dbFile);   // This should not throw.
-        Assert.False(File.Exists(dbFile), $"{dbFile} still exists but was deleted.");
-    }
+    //    // Assert - Should be able to File.Delete the store file.
+    //    File.Delete(dbFile);   // This should not throw.
+    //    Assert.False(File.Exists(dbFile), $"{dbFile} still exists but was deleted.");
+    //}
 
     /// <summary>
     /// Issue 499 - using ExecuteQueryAsync on an offline database will return IList{JObject}.
@@ -425,7 +426,7 @@ public class OfflineSQLiteStore_Tests : BaseStoreTest
         await offlineTable.InsertItemAsync(testItem);
 
         // Execute executeQueryAsync on the offline table.
-        var sqlStatement = $"SELECT * FROM movies WHERE id = @id";
+        const string sqlStatement = "SELECT * FROM movies WHERE id = @id";
         var queryParams = new Dictionary<string, object>
         {
             { "@id", testItem.Id }
