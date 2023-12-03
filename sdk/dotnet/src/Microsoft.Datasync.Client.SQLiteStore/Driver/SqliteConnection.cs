@@ -20,6 +20,11 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
         internal static bool sqliteIsInitialized;
 
         /// <summary>
+        /// Set to <c>true</c> if we need to dispose of the sqlite3 connection.
+        /// </summary>
+        internal bool handleSqliteLifecycle;
+
+        /// <summary>
         /// The SQLite database connection.
         /// </summary>
         internal sqlite3 connection;
@@ -51,6 +56,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
                 }
 
                 sqliteIsInitialized = true;
+                handleSqliteLifecycle = true;
             }
 
             int rc = raw.sqlite3_open(connectionString, out connection);
@@ -62,6 +68,21 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
 
             int limit = raw.sqlite3_limit(connection, raw.SQLITE_LIMIT_VARIABLE_NUMBER, -1);
             MaxParametersPerQuery = limit - 16;
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="SqliteConnection"/> to execute SQLite commands using an existing open sqlite3 connection.
+        /// </summary>
+        /// <remarks>
+        /// This assumes you maintain all lifecycle responsibilities for the connection.  The connection is not
+        /// opened, limits are not set, and the connection is not disposed of when the store is disposed.
+        /// </remarks>
+        /// <param name="connection">The sqlite3 connection to use.</param>
+        public SqliteConnection(sqlite3 connection)
+        {
+            this.connection = connection;
+            sqliteIsInitialized = true;
+            handleSqliteLifecycle = false;
         }
 
         /// <summary>
@@ -88,7 +109,8 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
         {
             if (disposing)
             {
-                raw.sqlite3_close_v2(connection);
+                if (handleSqliteLifecycle)
+                    raw.sqlite3_close_v2(connection);
                 connection = null;
             }
         }
