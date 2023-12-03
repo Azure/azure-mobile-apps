@@ -35,6 +35,6 @@ namespace Microsoft.AspNetCore.Datasync.Models
         /// <summary>
         /// The link to the next page of entities.
         /// </summary>
-        public Uri? NextLink { get; set; }
+        public string? NextLink { get; set; }
     }
 }

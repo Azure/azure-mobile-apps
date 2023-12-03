@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,13 +15,15 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
 {
     internal static class HttpRequestExtensions
     {
+        private const string ZumoOptionsHeader = "X-ZUMO-Options";
+
         /// <summary>
         /// Creates the NextLink Uri for the next request in a paging request.
         /// </summary>
         /// <param name="skip">The skip value</param>
         /// <param name="top">The top value</param>
         /// <returns>A URI representing the next page</returns>
-        internal static Uri CreateNextLink(this HttpRequest request, int skip = 0, int top = 0)
+        internal static string CreateNextLink(this HttpRequest request, int skip = 0, int top = 0)
         {
             var builder = new UriBuilder(request.GetDisplayUrl());
             List<string> query = string.IsNullOrEmpty(builder.Query) ? new() : builder.Query.TrimStart('?').Split('&').Where(q => !q.StartsWith("$skip=") && !q.StartsWith("$top=")).ToList();
@@ -42,7 +45,12 @@ namespace Microsoft.AspNetCore.Datasync.Extensions
                 builder.Port = -1;
             }
 
-            return builder.Uri;
+            if (request.Headers.TryGetValue(ZumoOptionsHeader, out StringValues optionsHeaders) && optionsHeaders[0].Contains("nextLink=path", StringComparison.OrdinalIgnoreCase))
+            {
+                // We want to return the path only, not the full URL.
+                return builder.Path + builder.Query;
+            }
+            return builder.Uri.ToString();
         }
 
         /// <summary>
