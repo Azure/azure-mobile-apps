@@ -236,7 +236,7 @@ public class OperationBatch_Tests : BaseTest
     {
         var batch = new OperationBatch(context);
         var op = new InsertOperation("movies", Guid.NewGuid().ToString());
-        var errors = new TableOperationError[] { new TableOperationError(op, context, null, null, null) { Handled = false } };
+        var errors = new TableOperationError[] { new(op, context, null, null, null) { Handled = false } };
 
         Assert.True(batch.HasErrors(errors));
     }
@@ -247,7 +247,7 @@ public class OperationBatch_Tests : BaseTest
     {
         var batch = new OperationBatch(context);
         var op = new InsertOperation("movies", Guid.NewGuid().ToString());
-        var errors = new TableOperationError[] { new TableOperationError(op, context, null, null, null) { Handled = true } };
+        var errors = new TableOperationError[] { new(op, context, null, null, null) { Handled = true } };
 
         Assert.False(batch.HasErrors(errors));
     }
@@ -302,7 +302,6 @@ public class OperationBatch_Tests : BaseTest
         }
     }
 
-
     [Fact]
     [Trait("Method", "LoadErrorsAsync")]
     public async Task LoadErrorsAsync_Works_WithMultiplePages()
@@ -322,7 +321,7 @@ public class OperationBatch_Tests : BaseTest
                 return new Page<JObject>()
                 {
                     Items = inputList.Skip(offset).Take(5).Select(err => err.Serialize()).ToArray(),
-                    NextLink = new Uri($"https://inmemorystore.local/tables/__syncerrors?$skip={offset + 5}&$top=5")
+                    NextLink = $"https://inmemorystore.local/tables/__syncerrors?$skip={offset + 5}&$top=5"
                 };
             }
         };

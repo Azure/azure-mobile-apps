@@ -16,7 +16,7 @@ public class ClientBaseTest : BaseTest
     /// <param name="totalCount">The total count</param>
     /// <param name="nextLink">The next link</param>
     /// <returns></returns>
-    protected Page<IdEntity> CreatePageOfItems(int count, long? totalCount = null, Uri nextLink = null)
+    protected Page<IdEntity> CreatePageOfItems(int count, long? totalCount = null, string nextLink = null)
     {
         List<IdEntity> items = new();
 

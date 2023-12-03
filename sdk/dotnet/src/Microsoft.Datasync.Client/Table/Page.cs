@@ -35,6 +35,6 @@ namespace Microsoft.Datasync.Client.Table
         /// <summary>
         /// The Uri to the nexty page in the result set.
         /// </summary>
-        public Uri NextLink { get; set; }
+        public string NextLink { get; set; }
     }
 }

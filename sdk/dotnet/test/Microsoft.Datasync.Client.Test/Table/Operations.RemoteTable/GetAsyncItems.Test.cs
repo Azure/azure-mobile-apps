@@ -49,7 +49,7 @@ public class GetAsyncItems_Tests : BaseOperationTest
     /// <param name="totalCount"></param>
     /// <param name="nextLink"></param>
     /// <returns></returns>
-    private Page<JObject> CreatePageOfJsonItems(int count, long? totalCount = null, Uri nextLink = null)
+    private Page<JObject> CreatePageOfJsonItems(int count, long? totalCount = null, string nextLink = null)
     {
         List<JObject> items = new();
         List<IdEntity> entities = new();
@@ -144,7 +144,7 @@ public class GetAsyncItems_Tests : BaseOperationTest
 
         // Assert
         _ = AssertSingleRequest(HttpMethod.Get, tableEndpoint);
-       AssertEx.SequenceEqual(page.Items.ToList(), items);
+        AssertEx.SequenceEqual(page.Items.ToList(), items);
     }
 
     [Fact]
@@ -168,7 +168,7 @@ public class GetAsyncItems_Tests : BaseOperationTest
     public async Task GetAsyncItems_TwoPagesOfItems_WhenItemsReturned()
     {
         // Arrange
-        var page1 = CreatePageOfJsonItems(5, null, new Uri($"{tableEndpoint}?page=2"));
+        var page1 = CreatePageOfJsonItems(5, null, $"{tableEndpoint}?page=2");
         var page2 = CreatePageOfJsonItems(5);
 
         // Act
@@ -188,7 +188,7 @@ public class GetAsyncItems_Tests : BaseOperationTest
     public async Task GetAsyncItems_TwoPagesOfItems_WithAuth_WhenItemsReturned()
     {
         // Arrange
-        var page1 = CreatePageOfJsonItems(5, null, new Uri($"{tableEndpoint}?page=2"));
+        var page1 = CreatePageOfJsonItems(5, null, $"{tableEndpoint}?page=2");
         var page2 = CreatePageOfJsonItems(5);
 
         // Act
@@ -210,8 +210,8 @@ public class GetAsyncItems_Tests : BaseOperationTest
     public async Task GetAsyncItems_ThreePagesOfItems_WhenItemsReturned()
     {
         // Arrange
-        var page1 = CreatePageOfJsonItems(5, 10, new Uri($"{tableEndpoint}?page=2"));
-        var page2 = CreatePageOfJsonItems(5, 10, new Uri($"{tableEndpoint}?page=3"));
+        var page1 = CreatePageOfJsonItems(5, 10, $"{tableEndpoint}?page=2");
+        var page2 = CreatePageOfJsonItems(5, 10, $"{tableEndpoint}?page=3");
         MockHandler.AddResponse(HttpStatusCode.OK, new Page<JObject>());
 
         // Act
@@ -232,8 +232,8 @@ public class GetAsyncItems_Tests : BaseOperationTest
     public async Task GetAsyncItems_ThreePagesOfItems_WithAuth_WhenItemsReturned()
     {
         // Arrange
-        var page1 = CreatePageOfJsonItems(5, 10, new Uri($"{tableEndpoint}?page=2"));
-        var page2 = CreatePageOfJsonItems(5, 10, new Uri($"{tableEndpoint}?page=3"));
+        var page1 = CreatePageOfJsonItems(5, 10, $"{tableEndpoint}?page=2");
+        var page2 = CreatePageOfJsonItems(5, 10, $"{tableEndpoint}?page=3");
         MockHandler.AddResponse(HttpStatusCode.OK, new Page<JObject>());
 
         // Act

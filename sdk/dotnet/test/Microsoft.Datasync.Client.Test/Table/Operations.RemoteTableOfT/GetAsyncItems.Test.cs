@@ -100,7 +100,7 @@ public class GetAsyncItems_Tests : BaseOperationTest
     public async Task GetItemsAsync_TwoPagesOfItems_WhenItemsReturned()
     {
         // Arrange
-        var page1 = CreatePageOfItems(5, null, new Uri($"{tableEndpoint}?page=2"));
+        var page1 = CreatePageOfItems(5, null, $"{tableEndpoint}?page=2");
         var page2 = CreatePageOfItems(5);
 
         // Act
@@ -109,7 +109,7 @@ public class GetAsyncItems_Tests : BaseOperationTest
         // Assert
         Assert.Equal(2, MockHandler.Requests.Count);
         AssertRequest(MockHandler.Requests[0], HttpMethod.Get, tableEndpoint);
-        AssertRequest(MockHandler.Requests[1], HttpMethod.Get, page1.NextLink.ToString());
+        AssertRequest(MockHandler.Requests[1], HttpMethod.Get, page1.NextLink);
         Assert.Equal(10, items.Count);
         Assert.Equal(page1.Items, items.Take(5));
         Assert.Equal(page2.Items, items.Skip(5).Take(5));
@@ -120,7 +120,7 @@ public class GetAsyncItems_Tests : BaseOperationTest
     public async Task GetItemsAsync_TwoPagesOfItems_WithAuth_WhenItemsReturned()
     {
         // Arrange
-        var page1 = CreatePageOfItems(5, null, new Uri($"{expectedEndpoint}?page=2"));
+        var page1 = CreatePageOfItems(5, null, $"{expectedEndpoint}?page=2");
         var page2 = CreatePageOfItems(5);
 
         // Act
@@ -130,7 +130,7 @@ public class GetAsyncItems_Tests : BaseOperationTest
         Assert.Equal(2, MockHandler.Requests.Count);
         var request = AssertRequest(MockHandler.Requests[0], HttpMethod.Get, tableEndpoint);
         AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
-        request = AssertRequest(MockHandler.Requests[1], HttpMethod.Get, page1.NextLink.ToString());
+        request = AssertRequest(MockHandler.Requests[1], HttpMethod.Get, page1.NextLink);
         AssertEx.HasHeader(request.Headers, "X-ZUMO-AUTH", ValidAuthenticationToken.Token);
         Assert.Equal(10, items.Count);
         Assert.Equal(page1.Items, items.Take(5));
@@ -142,8 +142,8 @@ public class GetAsyncItems_Tests : BaseOperationTest
     public async Task GetItemsAsync_ThreePagesOfItems_WhenItemsReturned()
     {
         // Arrange
-        var page1 = CreatePageOfItems(5, null, new Uri($"{expectedEndpoint}?page=2"));
-        var page2 = CreatePageOfItems(5, null, new Uri($"{expectedEndpoint}?page=3"));
+        var page1 = CreatePageOfItems(5, null, $"{expectedEndpoint}?page=2");
+        var page2 = CreatePageOfItems(5, null, $"{expectedEndpoint}?page=3");
         MockHandler.AddResponse(HttpStatusCode.OK, new Page<IdEntity>());
 
         // Act
@@ -152,8 +152,8 @@ public class GetAsyncItems_Tests : BaseOperationTest
         // Assert - request
         Assert.Equal(3, MockHandler.Requests.Count);
         AssertRequest(MockHandler.Requests[0], HttpMethod.Get, tableEndpoint);
-        AssertRequest(MockHandler.Requests[1], HttpMethod.Get, page1.NextLink.ToString());
-        AssertRequest(MockHandler.Requests[2], HttpMethod.Get, page2.NextLink.ToString());
+        AssertRequest(MockHandler.Requests[1], HttpMethod.Get, page1.NextLink);
+        AssertRequest(MockHandler.Requests[2], HttpMethod.Get, page2.NextLink);
         Assert.Equal(10, items.Count);
         Assert.Equal(page1.Items, items.Take(5));
         Assert.Equal(page2.Items, items.Skip(5).Take(5));
@@ -326,7 +326,7 @@ public class GetAsyncItems_Tests : BaseOperationTest
     public async Task GetPageOfItems_ReturnsNextLink()
     {
         // Arrange
-        Page<IdEntity> result = new() { NextLink = new Uri(Endpoint.ToString() + "?$top=5&$skip=5") };
+        Page<IdEntity> result = new() { NextLink = $"{Endpoint}?$top=5&$skip=5" };
         MockHandler.AddResponse(HttpStatusCode.OK, result);
 
         // Act
@@ -335,7 +335,7 @@ public class GetAsyncItems_Tests : BaseOperationTest
         // Assert
         Assert.Null(response.Items);
         Assert.Null(response.Count);
-        Assert.Equal(result.NextLink.ToString(), response.NextLink.ToString());
+        Assert.Equal(result.NextLink, response.NextLink);
     }
 
     [Theory]

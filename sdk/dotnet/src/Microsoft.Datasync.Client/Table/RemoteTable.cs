@@ -211,11 +211,19 @@ namespace Microsoft.Datasync.Client.Table
         protected async Task<Page<JToken>> GetNextPageAsync(string query = "", string requestUri = null, CancellationToken cancellationToken = default)
         {
             string queryString = string.IsNullOrEmpty(query) ? string.Empty : $"?{query.TrimStart('?').TrimEnd()}";
+            if (requestUri?.StartsWith("/") == true)
+            {
+                requestUri = new Uri(ServiceClient.Endpoint, requestUri).ToString();
+            }
             ServiceRequest request = new()
             {
                 Method = HttpMethod.Get,
                 UriPathAndQuery = requestUri ?? TableEndpoint + queryString,
-                EnsureResponseContent = true
+                EnsureResponseContent = true,
+                RequestHeaders = new Dictionary<string, string>
+                {
+                    { ServiceHeaders.ZumoOptions, "nextLink=path" }
+                }
             };
             var response = await SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
             var result = new Page<JToken>();
@@ -231,7 +239,7 @@ namespace Microsoft.Datasync.Client.Table
                 }
                 if (response[Page.JsonNextLinkProperty]?.Type == JTokenType.String)
                 {
-                    result.NextLink = new Uri(response.Value<string>(Page.JsonNextLinkProperty));
+                    result.NextLink = response.Value<string>(Page.JsonNextLinkProperty);
                 }
             }
             return result;
