@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.Serialization;
 
 namespace Microsoft.AspNetCore.Datasync.Abstractions;
 
@@ -24,11 +23,6 @@ public class DatasyncFrameworkException : Exception
 
     /// <inheritdoc />
     public DatasyncFrameworkException(string? message, Exception? innerException) : base(message, innerException)
-    {
-    }
-
-    /// <inheritdoc />
-    protected DatasyncFrameworkException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
     }
 }

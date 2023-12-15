@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Filters;
 
@@ -189,8 +190,8 @@ public class DatasyncControllerAttribute_Tests
     public void OnException_ExceptionHandled_DoesntDoAnything()
     {
         ActionContext actionContext = new() { HttpContext = new DefaultHttpContext(), RouteData = new Routing.RouteData(), ActionDescriptor = new ActionDescriptor() };
+        actionContext.HttpContext.Response.Headers.ETag = new StringValues("\"foo\"");
         List<IFilterMetadata> filters = new();
-        actionContext.HttpContext.Response.Headers.Add("ETag", "\"foo\"");
         TableData entity = new() { Version = new byte[] { 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68 }, UpdatedAt = DateTimeOffset.Parse("2023-11-13T13:30:05.1234Z") };
         HttpException exception = new(400) { Payload = entity };
         ExceptionContext context = new(actionContext, filters)

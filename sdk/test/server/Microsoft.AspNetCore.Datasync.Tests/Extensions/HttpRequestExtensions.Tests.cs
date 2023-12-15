@@ -86,7 +86,7 @@ public class HttpRequestExtensions_Tests
         context.Request.Method = method;
         if (headerName != null && headerValue != null)
         {
-            context.Request.Headers.Add(headerName, headerValue);
+            context.Request.Headers[headerName] = headerValue;
         }
 
         context.Request.ParseConditionalRequest<TableData>(testEntity, out byte[] version);
@@ -116,7 +116,7 @@ public class HttpRequestExtensions_Tests
         context.Request.Method = method;
         if (headerName != null && headerValue != null)
         {
-            context.Request.Headers.Add(headerName, headerValue);
+            context.Request.Headers[headerName] = headerValue;
         }
 
         Action act = () => context.Request.ParseConditionalRequest<TableData>(testEntity, out byte[] version);

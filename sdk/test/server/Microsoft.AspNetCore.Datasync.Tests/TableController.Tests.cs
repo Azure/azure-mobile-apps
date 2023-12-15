@@ -13,8 +13,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
 
-using TestData = Datasync.Common.TestData;
-
 namespace Microsoft.AspNetCore.Datasync.Tests;
 
 [ExcludeFromCodeCoverage]

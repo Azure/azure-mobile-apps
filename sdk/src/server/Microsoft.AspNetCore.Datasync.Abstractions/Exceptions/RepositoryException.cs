@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Datasync.Abstractions;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.Serialization;
 
 namespace Microsoft.AspNetCore.Datasync;
 
@@ -22,10 +21,6 @@ public class RepositoryException : DatasyncFrameworkException
     }
 
     public RepositoryException(string? message, Exception? innerException) : base(message, innerException)
-    {
-    }
-
-    protected RepositoryException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
     }
 }

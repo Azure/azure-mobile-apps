@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.OData;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OData;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
 

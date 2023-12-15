@@ -76,7 +76,7 @@ internal static class HttpRequestExtensions
     {
         if (request.Query.TryGetValue("__includedeleted", out StringValues deletedQueryParameter))
         {
-            return deletedQueryParameter.Any(x => x.Equals("true", StringComparison.InvariantCultureIgnoreCase));
+            return deletedQueryParameter.Any(x => x!.Equals("true", StringComparison.InvariantCultureIgnoreCase));
         }
         return false;
     }

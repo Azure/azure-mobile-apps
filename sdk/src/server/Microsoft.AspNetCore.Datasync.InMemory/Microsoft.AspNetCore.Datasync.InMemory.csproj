@@ -4,6 +4,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Datasync.Tests" />
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Datasync.InMemory.Tests" />
   </ItemGroup>
 

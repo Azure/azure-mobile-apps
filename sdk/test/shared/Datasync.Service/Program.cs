@@ -5,6 +5,7 @@ using Datasync.Common.Models;
 using Datasync.Common.TestData;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Datasync.InMemory;
+using System.Diagnostics.CodeAnalysis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +14,7 @@ var repository = new InMemoryRepository<InMemoryMovie>(Movies.OfType<InMemoryMov
 builder.Services.AddSingleton<IRepository<InMemoryMovie>>(repository);
 
 // Add Controllers.
-builder.Services.AddControllers();
+builder.Services.AddDatasyncControllers();
 
 // Build the application pipeline.
 
@@ -26,4 +27,5 @@ app.MapControllers();
 app.Run();
 
 // For testing with WebApplicationFactory
+[ExcludeFromCodeCoverage]
 public partial class Program { }
