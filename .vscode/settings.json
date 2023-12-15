@@ -4,5 +4,11 @@
     "MD025": {
       "front_matter_title": ""
     }
-  }
+  },
+  "terminal.integrated.env.windows": {
+    "PATH": "C:\\Users\\adhal\\.azurelogicapps\\dependencies\\DotNetSDK;${env:PATH}"
+  },
+  "omnisharp.dotNetCliPaths": [
+    "C:\\Users\\adhal\\.azurelogicapps\\dependencies\\DotNetSDK"
+  ]
 }
