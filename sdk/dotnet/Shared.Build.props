@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
     <Copyright>&#169; Microsoft Corporation. All rights reserved.</Copyright>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <LicenseUrl>https://github.com/Azure/azure-mobile-apps/blob/main/LICENSE.txt</LicenseUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageIcon>icon.png</PackageIcon>
@@ -13,8 +15,13 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
     <ProjectUrl>https://github.com/azure/azure-mobile-apps</ProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
   
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)\..\images\icon.png" PackagePath="icon.png" Pack="True" />
