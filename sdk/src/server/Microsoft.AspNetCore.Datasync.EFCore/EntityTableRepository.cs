@@ -144,7 +144,7 @@ public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity
         await WrapExceptionAsync(id, async () =>
         {
             TEntity storedEntity = await DataSet.FindAsync(new object[] { id }, cancellationToken).ConfigureAwait(false) ?? throw new HttpException(HttpStatusCodes.Status404NotFound);
-            if (version != null && !storedEntity.Version.SequenceEqual(version))
+            if (version?.Length > 0 && !storedEntity.Version.SequenceEqual(version))
             {
                 throw new HttpException(HttpStatusCodes.Status412PreconditionFailed) { Payload = await GetEntityAsync(id, cancellationToken).ConfigureAwait(false) };
             }
@@ -175,7 +175,7 @@ public class EntityTableRepository<TEntity> : IRepository<TEntity> where TEntity
         await WrapExceptionAsync(entity.Id, async () =>
         {
             TEntity storedEntity = await DataSet.FindAsync(new object[] { entity.Id }, cancellationToken).ConfigureAwait(false) ?? throw new HttpException(HttpStatusCodes.Status404NotFound);
-            if (version != null && !storedEntity.Version.SequenceEqual(version))
+            if (version?.Length > 0 && !storedEntity.Version.SequenceEqual(version))
             {
                 throw new HttpException(HttpStatusCodes.Status412PreconditionFailed) { Payload = await GetEntityAsync(entity.Id, cancellationToken).ConfigureAwait(false) };
             }

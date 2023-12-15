@@ -66,7 +66,7 @@ public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : 
     /// Updates the system properties and stores the new entity into the data store.
     /// </summary>
     /// <param name="entity">The entity to store.</param>
-    protected void StoreEntity(TEntity entity)
+    internal void StoreEntity(TEntity entity)
     {
         entity.UpdatedAt = DateTimeOffset.UtcNow;
         entity.Version = Guid.NewGuid().ToByteArray();
@@ -121,7 +121,7 @@ public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : 
         {
             throw new HttpException(HttpStatusCodes.Status404NotFound);
         }
-        if (version != null && !storedEntity.Version.SequenceEqual(version))
+        if (version?.Length > 0 && !storedEntity.Version.SequenceEqual(version))
         {
             throw new HttpException(HttpStatusCodes.Status412PreconditionFailed) { Payload = Disconnect(storedEntity) };
         }
@@ -156,7 +156,7 @@ public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : 
         {
             throw new HttpException(HttpStatusCodes.Status404NotFound);
         }
-        if (version != null && !storedEntity.Version.SequenceEqual(version))
+        if (version?.Length > 0 && !storedEntity.Version.SequenceEqual(version))
         {
             throw new HttpException(HttpStatusCodes.Status412PreconditionFailed) { Payload = Disconnect(storedEntity) };
         }

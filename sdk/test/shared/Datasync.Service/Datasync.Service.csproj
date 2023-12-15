@@ -19,4 +19,8 @@
     <ProjectReference Include="..\..\..\src\server\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj" />
     <ProjectReference Include="..\Datasync.Common\Datasync.Common.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
 </Project>

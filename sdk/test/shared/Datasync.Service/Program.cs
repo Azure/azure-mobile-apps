@@ -1,17 +1,20 @@
 // Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.Models;
+using Datasync.Common;
 using Datasync.Common.TestData;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Datasync.InMemory;
 using System.Diagnostics.CodeAnalysis;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // In-Memory Repository - always required.
-var repository = new InMemoryRepository<InMemoryMovie>(Movies.OfType<InMemoryMovie>());
-builder.Services.AddSingleton<IRepository<InMemoryMovie>>(repository);
+var inMemoryMovieRepository = new InMemoryRepository<InMemoryMovie>(Movies.OfType<InMemoryMovie>());
+builder.Services.AddSingleton<IRepository<InMemoryMovie>>(inMemoryMovieRepository);
+
+var inMemoryKitchenSinkRepository = new InMemoryRepository<InMemoryKitchenSink>();
+builder.Services.AddSingleton<IRepository<InMemoryKitchenSink>>(inMemoryKitchenSinkRepository);
 
 // Add Controllers.
 builder.Services.AddDatasyncControllers();

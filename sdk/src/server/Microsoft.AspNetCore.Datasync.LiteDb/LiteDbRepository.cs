@@ -110,7 +110,7 @@ public class LiteDbRepository<TEntity> : IRepository<TEntity> where TEntity : Li
         await LockCollectionAsync(() =>
         {
             TEntity storedEntity = Collection.FindById(id) ?? throw new HttpException(HttpStatusCodes.Status404NotFound);
-            if (version != null && !storedEntity.Version.SequenceEqual(version))
+            if (version?.Length > 0 && !storedEntity.Version.SequenceEqual(version))
             {
                 throw new HttpException(HttpStatusCodes.Status412PreconditionFailed) { Payload = storedEntity };
             }
@@ -139,7 +139,7 @@ public class LiteDbRepository<TEntity> : IRepository<TEntity> where TEntity : Li
         await LockCollectionAsync(() =>
         {
             TEntity storedEntity = Collection.FindById(entity.Id) ?? throw new HttpException(HttpStatusCodes.Status404NotFound);
-            if (version != null && !storedEntity.Version.SequenceEqual(version))
+            if (version?.Length > 0 && !storedEntity.Version.SequenceEqual(version))
             {
                 throw new HttpException(HttpStatusCodes.Status412PreconditionFailed) { Payload = storedEntity };
             }

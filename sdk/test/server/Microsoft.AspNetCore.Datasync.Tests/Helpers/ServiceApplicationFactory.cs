@@ -1,4 +1,6 @@
-﻿using Datasync.Common.Models;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
 using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.AspNetCore.Mvc.Testing;
 
@@ -14,11 +16,23 @@ public class ServiceApplicationFactory : WebApplicationFactory<Program>
         // base.ConfigureWebHost(builder);
     }
 
-    internal InMemoryMovie GetMovieById(string id)
+    internal string KitchenSinkEndpoint = "api/in-memory/kitchensink";
+    internal string MovieEndpoint = "api/in-memory/movies";
+    internal string SoftDeletedMovieEndpoint = "api/in-memory/softmovies";
+
+    internal TEntity GetServerEntityById<TEntity>(string id) where TEntity : InMemoryTableData
     {
         using IServiceScope scope = Services.CreateScope();
-        InMemoryRepository<InMemoryMovie> repository = scope.ServiceProvider.GetRequiredService<IRepository<InMemoryMovie>>() as InMemoryRepository<InMemoryMovie>;
+        InMemoryRepository<TEntity> repository = scope.ServiceProvider.GetRequiredService<IRepository<TEntity>>() as InMemoryRepository<TEntity>;
         return repository.GetEntity(id);
+    }
+
+    internal void SoftDelete<TEntity>(TEntity entity) where TEntity : InMemoryTableData
+    {
+        using IServiceScope scope = Services.CreateScope();
+        InMemoryRepository<TEntity> repository = scope.ServiceProvider.GetRequiredService<IRepository<TEntity>>() as InMemoryRepository<TEntity>;
+        entity.Deleted = true;
+        repository.StoreEntity(entity);
     }
 
     internal InMemoryMovie GetRandomMovie()
@@ -28,6 +42,4 @@ public class ServiceApplicationFactory : WebApplicationFactory<Program>
         List<InMemoryMovie> entities = repository.GetEntities();
         return entities[new Random().Next(entities.Count)];
     }
-
-    internal string MovieEndpoint = "api/in-memory/movies";
 }
