@@ -25,7 +25,7 @@ public class Create_Tests : IClassFixture<ServiceApplicationFactory>
     [Theory]
     [InlineData(null)]
     [InlineData("de76a422-7fb0-4f1f-9bb4-12b3c7882541")]
-    public async Task Create_WithValidInput_Works(string id)
+    public async Task Create_WithValidInput_Returns201(string id)
     {
         ClientMovie source = new(Movies.BlackPanther) { Id = id };
         string content = JsonSerializer.Serialize(source);
@@ -53,7 +53,7 @@ public class Create_Tests : IClassFixture<ServiceApplicationFactory>
     }
 
     [Fact]
-    public async Task Create_Conflict()
+    public async Task Create_ExistingId_Returns409()
     {
         InMemoryMovie existingMovie = factory.GetRandomMovie();
         ClientMovie source = new(Movies.BlackPanther) { Id = existingMovie.Id };
@@ -72,7 +72,7 @@ public class Create_Tests : IClassFixture<ServiceApplicationFactory>
     }
 
     [Fact]
-    public async Task Create_SoftDeleted_Conflict()
+    public async Task Create_SoftDeleted_Returns409()
     {
         InMemoryMovie existingMovie = factory.GetRandomMovie();
         factory.SoftDelete(existingMovie);

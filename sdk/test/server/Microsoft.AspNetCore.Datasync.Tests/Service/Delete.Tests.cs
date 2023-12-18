@@ -19,7 +19,7 @@ public class Delete_Tests : IClassFixture<ServiceApplicationFactory>
     }
 
     [Fact]
-    public async Task Delete_ById_Works()
+    public async Task Delete_ById_Returns204()
     {
         var existingMovie = factory.GetRandomMovie();
 
@@ -48,14 +48,14 @@ public class Delete_Tests : IClassFixture<ServiceApplicationFactory>
     }
 
     [Fact]
-    public async Task Delete_MissingId_Works()
+    public async Task Delete_MissingId_Returns404()
     {
         var response = await client.DeleteAsync($"{factory.MovieEndpoint}/missing");
         response.Should().HaveStatusCode(HttpStatusCode.NotFound);
     }
 
     [Fact]
-    public async Task Delete_SoftDelete_Works()
+    public async Task Delete_NotSoftDeleted_Returns204()
     {
         var existingMovie = factory.GetRandomMovie();
         byte[] existingVersion = existingMovie.Version.ToArray();
@@ -72,7 +72,7 @@ public class Delete_Tests : IClassFixture<ServiceApplicationFactory>
     }
 
     [Fact]
-    public async Task Delete_SoftDeletedId_ReturnsGone()
+    public async Task Delete_SoftDeletedId_Returns410()
     {
         var existingMovie = factory.GetRandomMovie();
         factory.SoftDelete(existingMovie);

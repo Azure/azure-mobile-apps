@@ -6,10 +6,8 @@ using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.AspNetCore.Datasync.Filters;
 using Microsoft.AspNetCore.Datasync.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
-using Microsoft.AspNetCore.OData.Query.Validator;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -184,50 +182,6 @@ public class TableController<TEntity> : ODataController where TEntity : class, I
     }
 
     /// <summary>
-    /// Updates an existing entity according to the provided patch document.
-    /// </summary>
-    /// <param name="id">The ID of the entity being modified.</param>
-    /// <param name="patchDocument">The delta patch document.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-    /// <returns>An <see cref="OkObjectResult"/> encapsulating the resulting entity.</returns>
-    /// <exception cref="HttpException">Thrown if there is an HTTP exception, such as unauthorized usage.</exception>
-    [HttpPatch("{id}")]
-    [Consumes("application/json-patch+json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public virtual async Task<IActionResult> PatchAsync(string id, [FromBody] JsonPatchDocument<TEntity> patchDocument, CancellationToken cancellationToken = default)
-    {
-        Logger.LogInformation("PatchAsync: {id}", id);
-        TEntity entity = await Repository.ReadAsync(id, cancellationToken).ConfigureAwait(false);
-        if (!AccessControlProvider.EntityIsInView(entity))
-        {
-            Logger.LogWarning("PatchAsync: {id} statusCode=404 not in view", id);
-            throw new HttpException(StatusCodes.Status404NotFound);
-        }
-        if (patchDocument.ModifiesSystemProperties(entity, out Dictionary<string, string[]> systemPropertyValidationErrors))
-        {
-            Logger.LogWarning("PatchAsync: {id} Patch documnet changes system properties", id);
-            return ValidationProblem(new ValidationProblemDetails(systemPropertyValidationErrors));
-        }
-        await AuthorizeRequestAsync(TableOperation.Update, entity, cancellationToken).ConfigureAwait(false);
-        if (Options.EnableSoftDelete && entity.Deleted && !patchDocument.Contains("replace", "/deleted", false))
-        {
-            Logger.LogWarning("PatchAsync: {id} statusCode=410 deleted", id);
-            throw new HttpException(StatusCodes.Status410Gone);
-        }
-        Request.ParseConditionalRequest(entity, out byte[] version);
-        patchDocument.ApplyTo(entity);
-        if (!TryValidateModel(entity))
-        {
-            return ValidationProblem(new ValidationProblemDetails(ModelState));
-        }
-        await AccessControlProvider.PreCommitHookAsync(TableOperation.Update, entity, cancellationToken).ConfigureAwait(false);
-        await Repository.ReplaceAsync(entity, version, cancellationToken).ConfigureAwait(false);
-        await PostCommitHookAsync(TableOperation.Update, entity, cancellationToken).ConfigureAwait(false);
-        Logger.LogInformation("PatchAsync: {id} {entity} patched", id, entity.ToJsonString());
-        return Ok(entity);
-    }
-
-    /// <summary>
     /// Perform an OData query against the data set.
     /// </summary>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
@@ -308,7 +262,7 @@ public class TableController<TEntity> : ODataController where TEntity : class, I
             throw new HttpException(StatusCodes.Status404NotFound);
         }
         await AuthorizeRequestAsync(TableOperation.Update, entity, cancellationToken).ConfigureAwait(false);
-        if (Options.EnableSoftDelete && entity.Deleted && !Request.ShouldIncludeDeletedItems())
+        if (Options.EnableSoftDelete && existing.Deleted && !Request.ShouldIncludeDeletedItems())
         {
             Logger.LogWarning("ReplaceAsync: {id} statusCode=410 deleted", id);
             throw new HttpException(StatusCodes.Status410Gone);
