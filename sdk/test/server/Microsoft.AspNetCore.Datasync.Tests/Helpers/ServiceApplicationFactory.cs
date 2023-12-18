@@ -27,11 +27,18 @@ public class ServiceApplicationFactory : WebApplicationFactory<Program>
         return repository.GetEntity(id);
     }
 
-    internal void SoftDelete<TEntity>(TEntity entity) where TEntity : InMemoryTableData
+    internal void SoftDelete<TEntity>(TEntity entity, bool deleted = true) where TEntity : InMemoryTableData
     {
         using IServiceScope scope = Services.CreateScope();
         InMemoryRepository<TEntity> repository = scope.ServiceProvider.GetRequiredService<IRepository<TEntity>>() as InMemoryRepository<TEntity>;
-        entity.Deleted = true;
+        entity.Deleted = deleted;
+        repository.StoreEntity(entity);
+    }
+
+    internal void Store<TEntity>(TEntity entity) where TEntity : InMemoryTableData
+    {
+        using IServiceScope scope = Services.CreateScope();
+        InMemoryRepository<TEntity> repository = scope.ServiceProvider.GetRequiredService<IRepository<TEntity>>() as InMemoryRepository<TEntity>;
         repository.StoreEntity(entity);
     }
 
