@@ -1,7 +1,8 @@
-﻿using Datasync.Common;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
 using Datasync.Common.Models;
 using System.Net;
-using System.Text;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Service;
 
@@ -10,7 +11,6 @@ public class Read_Tests : IClassFixture<ServiceApplicationFactory>
 {
     private readonly HttpClient client;
     private readonly ServiceApplicationFactory factory;
-    private readonly DateTimeOffset StartTime = DateTimeOffset.UtcNow;
 
     public Read_Tests(ServiceApplicationFactory factory)
     {

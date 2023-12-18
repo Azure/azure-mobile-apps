@@ -1,4 +1,7 @@
-﻿using Datasync.Common.Models;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Datasync.Common.Models;
 using System.Net;
 using System.Text;
 using System.Text.Json;
