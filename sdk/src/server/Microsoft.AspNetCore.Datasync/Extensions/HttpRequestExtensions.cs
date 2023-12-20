@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
@@ -9,6 +10,28 @@ namespace Microsoft.AspNetCore.Datasync.Extensions;
 
 internal static class HttpRequestExtensions
 {
+    /// <summary>
+    /// Creates the NextLink Uri for the next request in a paging request.
+    /// </summary>
+    /// <param name="skip">The skip value</param>
+    /// <param name="top">The top value</param>
+    /// <returns>A URI representing the next page</returns>
+    internal static string CreateNextLink(this HttpRequest request, int skip = 0, int top = 0)
+    {
+        var builder = new UriBuilder(request.GetDisplayUrl());
+        List<string> query = string.IsNullOrEmpty(builder.Query) ? new() : builder.Query.TrimStart('?').Split('&').Where(q => !q.StartsWith("$skip=") && !q.StartsWith("$top=")).ToList();
+
+        if (skip > 0)
+        {
+            query.Add($"$skip={skip}");
+        }
+        if (top > 0)
+        {
+            query.Add($"$top={top}");
+        }
+        return string.Join('&', query).TrimStart('&');
+    }
+
     /// <summary>
     /// Used in checking the If-Modified-Since and If-Unmodified-Since headers for date/time comparisons with nulls.
     /// </summary>

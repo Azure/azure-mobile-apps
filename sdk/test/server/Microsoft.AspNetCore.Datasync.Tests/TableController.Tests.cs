@@ -1,15 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common.TestData;
 using Microsoft.AspNetCore.Datasync.Abstractions;
+using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.AspNetCore.Datasync.Models;
-using Microsoft.AspNetCore.Datasync.Tests.Helpers;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.OData.ModelBuilder;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
 
@@ -36,6 +33,9 @@ public class TableController_Tests : BaseTest
 
         [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Used to indicate protected to public conversion")]
         public ValueTask __PostCommitHookAsync(TableOperation operation, TEntity entity, CancellationToken cancellationTken) => PostCommitHookAsync(operation, entity, cancellationTken);
+
+        [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Used to indicate protected to public conversion")]
+        public IActionResult __CatchAndLogException(string message, Func<IActionResult> action) => CatchAndLogException(message, action);
     }
 
     private readonly DateTimeOffset StartTime = DateTimeOffset.UtcNow;
@@ -52,6 +52,7 @@ public class TableController_Tests : BaseTest
         controller.Logger.Should().BeOfType<NullLogger>().And.NotBeNull();
         controller.Options.Should().NotBeNull();
         controller.Repository.Should().BeOfType<Repository<TableData>>().And.NotBeNull();
+        controller.EdmModel.Should().NotBeNull();
     }
 
     [Fact]
@@ -65,6 +66,7 @@ public class TableController_Tests : BaseTest
         controller.Logger.Should().BeOfType<NullLogger>().And.NotBeNull();
         controller.Options.Should().NotBeNull();
         controller.Repository.Should().BeSameAs(repository);
+        controller.EdmModel.Should().NotBeNull();
     }
 
     [Fact]
@@ -79,6 +81,7 @@ public class TableController_Tests : BaseTest
         controller.Logger.Should().BeOfType<NullLogger>().And.NotBeNull();
         controller.Options.Should().NotBeNull();
         controller.Repository.Should().BeSameAs(repository);
+        controller.EdmModel.Should().NotBeNull();
     }
 
     [Fact]
@@ -93,6 +96,51 @@ public class TableController_Tests : BaseTest
         controller.Logger.Should().BeOfType<NullLogger>().And.NotBeNull();
         controller.Options.Should().BeSameAs(options);
         controller.Repository.Should().BeSameAs(repository);
+        controller.EdmModel.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Ctor_Repository_EdmModel_Works()
+    {
+        IRepository<TableData> repository = FakeRepository<TableData>();
+        ODataConventionModelBuilder modelBuilder = new();
+        modelBuilder.EnableLowerCamelCase();
+        modelBuilder.AddEntityType(typeof(TableData));
+        TableController<TableData> controller = new(repository, modelBuilder.GetEdmModel());
+
+        controller.AccessControlProvider.Should().BeOfType<AccessControlProvider<TableData>>().And.NotBeNull();
+        controller.Logger.Should().BeOfType<NullLogger>().And.NotBeNull();
+        controller.Options.Should().NotBeNull();
+        controller.Repository.Should().BeSameAs(repository);
+        controller.EdmModel.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Ctor_Repository_AccessProvider_EdmModel_Works()
+    {
+        IRepository<TableData> repository = FakeRepository<TableData>();
+        IAccessControlProvider<TableData> provider = FakeAccessControlProvider<TableData>(TableOperation.Create, true);
+        ODataConventionModelBuilder modelBuilder = new();
+        modelBuilder.EnableLowerCamelCase();
+        modelBuilder.AddEntityType(typeof(TableData));
+        TableController<TableData> controller = new(repository, provider, modelBuilder.GetEdmModel());
+
+        controller.AccessControlProvider.Should().BeSameAs(provider);
+        controller.Logger.Should().BeOfType<NullLogger>().And.NotBeNull();
+        controller.Options.Should().NotBeNull();
+        controller.Repository.Should().BeSameAs(repository);
+        controller.EdmModel.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Ctor_Repository_EdmModel_Throws_WhenEntityNotFound()
+    {
+        IRepository<TableData> repository = FakeRepository<TableData>();
+        ODataConventionModelBuilder modelBuilder = new();
+        modelBuilder.EnableLowerCamelCase();
+        modelBuilder.AddEntityType(typeof(InMemoryMovie));
+        Action act = () => _ = new TableController<TableData>(repository, modelBuilder.GetEdmModel());
+        act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
@@ -108,6 +156,7 @@ public class TableController_Tests : BaseTest
         controller.Logger.Should().BeOfType<NullLogger>().And.NotBeNull();
         controller.Options.Should().BeSameAs(options);
         controller.Repository.Should().BeSameAs(repository);
+        controller.EdmModel.Should().NotBeNull();
     }
 
     [Fact]
@@ -124,6 +173,7 @@ public class TableController_Tests : BaseTest
         controller.Logger.Should().BeSameAs(logger);
         controller.Options.Should().BeSameAs(options);
         controller.Repository.Should().BeSameAs(repository);
+        controller.EdmModel.Should().NotBeNull();
     }
     #endregion
 
@@ -176,6 +226,38 @@ public class TableController_Tests : BaseTest
         Func<Task> act = async () => await controller.__AuthorizeRequestAsync(TableOperation.Create, new TableData(), CancellationToken.None);
 
         await act.Should().NotThrowAsync();
+    }
+    #endregion
+
+    #region CatchAndLogException
+    [Fact]
+    public void CatchAndLogException_ThrowsHttpExceptionIfInvalidOperationException()
+    {
+        IRepository<TableData> repository = FakeRepository<TableData>();
+        ExposedTableController<TableData> controller = new(repository, FakeAccessControlProvider<TableData>(TableOperation.Create, true));
+
+        Action act = () => controller.__CatchAndLogException("test", () => throw new InvalidOperationException());
+        act.Should().Throw<HttpException>().Which.StatusCode.Should().Be(417);
+    }
+
+    [Fact]
+    public void CatchAndLogException_ThrowsHttpExceptionIfNotSupportedException()
+    {
+        IRepository<TableData> repository = FakeRepository<TableData>();
+        ExposedTableController<TableData> controller = new(repository, FakeAccessControlProvider<TableData>(TableOperation.Create, true));
+
+        Action act = () => controller.__CatchAndLogException("test", () => throw new NotSupportedException());
+        act.Should().Throw<HttpException>().Which.StatusCode.Should().Be(417);
+    }
+
+    [Fact]
+    public void CatchAndLogException_ReThrow()
+    {
+        IRepository<TableData> repository = FakeRepository<TableData>();
+        ExposedTableController<TableData> controller = new(repository, FakeAccessControlProvider<TableData>(TableOperation.Create, true));
+
+        Action act = () => controller.__CatchAndLogException("test", () => throw new ApplicationException());
+        act.Should().Throw<ApplicationException>();
     }
     #endregion
 
@@ -484,8 +566,11 @@ public class TableController_Tests : BaseTest
         ExposedTableController<TableData> controller = new(repository, accessProvider);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table");
 
-        IQueryable<TableData> actual = await controller.QueryAsync();
-        actual.Should().HaveCount(1);
+        OkObjectResult result = await controller.QueryAsync() as OkObjectResult;
+        result.Should().NotBeNull();
+        PagedResult pagedResult = result.Value as PagedResult;
+        pagedResult.Should().NotBeNull();
+        pagedResult.Items.Should().HaveCount(1);
     }
 
     [Theory]
@@ -500,8 +585,11 @@ public class TableController_Tests : BaseTest
         ExposedTableController<TableData> controller = new(repository, accessProvider);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table");
 
-        IQueryable<TableData> actual = await controller.QueryAsync();
-        actual.Should().HaveCount(count);
+        OkObjectResult result = await controller.QueryAsync() as OkObjectResult;
+        result.Should().NotBeNull();
+        PagedResult pagedResult = result.Value as PagedResult;
+        pagedResult.Should().NotBeNull();
+        pagedResult.Items.Should().HaveCount(count);
     }
 
     [Theory]
@@ -513,11 +601,15 @@ public class TableController_Tests : BaseTest
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Query, true);
         IRepository<TableData> repository = FakeRepository<TableData>(entity, true);
-        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        TableControllerOptions options = new() { EnableSoftDelete = true };
+        ExposedTableController<TableData> controller = new(repository, accessProvider) { Options = options };
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table");
 
-        IQueryable<TableData> actual = await controller.QueryAsync();
-        actual.Should().HaveCount(count);
+        OkObjectResult result = await controller.QueryAsync() as OkObjectResult;
+        result.Should().NotBeNull();
+        PagedResult pagedResult = result.Value as PagedResult;
+        pagedResult.Should().NotBeNull();
+        pagedResult.Items.Should().HaveCount(count);
     }
 
     [Theory]
@@ -529,11 +621,15 @@ public class TableController_Tests : BaseTest
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Query, true);
         IRepository<TableData> repository = FakeRepository<TableData>(entity, true);
-        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        TableControllerOptions options = new() { EnableSoftDelete = true };
+        ExposedTableController<TableData> controller = new(repository, accessProvider) { Options = options };
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table?__includedeleted=true");
 
-        IQueryable<TableData> actual = await controller.QueryAsync();
-        actual.Should().HaveCount(count);
+        OkObjectResult result = await controller.QueryAsync() as OkObjectResult;
+        result.Should().NotBeNull();
+        PagedResult pagedResult = result.Value as PagedResult;
+        pagedResult.Should().NotBeNull();
+        pagedResult.Items.Should().HaveCount(count);
     }
     #endregion
 

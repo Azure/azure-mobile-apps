@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.AspNetCore.Mvc.Testing;
+using System.Linq.Expressions;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Helpers;
 
@@ -18,7 +19,15 @@ public class ServiceApplicationFactory : WebApplicationFactory<Program>
 
     internal string KitchenSinkEndpoint = "api/in-memory/kitchensink";
     internal string MovieEndpoint = "api/in-memory/movies";
+    internal string PagedMovieEndpoint = "api/in-memory/pagedmovies";
     internal string SoftDeletedMovieEndpoint = "api/in-memory/softmovies";
+
+    internal int Count<TEntity>() where TEntity : InMemoryTableData
+    {
+        using IServiceScope scope = Services.CreateScope();
+        InMemoryRepository<TEntity> repository = scope.ServiceProvider.GetRequiredService<IRepository<TEntity>>() as InMemoryRepository<TEntity>;
+        return repository.GetEntities().Count;
+    }
 
     internal TEntity GetServerEntityById<TEntity>(string id) where TEntity : InMemoryTableData
     {
@@ -33,6 +42,17 @@ public class ServiceApplicationFactory : WebApplicationFactory<Program>
         InMemoryRepository<TEntity> repository = scope.ServiceProvider.GetRequiredService<IRepository<TEntity>>() as InMemoryRepository<TEntity>;
         entity.Deleted = deleted;
         repository.StoreEntity(entity);
+    }
+
+    internal void SoftDelete<TEntity>(Expression<Func<TEntity, bool>> expression, bool deleted = true) where TEntity : InMemoryTableData
+    {
+        using IServiceScope scope = Services.CreateScope();
+        InMemoryRepository<TEntity> repository = scope.ServiceProvider.GetRequiredService<IRepository<TEntity>>() as InMemoryRepository<TEntity>;
+        foreach (TEntity entity in repository.GetEntities().Where(expression.Compile()))
+        {
+            entity.Deleted = deleted;
+            repository.StoreEntity(entity);
+        }
     }
 
     internal void Store<TEntity>(TEntity entity) where TEntity : InMemoryTableData

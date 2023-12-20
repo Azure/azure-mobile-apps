@@ -18,6 +18,16 @@ public class InMemoryMovieController : TableController<InMemoryMovie>
 }
 
 [ExcludeFromCodeCoverage]
+[Route("api/in-memory/pagedmovies")]
+public class InMemoryPagedMovieController : TableController<InMemoryMovie>
+{
+    public InMemoryPagedMovieController(IRepository<InMemoryMovie> repository) : base(repository)
+    {
+        Options = new TableControllerOptions { PageSize = 25 };
+    }
+}
+
+[ExcludeFromCodeCoverage]
 [Route("api/in-memory/softmovies")]
 public class InMemorySoftDeletedMovieController : TableController<InMemoryMovie>
 {

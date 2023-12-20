@@ -5,6 +5,7 @@ using Datasync.Common;
 using Datasync.Common.TestData;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Datasync.InMemory;
+using Microsoft.OData.ModelBuilder;
 using System.Diagnostics.CodeAnalysis;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -16,8 +17,14 @@ builder.Services.AddSingleton<IRepository<InMemoryMovie>>(inMemoryMovieRepositor
 var inMemoryKitchenSinkRepository = new InMemoryRepository<InMemoryKitchenSink>();
 builder.Services.AddSingleton<IRepository<InMemoryKitchenSink>>(inMemoryKitchenSinkRepository);
 
-// Add Controllers.
-builder.Services.AddDatasyncControllers();
+// Build the EDM Model - optional
+ODataConventionModelBuilder modelBuilder = new();
+modelBuilder.EnableLowerCamelCase();
+modelBuilder.AddEntityType(typeof(InMemoryMovie));
+modelBuilder.AddEntityType(typeof(InMemoryKitchenSink));
+
+// Add Controllers
+builder.Services.AddDatasyncControllers(modelBuilder.GetEdmModel());
 
 // Build the application pipeline.
 

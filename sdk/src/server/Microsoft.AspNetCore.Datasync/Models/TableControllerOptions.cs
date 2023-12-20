@@ -24,13 +24,10 @@ public class TableControllerOptions
     private int _maxTop = MAX_TOP;
 
     /// <summary>
-    /// The default page size for the results returned by a query operation.
+    /// If <c>true</c>, then items are marked as deleted instead of being removed from the database.
+    /// By default, soft delete is turned off.
     /// </summary>
-    public int PageSize
-    {
-        get => _pageSize;
-        set { Ensure.That(value).IsInRange(1, MAX_PAGESIZE); _pageSize = value; }
-    }
+    public bool EnableSoftDelete { get; set; } = false;
 
     /// <summary>
     /// The maximum page size for the results returned by a query operation.  This is the
@@ -43,10 +40,13 @@ public class TableControllerOptions
     }
 
     /// <summary>
-    /// If <c>true</c>, then items are marked as deleted instead of being removed from the database.
-    /// By default, soft delete is turned off.
+    /// The default page size for the results returned by a query operation.
     /// </summary>
-    public bool EnableSoftDelete { get; set; } = false;
+    public int PageSize
+    {
+        get => _pageSize;
+        set { Ensure.That(value).IsInRange(1, MAX_PAGESIZE); _pageSize = value; }
+    }
 
     /// <summary>
     /// The status code returned when the user is not authorized to perform an operation.

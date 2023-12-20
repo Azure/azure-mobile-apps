@@ -58,12 +58,12 @@ public class DatasyncControllerAttribute : ResultFilterAttribute, IExceptionFilt
 
         if (entity.Version.Length > 0)
         {
-            headers.Add(HeaderNames.ETag, $"\"{Convert.ToBase64String(entity.Version)}\"");
+            headers.Append(HeaderNames.ETag, $"\"{Convert.ToBase64String(entity.Version)}\"");
         }
 
         if (entity.UpdatedAt.HasValue && entity.UpdatedAt.Value != default)
         {
-            headers.Add(HeaderNames.LastModified, entity.UpdatedAt.Value.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern, CultureInfo.InvariantCulture));
+            headers.Append(HeaderNames.LastModified, entity.UpdatedAt.Value.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern, CultureInfo.InvariantCulture));
         }
     }
 }

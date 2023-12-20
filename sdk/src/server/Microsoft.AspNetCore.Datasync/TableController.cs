@@ -5,13 +5,18 @@ using Microsoft.AspNetCore.Datasync.Abstractions;
 using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.AspNetCore.Datasync.Filters;
 using Microsoft.AspNetCore.Datasync.Models;
+using Microsoft.AspNetCore.Datasync.Tables;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Query.Validator;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Linq.Expressions;
+using Microsoft.OData;
+using Microsoft.OData.Edm;
+using Microsoft.OData.UriParser;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Datasync;
 
@@ -27,7 +32,7 @@ public class TableController<TEntity> : ODataController where TEntity : class, I
     /// Creates a new <see cref="TableController{TEntity}"/>. The table options (such as repository,
     /// access control provider, etc.) are set via the upstream controller.
     /// </summary>
-    public TableController() : this(new Repository<TEntity>(), new AccessControlProvider<TEntity>(), new TableControllerOptions())
+    public TableController() : this(new Repository<TEntity>(), new AccessControlProvider<TEntity>(), null, new TableControllerOptions())
     {
     }
 
@@ -35,15 +40,27 @@ public class TableController<TEntity> : ODataController where TEntity : class, I
     /// Creates a new <see cref="TableController{TEntity}"/> with the specified repository.
     /// </summary>
     /// <param name="repository">The repository to use for this </param>
-    public TableController(IRepository<TEntity> repository) : this(repository, new AccessControlProvider<TEntity>(), new TableControllerOptions())
+    public TableController(IRepository<TEntity> repository) : this(repository, new AccessControlProvider<TEntity>(), null, new TableControllerOptions())
     {
     }
 
-    public TableController(IRepository<TEntity> repository, IAccessControlProvider<TEntity> accessControlProvider) : this(repository, accessControlProvider, new TableControllerOptions())
+    public TableController(IRepository<TEntity> repository, IEdmModel model) : this(repository, new AccessControlProvider<TEntity>(), model, new TableControllerOptions())
     {
     }
 
-    public TableController(IRepository<TEntity> repository, TableControllerOptions options) : this(repository, new AccessControlProvider<TEntity>(), options)
+    public TableController(IRepository<TEntity> repository, IAccessControlProvider<TEntity> accessControlProvider) : this(repository, accessControlProvider, null, new TableControllerOptions())
+    {
+    }
+
+    public TableController(IRepository<TEntity> repository, TableControllerOptions options) : this(repository, new AccessControlProvider<TEntity>(), null, options)
+    {
+    }
+
+    public TableController(IRepository<TEntity> repository, IAccessControlProvider<TEntity> accessControlProvider, TableControllerOptions options) : this(repository, accessControlProvider, null, options)
+    {
+    }
+
+    public TableController(IRepository<TEntity> repository, IAccessControlProvider<TEntity> accessControlProvider, IEdmModel model) : this(repository, accessControlProvider, model, new TableControllerOptions())
     {
     }
 
@@ -53,17 +70,28 @@ public class TableController<TEntity> : ODataController where TEntity : class, I
     /// <param name="repository">The repository that will be used for data access operations.</param>
     /// <param name="accessControlProvider">The access control provider that will be used for authorizing requests.</param>
     /// <param name="options">The options for this table controller.</param>
-    public TableController(IRepository<TEntity> repository, IAccessControlProvider<TEntity> accessControlProvider, TableControllerOptions options)
+    public TableController(IRepository<TEntity> repository, IAccessControlProvider<TEntity> accessControlProvider, IEdmModel? edmModel, TableControllerOptions options)
     {
         Repository = repository;
         AccessControlProvider = accessControlProvider;
         Options = options;
+
+        EdmModel = edmModel ?? ModelCache.GetEdmModel(typeof(TEntity));
+        if (EdmModel.FindType(typeof(TEntity).FullName) == null)
+        {
+            throw new InvalidOperationException($"The type {typeof(TEntity).FullName} is not registered in the OData model");
+        }
     }
 
     /// <summary>
     /// The access control provider that will be used for authorizing requests.
     /// </summary>
     public IAccessControlProvider<TEntity> AccessControlProvider { get; set; }
+
+    /// <summary>
+    /// The <see cref="IEdmModel"/> that is constructed for the service.
+    /// </summary>
+    public IEdmModel EdmModel { get; init; }
 
     /// <summary>
     /// The logger that is used for logging request/response information.
@@ -100,6 +128,25 @@ public class TableController<TEntity> : ODataController where TEntity : class, I
         {
             Logger.LogWarning("{operation} {entity} statusCode=401 unauthorized", operation, entity?.ToJsonString() ?? "");
             throw new HttpException(Options.UnauthorizedStatusCode);
+        }
+    }
+
+    /// <summary>
+    /// Ensure that the proper error is transmitted to the client when an exception is thrown.
+    /// </summary>
+    /// <param name="message">The message to be sent.</param>
+    /// <param name="act">The action to execute for which we are trapping errors.</param>
+    /// <exception cref="HttpException">If the exception is one of the relevant exceptions.</exception>
+    protected IActionResult CatchAndLogException(string message, Func<IActionResult> act)
+    {
+        try
+        {
+            return act.Invoke();
+        }
+        catch (Exception ex) when (ex is InvalidOperationException || ex is NotSupportedException)
+        {
+            Logger.LogWarning("{message}: {exception}", message, ex.Message);
+            throw new HttpException(StatusCodes.Status417ExpectationFailed, $"{message}: {ex.Message}");
         }
     }
 
@@ -182,28 +229,75 @@ public class TableController<TEntity> : ODataController where TEntity : class, I
     }
 
     /// <summary>
-    /// Perform an OData query against the data set.
+    /// <para>
+    /// The GET method is used to retrieve resource representation.  The resource is never modified.
+    /// In this case, an OData v4 query is accepted with the following options:
+    /// </para>
+    /// <para>
+    /// - <c>$count</c> is used to return a count of entities within the search parameters within the <see cref="PagedResult{TEntity}"/> response.
+    /// - <c>$filter</c> is used to restrict the entities to be sent.
+    /// - <c>$orderby</c> is used for ordering the entities to be sent.
+    /// - <c>$select</c> is used to select which properties of the entities are sent.
+    /// - <c>$skip</c> is used to skip some entities
+    /// - <c>$top</c> is used to limit the number of entities returned.
+    /// </para>
     /// </summary>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-    /// <returns>An <see cref="IQueryable{T}"/> for the data set under consideration.  This is handled by the OData library.</returns>
-    /// <exception cref="HttpException">Thrown if there is an HTTP exception, such as unauthorized usage.</exception>
-    [EnableQuery]
+    /// <param name="cancellationToken">A cancellation token</param>
+    /// <returns>An <see cref="OkObjectResult"/> response object with the items.</returns>
+    [HttpGet]
+    [ActionName("QueryAsync")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public virtual async Task<IQueryable<TEntity>> QueryAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<IActionResult> QueryAsync(CancellationToken cancellationToken = default)
     {
         Logger.LogInformation("QueryAsync: {querystring}", HttpContext.Request.QueryString);
         await AuthorizeRequestAsync(TableOperation.Query, null, cancellationToken).ConfigureAwait(false);
-        IQueryable<TEntity> dataset = await Repository.AsQueryableAsync(cancellationToken).ConfigureAwait(false);
-        Expression<Func<TEntity, bool>>? filter = AccessControlProvider.GetDataView();
-        if (filter != null)
+
+        IQueryable<TEntity> dataset = (await Repository.AsQueryableAsync(cancellationToken).ConfigureAwait(false))
+            .ApplyDataView(AccessControlProvider.GetDataView())
+            .ApplyDeletedView(Request, Options.EnableSoftDelete);
+
+        ODataValidationSettings validationSettings = new() { MaxTop = Options.MaxTop };
+        ODataQuerySettings querySettings = new() { PageSize = Options.PageSize, EnsureStableOrdering = true };
+        ODataQueryContext queryContext = new(EdmModel, typeof(TEntity), new ODataPath());
+        ODataQueryOptions<TEntity> queryOptions = new(queryContext, Request);
+
+        try
         {
-            dataset = dataset.Where(filter);
+            queryOptions.Validate(validationSettings);
         }
-        if (!Request.ShouldIncludeDeletedItems())
+        catch (ODataException validationException)
         {
-            dataset = dataset.Where(m => !m.Deleted);
+            Logger.LogWarning("Query: Error when validating query: {Message}", validationException.Message);
+            return BadRequest(validationException.Message);
         }
-        return dataset;
+
+        return CatchAndLogException("Error while executing results - query: Possible client-side evaluation", () =>
+        {
+            IEnumerable<object> results = (IEnumerable<object>)queryOptions.ApplyTo(dataset, querySettings);
+            int resultCount = results.Count();
+            PagedResult pagedResult = new(results);
+
+            IQueryable<TEntity> query = (IQueryable<TEntity>?)queryOptions.Filter?.ApplyTo(dataset, new ODataQuerySettings()) ?? dataset;
+            int totalCount = query.Count();
+
+            if (queryOptions.Count?.Value == true)
+            {
+                pagedResult.Count = totalCount;
+            }
+
+            int skip = (queryOptions.Skip?.Value ?? 0) + resultCount;
+            if (queryOptions.Top != null)
+            {
+                int top = queryOptions.Top.Value - resultCount;
+                pagedResult.NextLink = skip >= totalCount || top <= 0 ? null : Request.CreateNextLink(skip, top);
+            }
+            else
+            {
+                pagedResult.NextLink = skip >= totalCount ? null : Request.CreateNextLink(skip, 0);
+            }
+
+            return Ok(pagedResult);
+        });
     }
 
     /// <summary>

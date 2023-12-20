@@ -4,7 +4,6 @@
 using Microsoft.AspNetCore.OData;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OData.Edm;
-using Microsoft.OData.ModelBuilder;
 
 namespace Microsoft.AspNetCore.Datasync;
 
@@ -18,9 +17,8 @@ public static class AspNetCoreExtensions
     /// <returns>The modified service collection.</returns>
     public static IServiceCollection AddDatasyncControllers(this IServiceCollection services)
     {
-        ODataConventionModelBuilder modelBuilder = new();
-        // TODO: Build the EdmModel via reflection.
-        return services.AddDatasyncControllers(modelBuilder.GetEdmModel());
+        services.AddControllers().AddOData(options => options.EnableQueryFeatures());
+        return services;
     }
 
     /// <summary>
@@ -33,12 +31,6 @@ public static class AspNetCoreExtensions
     public static IServiceCollection AddDatasyncControllers(this IServiceCollection services, IEdmModel model)
     {
         services.AddSingleton(model);
-        services.AddControllers().AddOData(options =>
-        {
-            options.EnableQueryFeatures();
-            options.AddRouteComponents("tables", model);
-            options.EnableAttributeRouting = true;
-        });
-        return services;
+        return services.AddDatasyncControllers();
     }
 }
