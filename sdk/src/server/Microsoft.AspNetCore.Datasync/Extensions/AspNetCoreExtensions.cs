@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AspNetCore.Datasync.Models;
 using Microsoft.AspNetCore.OData;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OData.Edm;
@@ -17,6 +18,7 @@ public static class AspNetCoreExtensions
     /// <returns>The modified service collection.</returns>
     public static IServiceCollection AddDatasyncControllers(this IServiceCollection services)
     {
+        services.AddSingleton<IDatasyncServiceOptions, DatasyncServiceOptions>();
         services.AddControllers().AddOData(options => options.EnableQueryFeatures());
         return services;
     }

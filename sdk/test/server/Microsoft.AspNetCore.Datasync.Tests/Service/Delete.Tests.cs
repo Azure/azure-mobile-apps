@@ -6,16 +6,10 @@ using System.Net;
 namespace Microsoft.AspNetCore.Datasync.Tests.Service;
 
 [ExcludeFromCodeCoverage]
-public class Delete_Tests : IClassFixture<ServiceApplicationFactory>
+public class Delete_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
 {
-    private readonly HttpClient client;
-    private readonly ServiceApplicationFactory factory;
-    private readonly DateTimeOffset StartTime = DateTimeOffset.UtcNow;
-
-    public Delete_Tests(ServiceApplicationFactory factory)
+    public Delete_Tests(ServiceApplicationFactory factory) : base(factory)
     {
-        this.factory = factory;
-        this.client = factory.CreateClient();
     }
 
     [Fact]
@@ -45,6 +39,8 @@ public class Delete_Tests : IClassFixture<ServiceApplicationFactory>
 
         var response = await client.SendAsync(request);
         response.Should().HaveStatusCode(expectedStatusCode);
+
+        // TODO: If HttpStatusCode.PreconditionFailed, verify that the returned entity matches the server entity.
     }
 
     [Fact]

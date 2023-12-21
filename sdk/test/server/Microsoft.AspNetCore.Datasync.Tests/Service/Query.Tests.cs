@@ -1,10 +1,10 @@
-﻿using Datasync.Common.Models;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Datasync.Common.Models;
 using Datasync.Common.TestData;
-using FluentAssertions.Common;
-using Microsoft.AspNetCore.Datasync.InMemory;
 using System.Net;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 // We want constant arrays in tests since it makes the tests non-dependent and readable.
 #pragma warning disable CA1861 // Avoid constant arrays as arguments
@@ -12,16 +12,10 @@ using System.Text.Json.Serialization;
 namespace Microsoft.AspNetCore.Datasync.Tests.Service;
 
 [ExcludeFromCodeCoverage]
-public class Query_Tests : IClassFixture<ServiceApplicationFactory>
+public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
 {
-    private readonly HttpClient client;
-    private readonly ServiceApplicationFactory factory;
-    private readonly JsonSerializerOptions jsonSerializerOptions = new(JsonSerializerDefaults.Web);
-
-    public Query_Tests(ServiceApplicationFactory factory)
+    public Query_Tests(ServiceApplicationFactory factory) : base(factory)
     {
-        this.factory = factory;
-        this.client = factory.CreateClient();
     }
 
     [Theory]
@@ -3884,7 +3878,7 @@ public class Query_Tests : IClassFixture<ServiceApplicationFactory>
         HttpResponseMessage response = await client.GetAsync(query);
         response.Should().HaveStatusCode(HttpStatusCode.OK);
         string content = await response.Content.ReadAsStringAsync();
-        PageOfItems<ClientObject> result = JsonSerializer.Deserialize<PageOfItems<ClientObject>>(content, jsonSerializerOptions);
+        PageOfItems<ClientObject> result = JsonSerializer.Deserialize<PageOfItems<ClientObject>>(content, serializerOptions);
         result.Should().NotBeNull();
         result.Items.Should().NotBeNullOrEmpty();
         foreach (ClientObject item in result.Items)
@@ -3910,7 +3904,7 @@ public class Query_Tests : IClassFixture<ServiceApplicationFactory>
         string content = await response.Content.ReadAsStringAsync();
         response.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        PageOfItems<ClientMovie> result = JsonSerializer.Deserialize<PageOfItems<ClientMovie>>(content, jsonSerializerOptions);
+        PageOfItems<ClientMovie> result = JsonSerializer.Deserialize<PageOfItems<ClientMovie>>(content, serializerOptions);
 
         // Payload has the right content
         Assert.Equal(itemCount, result!.Items!.Length);
@@ -3923,10 +3917,7 @@ public class Query_Tests : IClassFixture<ServiceApplicationFactory>
         for (int idx = 0; idx < firstItems.Length; idx++)
         {
             InMemoryMovie expected = factory.GetServerEntityById<InMemoryMovie>(firstItems[idx])!;
-            result.Items[idx].Id.Should().Be(expected.Id);
-            result.Items[idx].UpdatedAt.Should().Be(expected.UpdatedAt);
-            result.Items[idx].Version.Should().Be(Convert.ToBase64String(expected.Version));
-            result.Items[idx].Should().BeEquivalentTo<IMovie>(expected);
+            result.Items[idx].Should().HaveEquivalentMetadataTo(expected).And.BeEquivalentTo<IMovie>(expected);
         }
     }
 
@@ -3945,7 +3936,7 @@ public class Query_Tests : IClassFixture<ServiceApplicationFactory>
         string content = await response.Content.ReadAsStringAsync();
         response.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        PageOfItems<ClientKitchenSink> result = JsonSerializer.Deserialize<PageOfItems<ClientKitchenSink>>(content, jsonSerializerOptions);
+        PageOfItems<ClientKitchenSink> result = JsonSerializer.Deserialize<PageOfItems<ClientKitchenSink>>(content, serializerOptions);
 
         // Payload has the right content
         Assert.Equal(itemCount, result!.Items!.Length);
@@ -3958,12 +3949,7 @@ public class Query_Tests : IClassFixture<ServiceApplicationFactory>
         for (int idx = 0; idx < firstItems.Length; idx++)
         {
             InMemoryKitchenSink expected = factory.GetServerEntityById<InMemoryKitchenSink>(firstItems[idx])!;
-            result.Items[idx].Id.Should().Be(expected.Id);
-            result.Items[idx].UpdatedAt.Should().Be(expected.UpdatedAt);
-            result.Items[idx].Version.Should().Be(Convert.ToBase64String(expected.Version));
-
-            // Our tests only test TimeOnlyValue - if additional test types are added, add comparisons here.
-            result.Items[idx].TimeOnlyValue.Should().Be(expected.TimeOnlyValue);
+            result.Items[idx].Should().HaveEquivalentMetadataTo(expected).And.BeEquivalentTo<IKitchenSink>(expected);
         }
     }
 
@@ -3985,11 +3971,10 @@ public class Query_Tests : IClassFixture<ServiceApplicationFactory>
         do
         {
             loops++;
-
-            var response = await client.GetAsync(query);
+            HttpResponseMessage response = await client.GetAsync(query);
             string content = await response.Content.ReadAsStringAsync();
             response.Should().HaveStatusCode(HttpStatusCode.OK);
-            PageOfItems<ClientMovie> result = JsonSerializer.Deserialize<PageOfItems<ClientMovie>>(content, jsonSerializerOptions);
+            PageOfItems<ClientMovie> result = JsonSerializer.Deserialize<PageOfItems<ClientMovie>>(content, serializerOptions);
             result.Items.Should().NotBeNull();
             result.Items.ToList().ForEach(x => items.Add(x.Id, x));
             if (result.NextLink != null)
@@ -4006,29 +3991,4 @@ public class Query_Tests : IClassFixture<ServiceApplicationFactory>
         loops.Should().Be(expectedLoops);
     }
     #endregion
-
-    private void SeedKitchenSink()
-    {
-        DateOnly SourceDate = new(2022, 1, 1);
-        for (int i = 0; i < 365; i++)
-        {
-            DateOnly date = SourceDate.AddDays(i);
-            InMemoryKitchenSink model = new()
-            {
-                Id = string.Format("id-{0:000}", i),
-                Version = Guid.NewGuid().ToByteArray(),
-                UpdatedAt = DateTimeOffset.UtcNow,
-                Deleted = false,
-                DateOnlyValue = date,
-                TimeOnlyValue = new TimeOnly(date.Month, date.Day)
-            };
-            factory.Store(model);
-        }
-    }
-
-    public class ClientObject
-    {
-        [JsonExtensionData]
-        public Dictionary<string, object> Data { get; set; }
-    }
 }

@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.AspNetCore.Http;
 using System.Linq.Expressions;
 
 namespace Microsoft.AspNetCore.Datasync.Extensions;

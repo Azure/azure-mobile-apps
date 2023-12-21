@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using System.Text.Json.Serialization;
+
 namespace Datasync.Common.Models;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum MovieRating
 {
     Unrated,

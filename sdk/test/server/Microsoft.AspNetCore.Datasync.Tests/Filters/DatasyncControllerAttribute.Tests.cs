@@ -141,8 +141,8 @@ public class DatasyncControllerAttribute_Tests
         context.ExceptionHandled.Should().BeTrue();
         if (hasPayload)
         {
-            context.Result.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(statusCode);
-            context.Result.Should().BeOfType<ObjectResult>().Which.Value.Should().BeOfType<TableData>().And.BeEquivalentTo(entity);
+            context.Result.Should().BeOfType<JsonResult>().Which.StatusCode.Should().Be(statusCode);
+            context.Result.Should().BeOfType<JsonResult>().Which.Value.Should().BeOfType<TableData>().And.BeEquivalentTo(entity);
             context.HttpContext.Response.Headers.Should().ContainKey("ETag").WhoseValue.Should().ContainSingle(v => v == "\"YWJjZGVmZ2g=\"");
             context.HttpContext.Response.Headers.Should().ContainKey("Last-Modified").WhoseValue.Should().ContainSingle(v => v == "Mon, 13 Nov 2023 13:30:05 GMT");
         }
@@ -181,8 +181,8 @@ public class DatasyncControllerAttribute_Tests
         attribute.OnException(context);
 
         context.ExceptionHandled.Should().BeTrue();
-        context.Result.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(400);
-        context.Result.Should().BeOfType<ObjectResult>().Which.Value.Should().BeOfType<string>().And.BeEquivalentTo(entity);
+        context.Result.Should().BeOfType<JsonResult>().Which.StatusCode.Should().Be(400);
+        context.Result.Should().BeOfType<JsonResult>().Which.Value.Should().BeOfType<string>().And.BeEquivalentTo(entity);
         context.HttpContext.Response.Headers.Should().BeEmpty();
     }
 

@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AspNetCore.Datasync.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 using System.Globalization;
 
@@ -20,9 +23,18 @@ public class DatasyncControllerAttribute : ResultFilterAttribute, IExceptionFilt
     /// <inheritdoc />
     public override void OnResultExecuting(ResultExecutingContext context)
     {
-        if (context.Result is ObjectResult result && result.Value is ITableData entity)
+        if (context.Result is ObjectResult result)
         {
-            AddHeadersFromEntity(context.HttpContext.Response.Headers, entity);
+            if (result.Value is ITableData entity)
+            {
+                AddHeadersFromEntity(context.HttpContext.Response.Headers, entity);
+                if (result.StatusCode == StatusCodes.Status201Created)
+                {
+                    context.HttpContext.Response.Headers.Location = $"{context.HttpContext.Request.GetDisplayUrl()}/{entity.Id}";
+                }
+            }
+            IDatasyncServiceOptions options = GetDatasyncServiceOptions(context.HttpContext);
+            context.Result = new JsonResult(result.Value, options.JsonSerializerOptions) { StatusCode = result.StatusCode };
         }
         base.OnResultExecuting(context);
     }
@@ -35,8 +47,9 @@ public class DatasyncControllerAttribute : ResultFilterAttribute, IExceptionFilt
     {
         if (!context.ExceptionHandled && context.Exception is HttpException exception)
         {
+            IDatasyncServiceOptions options = GetDatasyncServiceOptions(context.HttpContext);
             context.Result = exception.Payload != null
-                ? new ObjectResult(exception.Payload) { StatusCode = exception.StatusCode }
+                ? new JsonResult(exception.Payload, options.JsonSerializerOptions) { StatusCode = exception.StatusCode }
                 : new StatusCodeResult(exception.StatusCode);
             if (exception.Payload is ITableData entity)
             {
@@ -66,4 +79,12 @@ public class DatasyncControllerAttribute : ResultFilterAttribute, IExceptionFilt
             headers.Append(HeaderNames.LastModified, entity.UpdatedAt.Value.ToString(DateTimeFormatInfo.InvariantInfo.RFC1123Pattern, CultureInfo.InvariantCulture));
         }
     }
+
+    /// <summary>
+    /// Retrieves the <see cref="IDatasyncServiceOptions"/> from the request services.
+    /// </summary>
+    /// <param name="context">The context to use to retrieve the settings.</param>
+    /// <returns></returns>
+    private static IDatasyncServiceOptions GetDatasyncServiceOptions(HttpContext context)
+        => context.RequestServices?.GetService<IDatasyncServiceOptions>() ?? new DatasyncServiceOptions();
 }

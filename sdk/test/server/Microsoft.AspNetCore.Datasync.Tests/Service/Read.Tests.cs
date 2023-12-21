@@ -1,21 +1,17 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common;
 using Datasync.Common.Models;
 using System.Net;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Service;
 
 [ExcludeFromCodeCoverage]
-public class Read_Tests : IClassFixture<ServiceApplicationFactory>
+public class Read_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
 {
-    private readonly HttpClient client;
-    private readonly ServiceApplicationFactory factory;
-
-    public Read_Tests(ServiceApplicationFactory factory)
+    public Read_Tests(ServiceApplicationFactory factory) : base(factory)
     {
-        this.factory = factory;
-        this.client = factory.CreateClient();
     }
 
     [Fact]
@@ -25,16 +21,9 @@ public class Read_Tests : IClassFixture<ServiceApplicationFactory>
         HttpResponseMessage response = await client.GetAsync($"{factory.MovieEndpoint}/{existingMovie.Id}");
         response.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>();
-        clientMovie.Should().NotBeNull();
-        clientMovie.Id.Should().Be(existingMovie.Id);
-        clientMovie.UpdatedAt.Should().Be(existingMovie.UpdatedAt);
-        clientMovie.Version.Should().Be(Convert.ToBase64String(existingMovie.Version));
-        clientMovie.Deleted.Should().BeFalse();
-        clientMovie.Should().BeEquivalentTo<IMovie>(existingMovie);
-
-        response.Headers.ETag?.Tag.Should().Be($"\"{clientMovie.Version}\"");
-        response.Headers.ETag?.IsWeak.Should().BeFalse();
+        ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>(serializerOptions);
+        clientMovie.Should().NotBeNull().And.HaveEquivalentMetadataTo(existingMovie).And.BeEquivalentTo<IMovie>(existingMovie);
+        response.Headers.ETag.Should().BeETag($"\"{clientMovie.Version}\"");
     }
 
     [Theory]
@@ -52,16 +41,9 @@ public class Read_Tests : IClassFixture<ServiceApplicationFactory>
 
         if (expectedStatusCode == HttpStatusCode.OK)
         {
-            ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>();
-            clientMovie.Should().NotBeNull();
-            clientMovie.Id.Should().Be(existingMovie.Id);
-            clientMovie.UpdatedAt.Should().Be(existingMovie.UpdatedAt);
-            clientMovie.Version.Should().Be(Convert.ToBase64String(existingMovie.Version));
-            clientMovie.Deleted.Should().BeFalse();
-            clientMovie.Should().BeEquivalentTo<IMovie>(existingMovie);
-
-            response.Headers.ETag?.Tag.Should().Be($"\"{clientMovie.Version}\"");
-            response.Headers.ETag?.IsWeak.Should().BeFalse();
+            ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>(serializerOptions);
+            clientMovie.Should().NotBeNull().And.HaveEquivalentMetadataTo(existingMovie).And.BeEquivalentTo<IMovie>(existingMovie);
+            response.Headers.ETag.Should().BeETag($"\"{clientMovie.Version}\"");
         }
     }
 
@@ -84,19 +66,87 @@ public class Read_Tests : IClassFixture<ServiceApplicationFactory>
         HttpResponseMessage response = await client.GetAsync($"{factory.KitchenSinkEndpoint}/{storedEntity.Id}");
         response.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        ClientKitchenSink clientEntity = await response.Content.ReadFromJsonAsync<ClientKitchenSink>();
-        clientEntity.Should().NotBeNull();
-        clientEntity.Id.Should().Be(storedEntity.Id);
-        clientEntity.UpdatedAt.Should().Be(storedEntity.UpdatedAt);
-        clientEntity.Version.Should().Be(Convert.ToBase64String(storedEntity.Version));
-        clientEntity.Deleted.Should().Be(storedEntity.Deleted);
-        clientEntity.StringValue.Should().Be(storedEntity.StringValue);
-        clientEntity.EnumValue.Should().Be(storedEntity.EnumValue);
-        clientEntity.DateOnlyValue.Should().Be(storedEntity.DateOnlyValue);
-        clientEntity.TimeOnlyValue.Should().Be(storedEntity.TimeOnlyValue);
+        ClientKitchenSink clientEntity = await response.Content.ReadFromJsonAsync<ClientKitchenSink>(serializerOptions);
+        clientEntity.Should().NotBeNull().And.HaveEquivalentMetadataTo(storedEntity).And.BeEquivalentTo<IKitchenSink>(storedEntity);
+        response.Headers.ETag.Should().BeETag($"\"{clientEntity.Version}\"");
+    }
 
-        response.Headers.ETag?.Tag.Should().Be($"\"{clientEntity.Version}\"");
-        response.Headers.ETag?.IsWeak.Should().BeFalse();
+    [Fact]
+    public async Task Read_SerializationTests()
+    {
+        InMemoryKitchenSink entity1 = new()
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            UpdatedAt = new DateTimeOffset(2023, 12, 20, 10, 21, 05, 421, TimeSpan.Zero),
+            Version = Guid.NewGuid().ToByteArray(),
+            Deleted = false,
+
+            BooleanValue = true,
+            ByteValue = 42,
+            ByteArrayValue = new byte[] { 0x01, 0x02, 0x03, 0x04 },
+            CharValue = 'a',
+            DateOnlyValue = new DateOnly(2023, 12, 15),
+            DateTimeValue = new DateTime(2023, 12, 20, 10, 26, 30, 231, DateTimeKind.Utc),
+            DateTimeOffsetValue = new DateTimeOffset(2023, 12, 20, 10, 21, 05, 421, TimeSpan.Zero),
+            DecimalValue = 42.42m,
+            DoubleValue = 42.42,
+            EnumValue = KitchenSinkState.Completed,
+            FloatValue = 42.42f,
+            GuidValue = new Guid("29386779-34b1-464a-bb5b-4053c2ee61b3"),
+            IntValue = 42,
+            LongValue = 42L,
+            NullableDouble = null,
+            NullableEnumValue = null,
+            StringValue = "state=none",
+            TimeOnlyValue = new TimeOnly(9, 52, 35, 321)
+        };
+
+        InMemoryKitchenSink entity2 = new()
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            UpdatedAt = new DateTimeOffset(2023, 12, 20, 10, 21, 05, 421, TimeSpan.Zero),
+            Version = Guid.NewGuid().ToByteArray(),
+            Deleted = false,
+
+            NullableDouble = 42.42,
+            NullableEnumValue = KitchenSinkState.Failed
+        };
+
+        factory.Store(entity1);
+        factory.Store(entity2);
+
+        HttpResponseMessage response = await client.GetAsync($"{factory.KitchenSinkEndpoint}/{entity1.Id}");
+        response.Should().HaveStatusCode(HttpStatusCode.OK);
+
+        ClientObject actual = await response.Content.ReadFromJsonAsync<ClientObject>(serializerOptions);
+
+        actual.Data["id"].Should().BeJsonElement(entity1.Id);
+        actual.Data["booleanValue"].Should().BeJsonElement(true);
+        actual.Data["byteValue"].Should().BeJsonElement(42);
+        actual.Data["byteArrayValue"].Should().BeJsonElement("AQIDBA==");
+        actual.Data["charValue"].Should().BeJsonElement("a");
+        actual.Data["dateOnlyValue"].Should().BeJsonElement("2023-12-15");
+        actual.Data["dateTimeValue"].Should().BeJsonElement("2023-12-20T10:26:30.231Z");
+        actual.Data["dateTimeOffsetValue"].Should().BeJsonElement("2023-12-20T10:21:05.421Z");
+        actual.Data["decimalValue"].Should().BeJsonElement(42.42);
+        actual.Data["doubleValue"].Should().BeJsonElement(42.42);
+        actual.Data["enumValue"].Should().BeJsonElement("Completed");
+        actual.Data["floatValue"].Should().BeJsonElement(42.42);
+        actual.Data["guidValue"].Should().BeJsonElement("29386779-34b1-464a-bb5b-4053c2ee61b3");
+        actual.Data["intValue"].Should().BeJsonElement(42);
+        actual.Data["longValue"].Should().BeJsonElement(42);
+        actual.Data["nullableDouble"].Should().BeNullJsonElement();
+        actual.Data["nullableEnumValue"].Should().BeNullJsonElement();
+        actual.Data["stringValue"].Should().BeJsonElement("state=none");
+        actual.Data["timeOnlyValue"].Should().BeJsonElement("09:52:35.321");
+
+        HttpResponseMessage response2 = await client.GetAsync($"{factory.KitchenSinkEndpoint}/{entity2.Id}");
+        response2.Should().HaveStatusCode(HttpStatusCode.OK);
+
+        ClientObject actual2 = await response2.Content.ReadFromJsonAsync<ClientObject>();
+
+        actual2.Data["nullableDouble"].Should().BeJsonElement(42.42);
+        actual2.Data["nullableEnumValue"].Should().BeJsonElement("Failed");
     }
 
     [Fact]
@@ -113,16 +163,9 @@ public class Read_Tests : IClassFixture<ServiceApplicationFactory>
         HttpResponseMessage response = await client.GetAsync($"{factory.SoftDeletedMovieEndpoint}/{existingMovie.Id}");
         response.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>();
-        clientMovie.Should().NotBeNull();
-        clientMovie.Id.Should().Be(existingMovie.Id);
-        clientMovie.UpdatedAt.Should().Be(existingMovie.UpdatedAt);
-        clientMovie.Version.Should().Be(Convert.ToBase64String(existingMovie.Version));
-        clientMovie.Deleted.Should().BeFalse();
-        clientMovie.Should().BeEquivalentTo<IMovie>(existingMovie);
-
-        response.Headers.ETag?.Tag.Should().Be($"\"{clientMovie.Version}\"");
-        response.Headers.ETag?.IsWeak.Should().BeFalse();
+        ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>(serializerOptions);
+        clientMovie.Should().NotBeNull().And.HaveEquivalentMetadataTo(existingMovie).And.BeEquivalentTo<IMovie>(existingMovie);
+        response.Headers.ETag.Should().BeETag($"\"{clientMovie.Version}\"");
     }
 
     [Fact]
@@ -142,15 +185,8 @@ public class Read_Tests : IClassFixture<ServiceApplicationFactory>
         HttpResponseMessage response = await client.GetAsync($"{factory.SoftDeletedMovieEndpoint}/{existingMovie.Id}?__includedeleted=true");
         response.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>();
-        clientMovie.Should().NotBeNull();
-        clientMovie.Id.Should().Be(existingMovie.Id);
-        clientMovie.UpdatedAt.Should().Be(existingMovie.UpdatedAt);
-        clientMovie.Version.Should().Be(Convert.ToBase64String(existingMovie.Version));
-        clientMovie.Deleted.Should().BeTrue();
-        clientMovie.Should().BeEquivalentTo<IMovie>(existingMovie);
-
-        response.Headers.ETag?.Tag.Should().Be($"\"{clientMovie.Version}\"");
-        response.Headers.ETag?.IsWeak.Should().BeFalse();
+        ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>(serializerOptions);
+        clientMovie.Should().NotBeNull().And.HaveEquivalentMetadataTo(existingMovie).And.BeEquivalentTo<IMovie>(existingMovie);
+        response.Headers.ETag.Should().BeETag($"\"{clientMovie.Version}\"");
     }
 }

@@ -10,13 +10,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Query.Validator;
-using Microsoft.AspNetCore.OData.Routing.Controllers;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.OData;
 using Microsoft.OData.Edm;
 using Microsoft.OData.UriParser;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Datasync;
 
@@ -26,8 +23,9 @@ namespace Microsoft.AspNetCore.Datasync;
 /// </summary>
 /// <typeparam name="TEntity">The type of the entity exposed to the client.</typeparam>
 [DatasyncController]
-public class TableController<TEntity> : ODataController where TEntity : class, ITableData
+public class TableController<TEntity> : TableControllerBase<TEntity> where TEntity : class, ITableData
 {
+    #region Controller Constructors
     /// <summary>
     /// Creates a new <see cref="TableController{TEntity}"/>. The table options (such as repository,
     /// access control provider, etc.) are set via the upstream controller.
@@ -39,30 +37,58 @@ public class TableController<TEntity> : ODataController where TEntity : class, I
     /// <summary>
     /// Creates a new <see cref="TableController{TEntity}"/> with the specified repository.
     /// </summary>
-    /// <param name="repository">The repository to use for this </param>
+    /// <param name="repository">The repository to use for this controller.</param>
     public TableController(IRepository<TEntity> repository) : this(repository, new AccessControlProvider<TEntity>(), null, new TableControllerOptions())
     {
     }
 
+    /// <summary>
+    /// Creates a new <see cref="TableController{TEntity}"/> with the specified repository.
+    /// </summary>
+    /// <param name="repository">The repository to use for this controller.</param>
+    /// <param name="model">The <see cref="IEdmModel"/> to use for OData interactions.</param>
     public TableController(IRepository<TEntity> repository, IEdmModel model) : this(repository, new AccessControlProvider<TEntity>(), model, new TableControllerOptions())
     {
     }
 
+    /// <summary>
+    /// Creates a new <see cref="TableController{TEntity}"/> with the specified repository.
+    /// </summary>
+    /// <param name="repository">The repository to use for this controller.</param>
+    /// <param name="accessControlProvider">The access control provider to use for this controller.</param>
     public TableController(IRepository<TEntity> repository, IAccessControlProvider<TEntity> accessControlProvider) : this(repository, accessControlProvider, null, new TableControllerOptions())
     {
     }
 
+    /// <summary>
+    /// Creates a new <see cref="TableController{TEntity}"/> with the specified repository.
+    /// </summary>
+    /// <param name="repository">The repository to use for this controller.</param>
+    /// <param name="options">The <see cref="TableControllerOptions"/> to use for configuring this controller.</param>
     public TableController(IRepository<TEntity> repository, TableControllerOptions options) : this(repository, new AccessControlProvider<TEntity>(), null, options)
     {
     }
 
+    /// <summary>
+    /// Creates a new <see cref="TableController{TEntity}"/> with the specified repository.
+    /// </summary>
+    /// <param name="repository">The repository to use for this controller.</param>
+    /// <param name="accessControlProvider">The access control provider to use for this controller.</param>
+    /// <param name="options">The <see cref="TableControllerOptions"/> to use for configuring this controller.</param>
     public TableController(IRepository<TEntity> repository, IAccessControlProvider<TEntity> accessControlProvider, TableControllerOptions options) : this(repository, accessControlProvider, null, options)
     {
     }
 
+    /// <summary>
+    /// Creates a new <see cref="TableController{TEntity}"/> with the specified repository.
+    /// </summary>
+    /// <param name="repository">The repository to use for this controller.</param>
+    /// <param name="accessControlProvider">The access control provider to use for this controller.</param>
+    /// <param name="model">The <see cref="IEdmModel"/> to use for OData interactions.</param>
     public TableController(IRepository<TEntity> repository, IAccessControlProvider<TEntity> accessControlProvider, IEdmModel model) : this(repository, accessControlProvider, model, new TableControllerOptions())
     {
     }
+    #endregion
 
     /// <summary>
     /// Creates a new <see cref="TableController{TEntity}"/>.
@@ -71,119 +97,30 @@ public class TableController<TEntity> : ODataController where TEntity : class, I
     /// <param name="accessControlProvider">The access control provider that will be used for authorizing requests.</param>
     /// <param name="options">The options for this table controller.</param>
     public TableController(IRepository<TEntity> repository, IAccessControlProvider<TEntity> accessControlProvider, IEdmModel? edmModel, TableControllerOptions options)
+        : base(repository, accessControlProvider, edmModel, options)
     {
-        Repository = repository;
-        AccessControlProvider = accessControlProvider;
-        Options = options;
-
-        EdmModel = edmModel ?? ModelCache.GetEdmModel(typeof(TEntity));
-        if (EdmModel.FindType(typeof(TEntity).FullName) == null)
-        {
-            throw new InvalidOperationException($"The type {typeof(TEntity).FullName} is not registered in the OData model");
-        }
-    }
-
-    /// <summary>
-    /// The access control provider that will be used for authorizing requests.
-    /// </summary>
-    public IAccessControlProvider<TEntity> AccessControlProvider { get; set; }
-
-    /// <summary>
-    /// The <see cref="IEdmModel"/> that is constructed for the service.
-    /// </summary>
-    public IEdmModel EdmModel { get; init; }
-
-    /// <summary>
-    /// The logger that is used for logging request/response information.
-    /// </summary>
-    public ILogger Logger { get; set; } = NullLogger.Instance;
-
-    /// <summary>
-    /// The options for this table controller.
-    /// </summary>
-    public TableControllerOptions Options { get; set; }
-
-    /// <summary>
-    /// The repository that will be used for data access operations.
-    /// </summary>
-    public IRepository<TEntity> Repository { get; set; }
-
-    /// <summary>
-    /// An event handler to use for receiving notifications when the repository is updated.
-    /// </summary>
-    public event EventHandler<RepositoryUpdatedEventArgs>? RepositoryUpdated;
-
-    /// <summary>
-    /// Checks that the requestor is authorized to perform the requested operation on the provided entity.
-    /// </summary>
-    /// <param name="operation">The operation to be performed.</param>
-    /// <param name="entity">The entity (pre-modification) to be operated on (null for query).</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-    /// <returns>A task that completes when the authorization check is finished.</returns>
-    /// <exception cref="HttpException">Thrown if the requestor is not authorized to perform the operation.</exception>
-    protected virtual async ValueTask AuthorizeRequestAsync(TableOperation operation, TEntity? entity, CancellationToken cancellationToken = default)
-    {
-        bool isAuthorized = await AccessControlProvider.IsAuthorizedAsync(operation, entity, cancellationToken).ConfigureAwait(false);
-        if (!isAuthorized)
-        {
-            Logger.LogWarning("{operation} {entity} statusCode=401 unauthorized", operation, entity?.ToJsonString() ?? "");
-            throw new HttpException(Options.UnauthorizedStatusCode);
-        }
-    }
-
-    /// <summary>
-    /// Ensure that the proper error is transmitted to the client when an exception is thrown.
-    /// </summary>
-    /// <param name="message">The message to be sent.</param>
-    /// <param name="act">The action to execute for which we are trapping errors.</param>
-    /// <exception cref="HttpException">If the exception is one of the relevant exceptions.</exception>
-    protected IActionResult CatchAndLogException(string message, Func<IActionResult> act)
-    {
-        try
-        {
-            return act.Invoke();
-        }
-        catch (Exception ex) when (ex is InvalidOperationException || ex is NotSupportedException)
-        {
-            Logger.LogWarning("{message}: {exception}", message, ex.Message);
-            throw new HttpException(StatusCodes.Status417ExpectationFailed, $"{message}: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// Handles post-commit operation event handlers.
-    /// </summary>
-    /// <param name="operation">The operation being performed.</param>
-    /// <param name="entity">The entity that was updated (except for a hard-delete, which is the entity before deletion)</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-    /// <returns>A taks the completes when the post-commit hook has been called.</returns>
-    [NonAction]
-    protected virtual ValueTask PostCommitHookAsync(TableOperation operation, TEntity entity, CancellationToken cancellationToken = default)
-    {
-        RepositoryUpdatedEventArgs args = new(operation, typeof(TEntity).Name, entity);
-        RepositoryUpdated?.Invoke(this, args);
-        return AccessControlProvider.PostCommitHookAsync(operation, entity, cancellationToken);
     }
 
     /// <summary>
     /// Creates a new entity in the repository.
     /// </summary>
-    /// <param name="entity">The entity to be created.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
     /// <returns>A <see cref="CreatedAtActionResult"/> for the created entity.</returns>
     /// <exception cref="HttpException">Thrown if there is an HTTP exception, such as unauthorized usage.</exception>
     [HttpPost]
     [Consumes("application/json")]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    public virtual async Task<IActionResult> CreateAsync([FromBody] TEntity entity, CancellationToken cancellationToken = default)
+    public virtual async Task<IActionResult> CreateAsync(CancellationToken cancellationToken = default)
     {
+        Logger.LogInformation("CreateAsync");
+        TEntity entity = await DeserializeJsonContent(cancellationToken).ConfigureAwait(false);
         Logger.LogInformation("CreateAsync: {entity}", entity.ToJsonString());
         await AuthorizeRequestAsync(TableOperation.Create, entity, cancellationToken).ConfigureAwait(false);
         await AccessControlProvider.PreCommitHookAsync(TableOperation.Create, entity, cancellationToken).ConfigureAwait(false);
         await Repository.CreateAsync(entity, cancellationToken).ConfigureAwait(false);
         Logger.LogInformation("CreateAsync: {entity}", entity.ToJsonString());
         await PostCommitHookAsync(TableOperation.Create, entity, cancellationToken).ConfigureAwait(false);
-        return CreatedAtAction(nameof(ReadAsync), new { id = entity.Id }, entity);
+        return CreatedAtRoute(new { id = entity.Id }, entity);
     }
 
     /// <summary>
@@ -334,15 +271,16 @@ public class TableController<TEntity> : ODataController where TEntity : class, I
     /// Replaces the value of an entity within the repository with new data.
     /// </summary>
     /// <param name="id">The ID of the entity to be replaced.</param>
-    /// <param name="entity">The new value for the entity.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
     /// <returns>An <see cref="OkObjectResult"/> encapsulating the new value of the entity.</returns>
     /// <exception cref="HttpException">Throw if there is an HTTP exception, such as unauthorized usage.</exception>
     [HttpPut("{id}")]
     [Consumes("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public virtual async Task<IActionResult> ReplaceAsync([FromRoute] string id, [FromBody] TEntity entity, CancellationToken cancellationToken = default)
+    public virtual async Task<IActionResult> ReplaceAsync([FromRoute] string id, CancellationToken cancellationToken = default)
     {
+        Logger.LogInformation("CreateAsync");
+        TEntity entity = await DeserializeJsonContent(cancellationToken).ConfigureAwait(false);
         Logger.LogInformation("ReplaceAsync: {id} {entity}", id, entity.ToJsonString());
         if (id != entity.Id)
         {

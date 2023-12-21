@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Datasync.InMemory;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Datasync.Common.Models;
+using Microsoft.AspNetCore.Datasync.InMemory;
 
 #nullable enable
 
@@ -11,16 +15,36 @@ public enum KitchenSinkState
     Failed
 }
 
-[ExcludeFromCodeCoverage]
-public class ClientKitchenSink
+public interface IKitchenSink
 {
-    #region ClientTableData
-    public string? Id { get; set; }
-    public DateTimeOffset? UpdatedAt { get; set; }
-    public string? Version { get; set; }
-    public bool Deleted { get; set; }
-    #endregion
+    bool BooleanValue { get; set; }
 
+    int IntValue { get; set; }
+    long LongValue { get; set; }
+
+    decimal DecimalValue { get; set; }
+    double DoubleValue { get; set; }
+    float FloatValue { get; set; }
+    double? NullableDouble { get; set; }
+
+    char CharValue { get; set; }
+    string? StringValue { get; set; }
+    byte ByteValue { get; set; }
+    byte[]? ByteArrayValue { get; set; }
+
+    KitchenSinkState EnumValue { get; set; }
+    KitchenSinkState? NullableEnumValue { get; set; }
+
+    DateTime? DateTimeValue { get; set; }
+    DateTimeOffset? DateTimeOffsetValue { get; set; }
+    DateOnly? DateOnlyValue { get; set; }
+    Guid? GuidValue { get; set; }
+    TimeOnly? TimeOnlyValue { get; set; }
+}
+
+[ExcludeFromCodeCoverage]
+public class ClientKitchenSink : ClientTableData, IKitchenSink
+{
     public bool BooleanValue { get; set; }
 
     public int IntValue { get; set; }
@@ -47,7 +71,7 @@ public class ClientKitchenSink
 }
 
 [ExcludeFromCodeCoverage]
-public class InMemoryKitchenSink : InMemoryTableData
+public class InMemoryKitchenSink : InMemoryTableData, IKitchenSink
 {
     public bool BooleanValue { get; set; }
 

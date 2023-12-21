@@ -1,4 +1,7 @@
-﻿using Datasync.Common.Models;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Datasync.Common.Models;
 using Microsoft.AspNetCore.Datasync;
 using Microsoft.AspNetCore.Datasync.EFCore;
 using Microsoft.AspNetCore.Datasync.InMemory;
@@ -7,7 +10,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Datasync.Common;
 
 [ExcludeFromCodeCoverage]
-public class ClientMovie : IMovie, IEquatable<IMovie>
+public class ClientMovie : ClientTableData, IMovie, IEquatable<IMovie>
 {
     public ClientMovie() { }
     public ClientMovie(object source)
@@ -30,13 +33,6 @@ public class ClientMovie : IMovie, IEquatable<IMovie>
             Year = movie.Year;
         }
     }
-
-    #region ClientTableData
-    public string Id { get; set; }
-    public DateTimeOffset? UpdatedAt { get; set; }
-    public string Version { get; set; }
-    public bool Deleted { get; set; }
-    #endregion
 
     /// <summary>
     /// True if the movie won the oscar for Best Picture

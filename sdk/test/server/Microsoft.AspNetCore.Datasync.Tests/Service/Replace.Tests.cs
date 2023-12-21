@@ -9,39 +9,25 @@ using System.Text.Json;
 namespace Microsoft.AspNetCore.Datasync.Tests.Service;
 
 [ExcludeFromCodeCoverage]
-public class Replace_Tests : IClassFixture<ServiceApplicationFactory>
+public class Replace_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
 {
-    private readonly HttpClient client;
-    private readonly ServiceApplicationFactory factory;
-    private readonly DateTimeOffset StartTime = DateTimeOffset.UtcNow;
-
-    public Replace_Tests(ServiceApplicationFactory factory)
+    public Replace_Tests(ServiceApplicationFactory factory) : base(factory)
     {
-        this.factory = factory;
-        this.client = factory.CreateClient();
     }
 
     [Fact]
     public async Task Replace_Returns200()
     {
         ClientMovie existingMovie = new(factory.GetRandomMovie()) { Title = "New Title" };
-        string content = JsonSerializer.Serialize(existingMovie);
-        HttpResponseMessage response = await client.PutAsync($"{factory.MovieEndpoint}/{existingMovie.Id}", new StringContent(content, Encoding.UTF8, "application/json"));
+        HttpResponseMessage response = await client.PutAsJsonAsync($"{factory.MovieEndpoint}/{existingMovie.Id}", existingMovie, serializerOptions);
         response.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>();
-        clientMovie.Should().NotBeNull();
-        clientMovie.Id.Should().Be(existingMovie.Id);
-        clientMovie.UpdatedAt.Should().BeAfter(StartTime).And.BeBefore(DateTimeOffset.UtcNow);
-        clientMovie.Version.Should().NotBeNullOrEmpty().And.NotBe(existingMovie.Version);
+        ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>(serializerOptions);
+        clientMovie.Should().NotBeNull().And.HaveChangedMetadata(existingMovie, StartTime).And.BeEquivalentTo<IMovie>(existingMovie);
 
         InMemoryMovie inMemoryMovie = factory.GetServerEntityById<InMemoryMovie>(clientMovie.Id);
-        clientMovie.Should().BeEquivalentTo<IMovie>(inMemoryMovie);
-        clientMovie.UpdatedAt.Should().Be(inMemoryMovie.UpdatedAt);
-        clientMovie.Version.Should().Be(Convert.ToBase64String(inMemoryMovie.Version));
-
-        response.Headers.ETag?.Tag.Should().Be($"\"{clientMovie.Version}\"");
-        response.Headers.ETag?.IsWeak.Should().BeFalse();
+        clientMovie.Should().HaveEquivalentMetadataTo(inMemoryMovie).And.BeEquivalentTo<IMovie>(inMemoryMovie);
+        response.Headers.ETag.Should().BeETag($"\"{clientMovie.Version}\"");
     }
 
     [Theory]
@@ -63,19 +49,12 @@ public class Replace_Tests : IClassFixture<ServiceApplicationFactory>
 
         if (expectedStatusCode == HttpStatusCode.OK)
         {
-            ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>();
-            clientMovie.Should().NotBeNull();
-            clientMovie.Id.Should().Be(existingMovie.Id);
-            clientMovie.UpdatedAt.Should().BeAfter(StartTime).And.BeBefore(DateTimeOffset.UtcNow);
-            clientMovie.Version.Should().NotBeNullOrEmpty().And.NotBe(existingMovie.Version);
+            ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>(serializerOptions);
+            clientMovie.Should().NotBeNull().And.HaveChangedMetadata(existingMovie, StartTime).And.BeEquivalentTo<IMovie>(existingMovie);
 
             InMemoryMovie inMemoryMovie = factory.GetServerEntityById<InMemoryMovie>(clientMovie.Id);
-            clientMovie.Should().BeEquivalentTo<IMovie>(inMemoryMovie);
-            clientMovie.UpdatedAt.Should().Be(inMemoryMovie.UpdatedAt);
-            clientMovie.Version.Should().Be(Convert.ToBase64String(inMemoryMovie.Version));
-
-            response.Headers.ETag?.Tag.Should().Be($"\"{clientMovie.Version}\"");
-            response.Headers.ETag?.IsWeak.Should().BeFalse();
+            clientMovie.Should().HaveEquivalentMetadataTo(inMemoryMovie).And.BeEquivalentTo<IMovie>(inMemoryMovie);
+            response.Headers.ETag.Should().BeETag($"\"{clientMovie.Version}\"");
         }
     }
 
@@ -83,8 +62,7 @@ public class Replace_Tests : IClassFixture<ServiceApplicationFactory>
     public async Task Replace_MissingId_Returns404()
     {
         ClientMovie existingMovie = new(factory.GetRandomMovie()) { Id = "missing" };
-        string content = JsonSerializer.Serialize(existingMovie);
-        HttpResponseMessage response = await client.PutAsync($"{factory.MovieEndpoint}/missing", new StringContent(content, Encoding.UTF8, "application/json"));
+        HttpResponseMessage response = await client.PutAsJsonAsync($"{factory.MovieEndpoint}/missing", existingMovie, serializerOptions);
         response.Should().HaveStatusCode(HttpStatusCode.NotFound);
     }
 
@@ -92,9 +70,15 @@ public class Replace_Tests : IClassFixture<ServiceApplicationFactory>
     public async Task Replace_NotSoftDeleted_Works()
     {
         InMemoryMovie existingMovie = factory.GetRandomMovie();
-        string content = JsonSerializer.Serialize(new ClientMovie(existingMovie) { Title = "New Title" });
-        HttpResponseMessage response = await client.PutAsync($"{factory.SoftDeletedMovieEndpoint}/{existingMovie.Id}", new StringContent(content, Encoding.UTF8, "application/json"));
+        HttpResponseMessage response = await client.PutAsJsonAsync($"{factory.SoftDeletedMovieEndpoint}/{existingMovie.Id}", existingMovie, serializerOptions);
         response.Should().HaveStatusCode(HttpStatusCode.OK);
+
+        ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>(serializerOptions);
+        clientMovie.Should().NotBeNull().And.HaveChangedMetadata(existingMovie, StartTime).And.BeEquivalentTo<IMovie>(existingMovie);
+
+        InMemoryMovie inMemoryMovie = factory.GetServerEntityById<InMemoryMovie>(clientMovie.Id);
+        clientMovie.Should().HaveEquivalentMetadataTo(inMemoryMovie).And.BeEquivalentTo<IMovie>(inMemoryMovie);
+        response.Headers.ETag.Should().BeETag($"\"{clientMovie.Version}\"");
     }
 
     [Fact]
@@ -102,8 +86,7 @@ public class Replace_Tests : IClassFixture<ServiceApplicationFactory>
     {
         InMemoryMovie existingMovie = factory.GetRandomMovie();
         factory.SoftDelete(existingMovie);
-        string content = JsonSerializer.Serialize(new ClientMovie(existingMovie) { Title = "New Title" });
-        HttpResponseMessage response = await client.PutAsync($"{factory.SoftDeletedMovieEndpoint}/{existingMovie.Id}", new StringContent(content, Encoding.UTF8, "application/json"));
+        HttpResponseMessage response = await client.PutAsJsonAsync($"{factory.SoftDeletedMovieEndpoint}/{existingMovie.Id}", existingMovie, serializerOptions);
         response.Should().HaveStatusCode(HttpStatusCode.Gone);
     }
 
@@ -112,8 +95,7 @@ public class Replace_Tests : IClassFixture<ServiceApplicationFactory>
     {
         InMemoryMovie existingMovie = factory.GetRandomMovie();
         factory.SoftDelete(existingMovie);
-        string content = JsonSerializer.Serialize(new ClientMovie(existingMovie) { Deleted = false });
-        HttpResponseMessage response = await client.PutAsync($"{factory.SoftDeletedMovieEndpoint}/{existingMovie.Id}", new StringContent(content, Encoding.UTF8, "application/json"));
+        HttpResponseMessage response = await client.PutAsJsonAsync($"{factory.SoftDeletedMovieEndpoint}/{existingMovie.Id}", existingMovie, serializerOptions);
         response.Should().HaveStatusCode(HttpStatusCode.Gone);
     }
 
@@ -122,24 +104,16 @@ public class Replace_Tests : IClassFixture<ServiceApplicationFactory>
     {
         InMemoryMovie existingMovie = factory.GetRandomMovie();
         factory.SoftDelete(existingMovie);
-        string content = JsonSerializer.Serialize(new ClientMovie(existingMovie) { Deleted = false });
-        HttpResponseMessage response = await client.PutAsync($"{factory.SoftDeletedMovieEndpoint}/{existingMovie.Id}?__includedeleted=true", new StringContent(content, Encoding.UTF8, "application/json"));
+        existingMovie.Deleted = false;
+        HttpResponseMessage response = await client.PutAsJsonAsync($"{factory.SoftDeletedMovieEndpoint}/{existingMovie.Id}?__includedeleted=true", existingMovie, serializerOptions);
         response.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>();
-        clientMovie.Should().NotBeNull();
-        clientMovie.Id.Should().Be(existingMovie.Id);
-        clientMovie.UpdatedAt.Should().BeAfter(StartTime).And.BeBefore(DateTimeOffset.UtcNow);
-        clientMovie.Version.Should().NotBeNullOrEmpty().And.NotBe(Convert.ToBase64String(existingMovie.Version));
+        ClientMovie clientMovie = await response.Content.ReadFromJsonAsync<ClientMovie>(serializerOptions);
+        clientMovie.Should().NotBeNull().And.HaveChangedMetadata(existingMovie, StartTime).And.BeEquivalentTo<IMovie>(existingMovie);
         clientMovie.Deleted.Should().BeFalse();
 
         InMemoryMovie inMemoryMovie = factory.GetServerEntityById<InMemoryMovie>(clientMovie.Id);
-        clientMovie.Should().BeEquivalentTo<IMovie>(inMemoryMovie);
-        clientMovie.UpdatedAt.Should().Be(inMemoryMovie.UpdatedAt);
-        clientMovie.Version.Should().Be(Convert.ToBase64String(inMemoryMovie.Version));
-        clientMovie.Deleted.Should().BeFalse();
-
-        response.Headers.ETag?.Tag.Should().Be($"\"{clientMovie.Version}\"");
-        response.Headers.ETag?.IsWeak.Should().BeFalse();
+        clientMovie.Should().HaveEquivalentMetadataTo(inMemoryMovie).And.BeEquivalentTo<IMovie>(inMemoryMovie);
+        response.Headers.ETag.Should().BeETag($"\"{clientMovie.Version}\"");
     }
 }
