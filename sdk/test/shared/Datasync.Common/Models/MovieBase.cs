@@ -7,7 +7,7 @@ namespace Datasync.Common.Models;
 /// The base class for the Movie data.  This implements <see cref="IMovie"/>
 /// </summary>
 [ExcludeFromCodeCoverage]
-public class MovieBase
+public class MovieBase : IMovie
 {
     /// <summary>
     /// True if the movie won the oscar for Best Picture

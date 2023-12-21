@@ -10,6 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.OData.Edm;
+using System.ComponentModel.DataAnnotations;
+using System.Text;
 using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Datasync.Tables;
@@ -126,8 +128,14 @@ public class TableControllerBase<TEntity> : ControllerBase where TEntity : class
         HttpContext.Request.EnableBuffering();
         if (HttpContext.Request.HasJsonContentType())
         {
-            return await JsonSerializer.DeserializeAsync<TEntity>(HttpContext.Request.Body, options.JsonSerializerOptions, cancellationToken).ConfigureAwait(false)
+            TEntity entity = await JsonSerializer.DeserializeAsync<TEntity>(HttpContext.Request.Body, options.JsonSerializerOptions, cancellationToken).ConfigureAwait(false)
                 ?? throw new HttpException(StatusCodes.Status400BadRequest, "Invalid JSON content");
+            List<ValidationResult> validationErrors = new();
+            if (!Validator.TryValidateObject(entity, new ValidationContext(entity), validationErrors, true))
+            {
+                throw new HttpException(StatusCodes.Status400BadRequest, "Invalid entity") { Payload = validationErrors };
+            }
+            return entity;
         }
         else
         {

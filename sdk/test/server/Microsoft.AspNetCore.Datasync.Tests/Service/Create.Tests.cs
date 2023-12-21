@@ -96,4 +96,37 @@ public class Create_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory
         HttpResponseMessage response = await client.PostAsync(factory.MovieEndpoint, new StringContent(content, Encoding.UTF8, "text/html"));
         response.Should().HaveStatusCode(HttpStatusCode.UnsupportedMediaType);
     }
+
+    [Theory]
+    [InlineData("duration", 50)]
+    [InlineData("duration", 370)]
+    [InlineData("duration", null)]
+    [InlineData("title", "a")]
+    [InlineData("title", "Lorem ipsum dolor sit amet, consectetur adipiscing elit accumsan.")]
+    [InlineData("title", null)]
+    [InlineData("year", 1900)]
+    [InlineData("year", 2035)]
+    [InlineData("year", null)]
+    public async Task Create_ValidationError_Returns400(string propName, object propValue)
+    {
+        Dictionary<string, object> source = new()
+        {
+            { "id", "test-id" },
+            { "updatedAt", DateTimeOffset.Parse("2018-12-31T01:01:01.000Z") },
+            { "version", Convert.ToBase64String(Guid.NewGuid().ToByteArray()) },
+            { "bestPictureWinner", false },
+            { "duration", 120 },
+            { "rating", "G" },
+            { "releaseDate", DateOnly.Parse("2018-12-30") },
+            { "title", "Home Video" },
+            { "year", 2021 }
+        };
+        if (propValue == null)
+            source.Remove(propName);
+        else
+            source[propName] = propValue;
+
+        HttpResponseMessage response = await client.PostAsJsonAsync(factory.MovieEndpoint, source, serializerOptions);
+        response.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+    }
 }

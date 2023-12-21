@@ -61,9 +61,10 @@ public class Replace_Tests : ServiceTest, IClassFixture<ServiceApplicationFactor
     [Fact]
     public async Task Replace_MissingId_Returns404()
     {
-        ClientMovie existingMovie = new(factory.GetRandomMovie()) { Id = "missing" };
-        HttpResponseMessage response = await client.PutAsJsonAsync($"{factory.MovieEndpoint}/missing", existingMovie, serializerOptions);
-        response.Should().HaveStatusCode(HttpStatusCode.NotFound);
+        InMemoryMovie existingMovie = factory.GetRandomMovie();
+        ClientMovie source = new(existingMovie) { Id = "missing" };
+        HttpResponseMessage response = await client.PutAsJsonAsync($"{factory.MovieEndpoint}/missing", source, serializerOptions);
+        response.Should().HaveStatusCode(HttpStatusCode.NotFound, "Movie = {0}", existingMovie.Id);
     }
 
     [Fact]
