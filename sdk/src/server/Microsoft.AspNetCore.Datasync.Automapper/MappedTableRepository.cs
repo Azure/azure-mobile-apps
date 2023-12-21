@@ -3,7 +3,6 @@
 
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using System.Runtime.CompilerServices;
 
 namespace Microsoft.AspNetCore.Datasync.Automapper;
 

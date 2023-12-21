@@ -122,12 +122,9 @@ public class TableControllerBase<TEntity> : ControllerBase where TEntity : class
     [NonAction]
     protected async ValueTask<TEntity> DeserializeJsonContent(CancellationToken cancellationToken = default)
     {
-        using IServiceScope scope = HttpContext.RequestServices.CreateScope();
-        IDatasyncServiceOptions options = scope.ServiceProvider.GetService<IDatasyncServiceOptions>() ?? new DatasyncServiceOptions();
-        HttpContext.Request.EnableBuffering();  // We may need to read multiple times.
-
-        string contentType = HttpContext.Request.ContentType ?? "application/json";
-        if (contentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
+        IDatasyncServiceOptions options = HttpContext.RequestServices?.GetService<IDatasyncServiceOptions>() ?? new DatasyncServiceOptions();
+        HttpContext.Request.EnableBuffering();
+        if (HttpContext.Request.HasJsonContentType())
         {
             return await JsonSerializer.DeserializeAsync<TEntity>(HttpContext.Request.Body, options.JsonSerializerOptions, cancellationToken).ConfigureAwait(false)
                 ?? throw new HttpException(StatusCodes.Status400BadRequest, "Invalid JSON content");

@@ -8,6 +8,7 @@ namespace Datasync.Common.Models;
 /// <summary>
 /// The client side of the table data.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class ClientTableData
 {
     public ClientTableData()

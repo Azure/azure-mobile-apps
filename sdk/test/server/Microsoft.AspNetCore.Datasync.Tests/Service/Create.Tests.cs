@@ -4,6 +4,7 @@
 using Datasync.Common.Models;
 using Datasync.Common.TestData;
 using System.Net;
+using System.Text;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Service;
 
@@ -86,5 +87,13 @@ public class Create_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory
 
         InMemoryKitchenSink serverEntity = factory.GetServerEntityById<InMemoryKitchenSink>(id);
         serverEntity.Should().BeEquivalentTo<IKitchenSink>(source);
+    }
+
+    [Fact]
+    public async Task Create_NonJsonData_Returns415()
+    {
+        const string content = "<html><body><h1>Not JSON</h1></body></html>";
+        HttpResponseMessage response = await client.PostAsync(factory.MovieEndpoint, new StringContent(content, Encoding.UTF8, "text/html"));
+        response.Should().HaveStatusCode(HttpStatusCode.UnsupportedMediaType);
     }
 }

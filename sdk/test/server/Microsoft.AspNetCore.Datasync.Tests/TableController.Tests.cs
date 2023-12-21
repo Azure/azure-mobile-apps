@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Datasync.Abstractions;
-using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.AspNetCore.Datasync.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -305,55 +304,70 @@ public class TableController_Tests : BaseTest
     #endregion
 
     #region CreateAsync
-    //[Fact]
-    //public async Task CreateAsync_Unauthorized_Throws()
-    //{
-    //    IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Create, false);
-    //    IRepository<TableData> repository = FakeRepository<TableData>();
-    //    ExposedTableController<TableData> controller = new(repository, accessProvider);
-    //    controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Post, "https://localhost/table");
+    [Fact]
+    public async Task CreateAsync_Unauthorized_Throws()
+    {
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Create, false);
+        IRepository<TableData> repository = FakeRepository<TableData>();
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        TableData entity = new();
+        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Post, "https://localhost/table", entity);
 
-    //    Func<Task> act = async () => await controller.CreateAsync(new TableData());
+        Func<Task> act = async () => await controller.CreateAsync();
 
-    //    (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(401);
-    //}
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(401);
+    }
 
-    //[Fact]
-    //public async Task CreateAsync_RepositoryException_Throws()
-    //{
-    //    IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Create, true);
-    //    IRepository<TableData> repository = FakeRepository<TableData>(null, true);
-    //    ExposedTableController<TableData> controller = new(repository, accessProvider);
-    //    controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Post, "https://localhost/table");
+    [Fact]
+    public async Task CreateAsync_RepositoryException_Throws()
+    {
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Create, true);
+        IRepository<TableData> repository = FakeRepository<TableData>(null, true);
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        TableData entity = new();
+        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Post, "https://localhost/table", entity);
 
-    //    Func<Task> act = async () => await controller.CreateAsync(new TableData());
+        Func<Task> act = async () => await controller.CreateAsync();
 
-    //    (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(409);
-    //}
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(409);
+    }
 
-    //[Fact]
-    //public async Task CreateAsync_Works()
-    //{
-    //    IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Create, true);
-    //    IRepository<TableData> repository = FakeRepository<TableData>(null, false);
-    //    ExposedTableController<TableData> controller = new(repository, accessProvider);
-    //    controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Post, "https://localhost/table");
-    //    List<RepositoryUpdatedEventArgs> firedEvents = new();
-    //    controller.RepositoryUpdated += (_, e) => firedEvents.Add(e);
+    [Fact]
+    public async Task CreateAsync_NonJsonData_Throws()
+    {
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Create, true);
+        IRepository<TableData> repository = FakeRepository<TableData>(null, true);
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        controller.ControllerContext.HttpContext = CreateNonJsonHttpContext(HttpMethod.Post, "https://localhost/table");
 
-    //    TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
+        Func<Task> act = async () => await controller.CreateAsync();
 
-    //    CreatedAtActionResult actual = await controller.CreateAsync(entity) as CreatedAtActionResult;
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(415);
+    }
 
-    //    actual.Should().NotBeNull();
-    //    actual.StatusCode.Should().Be(201);
-    //    actual.ActionName.Should().Be("ReadAsync");
-    //    actual.RouteValues.Should().ContainKey("id").WhoseValue.Should().Be(entity.Id);
+    [Fact]
+    public async Task CreateAsync_Works()
+    {
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Create, true);
+        IRepository<TableData> repository = FakeRepository<TableData>(null, false);
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
+        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Post, "https://localhost/table", entity);
+        List<RepositoryUpdatedEventArgs> firedEvents = new();
+        controller.RepositoryUpdated += (_, e) => firedEvents.Add(e);
 
-    //    await accessProvider.Received(1).PreCommitHookAsync(TableOperation.Create, Arg.Any<TableData>(), Arg.Any<CancellationToken>());
-    //    await accessProvider.Received(1).PostCommitHookAsync(TableOperation.Create, Arg.Any<TableData>(), Arg.Any<CancellationToken>());
-    //    firedEvents.Should().ContainSingle();
-    //}
+        CreatedAtRouteResult actual = await controller.CreateAsync() as CreatedAtRouteResult;
+
+        actual.Should().NotBeNull();
+        actual.StatusCode.Should().Be(201);
+        actual.RouteValues.Should().ContainKey("id").WhoseValue.Should().Be(entity.Id);
+
+        await accessProvider.Received(1).PreCommitHookAsync(TableOperation.Create, Arg.Any<TableData>(), Arg.Any<CancellationToken>());
+        await accessProvider.Received(1).PostCommitHookAsync(TableOperation.Create, Arg.Any<TableData>(), Arg.Any<CancellationToken>());
+        firedEvents.Should().ContainSingle();
+
+        await repository.Received(1).CreateAsync(Arg.Any<TableData>(), Arg.Any<CancellationToken>());
+    }
     #endregion
 
     #region DeleteAsync
@@ -764,148 +778,163 @@ public class TableController_Tests : BaseTest
     #endregion
 
     #region ReplaceAsync
-    //[Fact]
-    //public async Task ReplaceAsync_IdMismatch_Throws()
-    //{
-    //    TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
+    [Fact]
+    public async Task ReplaceAsync_IdMismatch_Throws()
+    {
+        TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
 
-    //    IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
-    //    IRepository<TableData> repository = FakeRepository<TableData>(null, true);
-    //    ExposedTableController<TableData> controller = new(repository, accessProvider);
-    //    controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}");
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
+        IRepository<TableData> repository = FakeRepository<TableData>(null, true);
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
 
-    //    Func<Task> act = async () => await controller.ReplaceAsync("1", entity);
+        Func<Task> act = async () => await controller.ReplaceAsync("1");
 
-    //    (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(400);
-    //}
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(400);
+    }
 
-    //[Fact]
-    //public async Task ReplaceAsync_RepositoryException_Throws()
-    //{
-    //    TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
+    [Fact]
+    public async Task ReplaceAsync_NonJson_Throws()
+    {
+        TableData entity = new() { Id = "cac9b793-000c-450e-8477-663522b14727" };
 
-    //    IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
-    //    IRepository<TableData> repository = FakeRepository<TableData>(null, true);
-    //    ExposedTableController<TableData> controller = new(repository, accessProvider);
-    //    controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}");
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
+        IRepository<TableData> repository = FakeRepository<TableData>(null, true);
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        controller.ControllerContext.HttpContext = CreateNonJsonHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}");
 
-    //    Func<Task> act = async () => await controller.ReplaceAsync(entity.Id, entity);
+        Func<Task> act = async () => await controller.ReplaceAsync(entity.Id);
 
-    //    (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(404);
-    //}
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(415);
+    }
 
-    //[Fact]
-    //public async Task ReplaceAsync_EntityNotInView_Throws()
-    //{
-    //    TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
+    [Fact]
+    public async Task ReplaceAsync_RepositoryException_Throws()
+    {
+        TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
 
-    //    IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true, m => m.Id == "1");
-    //    IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
-    //    ExposedTableController<TableData> controller = new(repository, accessProvider);
-    //    controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}");
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
+        IRepository<TableData> repository = FakeRepository<TableData>(null, true);
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
 
-    //    Func<Task> act = async () => await controller.ReplaceAsync(entity.Id, entity);
+        Func<Task> act = async () => await controller.ReplaceAsync(entity.Id);
 
-    //    (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(404);
-    //}
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(404);
+    }
 
-    //[Fact]
-    //public async Task ReplaceAsync_Unauthorized_Throws()
-    //{
-    //    TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
+    [Fact]
+    public async Task ReplaceAsync_EntityNotInView_Throws()
+    {
+        TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
 
-    //    IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, false);
-    //    IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
-    //    ExposedTableController<TableData> controller = new(repository, accessProvider);
-    //    controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}");
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true, m => m.Id == "1");
+        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
 
-    //    Func<Task> act = async () => await controller.ReplaceAsync(entity.Id, entity);
+        Func<Task> act = async () => await controller.ReplaceAsync(entity.Id);
 
-    //    (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(401);
-    //}
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(404);
+    }
 
-    //[Fact]
-    //public async Task ReplaceAsync_SoftDeleted_Throws()
-    //{
-    //    TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4", Deleted = true };
+    [Fact]
+    public async Task ReplaceAsync_Unauthorized_Throws()
+    {
+        TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
 
-    //    IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
-    //    IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
-    //    TableControllerOptions options = new() { EnableSoftDelete = true };
-    //    ExposedTableController<TableData> controller = new(repository, accessProvider, options);
-    //    controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}");
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, false);
+        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        ExposedTableController<TableData> controller = new(repository, accessProvider);
+        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
 
-    //    Func<Task> act = async () => await controller.ReplaceAsync(entity.Id, entity);
+        Func<Task> act = async () => await controller.ReplaceAsync(entity.Id);
 
-    //    (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(410);
-    //}
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(401);
+    }
 
-    //[Theory]
-    //[InlineData(true, false)]
-    //[InlineData(false, true)]
-    //public async Task ReplaceAsync_PreconditionFailed_Throws(bool includeIfMatch, bool includeLastModified)
-    //{
-    //    TableData entity = new()
-    //    {
-    //        Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4",
-    //        Version = new byte[] { 0x61, 0x62, 0x63, 0x64, 0x65 },
-    //        UpdatedAt = new DateTimeOffset(2023, 11, 13, 12, 30, 05, TimeSpan.Zero),
-    //        Deleted = false
-    //    };
+    [Fact]
+    public async Task ReplaceAsync_SoftDeleted_Throws()
+    {
+        TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4", Deleted = true };
 
-    //    Dictionary<string, string> headers = new();
-    //    if (includeIfMatch) headers.Add("If-Match", "\"foo\"");
-    //    if (includeLastModified) headers.Add("If-Unmodified-Since", "Sun, 12 Nov 2023 07:28:00 GMT");
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
+        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        TableControllerOptions options = new() { EnableSoftDelete = true };
+        ExposedTableController<TableData> controller = new(repository, accessProvider, options);
+        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
 
-    //    IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
-    //    TableControllerOptions options = new();
-    //    IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
-    //    ExposedTableController<TableData> controller = new(repository, accessProvider, options);
-    //    controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}", headers);
+        Func<Task> act = async () => await controller.ReplaceAsync(entity.Id);
 
-    //    Func<Task> act = async () => await controller.ReplaceAsync(entity.Id, entity);
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(410);
+    }
 
-    //    (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(412).And.WithPayload(entity);
-    //}
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task ReplaceAsync_PreconditionFailed_Throws(bool includeIfMatch, bool includeLastModified)
+    {
+        TableData entity = new()
+        {
+            Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4",
+            Version = new byte[] { 0x61, 0x62, 0x63, 0x64, 0x65 },
+            UpdatedAt = new DateTimeOffset(2023, 11, 13, 12, 30, 05, TimeSpan.Zero),
+            Deleted = false
+        };
 
-    //[Theory]
-    //[InlineData(false, false)]
-    //[InlineData(true, false)]
-    //[InlineData(false, true)]
-    //public async Task ReplaceAsync_Works(bool includeIfMatch, bool includeLastModified)
-    //{
-    //    TableData entity = new()
-    //    {
-    //        Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4",
-    //        Version = new byte[] { 0x61, 0x62, 0x63, 0x64, 0x65 },
-    //        UpdatedAt = new DateTimeOffset(2023, 11, 13, 12, 30, 05, TimeSpan.Zero),
-    //        Deleted = false
-    //    };
+        Dictionary<string, string> headers = new();
+        if (includeIfMatch) headers.Add("If-Match", "\"foo\"");
+        if (includeLastModified) headers.Add("If-Unmodified-Since", "Sun, 12 Nov 2023 07:28:00 GMT");
 
-    //    Dictionary<string, string> headers = new();
-    //    if (includeIfMatch) headers.Add("If-Match", $"\"{Convert.ToBase64String(entity.Version)}\"");
-    //    if (includeLastModified) headers.Add("If-Unmodified-Since", "Wed, 15 Nov 2023 07:28:00 GMT");
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
+        TableControllerOptions options = new();
+        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        ExposedTableController<TableData> controller = new(repository, accessProvider, options);
+        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity, headers);
 
-    //    IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
-    //    TableControllerOptions options = new();
-    //    IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
-    //    ExposedTableController<TableData> controller = new(repository, accessProvider, options);
-    //    controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}", headers);
-    //    List<RepositoryUpdatedEventArgs> firedEvents = new();
-    //    controller.RepositoryUpdated += (_, e) => firedEvents.Add(e);
+        Func<Task> act = async () => await controller.ReplaceAsync(entity.Id);
 
-    //    OkObjectResult actual = await controller.ReplaceAsync(entity.Id, entity) as OkObjectResult;
+        (await act.Should().ThrowAsync<HttpException>()).WithStatusCode(412).And.WithPayload(entity);
+    }
 
-    //    actual.Should().NotBeNull();
-    //    actual.StatusCode.Should().Be(200);
-    //    actual.Value.Should().BeEquivalentTo(entity);
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task ReplaceAsync_Works(bool includeIfMatch, bool includeLastModified)
+    {
+        TableData entity = new()
+        {
+            Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4",
+            Version = new byte[] { 0x61, 0x62, 0x63, 0x64, 0x65 },
+            UpdatedAt = new DateTimeOffset(2023, 11, 13, 12, 30, 05, TimeSpan.Zero),
+            Deleted = false
+        };
 
-    //    await accessProvider.Received(1).PreCommitHookAsync(TableOperation.Update, Arg.Any<TableData>(), Arg.Any<CancellationToken>());
-    //    await accessProvider.Received(1).PostCommitHookAsync(TableOperation.Update, Arg.Any<TableData>(), Arg.Any<CancellationToken>());
-    //    firedEvents.Should().ContainSingle();
+        Dictionary<string, string> headers = new();
+        if (includeIfMatch) headers.Add("If-Match", $"\"{Convert.ToBase64String(entity.Version)}\"");
+        if (includeLastModified) headers.Add("If-Unmodified-Since", "Wed, 15 Nov 2023 07:28:00 GMT");
 
-    //    await repository.Received(1).ReadAsync(entity.Id, Arg.Any<CancellationToken>());
-    //    await repository.Received(1).ReplaceAsync(entity, Arg.Any<byte[]>(), Arg.Any<CancellationToken>());
-    //}
+        IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
+        TableControllerOptions options = new();
+        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        ExposedTableController<TableData> controller = new(repository, accessProvider, options);
+        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity, headers);
+        List<RepositoryUpdatedEventArgs> firedEvents = new();
+        controller.RepositoryUpdated += (_, e) => firedEvents.Add(e);
+
+        OkObjectResult actual = await controller.ReplaceAsync(entity.Id) as OkObjectResult;
+
+        actual.Should().NotBeNull();
+        actual.StatusCode.Should().Be(200);
+        actual.Value.Should().BeEquivalentTo(entity);
+
+        await accessProvider.Received(1).PreCommitHookAsync(TableOperation.Update, Arg.Any<TableData>(), Arg.Any<CancellationToken>());
+        await accessProvider.Received(1).PostCommitHookAsync(TableOperation.Update, Arg.Any<TableData>(), Arg.Any<CancellationToken>());
+        firedEvents.Should().ContainSingle();
+
+        await repository.Received(1).ReadAsync(entity.Id, Arg.Any<CancellationToken>());
+        await repository.Received(1).ReplaceAsync(Arg.Any<TableData>(), Arg.Any<byte[]>(), Arg.Any<CancellationToken>());
+    }
     #endregion
 }

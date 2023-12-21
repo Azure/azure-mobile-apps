@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-// Copyright (c) Microsoft Corporation. All Rights Reserved.
-// Licensed under the MIT License.
-
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Datasync.Extensions;
@@ -42,7 +38,4 @@ internal static class StdLibExtensions
     /// <returns>The version string.</returns>
     internal static string ToEntityTagValue(this byte[] @version)
         => Convert.ToBase64String(@version);
-
-    internal static string GetErrorMessage(this ModelStateDictionary modelState)
-        => string.Join('|', modelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
 }

@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace Datasync.Common.Models;
 
+[ExcludeFromCodeCoverage]
 public class ClientObject
 {
     [JsonExtensionData]

@@ -2,11 +2,14 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Datasync.Abstractions;
+using Microsoft.AspNetCore.Datasync.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using NSubstitute.ExceptionExtensions;
 using System.Collections.Specialized;
 using System.Linq.Expressions;
+using System.Text;
+using System.Text.Json;
 using System.Web;
 
 // CA2012 is fired for Substitute.For<> that returns a ValueTask, which is not a problem.
@@ -65,6 +68,67 @@ public abstract class BaseTest
         context.Request.Path = requestUri.AbsolutePath;
         context.Request.Host = new HostString(requestUri.Host);
         context.Request.QueryString = new QueryString(requestUri.Query);
+
+        NameValueCollection nvc = HttpUtility.ParseQueryString(requestUri.Query.TrimStart('?'));
+        Dictionary<string, StringValues> dict = nvc.AllKeys.ToDictionary(k => k, k => new StringValues(nvc[k]));
+        context.Request.Query = new QueryCollection(dict);
+
+        if (headers != null)
+        {
+            foreach (var header in headers)
+            {
+                context.Request.Headers.Append(header.Key, new StringValues(header.Value));
+            }
+        }
+
+        return context;
+    }
+
+    protected static HttpContext CreateHttpContext<T>(HttpMethod method, string uri, T entity, Dictionary<string, string> headers = null)
+    {
+        Uri requestUri = new(uri);
+        DefaultHttpContext context = new();
+        context.Request.Method = method.ToString();
+        context.Request.Scheme = requestUri.Scheme;
+        context.Request.Path = requestUri.AbsolutePath;
+        context.Request.Host = new HostString(requestUri.Host);
+        context.Request.QueryString = new QueryString(requestUri.Query);
+
+        DatasyncServiceOptions options = new();
+        string content = JsonSerializer.Serialize(entity, options.JsonSerializerOptions);
+        context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(content));
+        context.Request.ContentType = "application/json";
+        context.Request.ContentLength = content.Length;
+
+        NameValueCollection nvc = HttpUtility.ParseQueryString(requestUri.Query.TrimStart('?'));
+        Dictionary<string, StringValues> dict = nvc.AllKeys.ToDictionary(k => k, k => new StringValues(nvc[k]));
+        context.Request.Query = new QueryCollection(dict);
+
+        if (headers != null)
+        {
+            foreach (var header in headers)
+            {
+                context.Request.Headers.Append(header.Key, new StringValues(header.Value));
+            }
+        }
+
+        return context;
+    }
+
+    protected static HttpContext CreateNonJsonHttpContext(HttpMethod method, string uri, Dictionary<string, string> headers = null)
+    {
+        Uri requestUri = new(uri);
+        DefaultHttpContext context = new();
+        context.Request.Method = method.ToString();
+        context.Request.Scheme = requestUri.Scheme;
+        context.Request.Path = requestUri.AbsolutePath;
+        context.Request.Host = new HostString(requestUri.Host);
+        context.Request.QueryString = new QueryString(requestUri.Query);
+
+        const string content = "<html><body><h1>Not JSON</h1></body></html>";
+        context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(content));
+        context.Request.ContentType = "text/html";
+        context.Request.ContentLength = content.Length;
 
         NameValueCollection nvc = HttpUtility.ParseQueryString(requestUri.Query.TrimStart('?'));
         Dictionary<string, StringValues> dict = nvc.AllKeys.ToDictionary(k => k, k => new StringValues(nvc[k]));

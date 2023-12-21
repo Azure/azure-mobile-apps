@@ -15,6 +15,7 @@ public class AccessControlProvider_Tests
     [InlineData(TableOperation.Read)]
     [InlineData(TableOperation.Query)]
     [InlineData(TableOperation.Update)]
+    [SuppressMessage("Performance", "CA1859:Use concrete types when possible for improved performance", Justification = "Part of the test.")]
     public async Task Defaults_DontChange(TableOperation operation)
     {
         IAccessControlProvider<TableData> sut = new AccessControlProvider<TableData>();

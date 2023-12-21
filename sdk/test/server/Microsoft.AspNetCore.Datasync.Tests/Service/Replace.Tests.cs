@@ -67,6 +67,14 @@ public class Replace_Tests : ServiceTest, IClassFixture<ServiceApplicationFactor
     }
 
     [Fact]
+    public async Task Replace_IdMismatch_Returns400()
+    {
+        ClientMovie existingMovie = new(factory.GetRandomMovie()) { Title = "New Title" };
+        HttpResponseMessage response = await client.PutAsJsonAsync($"{factory.MovieEndpoint}/different-id", existingMovie, serializerOptions);
+        response.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
     public async Task Replace_NotSoftDeleted_Works()
     {
         InMemoryMovie existingMovie = factory.GetRandomMovie();
@@ -115,5 +123,13 @@ public class Replace_Tests : ServiceTest, IClassFixture<ServiceApplicationFactor
         InMemoryMovie inMemoryMovie = factory.GetServerEntityById<InMemoryMovie>(clientMovie.Id);
         clientMovie.Should().HaveEquivalentMetadataTo(inMemoryMovie).And.BeEquivalentTo<IMovie>(inMemoryMovie);
         response.Headers.ETag.Should().BeETag($"\"{clientMovie.Version}\"");
+    }
+
+    [Fact]
+    public async Task Replace_NonJsonData_Returns415()
+    {
+        const string content = "<html><body><h1>Not JSON</h1></body></html>";
+        HttpResponseMessage response = await client.PutAsync($"{factory.MovieEndpoint}/1", new StringContent(content, Encoding.UTF8, "text/html"));
+        response.Should().HaveStatusCode(HttpStatusCode.UnsupportedMediaType);
     }
 }

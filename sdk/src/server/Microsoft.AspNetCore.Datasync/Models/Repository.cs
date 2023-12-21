@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Datasync.Models;
 /// An internal version of the repository that throws an exception if it is used.  This is used as
 /// the default value of the repository within the table controller.
 /// </summary>
-/// <typeparam name="TEntity"></typeparam>
+/// <typeparam name="TEntity">The type of entity used in the repository.</typeparam>
 [ExcludeFromCodeCoverage]
 internal class Repository<TEntity> : IRepository<TEntity> where TEntity : ITableData
 {

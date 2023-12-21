@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Query.Validator;
+using Microsoft.AspNetCore.OData.Query.Wrapper;
 using Microsoft.Extensions.Logging;
 using Microsoft.OData;
 using Microsoft.OData.Edm;
@@ -212,7 +213,7 @@ public class TableController<TEntity> : TableControllerBase<TEntity> where TEnti
         {
             IEnumerable<object> results = (IEnumerable<object>)queryOptions.ApplyTo(dataset, querySettings);
             int resultCount = results.Count();
-            PagedResult pagedResult = new(results);
+            PagedResult pagedResult = results is IEnumerable<ISelectExpandWrapper> wrapper ? new(wrapper.Select(x => x.ToDictionary())) : new(results);
 
             IQueryable<TEntity> query = (IQueryable<TEntity>?)queryOptions.Filter?.ApplyTo(dataset, new ODataQuerySettings()) ?? dataset;
             int totalCount = query.Count();

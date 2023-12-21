@@ -8,8 +8,7 @@ using System.Collections.Concurrent;
 namespace Microsoft.AspNetCore.Datasync.Tables;
 
 /// <summary>
-/// There is a memory issue if we create EdmModels for each request.  This class
-/// caches the <see cref="IEdmModel"/> needed for each table controller.
+/// Model cache for the <see cref="IEdmModel"/> needed for each table controller.
 /// </summary>
 internal static class ModelCache
 {

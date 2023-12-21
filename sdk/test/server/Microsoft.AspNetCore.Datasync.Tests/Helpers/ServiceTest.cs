@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Helpers;
 
+[ExcludeFromCodeCoverage(Justification = "Test suite")]
 public abstract class ServiceTest
 {
     protected readonly ServiceApplicationFactory factory;
