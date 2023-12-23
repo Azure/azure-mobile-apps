@@ -3,7 +3,7 @@
 
 using System.Text.Json;
 
-namespace Microsoft.AspNetCore.Datasync.Models;
+namespace Microsoft.AspNetCore.Datasync.Abstractions;
 
 /// <summary>
 /// The service options - used in dependency injection to configure the

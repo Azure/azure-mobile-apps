@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Datasync.Abstractions;
 using System.Collections.Concurrent;
+using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Datasync.InMemory;
 
@@ -14,6 +15,7 @@ namespace Microsoft.AspNetCore.Datasync.InMemory;
 public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : InMemoryTableData
 {
     private readonly ConcurrentDictionary<string, TEntity> _entities = new();
+    private static readonly Lazy<JsonSerializerOptions> jsonSerializerOptions = new(() => new DatasyncServiceOptions().JsonSerializerOptions);
 
     /// <summary>
     /// Creates a new empty <see cref="InMemoryRepository{TEntity}"/> instance.
@@ -59,8 +61,14 @@ public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : 
     /// <summary>
     /// Produces a disconnected copy of the entity.
     /// </summary>
+    /// <remarks>
+    /// This uses the DatasyncServiceOptions.JsonSerializerOptions to serialize and deserialize the entity.
+    /// </remarks>
     protected static TEntity Disconnect(TEntity entity)
-        => AnyClone.CloneExtensions.Clone(entity);
+    {
+        string json = JsonSerializer.Serialize(entity, jsonSerializerOptions.Value);
+        return JsonSerializer.Deserialize<TEntity>(json, jsonSerializerOptions.Value)!;
+    }
 
     /// <summary>
     /// Updates the system properties and stores the new entity into the data store.

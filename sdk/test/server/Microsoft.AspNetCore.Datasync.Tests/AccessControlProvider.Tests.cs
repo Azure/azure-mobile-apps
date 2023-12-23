@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using AnyClone;
+using Datasync.Common;
 using Microsoft.AspNetCore.Datasync.Abstractions;
 
 namespace Microsoft.AspNetCore.Datasync.Tests;
@@ -23,7 +23,7 @@ public class AccessControlProvider_Tests
         sut.GetDataView().Should().BeNull();
 
         TableData entity = new() { Id = "abc" };
-        TableData clone = CloneExtensions.Clone(entity);
+        TableData clone = entity.Clone();
 
         (await sut.IsAuthorizedAsync(operation, entity)).Should().BeTrue();
 

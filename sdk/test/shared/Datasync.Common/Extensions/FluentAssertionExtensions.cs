@@ -132,6 +132,31 @@ public static class FluentAssertionExtensions
     }
 
     /// <summary>
+    /// Checks that the current object is a <see cref="JsonElement"/> that is a string with the specified value.
+    /// </summary>
+    public static AndConstraint<ObjectAssertions> BeJsonObject(this ObjectAssertions current, string value, string because = "", params object[] becauseArgs)
+    {
+        Execute.Assertion
+            .BecauseOf(because, becauseArgs)
+            .ForCondition(current.Subject is JsonElement)
+            .FailWith("Expected {context:object} to be a JsonElement", current.Subject);
+
+        // Check that jsonElement is a string
+        JsonElement jsonElement = (JsonElement)current.Subject;
+        Execute.Assertion
+            .BecauseOf(because, becauseArgs)
+            .ForCondition(jsonElement.ValueKind == JsonValueKind.Object)
+            .FailWith("Expected {context:object} to be a string, but found {0}", jsonElement.ValueKind);
+        string elementValue = jsonElement.ToString();
+        Execute.Assertion
+            .BecauseOf(because, becauseArgs)
+            .ForCondition(elementValue == value)
+            .FailWith("Expected {context:object} to be a string with value {0}, but found {1}", value, elementValue);
+
+        return new AndConstraint<ObjectAssertions>(current);
+    }
+
+    /// <summary>
     /// Checks to see if the client metadata is set correctly.
     /// </summary>
     public static AndConstraint<ObjectAssertions> HaveChangedMetadata(this ObjectAssertions current, string id, DateTimeOffset startTime, string because = "", params string[] becauseArgs)

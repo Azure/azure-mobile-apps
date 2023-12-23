@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.AspNetCore.Datasync.Converters;
+using Microsoft.AspNetCore.Datasync.Abstractions.Converters;
+using NetTopologySuite.IO.Converters;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -24,7 +25,17 @@ public abstract class ServiceTest
 
     private static JsonSerializerOptions GetSerializerOptions()
     {
-        JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
+        JsonSerializerOptions options = new(JsonSerializerDefaults.Web)
+        {
+            Converters =
+            {
+                new JsonStringEnumConverter(),
+                new DateTimeOffsetConverter(),
+                new DateTimeConverter(),
+                new TimeOnlyConverter(),
+                new GeoJsonConverterFactory()
+            },
+        };
         options.Converters.Add(new JsonStringEnumConverter());
         options.Converters.Add(new DateTimeOffsetConverter());
         options.Converters.Add(new DateTimeConverter());

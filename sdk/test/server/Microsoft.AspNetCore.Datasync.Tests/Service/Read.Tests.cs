@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Datasync.Common;
 using Datasync.Common.Models;
+using NetTopologySuite.Geometries;
 using System.Net;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Service;
@@ -97,6 +97,7 @@ public class Read_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
             LongValue = 42L,
             NullableDouble = null,
             NullableEnumValue = null,
+            PointValue = new Point(-122.333056, 47.609722) { SRID = 4326 },
             StringValue = "state=none",
             TimeOnlyValue = new TimeOnly(9, 52, 35, 321)
         };
@@ -137,6 +138,7 @@ public class Read_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
         actual.Data["longValue"].Should().BeJsonElement(42);
         actual.Data["nullableDouble"].Should().BeNullJsonElement();
         actual.Data["nullableEnumValue"].Should().BeNullJsonElement();
+        actual.Data["pointValue"].Should().BeJsonObject("{\"type\":\"Point\",\"coordinates\":[-122.333056,47.609722]}");
         actual.Data["stringValue"].Should().BeJsonElement("state=none");
         actual.Data["timeOnlyValue"].Should().BeJsonElement("09:52:35.321");
 

@@ -26,7 +26,7 @@ public class StdLibExtensions_Tests
             Version = new byte[] { 0x61, 0x62, 0x63, 0x64 },
             UpdatedAt = new DateTimeOffset(2022, 10, 21, 7, 28, 0, TimeSpan.Zero)
         };
-        const string expected = "{\"Id\":\"0f89592b-6e41-4fe1-abf2-ceee073a6d53\",\"Deleted\":false,\"UpdatedAt\":\"2022-10-21T07:28:00+00:00\",\"Version\":\"YWJjZA==\"}";
+        const string expected = "{\"$id\":\"1\",\"Id\":\"0f89592b-6e41-4fe1-abf2-ceee073a6d53\",\"Deleted\":false,\"UpdatedAt\":\"2022-10-21T07:28:00.000Z\",\"Version\":\"YWJjZA==\"}";
         string actual = sut.ToJsonString();
         actual.Should().Be(expected);
     }

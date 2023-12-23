@@ -4,13 +4,13 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Microsoft.AspNetCore.Datasync.Converters;
+namespace Microsoft.AspNetCore.Datasync.Abstractions.Converters;
 
 /// <summary>
 /// A specialized converter for <see cref="DateTimeOffset"/> that handles the specific requirements of the
 /// Datasync protocol.
 /// </summary>
-internal class DateTimeOffsetConverter : JsonConverter<DateTimeOffset>
+public class DateTimeOffsetConverter : JsonConverter<DateTimeOffset>
 {
     private const string format = "yyyy-MM-dd'T'HH:mm:ss.fffZ";
 

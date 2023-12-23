@@ -4,9 +4,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Microsoft.AspNetCore.Datasync.Converters;
+namespace Microsoft.AspNetCore.Datasync.Abstractions.Converters;
 
-internal class TimeOnlyConverter : JsonConverter<TimeOnly>
+public class TimeOnlyConverter : JsonConverter<TimeOnly>
 {
     private const string format = "HH:mm:ss.fff";
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Datasync.Models;
+﻿using Microsoft.AspNetCore.Datasync.Abstractions;
 using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Converters;
