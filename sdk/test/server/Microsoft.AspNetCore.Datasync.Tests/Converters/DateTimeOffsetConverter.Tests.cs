@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Datasync.Abstractions;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.AspNetCore.Datasync.Abstractions;
 using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Converters;

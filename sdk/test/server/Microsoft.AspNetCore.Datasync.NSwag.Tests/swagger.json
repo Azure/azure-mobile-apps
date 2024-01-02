@@ -1,0 +1,719 @@
+{
+  "x-generator": "NSwag v13.20.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))",
+  "openapi": "3.0.0",
+  "info": {
+    "title": "My Title",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost"
+    }
+  ],
+  "paths": {
+    "/tables/kitchenreader": {
+      "get": {
+        "tags": [
+          "KitchenReader"
+        ],
+        "operationId": "KitchenReader_Query",
+        "parameters": [
+          {
+            "type": "boolean",
+            "name": "$count",
+            "in": "query",
+            "description": "Include the total count of entities that match the query"
+          },
+          {
+            "type": "string",
+            "name": "$filter",
+            "in": "query",
+            "description": "Filter the results using an OData filter expression"
+          },
+          {
+            "type": "string",
+            "name": "$orderby",
+            "in": "query",
+            "description": "Sort the results using an OData sort expression"
+          },
+          {
+            "type": "string",
+            "name": "$select",
+            "in": "query",
+            "description": "Select only the specified comma-delimited properties"
+          },
+          {
+            "type": "integer",
+            "name": "$skip",
+            "in": "query",
+            "description": "Skip the first N results"
+          },
+          {
+            "type": "integer",
+            "name": "$top",
+            "in": "query",
+            "description": "Return only the first N results"
+          },
+          {
+            "type": "boolean",
+            "name": "__includedeleted",
+            "in": "query",
+            "description": "Include deleted entities in the results"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "A page of KitchenSink entities",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "readOnly": true,
+                      "description": "The entities in this page of results",
+                      "nullable": true,
+                      "items": {
+                        "$ref": "#/components/schemas/KitchenSink"
+                      }
+                    },
+                    "count": {
+                      "type": "integer",
+                      "readOnly": true,
+                      "description": "The total number of entities that match the query (without paging)",
+                      "nullable": true
+                    },
+                    "nextLink": {
+                      "type": "string",
+                      "readOnly": true,
+                      "description": "The query to retrieve the next page of results.",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/tables/kitchenreader/{id}": {
+      "get": {
+        "tags": [
+          "KitchenReader"
+        ],
+        "operationId": "KitchenReader_Read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "description": "Conditionally execute only if the entity version does not match the provided string (RFC 9110 section 13.1).",
+            "schema": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "The version string of the server entity, per RFC 9110"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KitchenSink"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "The version string of the server entity, per RFC 9110"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KitchenSink"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition Failed",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "The version string of the server entity, per RFC 9110"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KitchenSink"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/tables/TodoItem": {
+      "post": {
+        "tags": [
+          "TodoItem"
+        ],
+        "operationId": "TodoItem_Create",
+        "parameters": [
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Conditionally execute only if the entity version matches the provided string (RFC 9110 section 13.1).",
+            "schema": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "409": {
+            "description": "Conflict",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "The version string of the server entity, per RFC 9110"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodoItem"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition Failed",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "The version string of the server entity, per RFC 9110"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodoItem"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "The version string of the server entity, per RFC 9110"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodoItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "TodoItem"
+        ],
+        "operationId": "TodoItem_Query",
+        "parameters": [
+          {
+            "type": "boolean",
+            "name": "$count",
+            "in": "query",
+            "description": "Include the total count of entities that match the query"
+          },
+          {
+            "type": "string",
+            "name": "$filter",
+            "in": "query",
+            "description": "Filter the results using an OData filter expression"
+          },
+          {
+            "type": "string",
+            "name": "$orderby",
+            "in": "query",
+            "description": "Sort the results using an OData sort expression"
+          },
+          {
+            "type": "string",
+            "name": "$select",
+            "in": "query",
+            "description": "Select only the specified comma-delimited properties"
+          },
+          {
+            "type": "integer",
+            "name": "$skip",
+            "in": "query",
+            "description": "Skip the first N results"
+          },
+          {
+            "type": "integer",
+            "name": "$top",
+            "in": "query",
+            "description": "Return only the first N results"
+          },
+          {
+            "type": "boolean",
+            "name": "__includedeleted",
+            "in": "query",
+            "description": "Include deleted entities in the results"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "A page of TodoItem entities",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "readOnly": true,
+                      "description": "The entities in this page of results",
+                      "nullable": true,
+                      "items": {
+                        "$ref": "#/components/schemas/TodoItem"
+                      }
+                    },
+                    "count": {
+                      "type": "integer",
+                      "readOnly": true,
+                      "description": "The total number of entities that match the query (without paging)",
+                      "nullable": true
+                    },
+                    "nextLink": {
+                      "type": "string",
+                      "readOnly": true,
+                      "description": "The query to retrieve the next page of results.",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/tables/TodoItem/{id}": {
+      "delete": {
+        "tags": [
+          "TodoItem"
+        ],
+        "operationId": "TodoItem_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Conditionally execute only if the entity version matches the provided string (RFC 9110 section 13.1).",
+            "schema": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "409": {
+            "description": "Conflict",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "The version string of the server entity, per RFC 9110"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodoItem"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition Failed",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "The version string of the server entity, per RFC 9110"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodoItem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "410": {
+            "description": "Gone"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "TodoItem"
+        ],
+        "operationId": "TodoItem_Read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "description": "Conditionally execute only if the entity version does not match the provided string (RFC 9110 section 13.1).",
+            "schema": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "The version string of the server entity, per RFC 9110"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodoItem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "The version string of the server entity, per RFC 9110"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodoItem"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition Failed",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "The version string of the server entity, per RFC 9110"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodoItem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TodoItem"
+        ],
+        "operationId": "TodoItem_Replace",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Conditionally execute only if the entity version matches the provided string (RFC 9110 section 13.1).",
+            "schema": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "The version string of the server entity, per RFC 9110"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodoItem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "The version string of the server entity, per RFC 9110"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodoItem"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition Failed",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "The version string of the server entity, per RFC 9110"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodoItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "410": {
+            "description": "Gone"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "KitchenSink": {
+        "title": "KitchenSink",
+        "definitions": {
+          "InMemoryTableData": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "deleted": {
+                "type": "boolean",
+                "readOnly": true
+              },
+              "updatedAt": {
+                "type": "string",
+                "readOnly": true,
+                "format": "date-time",
+                "nullable": true
+              },
+              "version": {
+                "type": "string",
+                "readOnly": true,
+                "format": "byte"
+              }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/KitchenSink/definitions/InMemoryTableData"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "booleanValue": {
+                "type": "boolean"
+              },
+              "intValue": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "longValue": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "decimalValue": {
+                "type": "number",
+                "format": "decimal"
+              },
+              "doubleValue": {
+                "type": "number",
+                "format": "double"
+              },
+              "floatValue": {
+                "type": "number",
+                "format": "float"
+              },
+              "charValue": {
+                "type": "string"
+              },
+              "stringValue": {
+                "type": "string",
+                "nullable": true
+              },
+              "dateTimeValue": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
+              "dateTimeOffsetValue": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
+              "guidValue": {
+                "type": "string",
+                "format": "guid",
+                "nullable": true
+              }
+            }
+          }
+        ]
+      },
+      "TodoItem": {
+        "title": "TodoItem",
+        "definitions": {
+          "InMemoryTableData": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "deleted": {
+                "type": "boolean",
+                "readOnly": true
+              },
+              "updatedAt": {
+                "type": "string",
+                "readOnly": true,
+                "format": "date-time",
+                "nullable": true
+              },
+              "version": {
+                "type": "string",
+                "readOnly": true,
+                "format": "byte"
+              }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TodoItem/definitions/InMemoryTableData"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "title": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

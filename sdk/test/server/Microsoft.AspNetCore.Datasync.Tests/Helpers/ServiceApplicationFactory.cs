@@ -4,7 +4,6 @@
 using Datasync.Common.Models;
 using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.IdentityModel.Tokens;
 using System.Linq.Expressions;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Helpers;

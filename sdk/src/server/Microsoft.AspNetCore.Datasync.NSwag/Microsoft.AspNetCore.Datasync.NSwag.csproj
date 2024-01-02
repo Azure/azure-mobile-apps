@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>A plugin to support Azure Mobile Apps when using NSwag</Description>
+  </PropertyGroup>
+
+  <Import Project="..\..\Shared.Build.props" />
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Datasync.NSwag.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NSwag.AspNetCore" Version="13.20.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj" />
+  </ItemGroup>
+</Project>

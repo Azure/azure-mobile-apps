@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Datasync.Abstractions;
 using Microsoft.AspNetCore.OData;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OData.Edm;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Datasync;
 
@@ -16,10 +17,14 @@ public static class AspNetCoreExtensions
     /// </summary>
     /// <param name="services">The current service collection.</param>
     /// <returns>The modified service collection.</returns>
+    [SuppressMessage("Roslynator", "RCS1021:Convert lambda expression body to expression body", Justification = "Readability")]
     public static IServiceCollection AddDatasyncControllers(this IServiceCollection services)
     {
         services.AddSingleton<IDatasyncServiceOptions, DatasyncServiceOptions>();
-        services.AddControllers().AddOData(options => options.EnableQueryFeatures());
+        services.AddControllers().AddOData(options =>
+        {
+            options.EnableQueryFeatures();
+        });
         return services;
     }
 
