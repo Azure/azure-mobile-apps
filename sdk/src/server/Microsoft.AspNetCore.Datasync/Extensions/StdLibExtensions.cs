@@ -18,7 +18,7 @@ internal static class StdLibExtensions
     /// </summary>
     /// <param name="object">The object to be serialized.</param>
     /// <returns>The serialized object.</returns>
-    internal static string ToJsonString(this object @object)
+    internal static string ToJsonString(this object @object, JsonSerializerOptions? options = null)
     {
         try
         {
@@ -26,7 +26,7 @@ internal static class StdLibExtensions
             {
                 return "null";
             }
-            return JsonSerializer.Serialize(@object, _options.Value);
+            return JsonSerializer.Serialize(@object, options ?? _options.Value);
         }
         catch (Exception)
         {
@@ -38,7 +38,7 @@ internal static class StdLibExtensions
     /// Gets an appropriate set of serializer options for the logging JSON content.
     /// </summary>
     /// <returns>The <see cref="JsonSerializerOptions"/> to use for logging.</returns>
-    private static JsonSerializerOptions GetSerializerOptions() => new(JsonSerializerDefaults.General)
+    internal static JsonSerializerOptions GetSerializerOptions() => new(JsonSerializerDefaults.General)
     {
         Converters =
             {

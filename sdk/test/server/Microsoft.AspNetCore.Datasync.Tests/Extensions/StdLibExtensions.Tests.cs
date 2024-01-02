@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Datasync.Extensions;
+using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Extensions;
 
@@ -34,9 +35,11 @@ public class StdLibExtensions_Tests
     [Fact]
     public void ToJsonString_Catches_UnserializableObjects()
     {
+        JsonSerializerOptions options = Datasync.Extensions.StdLibExtensions.GetSerializerOptions();
+        options.ReferenceHandler = null;
         TestObject sut = new(); sut.Arg = sut;  // Circular references *should* cause an exception.
-        string actual = sut.ToJsonString();
-        actual.Should().NotBeNullOrEmpty();
+        string actual = sut.ToJsonString(options);
+        actual.Should().Be("unserializable object");
     }
 
     class TestObject
