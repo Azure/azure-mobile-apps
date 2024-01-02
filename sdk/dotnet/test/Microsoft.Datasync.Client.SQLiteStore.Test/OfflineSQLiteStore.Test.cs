@@ -382,8 +382,7 @@ public class OfflineSQLiteStore_Tests : BaseStoreTest
         Assert.Equal(TestTable, tables[0]);
     }
 
-    // Issue #838 - this may not be possible any more.  Skip for now.
-    [Fact(Skip = "Issue#838 - to be fixed")]
+    [Fact]
     public async Task Dispose_ReleasesFileHandle()
     {
         // Set up store as a file.

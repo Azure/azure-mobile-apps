@@ -54,9 +54,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
                 {
                     throw new SQLiteException($"Unable to configure sqlite3 for URI connection strings. Result code : {resultCode}");
                 }
-
                 sqliteIsInitialized = true;
-                handleSqliteLifecycle = true;
             }
 
             int rc = raw.sqlite3_open(connectionString, out connection);
@@ -65,9 +63,8 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
                 var errmsg = raw.sqlite3_errstr(rc).utf8_to_string();
                 throw new SQLiteException($"Unable to open database connection to '{connectionString}': {rc} {errmsg}", rc, connection);
             }
-
-            int limit = raw.sqlite3_limit(connection, raw.SQLITE_LIMIT_VARIABLE_NUMBER, -1);
-            MaxParametersPerQuery = limit - 16;
+            handleSqliteLifecycle = true;
+            MaxParametersPerQuery = GetMaxParametersPerQuery();
         }
 
         /// <summary>
@@ -83,9 +80,13 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
             this.connection = connection;
             sqliteIsInitialized = true;
             handleSqliteLifecycle = false;
+            MaxParametersPerQuery = GetMaxParametersPerQuery();
+        }
 
+        private int GetMaxParametersPerQuery()
+        {
             int limit = raw.sqlite3_limit(connection, raw.SQLITE_LIMIT_VARIABLE_NUMBER, -1);
-            MaxParametersPerQuery = limit - 16;
+            return limit - 16;
         }
 
         /// <summary>
@@ -100,7 +101,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
             int rc = raw.sqlite3_prepare_v2(connection, sqlStatement, out sqlite3_stmt stmt);
             if (rc != raw.SQLITE_OK)
             {
-                var errmsg = raw.sqlite3_errstr(rc).utf8_to_string();
+                string errmsg = raw.sqlite3_errstr(rc).utf8_to_string();
                 throw new SQLiteException($"Cannot prepare statement for '{sqlStatement}': {rc} {errmsg}", rc, connection);
             }
 
@@ -112,8 +113,10 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
         {
             if (disposing)
             {
-                if (handleSqliteLifecycle)
+                if (handleSqliteLifecycle && connection != null)
+                {
                     raw.sqlite3_close_v2(connection);
+                }
                 connection = null;
             }
         }
