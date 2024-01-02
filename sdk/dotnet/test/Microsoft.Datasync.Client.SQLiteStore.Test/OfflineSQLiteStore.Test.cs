@@ -383,25 +383,25 @@ public class OfflineSQLiteStore_Tests : BaseStoreTest
     }
 
     // Issue #838 - this may not be possible any more.  Skip for now.
-    //[Fact]
-    //public async Task Dispose_ReleasesFileHandle()
-    //{
-    //    // Set up store as a file.
-    //    var dbFile = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
-    //    var store = new OfflineSQLiteStore($"file:///{dbFile}");
-    //    store.DefineTable(TestTable, IdEntityDefinition);
-    //    await store.InitializeAsync();
+    [Fact(Skip = "Issue#838 - to be fixed")]
+    public async Task Dispose_ReleasesFileHandle()
+    {
+        // Set up store as a file.
+        var dbFile = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".db");
+        var store = new OfflineSQLiteStore($"file:///{dbFile}");
+        store.DefineTable(TestTable, IdEntityDefinition);
+        await store.InitializeAsync();
 
-    //    // Act - dispose the store
-    //    store.Dispose();
+        // Act - dispose the store
+        store.Dispose();
 
-    //    // Sleep a little bit to give the system time to release the file handle.
-    //    await Task.Delay(1000);
+        // Sleep a little bit to give the system time to release the file handle.
+        await Task.Delay(1000);
 
-    //    // Assert - Should be able to File.Delete the store file.
-    //    File.Delete(dbFile);   // This should not throw.
-    //    Assert.False(File.Exists(dbFile), $"{dbFile} still exists but was deleted.");
-    //}
+        // Assert - Should be able to File.Delete the store file.
+        File.Delete(dbFile);   // This should not throw.
+        Assert.False(File.Exists(dbFile), $"{dbFile} still exists but was deleted.");
+    }
 
     /// <summary>
     /// Issue 499 - using ExecuteQueryAsync on an offline database will return IList{JObject}.
@@ -409,7 +409,6 @@ public class OfflineSQLiteStore_Tests : BaseStoreTest
     /// that were created with InsertItemAsync(T item) that have not yet been pushed.  This is
     /// because the three columns (deleted, updatedAt, and version) are all null.
     /// </summary>
-    /// <returns></returns>
     [Fact]
     public async Task Issue499()
     {

@@ -83,6 +83,9 @@ namespace Microsoft.Datasync.Client.SQLiteStore.Driver
             this.connection = connection;
             sqliteIsInitialized = true;
             handleSqliteLifecycle = false;
+
+            int limit = raw.sqlite3_limit(connection, raw.SQLITE_LIMIT_VARIABLE_NUMBER, -1);
+            MaxParametersPerQuery = limit - 16;
         }
 
         /// <summary>
