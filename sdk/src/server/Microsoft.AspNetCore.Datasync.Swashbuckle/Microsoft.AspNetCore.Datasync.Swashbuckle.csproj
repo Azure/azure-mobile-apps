@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>A plugin to support Azure Mobile Apps when using Swashbuckle</Description>
+  </PropertyGroup>
+
+  <Import Project="..\..\Shared.Build.props" />
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Datasync.Swashbuckle.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj" />
+  </ItemGroup>
+</Project>

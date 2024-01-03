@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\Shared.Build.props" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\server\Microsoft.AspNetCore.Datasync.Swashbuckle\Microsoft.AspNetCore.Datasync.Swashbuckle.csproj" />
+    <ProjectReference Include="..\..\shared\Datasync.Common\Datasync.Common.csproj" />
+    <ProjectReference Include="..\..\shared\Datasync.Service\Datasync.Service.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="swagger.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="swagger.json" />
+  </ItemGroup>
+</Project>

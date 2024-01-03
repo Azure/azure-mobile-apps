@@ -169,10 +169,10 @@ public static class FluentAssertionExtensions
         Execute.Assertion
             .BecauseOf(because, becauseArgs)
             .ForCondition(id == null ? !string.IsNullOrEmpty(metadata.Id) : metadata.Id == id)
-            .FailWith(id == null ? "Expected {context.object}.Id to be set" : "Exepcted {context.object}.Id to be {0}, but found {1}", id, metadata.Id)
+            .FailWith(id == null ? "Expected {context.object}.Id to be set" : "Expected {context.object}.Id to be {0}, but found {1}", id, metadata.Id)
         .Then
             .ForCondition(metadata.UpdatedAt >= startTime && metadata.UpdatedAt <= DateTimeOffset.UtcNow)
-            .FailWith("Expected {context.object}.UpdatedAt to be recent, but found {0}", metadata.UpdatedAt)
+            .FailWith("Expected {context.object}.UpdatedAt to be recent, but found {0}", metadata.UpdatedAt?.ToString("o"))
         .Then
             .ForCondition(!string.IsNullOrEmpty(metadata.Version))
             .FailWith("Exepcted {context.object}.Version to be set");

@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Datasync.NSwag.Tests.Helpers.Models;
+﻿using Microsoft.AspNetCore.Datasync.Swashbuckle.Tests.Helpers.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Microsoft.AspNetCore.Datasync.NSwag.Tests.Helpers.Controllers;
+namespace Microsoft.AspNetCore.Datasync.Swashbuckle.Tests.Helpers.Controllers;
 
 [Route("tables/kitchensink")]
 [ExcludeFromCodeCoverage]

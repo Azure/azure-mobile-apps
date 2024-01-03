@@ -32,6 +32,9 @@ public class DatasyncOperationProcessor : IOperationProcessor
     /// </summary>
     private static readonly HttpStatusCode[] schemaCodes = new[] { HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.Conflict, HttpStatusCode.PreconditionFailed };
 
+    /// <summary>
+    /// The list of OData query parameters supported by the GET table operation.
+    /// </summary>
     private static readonly QueryParameter[] odataQueryParameters = new[]
     {
         new QueryParameter { Name = "$count", Description = "Include the total count of entities that match the query", Type = JsonObjectType.Boolean },
@@ -98,7 +101,7 @@ public class DatasyncOperationProcessor : IOperationProcessor
                     break;
                 case "POST":
                     AddConditionalRequestSupport(context);
-                    AddExpectedResponses(context, new[] { HttpStatusCode.OK, HttpStatusCode.BadRequest }, GetEntitySchemaReference(context));
+                    AddExpectedResponses(context, new[] { HttpStatusCode.Created, HttpStatusCode.BadRequest }, GetEntitySchemaReference(context));
                     break;
             }
         }

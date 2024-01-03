@@ -20,7 +20,7 @@ public class NSwag_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
         string expectedContent = ReadEmbeddedResource();
         if (!expectedContent.Equals(normalizedContent))
         {
-            WriteExternalFile("swagger.json.out", normalizedContent);
+            WriteExternalFile("nswag.json.out", normalizedContent);
         }
         normalizedContent.Should().Be(expectedContent);
     }
