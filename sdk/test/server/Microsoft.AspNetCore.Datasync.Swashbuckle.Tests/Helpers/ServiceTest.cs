@@ -1,4 +1,7 @@
-﻿using System.Reflection;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using System.Reflection;
 
 namespace Microsoft.AspNetCore.Datasync.Swashbuckle.Tests.Helpers;
 

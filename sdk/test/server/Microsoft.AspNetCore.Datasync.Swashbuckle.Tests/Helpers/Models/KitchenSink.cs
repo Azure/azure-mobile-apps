@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Datasync.InMemory;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.AspNetCore.Datasync.InMemory;
 
 namespace Microsoft.AspNetCore.Datasync.Swashbuckle.Tests.Helpers.Models;
 

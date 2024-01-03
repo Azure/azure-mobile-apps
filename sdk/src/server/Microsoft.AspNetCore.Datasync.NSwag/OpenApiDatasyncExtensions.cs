@@ -24,5 +24,6 @@ public static class OpenApiDatasyncExtensions
     {
         settings.OperationProcessors.Add(new DatasyncOperationProcessor());
         settings.SchemaProcessors.Add(new DatasyncSchemaProcessor());
+        settings.FlattenInheritanceHierarchy = true;
     }
 }

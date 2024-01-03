@@ -19,46 +19,60 @@
         "operationId": "KitchenReader_Query",
         "parameters": [
           {
-            "type": "boolean",
             "name": "$count",
             "in": "query",
-            "description": "Include the total count of entities that match the query"
+            "description": "Include the total count of entities that match the query",
+            "schema": {
+              "type": "boolean"
+            }
           },
           {
-            "type": "string",
             "name": "$filter",
             "in": "query",
-            "description": "Filter the results using an OData filter expression"
+            "description": "Filter the results using an OData filter expression",
+            "schema": {
+              "type": "string"
+            }
           },
           {
-            "type": "string",
             "name": "$orderby",
             "in": "query",
-            "description": "Sort the results using an OData sort expression"
+            "description": "Sort the results using an OData sort expression",
+            "schema": {
+              "type": "string"
+            }
           },
           {
-            "type": "string",
             "name": "$select",
             "in": "query",
-            "description": "Select only the specified comma-delimited properties"
+            "description": "Select only the specified comma-delimited properties",
+            "schema": {
+              "type": "string"
+            }
           },
           {
-            "type": "integer",
             "name": "$skip",
             "in": "query",
-            "description": "Skip the first N results"
+            "description": "Skip the first N results",
+            "schema": {
+              "type": "integer"
+            }
           },
           {
-            "type": "integer",
             "name": "$top",
             "in": "query",
-            "description": "Return only the first N results"
+            "description": "Return only the first N results",
+            "schema": {
+              "type": "integer"
+            }
           },
           {
-            "type": "boolean",
             "name": "__includedeleted",
             "in": "query",
-            "description": "Include deleted entities in the results"
+            "description": "Include deleted entities in the results",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -124,8 +138,7 @@
             "description": "Conditionally execute only if the entity version does not match the provided string (RFC 9110 section 13.1).",
             "schema": {
               "type": "string"
-            },
-            "nullable": true
+            }
           }
         ],
         "responses": {
@@ -133,8 +146,10 @@
             "description": "OK",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -149,8 +164,10 @@
             "description": "Conflict",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -165,8 +182,10 @@
             "description": "Precondition Failed",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -196,8 +215,7 @@
             "description": "Conditionally execute only if the entity version matches the provided string (RFC 9110 section 13.1).",
             "schema": {
               "type": "string"
-            },
-            "nullable": true
+            }
           }
         ],
         "responses": {
@@ -205,8 +223,10 @@
             "description": "Created",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -221,8 +241,10 @@
             "description": "Conflict",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -237,8 +259,10 @@
             "description": "Precondition Failed",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -261,46 +285,60 @@
         "operationId": "KitchenSink_Query",
         "parameters": [
           {
-            "type": "boolean",
             "name": "$count",
             "in": "query",
-            "description": "Include the total count of entities that match the query"
+            "description": "Include the total count of entities that match the query",
+            "schema": {
+              "type": "boolean"
+            }
           },
           {
-            "type": "string",
             "name": "$filter",
             "in": "query",
-            "description": "Filter the results using an OData filter expression"
+            "description": "Filter the results using an OData filter expression",
+            "schema": {
+              "type": "string"
+            }
           },
           {
-            "type": "string",
             "name": "$orderby",
             "in": "query",
-            "description": "Sort the results using an OData sort expression"
+            "description": "Sort the results using an OData sort expression",
+            "schema": {
+              "type": "string"
+            }
           },
           {
-            "type": "string",
             "name": "$select",
             "in": "query",
-            "description": "Select only the specified comma-delimited properties"
+            "description": "Select only the specified comma-delimited properties",
+            "schema": {
+              "type": "string"
+            }
           },
           {
-            "type": "integer",
             "name": "$skip",
             "in": "query",
-            "description": "Skip the first N results"
+            "description": "Skip the first N results",
+            "schema": {
+              "type": "integer"
+            }
           },
           {
-            "type": "integer",
             "name": "$top",
             "in": "query",
-            "description": "Return only the first N results"
+            "description": "Return only the first N results",
+            "schema": {
+              "type": "integer"
+            }
           },
           {
-            "type": "boolean",
             "name": "__includedeleted",
             "in": "query",
-            "description": "Include deleted entities in the results"
+            "description": "Include deleted entities in the results",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -366,8 +404,7 @@
             "description": "Conditionally execute only if the entity version matches the provided string (RFC 9110 section 13.1).",
             "schema": {
               "type": "string"
-            },
-            "nullable": true
+            }
           }
         ],
         "responses": {
@@ -378,8 +415,10 @@
             "description": "Conflict",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -394,8 +433,10 @@
             "description": "Precondition Failed",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -435,8 +476,7 @@
             "description": "Conditionally execute only if the entity version does not match the provided string (RFC 9110 section 13.1).",
             "schema": {
               "type": "string"
-            },
-            "nullable": true
+            }
           }
         ],
         "responses": {
@@ -444,8 +484,10 @@
             "description": "OK",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -460,8 +502,10 @@
             "description": "Conflict",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -476,8 +520,10 @@
             "description": "Precondition Failed",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -514,8 +560,7 @@
             "description": "Conditionally execute only if the entity version matches the provided string (RFC 9110 section 13.1).",
             "schema": {
               "type": "string"
-            },
-            "nullable": true
+            }
           }
         ],
         "responses": {
@@ -523,8 +568,10 @@
             "description": "OK",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -539,8 +586,10 @@
             "description": "Conflict",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -555,8 +604,10 @@
             "description": "Precondition Failed",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -592,8 +643,7 @@
             "description": "Conditionally execute only if the entity version matches the provided string (RFC 9110 section 13.1).",
             "schema": {
               "type": "string"
-            },
-            "nullable": true
+            }
           }
         ],
         "responses": {
@@ -601,8 +651,10 @@
             "description": "Created",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -617,8 +669,10 @@
             "description": "Conflict",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -633,8 +687,10 @@
             "description": "Precondition Failed",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -657,46 +713,60 @@
         "operationId": "TodoItem_Query",
         "parameters": [
           {
-            "type": "boolean",
             "name": "$count",
             "in": "query",
-            "description": "Include the total count of entities that match the query"
+            "description": "Include the total count of entities that match the query",
+            "schema": {
+              "type": "boolean"
+            }
           },
           {
-            "type": "string",
             "name": "$filter",
             "in": "query",
-            "description": "Filter the results using an OData filter expression"
+            "description": "Filter the results using an OData filter expression",
+            "schema": {
+              "type": "string"
+            }
           },
           {
-            "type": "string",
             "name": "$orderby",
             "in": "query",
-            "description": "Sort the results using an OData sort expression"
+            "description": "Sort the results using an OData sort expression",
+            "schema": {
+              "type": "string"
+            }
           },
           {
-            "type": "string",
             "name": "$select",
             "in": "query",
-            "description": "Select only the specified comma-delimited properties"
+            "description": "Select only the specified comma-delimited properties",
+            "schema": {
+              "type": "string"
+            }
           },
           {
-            "type": "integer",
             "name": "$skip",
             "in": "query",
-            "description": "Skip the first N results"
+            "description": "Skip the first N results",
+            "schema": {
+              "type": "integer"
+            }
           },
           {
-            "type": "integer",
             "name": "$top",
             "in": "query",
-            "description": "Return only the first N results"
+            "description": "Return only the first N results",
+            "schema": {
+              "type": "integer"
+            }
           },
           {
-            "type": "boolean",
             "name": "__includedeleted",
             "in": "query",
-            "description": "Include deleted entities in the results"
+            "description": "Include deleted entities in the results",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -762,8 +832,7 @@
             "description": "Conditionally execute only if the entity version matches the provided string (RFC 9110 section 13.1).",
             "schema": {
               "type": "string"
-            },
-            "nullable": true
+            }
           }
         ],
         "responses": {
@@ -774,8 +843,10 @@
             "description": "Conflict",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -790,8 +861,10 @@
             "description": "Precondition Failed",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -831,8 +904,7 @@
             "description": "Conditionally execute only if the entity version does not match the provided string (RFC 9110 section 13.1).",
             "schema": {
               "type": "string"
-            },
-            "nullable": true
+            }
           }
         ],
         "responses": {
@@ -840,8 +912,10 @@
             "description": "OK",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -856,8 +930,10 @@
             "description": "Conflict",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -872,8 +948,10 @@
             "description": "Precondition Failed",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -910,8 +988,7 @@
             "description": "Conditionally execute only if the entity version matches the provided string (RFC 9110 section 13.1).",
             "schema": {
               "type": "string"
-            },
-            "nullable": true
+            }
           }
         ],
         "responses": {
@@ -919,8 +996,10 @@
             "description": "OK",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -935,8 +1014,10 @@
             "description": "Conflict",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -951,8 +1032,10 @@
             "description": "Precondition Failed",
             "headers": {
               "ETag": {
-                "type": "string",
-                "description": "The version string of the server entity, per RFC 9110"
+                "description": "The version string of the server entity, per RFC 9110",
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -980,132 +1063,102 @@
     "schemas": {
       "KitchenSink": {
         "title": "KitchenSink",
-        "definitions": {
-          "InMemoryTableData": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "deleted": {
-                "type": "boolean",
-                "readOnly": true
-              },
-              "updatedAt": {
-                "type": "string",
-                "readOnly": true,
-                "format": "date-time",
-                "nullable": true
-              },
-              "version": {
-                "type": "string",
-                "readOnly": true,
-                "format": "byte"
-              }
-            }
-          }
-        },
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/KitchenSink/definitions/InMemoryTableData"
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
           },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "booleanValue": {
-                "type": "boolean"
-              },
-              "intValue": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "longValue": {
-                "type": "integer",
-                "format": "int64"
-              },
-              "decimalValue": {
-                "type": "number",
-                "format": "decimal"
-              },
-              "doubleValue": {
-                "type": "number",
-                "format": "double"
-              },
-              "floatValue": {
-                "type": "number",
-                "format": "float"
-              },
-              "charValue": {
-                "type": "string"
-              },
-              "stringValue": {
-                "type": "string",
-                "nullable": true
-              },
-              "dateTimeValue": {
-                "type": "string",
-                "format": "date-time",
-                "nullable": true
-              },
-              "dateTimeOffsetValue": {
-                "type": "string",
-                "format": "date-time",
-                "nullable": true
-              },
-              "guidValue": {
-                "type": "string",
-                "format": "guid",
-                "nullable": true
-              }
-            }
+          "deleted": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "readOnly": true,
+            "format": "date-time",
+            "nullable": true
+          },
+          "version": {
+            "type": "string",
+            "readOnly": true,
+            "format": "byte"
+          },
+          "booleanValue": {
+            "type": "boolean"
+          },
+          "intValue": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "longValue": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "decimalValue": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "doubleValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "floatValue": {
+            "type": "number",
+            "format": "float"
+          },
+          "charValue": {
+            "type": "string"
+          },
+          "stringValue": {
+            "type": "string",
+            "nullable": true
+          },
+          "dateTimeValue": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "dateTimeOffsetValue": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "guidValue": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
           }
-        ]
+        }
       },
       "TodoItem": {
         "title": "TodoItem",
-        "definitions": {
-          "InMemoryTableData": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "deleted": {
-                "type": "boolean",
-                "readOnly": true
-              },
-              "updatedAt": {
-                "type": "string",
-                "readOnly": true,
-                "format": "date-time",
-                "nullable": true
-              },
-              "version": {
-                "type": "string",
-                "readOnly": true,
-                "format": "byte"
-              }
-            }
-          }
-        },
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/TodoItem/definitions/InMemoryTableData"
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
           },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "title": {
-                "type": "string",
-                "nullable": true
-              }
-            }
+          "deleted": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "readOnly": true,
+            "format": "date-time",
+            "nullable": true
+          },
+          "version": {
+            "type": "string",
+            "readOnly": true,
+            "format": "byte"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
           }
-        ]
+        }
       }
     }
   }

@@ -1,5 +1,9 @@
+// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
 using Microsoft.AspNetCore.Datasync.NSwag.Tests.Helpers.Controllers;
 using Microsoft.AspNetCore.Datasync.NSwag.Tests.Helpers.Models;
+using Microsoft.OpenApi.Readers;
 using NSwag;
 
 namespace Microsoft.AspNetCore.Datasync.NSwag.Tests;
@@ -23,6 +27,31 @@ public class NSwag_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
             WriteExternalFile("nswag.json.out", normalizedContent);
         }
         normalizedContent.Should().Be(expectedContent);
+    }
+
+    [Fact]
+    [SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments", Justification = "Not needed")]
+    public async Task NSwag_SwaggerIsValid()
+    {
+        string swaggerDoc = await client.GetStringAsync("/swagger/v1/swagger.json");
+        swaggerDoc.Should().NotBeNullOrWhiteSpace();
+
+        var result = new OpenApiStringReader().Read(swaggerDoc, out var diagnostic);
+        diagnostic.SpecificationVersion.Should().Be(OpenApi.OpenApiSpecVersion.OpenApi3_0);
+
+        result.Components.Schemas.Should().HaveCount(2).And.ContainKeys("KitchenSink", "TodoItem");
+
+        result.Paths.Should().HaveCount(6);
+        result.Paths["/tables/kitchenreader"].Should().HaveOperations(new string[] { "get" });
+        result.Paths["/tables/kitchenreader/{id}"].Should().HaveOperations(new string[] { "get" });
+
+        result.Paths["/tables/kitchensink"].Should().HaveOperations(new string[] { "get", "post" });
+        result.Paths["/tables/kitchensink/{id}"].Should().HaveOperations(new string[] { "get", "put", "delete" });
+
+        result.Paths["/tables/TodoItem"].Should().HaveOperations(new string[] { "get", "post" });
+        result.Paths["/tables/TodoItem/{id}"].Should().HaveOperations(new string[] { "get", "put", "delete" });
+
+        diagnostic.Errors.Should().BeEmpty();
     }
 
     [Theory]

@@ -127,7 +127,7 @@ public class DatasyncOperationProcessor : IOperationProcessor
                 Kind = OpenApiParameterKind.Header,
                 Description = $"Conditionally execute only if the entity version {description} the provided string (RFC 9110 section 13.1).",
                 Schema = new JsonSchema { Type = JsonObjectType.String },
-                IsNullableRaw = true
+                IsRequired = false
             });
         }
         AddExpectedResponses(context, new[] { HttpStatusCode.Conflict, HttpStatusCode.PreconditionFailed }, entitySchema);
@@ -177,7 +177,11 @@ public class DatasyncOperationProcessor : IOperationProcessor
             response.Content.Add(jsonMediaType, new OpenApiMediaType { Schema = schema });
             if (includeETagHeader)
             {
-                response.Headers.Add(etagHeader, new OpenApiHeader { Type = JsonObjectType.String, Description = "The version string of the server entity, per RFC 9110", });
+                response.Headers.Add(etagHeader, new OpenApiHeader
+                {
+                    Schema = new JsonSchema { Type = JsonObjectType.String },
+                    Description = "The version string of the server entity, per RFC 9110"
+                });
             }
         }
         context.OperationDescription.Operation.Responses[((int)code).ToString()] = response;
@@ -199,7 +203,7 @@ public class DatasyncOperationProcessor : IOperationProcessor
                 Description = queryParameter.Description,
                 Kind = OpenApiParameterKind.Query,
                 IsRequired = false,
-                Type = queryParameter.Type
+                Schema = new JsonSchema { Type = queryParameter.Type }
             });
         }
     }

@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.AspNetCore.Datasync.NSwag.Tests.Helpers.Models;
 using Microsoft.AspNetCore.Hosting;
