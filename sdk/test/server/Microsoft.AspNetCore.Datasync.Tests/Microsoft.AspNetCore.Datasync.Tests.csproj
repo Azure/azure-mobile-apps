@@ -3,6 +3,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.0" />
     <PackageReference Include="NetTopologySuite.IO.GeoJSON4STJ" Version="4.0.0" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageReference Include="Xunit.Combinatorial" Version="1.6.24" />
   </ItemGroup>
   <ItemGroup>

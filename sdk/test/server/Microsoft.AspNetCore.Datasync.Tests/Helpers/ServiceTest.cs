@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Datasync.Common.Models;
+using Datasync.Common.TestData;
 using Microsoft.AspNetCore.Datasync.Abstractions.Converters;
+using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -56,6 +59,23 @@ public abstract class ServiceTest
                 Deleted = false,
                 DateOnlyValue = date,
                 TimeOnlyValue = new TimeOnly(date.Month, date.Day)
+            };
+            factory.Store(model);
+        }
+    }
+
+    protected void SeedKitchenSinkWithCountryData()
+    {
+        foreach (Country countryRecord in CountryData.GetCountries())
+        {
+            InMemoryKitchenSink model = new()
+            {
+                Id = countryRecord.IsoCode,
+                Version = Guid.NewGuid().ToByteArray(),
+                UpdatedAt = DateTimeOffset.UtcNow,
+                Deleted = false,
+                PointValue = new Point(countryRecord.Longitude, countryRecord.Latitude),
+                StringValue = countryRecord.CountryName
             };
             factory.Store(model);
         }

@@ -26,4 +26,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="TestData\countries.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestData\countries.json" />
+  </ItemGroup>
 </Project>

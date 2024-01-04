@@ -3818,6 +3818,19 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
     }
 
     [Fact]
+    public async Task KitchenSinkQueryTest_019()
+    {
+        SeedKitchenSinkWithCountryData();
+        await KitchenSinkQueryTest(
+            $"{factory.KitchenSinkEndpoint}?$filter=pointValue eq geography'POINT(-95 38)'",
+            1,
+            null,
+            null,
+            new[] { "US" }
+        );
+    }
+
+    [Fact]
     public async Task Paging_Test_1()
     {
         await PagingTest(factory.MovieEndpoint, 248, 3);
