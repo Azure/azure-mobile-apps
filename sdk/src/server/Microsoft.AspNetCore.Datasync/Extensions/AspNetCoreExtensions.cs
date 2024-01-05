@@ -23,7 +23,7 @@ public static class AspNetCoreExtensions
         services.AddSingleton<IDatasyncServiceOptions, DatasyncServiceOptions>();
         services.AddControllers().AddOData(options =>
         {
-            options.EnableQueryFeatures();
+            options.Count().Filter().OrderBy().Select().SetMaxTop(null);
         });
         return services;
     }

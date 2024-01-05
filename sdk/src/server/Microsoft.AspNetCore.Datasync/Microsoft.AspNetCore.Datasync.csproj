@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>Abstractions for developing applications based on Azure Mobile Apps.</Description>
+    <Description>The server-side SDK for integrating data synchronization into an ASP.NET Core application.</Description>
   </PropertyGroup>
 
   <ItemGroup>
