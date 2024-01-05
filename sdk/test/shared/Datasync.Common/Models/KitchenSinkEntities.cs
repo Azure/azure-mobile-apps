@@ -3,7 +3,7 @@
 
 using Datasync.Common.Models;
 using Microsoft.AspNetCore.Datasync.InMemory;
-using NetTopologySuite.Geometries;
+using Microsoft.Spatial;
 
 #nullable enable
 
@@ -49,7 +49,7 @@ public interface IKitchenSink
     TimeOnly? TimeOnlyValue { get; set; }
 
     // Geospatial types
-    Point? PointValue { get; set; }
+    GeographyPoint? PointValue { get; set; }
 }
 
 [ExcludeFromCodeCoverage]
@@ -86,7 +86,7 @@ public class ClientKitchenSink : ClientTableData, IKitchenSink
     public TimeOnly? TimeOnlyValue { get; set; }
 
     // Geospatial types
-    public Point? PointValue { get; set; }
+    public GeographyPoint? PointValue { get; set; }
 }
 
 [ExcludeFromCodeCoverage]
@@ -108,7 +108,7 @@ public class InMemoryKitchenSink : InMemoryTableData, IKitchenSink
     public long LongValue { get; set; }
     public double? NullableDouble { get; set; }
     public KitchenSinkState? NullableEnumValue { get; set; }
-    public Point? PointValue { get; set; }
+    public GeographyPoint? PointValue { get; set; }
     public string? StringValue { get; set; }
     public TimeOnly? TimeOnlyValue { get; set; }
 }

@@ -190,6 +190,8 @@ public class TableController<TEntity> : TableControllerBase<TEntity> where TEnti
         Logger.LogInformation("QueryAsync: {querystring}", HttpContext.Request.QueryString);
         await AuthorizeRequestAsync(TableOperation.Query, null, cancellationToken).ConfigureAwait(false);
 
+        BuildServiceProvider(Request);
+
         IQueryable<TEntity> dataset = (await Repository.AsQueryableAsync(cancellationToken).ConfigureAwait(false))
             .ApplyDataView(AccessControlProvider.GetDataView())
             .ApplyDeletedView(Request, Options.EnableSoftDelete);

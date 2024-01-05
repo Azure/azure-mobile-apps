@@ -12,6 +12,7 @@ using System.Text.Json;
 namespace Microsoft.AspNetCore.Datasync.Tests.Service;
 
 [ExcludeFromCodeCoverage]
+[Collection("ServiceTests")]
 public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
 {
     public Query_Tests(ServiceApplicationFactory factory) : base(factory)
@@ -3753,7 +3754,7 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
     {
         SeedKitchenSink();
         await KitchenSinkQueryTest(
-            $"{factory.KitchenSinkEndpoint}?$count=true&$orderby=id&$filter=timeOnlyValue eq cast(02:14:00,Edm.TimeOfDay)",
+            $"{factory.KitchenSinkEndpoint}?$count=true&$orderby=id&$filter=timeOnlyValue eq 02:14:00",
             1,
             null,
             1,
@@ -3767,7 +3768,7 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
     {
         SeedKitchenSink();
         await KitchenSinkQueryTest(
-            $"{factory.KitchenSinkEndpoint}?$count=true&$orderby=id&$filter=timeOnlyValue ge cast(12:15:00,Edm.TimeOfDay)",
+            $"{factory.KitchenSinkEndpoint}?$count=true&$orderby=id&$filter=timeOnlyValue ge 12:15:00",
             17,
             null,
             17,
@@ -3781,7 +3782,7 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
     {
         SeedKitchenSink();
         await KitchenSinkQueryTest(
-            $"{factory.KitchenSinkEndpoint}?$count=true&$orderby=id&$filter=timeOnlyValue gt cast(12:15:00,Edm.TimeOfDay)",
+            $"{factory.KitchenSinkEndpoint}?$count=true&$orderby=id&$filter=timeOnlyValue gt 12:15:00",
             16,
             null,
             16,
@@ -3817,12 +3818,12 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
         );
     }
 
-    [Fact(Skip = "Geospatial searches do not work yet")]
+    [Fact]
     public async Task KitchenSinkQueryTest_019()
     {
         SeedKitchenSinkWithCountryData();
         await KitchenSinkQueryTest(
-            $"{factory.KitchenSinkEndpoint}?$filter=pointValue eq geography'POINT(-95 38)'",
+            $"{factory.KitchenSinkEndpoint}?$filter=geo.distance(pointValue, geography'POINT(-97 38)') lt 0.2",
             1,
             null,
             null,

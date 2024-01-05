@@ -2,25 +2,13 @@
 // Licensed under the MIT License.
 
 using Azure.Core.Serialization;
-using Microsoft.AspNetCore.Datasync.Abstractions.Converters;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Microsoft.AspNetCore.Datasync.Abstractions;
-
-public class DatasyncServiceOptions : IDatasyncServiceOptions
+namespace Microsoft.Datasync.Client.Json;
+public static class DatasyncServiceOptions
 {
-    private readonly Lazy<JsonSerializerOptions> _options;
-
-    public DatasyncServiceOptions()
-    {
-        _options = new Lazy<JsonSerializerOptions>(() => GetJsonSerializerOptions());
-    }
-
-    /// <inheritdoc />
-    public JsonSerializerOptions JsonSerializerOptions => _options.Value;
-
-    private static JsonSerializerOptions GetJsonSerializerOptions() => new(JsonSerializerDefaults.Web)
+    public static JsonSerializerOptions GetJsonSerializerOptions() => new(JsonSerializerDefaults.Web)
     {
         AllowTrailingCommas = true,
         Converters =

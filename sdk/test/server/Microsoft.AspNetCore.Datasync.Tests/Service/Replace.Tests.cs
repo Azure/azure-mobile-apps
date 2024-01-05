@@ -9,6 +9,7 @@ using System.Text.Json;
 namespace Microsoft.AspNetCore.Datasync.Tests.Service;
 
 [ExcludeFromCodeCoverage]
+[Collection("ServiceTests")]
 public class Replace_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
 {
     public Replace_Tests(ServiceApplicationFactory factory) : base(factory)

@@ -6,6 +6,7 @@ using System.Net;
 namespace Microsoft.AspNetCore.Datasync.Tests.Service;
 
 [ExcludeFromCodeCoverage]
+[Collection("ServiceTests")]
 public class Delete_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
 {
     public Delete_Tests(ServiceApplicationFactory factory) : base(factory)

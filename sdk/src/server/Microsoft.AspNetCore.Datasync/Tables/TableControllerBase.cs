@@ -6,10 +6,15 @@ using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.AspNetCore.Datasync.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Extensions;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Query.Expressions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.OData;
 using Microsoft.OData.Edm;
+using Microsoft.OData.UriParser;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
@@ -141,5 +146,28 @@ public class TableControllerBase<TEntity> : ControllerBase where TEntity : class
         {
             throw new HttpException(StatusCodes.Status415UnsupportedMediaType, "Unsupported media type");
         }
+    }
+
+    [NonAction]
+    protected static IServiceProvider BuildServiceProvider(HttpRequest request)
+    {
+        IServiceCollection services = new ServiceCollection();
+
+        services.AddSingleton(_ => new DefaultQueryConfigurations
+        {
+            EnableCount = true,
+            EnableFilter = true,
+            EnableOrderBy = true,
+            EnableSelect = true
+        });
+        services.AddSingleton<IFilterBinder, DatasyncFilterBinder>();
+        services.AddScoped<ODataQuerySettings>();
+        services.AddSingleton<ODataUriResolver>(_ => new UnqualifiedODataUriResolver { EnableCaseInsensitive = true });
+        services.AddScoped<ODataSimplifiedOptions>();
+        services.AddScoped<ODataUriParserSettings>();
+
+        IServiceProvider provider = services.BuildServiceProvider();
+        request.ODataFeature().Services = provider;
+        return provider;
     }
 }

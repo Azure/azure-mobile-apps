@@ -3,9 +3,9 @@
 
 using Datasync.Common.Models;
 using Datasync.Common.TestData;
+using Microsoft.AspNetCore.Datasync.Abstractions;
 using Microsoft.AspNetCore.Datasync.Abstractions.Converters;
-using NetTopologySuite.Geometries;
-using NetTopologySuite.IO.Converters;
+using Microsoft.Spatial;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -27,23 +27,7 @@ public abstract class ServiceTest
     }
 
     private static JsonSerializerOptions GetSerializerOptions()
-    {
-        JsonSerializerOptions options = new(JsonSerializerDefaults.Web)
-        {
-            Converters =
-            {
-                new JsonStringEnumConverter(),
-                new DateTimeOffsetConverter(),
-                new DateTimeConverter(),
-                new TimeOnlyConverter(),
-                new GeoJsonConverterFactory()
-            },
-        };
-        options.Converters.Add(new JsonStringEnumConverter());
-        options.Converters.Add(new DateTimeOffsetConverter());
-        options.Converters.Add(new DateTimeConverter());
-        return options;
-    }
+        => new DatasyncServiceOptions().JsonSerializerOptions;
 
     protected void SeedKitchenSink()
     {
@@ -74,7 +58,7 @@ public abstract class ServiceTest
                 Version = Guid.NewGuid().ToByteArray(),
                 UpdatedAt = DateTimeOffset.UtcNow,
                 Deleted = false,
-                PointValue = new Point(countryRecord.Longitude, countryRecord.Latitude),
+                PointValue = GeographyPoint.Create(countryRecord.Latitude, countryRecord.Longitude),
                 StringValue = countryRecord.CountryName
             };
             factory.Store(model);

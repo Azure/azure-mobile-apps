@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using Azure.Core.Serialization;
 using Microsoft.AspNetCore.Datasync.Abstractions.Converters;
-using NetTopologySuite.IO.Converters;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -46,7 +46,7 @@ internal static class StdLibExtensions
                 new DateTimeOffsetConverter(),
                 new DateTimeConverter(),
                 new TimeOnlyConverter(),
-                new GeoJsonConverterFactory()
+                new MicrosoftSpatialGeoJsonConverter()
             },
         NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
         ReferenceHandler = ReferenceHandler.Preserve

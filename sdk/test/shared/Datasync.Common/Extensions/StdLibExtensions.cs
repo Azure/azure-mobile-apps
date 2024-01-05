@@ -2,7 +2,11 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Datasync;
+using Microsoft.AspNetCore.Datasync.Abstractions;
+using Microsoft.AspNetCore.Datasync.Abstractions.Converters;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Xunit.Abstractions;
 
 namespace Datasync.Common;
@@ -13,20 +17,22 @@ namespace Datasync.Common;
 [ExcludeFromCodeCoverage]
 public static class StdLibExtensions
 {
+    private static readonly string[] categories = new string[] { "Microsoft.EntityFrameworkCore.Database.Command" };
+
     /// <summary>
     /// Enables the correct logging on a database context.
     /// </summary>
-    /// <typeparam name="TContext"></typeparam>
-    /// <param name="current"></param>
-    /// <param name="output"></param>
-    /// <returns></returns>
+    /// <typeparam name="TContext">The database context type.</typeparam>
+    /// <param name="current">The current database context.</param>
+    /// <param name="output">The logging output helper.</param>
+    /// <returns>The database context (for chaining).</returns>
     public static DbContextOptionsBuilder<TContext> EnableLogging<TContext>(this DbContextOptionsBuilder<TContext> current, ITestOutputHelper output) where TContext : DbContext
     {
         bool enableLogging = (Environment.GetEnvironmentVariable("ENABLE_SQL_LOGGING") ?? "false") == "true";
         if (output != null && enableLogging)
         {
             current
-                .UseLoggerFactory(new TestLoggerFactory(output, new string[] { "Microsoft.EntityFrameworkCore.Database.Command" }))
+                .UseLoggerFactory(new TestLoggerFactory(output, categories))
                 .EnableDetailedErrors()
                 .EnableSensitiveDataLogging();
         }
@@ -49,5 +55,9 @@ public static class StdLibExtensions
     /// <param name="entity">The source entity.</param>
     /// <returns>A copy of the source entity.</returns>
     public static TEntity Clone<TEntity>(this TEntity entity)
-        => AnyClone.CloneExtensions.Clone(entity);
+    {
+        JsonSerializerOptions jsonSerializerOptions = new DatasyncServiceOptions().JsonSerializerOptions;
+        string json = JsonSerializer.Serialize(entity, jsonSerializerOptions);
+        return JsonSerializer.Deserialize<TEntity>(json, jsonSerializerOptions)!;
+    }
 }

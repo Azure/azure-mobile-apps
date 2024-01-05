@@ -22,9 +22,10 @@ ODataConventionModelBuilder modelBuilder = new();
 modelBuilder.EnableLowerCamelCase();
 modelBuilder.AddEntityType(typeof(InMemoryMovie));
 modelBuilder.AddEntityType(typeof(InMemoryKitchenSink));
+builder.Services.AddDatasyncServices(modelBuilder.GetEdmModel());
 
 // Add Controllers
-builder.Services.AddDatasyncControllers(modelBuilder.GetEdmModel());
+builder.Services.AddControllers();
 
 // Build the application pipeline.
 

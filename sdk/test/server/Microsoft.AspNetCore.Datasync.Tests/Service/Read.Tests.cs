@@ -2,12 +2,13 @@
 // Licensed under the MIT License.
 
 using Datasync.Common.Models;
-using NetTopologySuite.Geometries;
+using Microsoft.Spatial;
 using System.Net;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Service;
 
 [ExcludeFromCodeCoverage]
+[Collection("ServiceTests")]
 public class Read_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
 {
     public Read_Tests(ServiceApplicationFactory factory) : base(factory)
@@ -97,7 +98,7 @@ public class Read_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
             LongValue = 42L,
             NullableDouble = null,
             NullableEnumValue = null,
-            PointValue = new Point(-122.333056, 47.609722) { SRID = 4326 },
+            PointValue = GeographyPoint.Create(47.609722, -122.333056),
             StringValue = "state=none",
             TimeOnlyValue = new TimeOnly(9, 52, 35, 321)
         };

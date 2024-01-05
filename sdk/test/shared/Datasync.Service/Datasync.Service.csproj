@@ -8,7 +8,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.14" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.11" />
-    <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
+
   </ItemGroup>
 
   <ItemGroup>
@@ -19,11 +19,4 @@
     <ProjectReference Include="..\Datasync.Common\Datasync.Common.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Update="xunit" Version="2.6.4" />
-    <PackageReference Update="xunit.runner.visualstudio" Version="2.5.6">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
 </Project>

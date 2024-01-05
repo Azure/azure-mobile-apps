@@ -3,13 +3,14 @@
 
 using Datasync.Common.Models;
 using Datasync.Common.TestData;
-using NetTopologySuite.Geometries;
+using Microsoft.Spatial;
 using System.Net;
 using System.Text;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Service;
 
 [ExcludeFromCodeCoverage]
+[Collection("ServiceTests")]
 public class Create_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
 {
     public Create_Tests(ServiceApplicationFactory factory) : base(factory)
@@ -78,7 +79,7 @@ public class Create_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory
             EnumValue = KitchenSinkState.None,
             DateOnlyValue = new DateOnly(2023, 12, 15),
             TimeOnlyValue = new TimeOnly(9, 52, 35),
-            PointValue = new Point(-122.333056, 47.609722) { SRID = 4326 },
+            PointValue = GeographyPoint.Create(-122.333056, 47.609722)
         };
 
         HttpResponseMessage response = await client.PostAsJsonAsync(factory.KitchenSinkEndpoint, source, serializerOptions);
