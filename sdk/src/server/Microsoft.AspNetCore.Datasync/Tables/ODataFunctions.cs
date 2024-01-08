@@ -1,4 +1,7 @@
-﻿using Microsoft.Spatial;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.Spatial;
 
 namespace Microsoft.AspNetCore.Datasync.Tables;
 
@@ -12,7 +15,16 @@ internal static class ODataFunctions
     /// The distance between two points.
     /// </summary>
     internal static double GeoDistance(GeographyPoint p0, GeographyPoint p1)
-        => DistanceBetweenPlaces(p0.Latitude, p0.Longitude, p1.Latitude, p1.Longitude);
+    {
+        if (p0 == null || p1 == null)
+        {
+            return double.NaN;
+        }
+        else
+        {
+            return DistanceBetweenPlaces(p0.Latitude, p0.Longitude, p1.Latitude, p1.Longitude);
+        }
+    }
 
     /// <summary>
     /// Calculates the distance between two points on a sphere.

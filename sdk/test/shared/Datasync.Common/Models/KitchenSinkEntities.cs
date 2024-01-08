@@ -43,10 +43,10 @@ public interface IKitchenSink
     Guid? GuidValue { get; set; }
 
     // Date/time types
-    DateTime? DateTimeValue { get; set; }
-    DateTimeOffset? DateTimeOffsetValue { get; set; }
-    DateOnly? DateOnlyValue { get; set; }
-    TimeOnly? TimeOnlyValue { get; set; }
+    DateTime DateTimeValue { get; set; }
+    DateTimeOffset DateTimeOffsetValue { get; set; }
+    DateOnly DateOnlyValue { get; set; }
+    TimeOnly TimeOnlyValue { get; set; }
 
     // Geospatial types
     GeographyPoint? PointValue { get; set; }
@@ -80,10 +80,10 @@ public class ClientKitchenSink : ClientTableData, IKitchenSink
     public Guid? GuidValue { get; set; }
 
     // Date/time types
-    public DateTime? DateTimeValue { get; set; }
-    public DateTimeOffset? DateTimeOffsetValue { get; set; }
-    public DateOnly? DateOnlyValue { get; set; }
-    public TimeOnly? TimeOnlyValue { get; set; }
+    public DateTime DateTimeValue { get; set; }
+    public DateTimeOffset DateTimeOffsetValue { get; set; }
+    public DateOnly DateOnlyValue { get; set; }
+    public TimeOnly TimeOnlyValue { get; set; }
 
     // Geospatial types
     public GeographyPoint? PointValue { get; set; }
@@ -96,9 +96,9 @@ public class InMemoryKitchenSink : InMemoryTableData, IKitchenSink
     public byte ByteValue { get; set; }
     public byte[]? ByteArrayValue { get; set; }
     public char CharValue { get; set; }
-    public DateOnly? DateOnlyValue { get; set; }
-    public DateTime? DateTimeValue { get; set; }
-    public DateTimeOffset? DateTimeOffsetValue { get; set; }
+    public DateOnly DateOnlyValue { get; set; }
+    public DateTime DateTimeValue { get; set; }
+    public DateTimeOffset DateTimeOffsetValue { get; set; }
     public decimal DecimalValue { get; set; }
     public double DoubleValue { get; set; }
     public KitchenSinkState EnumValue { get; set; }
@@ -110,5 +110,5 @@ public class InMemoryKitchenSink : InMemoryTableData, IKitchenSink
     public KitchenSinkState? NullableEnumValue { get; set; }
     public GeographyPoint? PointValue { get; set; }
     public string? StringValue { get; set; }
-    public TimeOnly? TimeOnlyValue { get; set; }
+    public TimeOnly TimeOnlyValue { get; set; }
 }

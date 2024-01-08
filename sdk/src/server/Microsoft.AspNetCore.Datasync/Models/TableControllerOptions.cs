@@ -24,6 +24,13 @@ public class TableControllerOptions
     private int _maxTop = MAX_TOP;
 
     /// <summary>
+    /// If <c>true</c>, then client-side evaluation of queries is disabled and clients
+    /// will get a 500 Internal Server Error if they attempt to use a query that cannot
+    /// be evaluated by the database.
+    /// </summary>
+    public bool DisableClientSideEvaluation { get; set; } = false;
+
+    /// <summary>
     /// If <c>true</c>, then items are marked as deleted instead of being removed from the database.
     /// By default, soft delete is turned off.
     /// </summary>

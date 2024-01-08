@@ -55,6 +55,11 @@ public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : 
     /// </summary>
     /// <returns>The entities in the data store.</returns>
     internal List<TEntity> GetEntities() => _entities.Values.ToList();
+
+    /// <summary>
+    /// Clears the data store so the results are predictable.
+    /// </summary>
+    internal void Clear() => _entities.Clear();
     #endregion
 
     #region Private methods

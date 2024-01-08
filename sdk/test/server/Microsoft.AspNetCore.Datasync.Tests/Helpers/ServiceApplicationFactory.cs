@@ -4,6 +4,7 @@
 using Datasync.Common.Models;
 using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using System.Linq.Expressions;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Helpers;
@@ -22,6 +23,20 @@ public class ServiceApplicationFactory : WebApplicationFactory<Program>
     internal string MovieEndpoint = "api/in-memory/movies";
     internal string PagedMovieEndpoint = "api/in-memory/pagedmovies";
     internal string SoftDeletedMovieEndpoint = "api/in-memory/softmovies";
+
+    internal void RunWithRepository<TEntity>(Action<InMemoryRepository<TEntity>> action) where TEntity : InMemoryTableData
+    {
+        using IServiceScope scope = Services.CreateScope();
+        InMemoryRepository<TEntity> repository = scope.ServiceProvider.GetRequiredService<IRepository<TEntity>>() as InMemoryRepository<TEntity>;
+        action.Invoke(repository);
+    }
+
+    internal IList<TEntity> GetEntities<TEntity>() where TEntity : InMemoryTableData
+    {
+        using IServiceScope scope = Services.CreateScope();
+        InMemoryRepository<TEntity> repository = scope.ServiceProvider.GetRequiredService<IRepository<TEntity>>() as InMemoryRepository<TEntity>;
+        return repository.GetEntities().ToList();
+    }
 
     internal int Count<TEntity>() where TEntity : InMemoryTableData
     {

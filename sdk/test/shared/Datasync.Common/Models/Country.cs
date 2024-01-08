@@ -6,6 +6,7 @@ namespace Datasync.Common.Models;
 /// <summary>
 /// The model returned by the <see cref="CountryData.GetCountries"/> method.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class Country
 {
     /// <summary>

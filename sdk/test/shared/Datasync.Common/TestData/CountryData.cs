@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 
 namespace Datasync.Common.TestData;
 
+[ExcludeFromCodeCoverage]
 public static class CountryData
 {
     private static string ReadEmbeddedResource(string filename)
@@ -36,6 +37,7 @@ public static class CountryData
     }
 }
 
+[ExcludeFromCodeCoverage]
 internal class CountryJsonData
 {
     [JsonPropertyName("name")] public CountryNameJsonData Name { get; set; }

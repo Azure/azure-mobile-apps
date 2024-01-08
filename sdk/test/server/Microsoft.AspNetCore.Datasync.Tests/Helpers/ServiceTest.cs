@@ -4,10 +4,8 @@
 using Datasync.Common.Models;
 using Datasync.Common.TestData;
 using Microsoft.AspNetCore.Datasync.Abstractions;
-using Microsoft.AspNetCore.Datasync.Abstractions.Converters;
 using Microsoft.Spatial;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Microsoft.AspNetCore.Datasync.Tests.Helpers;
 
@@ -29,39 +27,47 @@ public abstract class ServiceTest
     private static JsonSerializerOptions GetSerializerOptions()
         => new DatasyncServiceOptions().JsonSerializerOptions;
 
-    protected void SeedKitchenSink()
+    protected void SeedKitchenSinkWithDateTimeData()
     {
-        DateOnly SourceDate = new(2022, 1, 1);
-        for (int i = 0; i < 365; i++)
+        factory.RunWithRepository<InMemoryKitchenSink>(repository =>
         {
-            DateOnly date = SourceDate.AddDays(i);
-            InMemoryKitchenSink model = new()
+            repository.Clear();
+            DateOnly SourceDate = new(2022, 1, 1);
+            for (int i = 0; i < 365; i++)
             {
-                Id = string.Format("id-{0:000}", i),
-                Version = Guid.NewGuid().ToByteArray(),
-                UpdatedAt = DateTimeOffset.UtcNow,
-                Deleted = false,
-                DateOnlyValue = date,
-                TimeOnlyValue = new TimeOnly(date.Month, date.Day)
-            };
-            factory.Store(model);
-        }
+                DateOnly date = SourceDate.AddDays(i);
+                InMemoryKitchenSink model = new()
+                {
+                    Id = string.Format("id-{0:000}", i),
+                    Version = Guid.NewGuid().ToByteArray(),
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    Deleted = false,
+                    DateOnlyValue = date,
+                    TimeOnlyValue = new TimeOnly(date.Month, date.Day)
+                };
+                repository.StoreEntity(model);
+            }
+        });
     }
 
     protected void SeedKitchenSinkWithCountryData()
     {
-        foreach (Country countryRecord in CountryData.GetCountries())
+        factory.RunWithRepository<InMemoryKitchenSink>(repository =>
         {
-            InMemoryKitchenSink model = new()
+            repository.Clear();
+            foreach (Country countryRecord in CountryData.GetCountries())
             {
-                Id = countryRecord.IsoCode,
-                Version = Guid.NewGuid().ToByteArray(),
-                UpdatedAt = DateTimeOffset.UtcNow,
-                Deleted = false,
-                PointValue = GeographyPoint.Create(countryRecord.Latitude, countryRecord.Longitude),
-                StringValue = countryRecord.CountryName
-            };
-            factory.Store(model);
-        }
+                InMemoryKitchenSink model = new()
+                {
+                    Id = countryRecord.IsoCode,
+                    Version = Guid.NewGuid().ToByteArray(),
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    Deleted = false,
+                    PointValue = GeographyPoint.Create(countryRecord.Latitude, countryRecord.Longitude),
+                    StringValue = countryRecord.CountryName
+                };
+                repository.StoreEntity(model);
+            }
+        });
     }
 }

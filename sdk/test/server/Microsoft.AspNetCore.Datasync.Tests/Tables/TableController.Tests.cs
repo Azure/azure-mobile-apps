@@ -2,14 +2,17 @@
 // Licensed under the MIT License.
 
 using Microsoft.AspNetCore.Datasync.Abstractions;
+using Microsoft.AspNetCore.Datasync.InMemory;
 using Microsoft.AspNetCore.Datasync.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
 
-namespace Microsoft.AspNetCore.Datasync.Tests;
+namespace Microsoft.AspNetCore.Datasync.Tests.Tables;
 
 [ExcludeFromCodeCoverage]
 public class TableController_Tests : BaseTest
@@ -32,9 +35,6 @@ public class TableController_Tests : BaseTest
 
         [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Used to indicate protected to public conversion")]
         public ValueTask __PostCommitHookAsync(TableOperation operation, TEntity entity, CancellationToken cancellationTken) => PostCommitHookAsync(operation, entity, cancellationTken);
-
-        [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Used to indicate protected to public conversion")]
-        public IActionResult __CatchAndLogException(string message, Func<IActionResult> action) => CatchAndLogException(message, action);
     }
 
     private readonly DateTimeOffset StartTime = DateTimeOffset.UtcNow;
@@ -228,37 +228,174 @@ public class TableController_Tests : BaseTest
     }
     #endregion
 
-    #region CatchAndLogException
+    #region BuildPagedResults
     [Fact]
-    public void CatchAndLogException_ThrowsHttpExceptionIfInvalidOperationException()
+    public void BuildPagedResult_NulLArg_BuildsPagedResult()
     {
-        IRepository<TableData> repository = FakeRepository<TableData>();
-        ExposedTableController<TableData> controller = new(repository, FakeAccessControlProvider<TableData>(TableOperation.Create, true));
+        var controller = new TableController<InMemoryMovie>() { Repository = new InMemoryRepository<InMemoryMovie>() };
 
-        Action act = () => controller.__CatchAndLogException("test", () => throw new InvalidOperationException());
-        act.Should().Throw<HttpException>().Which.StatusCode.Should().Be(417);
-    }
+        // Build an ODataQueryOptions with no query
+        var builder = new ODataConventionModelBuilder();
+        builder.AddEntityType(typeof(InMemoryMovie));
+        IEdmModel model = builder.GetEdmModel();
+        var queryContext = new ODataQueryContext(model, typeof(InMemoryMovie), new Microsoft.OData.UriParser.ODataPath());
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Method = "GET";
+        var queryOptions = new ODataQueryOptions(queryContext, httpContext.Request);
 
-    [Fact]
-    public void CatchAndLogException_ThrowsHttpExceptionIfNotSupportedException()
-    {
-        IRepository<TableData> repository = FakeRepository<TableData>();
-        ExposedTableController<TableData> controller = new(repository, FakeAccessControlProvider<TableData>(TableOperation.Create, true));
-
-        Action act = () => controller.__CatchAndLogException("test", () => throw new NotSupportedException());
-        act.Should().Throw<HttpException>().Which.StatusCode.Should().Be(417);
-    }
-
-    [Fact]
-    public void CatchAndLogException_ReThrow()
-    {
-        IRepository<TableData> repository = FakeRepository<TableData>();
-        ExposedTableController<TableData> controller = new(repository, FakeAccessControlProvider<TableData>(TableOperation.Create, true));
-
-        Action act = () => controller.__CatchAndLogException("test", () => throw new ApplicationException());
-        act.Should().Throw<ApplicationException>();
+        var result = controller.BuildPagedResult(queryOptions, null, 0);
+        result.Should().NotBeNull();
+        result.Items.Count().Should().Be(0);
+        result.Count.Should().BeNull();
     }
     #endregion
+
+    #region CatchClientSideEvaluationException
+    [Fact]
+    public void CatchClientSideEvaluationException_NotCCEE_ThrowsOriginalException()
+    {
+        var controller = new TableController<InMemoryMovie>() { Repository = new InMemoryRepository<InMemoryMovie>() };
+        var exception = new ApplicationException("Original exception");
+        static void evaluator() { throw new ApplicationException("In evaluator"); }
+        Action act = () => controller.CatchClientSideEvaluationException(exception, "foo", evaluator);
+        act.Should().Throw<ApplicationException>().WithMessage("Original exception");
+    }
+
+    [Fact]
+    public void CatchClientSideEvaluationException_NotCCEE_WithInner_ThrowsOriginalException()
+    {
+        var controller = new TableController<InMemoryMovie>() { Repository = new InMemoryRepository<InMemoryMovie>() };
+        var exception = new ApplicationException("Original exception", new ApplicationException());
+        static void evaluator() { throw new ApplicationException("In evaluator"); }
+        Action act = () => controller.CatchClientSideEvaluationException(exception, "foo", evaluator);
+        act.Should().Throw<ApplicationException>().WithMessage("Original exception");
+    }
+
+    [Fact]
+    public void CatchClientSideEvaluationException_CCEE_ThrowsEvaluatorException()
+    {
+        var controller = new TableController<InMemoryMovie>() { Repository = new InMemoryRepository<InMemoryMovie>() };
+        var exception = new NotSupportedException("Original exception", new ApplicationException("foo"));
+        static void evaluator() { throw new ApplicationException("In evaluator"); }
+        Action act = () => controller.CatchClientSideEvaluationException(exception, "foo", evaluator);
+        act.Should().Throw<ApplicationException>().WithMessage("In evaluator");
+    }
+
+    [Fact]
+    public void CatchClientSideEvaluationException_CCEEInner_ThrowsEvaluatorException()
+    {
+        var controller = new TableController<InMemoryMovie>() { Repository = new InMemoryRepository<InMemoryMovie>() };
+        var exception = new ApplicationException("Original exception", new NotSupportedException("foo"));
+        static void evaluator() { throw new ApplicationException("In evaluator"); }
+        Action act = () => controller.CatchClientSideEvaluationException(exception, "foo", evaluator);
+        act.Should().Throw<ApplicationException>().WithMessage("In evaluator");
+    }
+
+    [Fact]
+    public void CatchClientSideEvaluationException_CCEE_ExecutesEvaluator()
+    {
+        bool isExecuted = false;
+        var controller = new TableController<InMemoryMovie>() { Repository = new InMemoryRepository<InMemoryMovie>() };
+        var exception = new NotSupportedException("Original exception", new ApplicationException("foo"));
+        Action act = () => controller.CatchClientSideEvaluationException(exception, "foo", () => isExecuted = true);
+        act.Should().NotThrow();
+        isExecuted.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CatchClientSideEvaluationException_CCEEInner_ExecutesEvaluator()
+    {
+        bool isExecuted = false;
+        var controller = new TableController<InMemoryMovie>() { Repository = new InMemoryRepository<InMemoryMovie>() };
+        var exception = new ApplicationException("Original exception", new NotSupportedException("foo"));
+        Action act = () => controller.CatchClientSideEvaluationException(exception, "foo", () => isExecuted = true);
+        act.Should().NotThrow();
+        isExecuted.Should().BeTrue();
+    }
+    #endregion
+
+    #region ExecuteQueryWithClientEvaluation
+    [Fact]
+    public void ExecuteQueryWithClientEvaluation_ExecutesServiceSide()
+    {
+        bool serverSideExecuted = false;
+        var controller = new TableController<InMemoryMovie>() { Repository = new InMemoryRepository<InMemoryMovie>() };
+        controller.Options.DisableClientSideEvaluation = true;
+
+        Action act = () =>
+        {
+            controller.ExecuteQueryWithClientEvaluation(
+                () => serverSideExecuted = true,
+                () => throw new NotSupportedException("Client side")
+            );
+        };
+
+        act.Should().NotThrow();
+        serverSideExecuted.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ExecuteQueryWithClientEvaluation_ThrowsServiceSide_WhenClientEvaluationDisabled()
+    {
+        var controller = new TableController<InMemoryMovie>() { Repository = new InMemoryRepository<InMemoryMovie>() };
+        controller.Options.DisableClientSideEvaluation = true;
+
+        Action act = () =>
+        {
+            controller.ExecuteQueryWithClientEvaluation(
+                () => throw new NotSupportedException("Server side"),
+                () => throw new NotSupportedException("Client side")
+            );
+        };
+
+        act.Should().Throw<NotSupportedException>().WithMessage("Server side");
+    }
+
+    [Fact]
+    public void ExecuteQueryWithClientEvaluation_ExecutesClientSide_WhenClientEvaluationEnabled()
+    {
+        bool clientSideExecuted = false;
+        var controller = new TableController<InMemoryMovie>() { Repository = new InMemoryRepository<InMemoryMovie>() };
+        controller.Options.DisableClientSideEvaluation = false;
+
+        Action act = () =>
+        {
+            controller.ExecuteQueryWithClientEvaluation(
+                () => throw new NotSupportedException("Server side"),
+                () => clientSideExecuted = true
+            );
+        };
+
+        act.Should().NotThrow();
+        clientSideExecuted.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ExecuteQueryWithClientEvaluation_ThrowsClientSide_WhenClientEvaluationEnabled()
+    {
+        var controller = new TableController<InMemoryMovie>() { Repository = new InMemoryRepository<InMemoryMovie>() };
+        controller.Options.DisableClientSideEvaluation = false;
+
+        Action act = () =>
+        {
+            controller.ExecuteQueryWithClientEvaluation(
+                () => throw new NotSupportedException("Server side"),
+                () => throw new NotSupportedException("Client side")
+            );
+        };
+
+        act.Should().Throw<NotSupportedException>().WithMessage("Client side");
+    }
+    #endregion
+
+    [Fact]
+    public void IsClientSideEvaluationException_Works()
+    {
+        Assert.False(TableController<InMemoryMovie>.IsClientSideEvaluationException(null));
+        Assert.True(TableController<InMemoryMovie>.IsClientSideEvaluationException(new InvalidOperationException()));
+        Assert.True(TableController<InMemoryMovie>.IsClientSideEvaluationException(new NotSupportedException()));
+        Assert.False(TableController<InMemoryMovie>.IsClientSideEvaluationException(new ApplicationException()));
+    }
 
     #region PostCommitHookAsync
     [Theory]
@@ -311,7 +448,7 @@ public class TableController_Tests : BaseTest
         IRepository<TableData> repository = FakeRepository<TableData>();
         ExposedTableController<TableData> controller = new(repository, accessProvider);
         TableData entity = new();
-        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Post, "https://localhost/table", entity);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Post, "https://localhost/table", entity);
 
         Func<Task> act = async () => await controller.CreateAsync();
 
@@ -325,7 +462,7 @@ public class TableController_Tests : BaseTest
         IRepository<TableData> repository = FakeRepository<TableData>(null, true);
         ExposedTableController<TableData> controller = new(repository, accessProvider);
         TableData entity = new();
-        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Post, "https://localhost/table", entity);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Post, "https://localhost/table", entity);
 
         Func<Task> act = async () => await controller.CreateAsync();
 
@@ -352,7 +489,7 @@ public class TableController_Tests : BaseTest
         IRepository<TableData> repository = FakeRepository<TableData>(null, false);
         ExposedTableController<TableData> controller = new(repository, accessProvider);
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
-        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Post, "https://localhost/table", entity);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Post, "https://localhost/table", entity);
         List<RepositoryUpdatedEventArgs> firedEvents = new();
         controller.RepositoryUpdated += (_, e) => firedEvents.Add(e);
 
@@ -392,7 +529,7 @@ public class TableController_Tests : BaseTest
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Delete, true, m => m.Id == "1");
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         ExposedTableController<TableData> controller = new(repository, accessProvider);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Delete, $"https://localhost/table/{entity.Id}");
 
@@ -407,7 +544,7 @@ public class TableController_Tests : BaseTest
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Delete, false);
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         ExposedTableController<TableData> controller = new(repository, accessProvider);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Delete, $"https://localhost/table/{entity.Id}");
 
@@ -422,7 +559,7 @@ public class TableController_Tests : BaseTest
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4", Deleted = true };
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Delete, true);
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         TableControllerOptions options = new() { EnableSoftDelete = true };
         ExposedTableController<TableData> controller = new(repository, accessProvider, options);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Delete, $"https://localhost/table/{entity.Id}");
@@ -451,7 +588,7 @@ public class TableController_Tests : BaseTest
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Delete, true);
         TableControllerOptions options = new();
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         ExposedTableController<TableData> controller = new(repository, accessProvider, options);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Delete, $"https://localhost/table/{entity.Id}", headers);
 
@@ -480,7 +617,7 @@ public class TableController_Tests : BaseTest
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Delete, true);
         TableControllerOptions options = new() { EnableSoftDelete = true };
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         ExposedTableController<TableData> controller = new(repository, accessProvider, options);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Delete, $"https://localhost/table/{entity.Id}", headers);
         List<RepositoryUpdatedEventArgs> firedEvents = new();
@@ -519,7 +656,7 @@ public class TableController_Tests : BaseTest
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Delete, true);
         TableControllerOptions options = new() { EnableSoftDelete = false };
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         ExposedTableController<TableData> controller = new(repository, accessProvider, options);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Delete, $"https://localhost/table/{entity.Id}", headers);
         List<RepositoryUpdatedEventArgs> firedEvents = new();
@@ -546,7 +683,7 @@ public class TableController_Tests : BaseTest
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Query, false);
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, true);
+        IRepository<TableData> repository = FakeRepository(entity, true);
         ExposedTableController<TableData> controller = new(repository, accessProvider);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table");
 
@@ -576,7 +713,7 @@ public class TableController_Tests : BaseTest
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Query, true);
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, true);
+        IRepository<TableData> repository = FakeRepository(entity, true);
         ExposedTableController<TableData> controller = new(repository, accessProvider);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table");
 
@@ -595,7 +732,7 @@ public class TableController_Tests : BaseTest
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Query, true, m => m.Id == filter);
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, true);
+        IRepository<TableData> repository = FakeRepository(entity, true);
         ExposedTableController<TableData> controller = new(repository, accessProvider);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table");
 
@@ -614,7 +751,7 @@ public class TableController_Tests : BaseTest
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4", Deleted = isDeleted };
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Query, true);
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, true);
+        IRepository<TableData> repository = FakeRepository(entity, true);
         TableControllerOptions options = new() { EnableSoftDelete = true };
         ExposedTableController<TableData> controller = new(repository, accessProvider) { Options = options };
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table");
@@ -634,7 +771,7 @@ public class TableController_Tests : BaseTest
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4", Deleted = isDeleted };
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Query, true);
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, true);
+        IRepository<TableData> repository = FakeRepository(entity, true);
         TableControllerOptions options = new() { EnableSoftDelete = true };
         ExposedTableController<TableData> controller = new(repository, accessProvider) { Options = options };
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, "https://localhost/table?__includedeleted=true");
@@ -669,7 +806,7 @@ public class TableController_Tests : BaseTest
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Read, true, m => m.Id == "1");
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         ExposedTableController<TableData> controller = new(repository, accessProvider);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, $"https://localhost/table/{entity.Id}");
 
@@ -684,7 +821,7 @@ public class TableController_Tests : BaseTest
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Read, false);
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         ExposedTableController<TableData> controller = new(repository, accessProvider);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, $"https://localhost/table/{entity.Id}");
 
@@ -699,7 +836,7 @@ public class TableController_Tests : BaseTest
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4", Deleted = true };
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Read, true);
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         TableControllerOptions options = new() { EnableSoftDelete = true };
         ExposedTableController<TableData> controller = new(repository, accessProvider, options);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, $"https://localhost/table/{entity.Id}");
@@ -728,7 +865,7 @@ public class TableController_Tests : BaseTest
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Read, true);
         TableControllerOptions options = new();
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         ExposedTableController<TableData> controller = new(repository, accessProvider, options);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, $"https://localhost/table/{entity.Id}", headers);
 
@@ -757,7 +894,7 @@ public class TableController_Tests : BaseTest
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Read, true);
         TableControllerOptions options = new();
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         ExposedTableController<TableData> controller = new(repository, accessProvider, options);
         controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Get, $"https://localhost/table/{entity.Id}", headers);
         List<RepositoryUpdatedEventArgs> firedEvents = new();
@@ -786,7 +923,7 @@ public class TableController_Tests : BaseTest
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
         IRepository<TableData> repository = FakeRepository<TableData>(null, true);
         ExposedTableController<TableData> controller = new(repository, accessProvider);
-        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
 
         Func<Task> act = async () => await controller.ReplaceAsync("1");
 
@@ -816,7 +953,7 @@ public class TableController_Tests : BaseTest
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
         IRepository<TableData> repository = FakeRepository<TableData>(null, true);
         ExposedTableController<TableData> controller = new(repository, accessProvider);
-        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
 
         Func<Task> act = async () => await controller.ReplaceAsync(entity.Id);
 
@@ -829,9 +966,9 @@ public class TableController_Tests : BaseTest
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true, m => m.Id == "1");
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         ExposedTableController<TableData> controller = new(repository, accessProvider);
-        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
 
         Func<Task> act = async () => await controller.ReplaceAsync(entity.Id);
 
@@ -844,9 +981,9 @@ public class TableController_Tests : BaseTest
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4" };
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, false);
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         ExposedTableController<TableData> controller = new(repository, accessProvider);
-        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
 
         Func<Task> act = async () => await controller.ReplaceAsync(entity.Id);
 
@@ -859,10 +996,10 @@ public class TableController_Tests : BaseTest
         TableData entity = new() { Id = "0da7fb24-3606-442f-9f68-c47c6e7d09d4", Deleted = true };
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         TableControllerOptions options = new() { EnableSoftDelete = true };
         ExposedTableController<TableData> controller = new(repository, accessProvider, options);
-        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity);
 
         Func<Task> act = async () => await controller.ReplaceAsync(entity.Id);
 
@@ -888,9 +1025,9 @@ public class TableController_Tests : BaseTest
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
         TableControllerOptions options = new();
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         ExposedTableController<TableData> controller = new(repository, accessProvider, options);
-        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity, headers);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity, headers);
 
         Func<Task> act = async () => await controller.ReplaceAsync(entity.Id);
 
@@ -917,9 +1054,9 @@ public class TableController_Tests : BaseTest
 
         IAccessControlProvider<TableData> accessProvider = FakeAccessControlProvider<TableData>(TableOperation.Update, true);
         TableControllerOptions options = new();
-        IRepository<TableData> repository = FakeRepository<TableData>(entity, false);
+        IRepository<TableData> repository = FakeRepository(entity, false);
         ExposedTableController<TableData> controller = new(repository, accessProvider, options);
-        controller.ControllerContext.HttpContext = CreateHttpContext<TableData>(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity, headers);
+        controller.ControllerContext.HttpContext = CreateHttpContext(HttpMethod.Put, $"https://localhost/table/{entity.Id}", entity, headers);
         List<RepositoryUpdatedEventArgs> firedEvents = new();
         controller.RepositoryUpdated += (_, e) => firedEvents.Add(e);
 

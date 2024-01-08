@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.OData.Query.Expressions;
-using Microsoft.OData.Edm;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.AspNetCore.OData.Query.Expressions;
 using Microsoft.OData.UriParser;
 using Microsoft.Spatial;
 using System.Linq.Expressions;
@@ -13,25 +15,30 @@ namespace Microsoft.AspNetCore.Datasync.Tables;
 internal class DatasyncFilterBinder : FilterBinder
 {
     /// <summary>
-    /// The list of functions that are supported by this binder.
-    /// </summary>
-    internal const string GeoDistanceFunctionName = "geo.distance";
-
-    /// <summary>
     /// Convenience constant to get all the static methods of a class.
     /// </summary>
     internal const BindingFlags AllMethods = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
+    /// <summary>
+    /// The name of the geo.distance function.
+    /// </summary>
+    internal const string GeoDistanceFunctionName = "geo.distance";
+
+    /// <summary>
+    /// The list of functions that we support, together with the <see cref="MethodInfo"/> for the implementation.
+    /// </summary>
+    internal static readonly Dictionary<string, MethodInfo> FunctionMethods = new()
+    {
+        { GeoDistanceFunctionName, typeof(ODataFunctions).GetMethod("GeoDistance", AllMethods, new[] { typeof(GeographyPoint), typeof(GeographyPoint) })! }
+    };
+
     /// <inheritdoc />
     public override Expression BindSingleValueFunctionCallNode(SingleValueFunctionCallNode node, QueryBinderContext context)
-    {
-        switch (node.Name)
+        => node.Name switch
         {
-            case GeoDistanceFunctionName:
-                return BindGeoDistanceFunctionCallNode(node, context);
-        }
-        return base.BindSingleValueFunctionCallNode(node, context);
-    }
+            GeoDistanceFunctionName => BindGeoDistanceFunctionCallNode(node, context),
+            _ => base.BindSingleValueFunctionCallNode(node, context)
+        };
 
     #region Function binding methods
     /// <summary>
@@ -42,9 +49,8 @@ internal class DatasyncFilterBinder : FilterBinder
     /// <returns>An expression for the function result.</returns>
     public Expression BindGeoDistanceFunctionCallNode(SingleValueFunctionCallNode node, QueryBinderContext context)
     {
-        MethodInfo methodInfo = typeof(ODataFunctions).GetMethod("GeoDistance", AllMethods, new[] { typeof(GeographyPoint), typeof(GeographyPoint) })!;
         Expression[] arguments = BindArguments(node.Parameters, context);
-        return Expression.Call(methodInfo, arguments[0], arguments[1]);
+        return Expression.Call(FunctionMethods[GeoDistanceFunctionName], arguments[0], arguments[1]);
     }
     #endregion
 }

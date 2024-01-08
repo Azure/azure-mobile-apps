@@ -3700,7 +3700,7 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
     [Fact]
     public async Task KitchSinkQueryTest_010()
     {
-        SeedKitchenSink();
+        SeedKitchenSinkWithDateTimeData();
         await KitchenSinkQueryTest(
             $"{factory.KitchenSinkEndpoint}?$orderby=id&$filter=(second(timeOnlyValue) eq 0)",
             100,
@@ -3713,7 +3713,7 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
     [Fact]
     public async Task KitchSinkQueryTest_011()
     {
-        SeedKitchenSink();
+        SeedKitchenSinkWithDateTimeData();
         await KitchenSinkQueryTest(
             $"{factory.KitchenSinkEndpoint}?$orderby=id&$filter=(hour(timeOnlyValue) eq 3)",
             31,
@@ -3726,7 +3726,7 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
     [Fact]
     public async Task KitchSinkQueryTest_012()
     {
-        SeedKitchenSink();
+        SeedKitchenSinkWithDateTimeData();
         await KitchenSinkQueryTest(
             $"{factory.KitchenSinkEndpoint}?$orderby=id&$filter=(minute(timeOnlyValue) eq 21)",
             12,
@@ -3739,7 +3739,7 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
     [Fact]
     public async Task KitchSinkQueryTest_013()
     {
-        SeedKitchenSink();
+        SeedKitchenSinkWithDateTimeData();
         await KitchenSinkQueryTest(
             $"{factory.KitchenSinkEndpoint}?$count=true&$orderby=id&$filter=(hour(timeOnlyValue) le 12)",
             100,
@@ -3752,7 +3752,7 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
     [Fact]
     public async Task KitchSinkQueryTest_014()
     {
-        SeedKitchenSink();
+        SeedKitchenSinkWithDateTimeData();
         await KitchenSinkQueryTest(
             $"{factory.KitchenSinkEndpoint}?$count=true&$orderby=id&$filter=timeOnlyValue eq 02:14:00",
             1,
@@ -3766,7 +3766,7 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
     [Fact]
     public async Task KitchSinkQueryTest_015()
     {
-        SeedKitchenSink();
+        SeedKitchenSinkWithDateTimeData();
         await KitchenSinkQueryTest(
             $"{factory.KitchenSinkEndpoint}?$count=true&$orderby=id&$filter=timeOnlyValue ge 12:15:00",
             17,
@@ -3780,7 +3780,7 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
     [Fact]
     public async Task KitchSinkQueryTest_016()
     {
-        SeedKitchenSink();
+        SeedKitchenSinkWithDateTimeData();
         await KitchenSinkQueryTest(
             $"{factory.KitchenSinkEndpoint}?$count=true&$orderby=id&$filter=timeOnlyValue gt 12:15:00",
             16,
@@ -3794,7 +3794,7 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
     [Fact]
     public async Task KitchSinkQueryTest_017()
     {
-        SeedKitchenSink();
+        SeedKitchenSinkWithDateTimeData();
         await KitchenSinkQueryTest(
             $"{factory.KitchenSinkEndpoint}?$count=true&$orderby=id&$filter=timeOnlyValue le cast(07:14:00,Edm.TimeOfDay)",
             100,
@@ -3808,7 +3808,7 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
     [Fact]
     public async Task KitchSinkQueryTest_018()
     {
-        SeedKitchenSink();
+        SeedKitchenSinkWithDateTimeData();
         await KitchenSinkQueryTest(
             $"{factory.KitchenSinkEndpoint}?$count=true&$orderby=id&$filter=timeOnlyValue lt cast(07:14:00,Edm.TimeOfDay)",
             100,

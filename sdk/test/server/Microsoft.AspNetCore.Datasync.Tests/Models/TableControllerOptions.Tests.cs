@@ -13,6 +13,7 @@ public class TableControllerOptions_Tests
     {
         TableControllerOptions sut = new();
 
+        sut.DisableClientSideEvaluation.Should().BeFalse();
         sut.EnableSoftDelete.Should().BeFalse();
         sut.MaxTop.Should().Be(128000);
         sut.PageSize.Should().Be(100);
@@ -35,8 +36,9 @@ public class TableControllerOptions_Tests
     [Fact]
     public void Ctor_Roundtrips()
     {
-        TableControllerOptions sut = new() { EnableSoftDelete = true, MaxTop = 100, PageSize = 50, UnauthorizedStatusCode = 510 };
+        TableControllerOptions sut = new() { DisableClientSideEvaluation = true, EnableSoftDelete = true, MaxTop = 100, PageSize = 50, UnauthorizedStatusCode = 510 };
 
+        sut.DisableClientSideEvaluation.Should().BeTrue();
         sut.EnableSoftDelete.Should().BeTrue();
         sut.MaxTop.Should().Be(100);
         sut.PageSize.Should().Be(50);
