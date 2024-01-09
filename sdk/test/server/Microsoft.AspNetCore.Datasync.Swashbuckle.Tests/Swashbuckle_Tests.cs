@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using FluentAssertions.Json;
 using Microsoft.AspNetCore.Datasync.Swashbuckle.Tests.Helpers.Controllers;
 using Microsoft.AspNetCore.Datasync.Swashbuckle.Tests.Helpers.Models;
 using Microsoft.OpenApi.Readers;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Datasync.Swashbuckle.Tests;
 
@@ -25,7 +27,10 @@ public class Swashbuckle_Tests : ServiceTest, IClassFixture<ServiceApplicationFa
         {
             WriteExternalFile("swashbuckle.json.out", normalizedContent);
         }
-        normalizedContent.Should().Be(expectedContent);
+
+        JToken expectedJToken = JToken.Parse(expectedContent);
+        JToken actualJToken = JToken.Parse(normalizedContent);
+        actualJToken.Should().BeEquivalentTo(expectedJToken);
     }
 
     [Fact]

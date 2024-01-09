@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
+using FluentAssertions.Json;
 using Microsoft.AspNetCore.Datasync.NSwag.Tests.Helpers.Controllers;
 using Microsoft.AspNetCore.Datasync.NSwag.Tests.Helpers.Models;
 using Microsoft.OpenApi.Readers;
+using Newtonsoft.Json.Linq;
 using NSwag;
 
 namespace Microsoft.AspNetCore.Datasync.NSwag.Tests;
@@ -26,7 +28,10 @@ public class NSwag_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
         {
             WriteExternalFile("nswag.json.out", normalizedContent);
         }
-        normalizedContent.Should().Be(expectedContent);
+
+        JToken expectedJToken = JToken.Parse(expectedContent);
+        JToken actualJToken = JToken.Parse(normalizedContent);
+        actualJToken.Should().BeEquivalentTo(expectedJToken);
     }
 
     [Fact]
