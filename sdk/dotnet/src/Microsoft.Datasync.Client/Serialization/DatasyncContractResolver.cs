@@ -117,7 +117,7 @@ namespace Microsoft.Datasync.Client.Serialization
                     var relevantProperties = FilterJsonPropertyCacheByType(typeInfo);
                     foreach (var property in properties)
                     {
-                        var memberInfo = relevantProperties.Single(x => x.Value == property).Key;
+                        MemberInfo memberInfo = relevantProperties.Single(x => x.Value.PropertyName == property.PropertyName && x.Value.DeclaringType == property.DeclaringType).Key;
                         SetMemberConverters(property);
                         ApplySystemPropertyAttributes(property, memberInfo);
                     }
@@ -267,7 +267,7 @@ namespace Microsoft.Datasync.Client.Serialization
         /// Acquire a list of all MemberInfos currently tracked by the contract resolver in a threadsafe manner.
         /// </summary>
         /// <returns>A collection of <see cref="MemberInfo"/> instances.</returns>
-        private IList<KeyValuePair<MemberInfo, JsonProperty>> FilterJsonPropertyCacheByType(TypeInfo typeInfo)
+        private List<KeyValuePair<MemberInfo, JsonProperty>> FilterJsonPropertyCacheByType(TypeInfo typeInfo)
         {
             try
             {
