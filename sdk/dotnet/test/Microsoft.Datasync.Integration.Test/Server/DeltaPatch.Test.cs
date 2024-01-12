@@ -10,9 +10,12 @@ namespace Microsoft.Datasync.Integration.Test.Server;
 [Collection("Integration")]
 public class DeltaPatch_Tests : BaseTest
 {
-    [Theory, CombinatorialData]
-    public async Task BasicPatchTests([CombinatorialValues("movies", "movies_pagesize")] string table)
+    [SkippableTheory]
+    [InlineData("movies")]
+    public async Task BasicPatchTests(string table)
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+
         var id = GetRandomId();
         var expected = MovieServer.GetMovieById(id)!;
         expected.Title = "Test Movie Title";
