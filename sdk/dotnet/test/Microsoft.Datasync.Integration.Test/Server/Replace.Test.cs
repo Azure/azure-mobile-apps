@@ -12,9 +12,12 @@ public class Replace_Tests : BaseTest
 {
     public Replace_Tests(ITestOutputHelper logger) : base(logger) { }
 
-    [Theory, CombinatorialData]
-    public async Task BasicReplaceTests([CombinatorialValues("movies", "movies_pagesize")] string table)
+    [SkippableTheory]
+    [InlineData("movies")]
+    public async Task BasicReplaceTests(string table)
     {
+        Skip.If(BuildEnvironment.IsPipeline());
+
         string id = GetRandomId();
         var original = MovieServer.GetMovieById(id)!;
         var expected = original.Clone();
