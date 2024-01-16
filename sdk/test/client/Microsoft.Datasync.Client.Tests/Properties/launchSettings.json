@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Microsoft.Datasync.Client.Tests": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:52882;http://localhost:52883"
+    }
+  }
+}

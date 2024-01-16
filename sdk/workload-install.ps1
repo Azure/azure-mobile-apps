@@ -31,7 +31,7 @@ $ManifestBaseName = "Samsung.NET.Sdk.Tizen.Manifest"
 $LatestVersionMap = @{
     "$ManifestBaseName-6.0.100" = "7.0.101";
     "$ManifestBaseName-6.0.200" = "7.0.100-preview.13.6";
-    "$ManifestBaseName-6.0.300" = "7.0.304";
+    "$ManifestBaseName-6.0.300" = "8.0.133";
     "$ManifestBaseName-6.0.400" = "8.0.132";
     "$ManifestBaseName-7.0.100-preview.6" = "7.0.100-preview.6.14";
     "$ManifestBaseName-7.0.100-preview.7" = "7.0.100-preview.7.20";
@@ -52,7 +52,7 @@ $LatestVersionMap = @{
     "$ManifestBaseName-8.0.100-rc.2" = "7.0.125";
     "$ManifestBaseName-8.0.100-rtm" = "7.0.127";
     "$ManifestBaseName-8.0.100" = "8.0.130";
-    "$ManifestBaseName-9.0.100-alpha.1" = "8.0.131";
+    "$ManifestBaseName-9.0.100-alpha.1" = "8.0.134";
 }
 
 function New-TemporaryDirectory {
