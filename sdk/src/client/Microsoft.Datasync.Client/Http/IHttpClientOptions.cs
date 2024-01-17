@@ -1,4 +1,7 @@
-﻿namespace Microsoft.Datasync.Client.Http;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+namespace Microsoft.Datasync.Client.Http;
 
 /// <summary>
 /// A description of the options that can be used in configuring a new <see cref="HttpClientFactory"/>.

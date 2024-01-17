@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Datasync.Extensions;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.AspNetCore.Datasync.Extensions;
 using Microsoft.AspNetCore.Datasync.Models;
 using Microsoft.AspNetCore.Datasync.Tables;
 using Microsoft.AspNetCore.Http;

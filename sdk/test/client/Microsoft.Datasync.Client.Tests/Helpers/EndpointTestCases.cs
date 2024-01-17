@@ -1,4 +1,7 @@
-﻿namespace Microsoft.Datasync.Client.Tests.Helpers;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+namespace Microsoft.Datasync.Client.Tests.Helpers;
 
 [ExcludeFromCodeCoverage]
 public class EndpointTestCase

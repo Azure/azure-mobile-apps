@@ -1,4 +1,7 @@
-﻿using Microsoft.Datasync.Client.Http;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using Microsoft.Datasync.Client.Http;
 
 namespace Microsoft.Datasync.Client.Tests.Http;
 

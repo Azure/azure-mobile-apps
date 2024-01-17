@@ -1,4 +1,7 @@
-﻿using EnsureThat;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using EnsureThat;
 using Microsoft.Datasync.Client.Extensions;
 
 namespace Microsoft.Datasync.Client.Tests.Extensions;
