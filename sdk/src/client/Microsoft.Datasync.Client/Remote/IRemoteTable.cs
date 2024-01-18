@@ -4,10 +4,27 @@
 namespace Microsoft.Datasync.Client.Remote;
 
 /// <summary>
+/// The definition of the operations that can be done against a read-only remote table.
+/// </summary>
+/// <typeparam name="TEntity">The type of the entity returned by the table connection.</typeparam>
+public interface IReadonlyRemoteTable<TEntity> : IQueryable<TEntity> where TEntity : IClientTableData
+{
+    /// <summary>
+    /// Retrieves an entity from the remote table using the provided ID.
+    /// </summary>
+    /// <param name="id">The ID of the entity to retrieve.</param>
+    /// <param name="options">The remote operation options to use in executing the request.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+    /// <returns>A task that returns the entity or <c>null</c> if the entity does not exist when complete.</returns>
+    /// <exception cref="RemoteServiceException">Thrown if the remote service returns an error.</exception>
+    ValueTask<TEntity?> FindOrDefaultAsync(string id, RemoteOperationOptions options, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
 /// The definition of the operations that can be done against a read-write remote table.
 /// </summary>
 /// <typeparam name="TEntity">The type of the entity returned by the table connection.</typeparam>
-public interface IRemoteService<TEntity> : IReadonlyRemoteService<TEntity> where TEntity : IClientTableData
+public interface IRemoteTable<TEntity> : IReadonlyRemoteTable<TEntity> where TEntity : IClientTableData
 {
     /// <summary>
     /// Add the provided entity to the remote table.

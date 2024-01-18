@@ -3832,6 +3832,19 @@ public class Query_Tests : ServiceTest, IClassFixture<ServiceApplicationFactory>
     }
 
     [Fact]
+    public async Task KitchenSinkQueryTest_020()
+    {
+        SeedKitchenSinkWithCountryData();
+        await KitchenSinkQueryTest(
+            $"{factory.KitchenSinkEndpoint}?$filter=id in ( 'IT', 'GR', 'EG' )",
+            3,
+            null,
+            null,
+            new[] { "EG", "GR", "IT" }
+        );
+    }
+
+    [Fact]
     public async Task Paging_Test_1()
     {
         await PagingTest(factory.MovieEndpoint, 248, 3);
