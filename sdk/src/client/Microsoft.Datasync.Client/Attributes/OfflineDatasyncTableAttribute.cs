@@ -1,4 +1,7 @@
-﻿namespace Microsoft.Datasync.Client;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+namespace Microsoft.Datasync.Client;
 
 /// <summary>
 /// The attribute that should be applied to a class or struct that is being used

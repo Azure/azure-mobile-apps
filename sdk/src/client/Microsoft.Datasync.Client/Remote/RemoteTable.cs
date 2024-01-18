@@ -1,4 +1,7 @@
-﻿using System.Collections;
+﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
+// Licensed under the MIT License.
+
+using System.Collections;
 using System.Linq.Expressions;
 
 namespace Microsoft.Datasync.Client.Remote;
