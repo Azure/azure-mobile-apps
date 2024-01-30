@@ -1,26 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<Description>NSwag bindings for the Microsoft Datasync Framework.</Description>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
-		<LangVersion>10.0</LangVersion>
-		<NeutralLanguage>en</NeutralLanguage>
-		<PackageId>Microsoft.AspNetCore.Datasync.NSwag</PackageId>
-		<PackageTags>microsoft;aspnetcore;cloud;datasync;webapi</PackageTags>
-		<ProductName>Microsoft.AspNetCore.Datasync.NSwag</ProductName>
-		<ProjectUrl>https://github.com/Azure/azure-mobile-apps</ProjectUrl>
-		<RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
-		<RootNamespace>Microsoft.AspNetCore.Datasync.NSwag</RootNamespace>
-		<TargetFramework>net6.0</TargetFramework>
-	</PropertyGroup>
+  <PropertyGroup>
+    <Description>NSwag bindings for the Microsoft Datasync Framework.</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288890</IconUrl>
+    <LangVersion>10.0</LangVersion>
+    <NeutralLanguage>en</NeutralLanguage>
+    <PackageId>Microsoft.AspNetCore.Datasync.NSwag</PackageId>
+    <PackageTags>microsoft;aspnetcore;cloud;datasync;webapi</PackageTags>
+    <ProductName>Microsoft.AspNetCore.Datasync.NSwag</ProductName>
+    <ProjectUrl>https://github.com/Azure/azure-mobile-apps</ProjectUrl>
+    <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
+    <RootNamespace>Microsoft.AspNetCore.Datasync.NSwag</RootNamespace>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
 
-	<Import Project="..\..\Shared.Build.props" />
+  <Import Project="..\..\Shared.Build.props" />
 
-	<ItemGroup>
-		<PackageReference Include="NSwag.AspNetCore" Version="13.20.0" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NSwag.AspNetCore" Version="14.0.2" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.AspNetCore.Datasync\Microsoft.AspNetCore.Datasync.csproj" />
+  </ItemGroup>
 </Project>

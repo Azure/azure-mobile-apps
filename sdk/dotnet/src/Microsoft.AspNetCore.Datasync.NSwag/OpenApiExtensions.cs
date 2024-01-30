@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Datasync.NSwag
         public static void AddDatasyncProcessors(this AspNetCoreOpenApiDocumentGeneratorSettings settings)
         {
             settings.OperationProcessors.Add(new DatasyncOperationProcessor());
-            settings.SchemaProcessors.Add(new DatasyncSchemaProcessor());
+            settings.SchemaSettings.SchemaProcessors.Add(new DatasyncSchemaProcessor());
         }
 
         /// <summary>
@@ -94,8 +94,8 @@ namespace Microsoft.AspNetCore.Datasync.NSwag
         /// Adds appropriate request headers and responses for conditional requests.
         /// </summary>
         /// <param name="operation">The <see cref="OpenApiOperation"/> to edit.</param>
-        /// <param name="isRead">If true, it's a read operation.</param>
         /// <param name="schema">The <see cref="JsonSchema"/> of the entity.</param>
+        /// <param name="isRead">If true, it's a read operation.</param>
         internal static void AddConditionalRequestSupport(this OpenApiOperation operation, JsonSchema schema, bool isRead = false)
         {
             var headerName = isRead ? "If-None-Match" : "If-Match";
