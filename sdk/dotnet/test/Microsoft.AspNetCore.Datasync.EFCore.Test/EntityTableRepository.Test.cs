@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.AspNetCore.Datasync.LiteDb;
+using Microsoft.EntityFrameworkCore;
 
 namespace Microsoft.AspNetCore.Datasync.EFCore.Test;
 
@@ -35,6 +35,16 @@ public class EntityTableRepository_Tests
             throw new NotImplementedException();
         }
     }
+
+    public class TestEntityTableRepository<T> : EntityTableRepository<T> where T : EntityTableData
+    {
+        public TestEntityTableRepository(DbContext context) : base(context)
+        {
+        }
+
+        // Expose the protected method for testing
+        public bool TestPreconditionFailed(byte[] v1, byte[] v2) => base.PreconditionFailed(v1, v2);
+    }
     #endregion
 
     /// <summary>
@@ -45,12 +55,12 @@ public class EntityTableRepository_Tests
     /// <summary>
     /// Reference to the repository under test.
     /// </summary>
-    private readonly EntityTableRepository<EFMovie> repository;
+    private readonly TestEntityTableRepository<EFMovie> repository;
 
     public EntityTableRepository_Tests()
     {
         context = MovieDbContext.CreateContext();
-        repository = new EntityTableRepository<EFMovie>(context);
+        repository = new TestEntityTableRepository<EFMovie>(context);
     }
 
     [Fact]
@@ -425,6 +435,6 @@ public class EntityTableRepository_Tests
         byte[] v1 = v1IsNull ? null : new byte[] { 0x0A, 0x0B, 0x0C };
         byte[] v2 = v2IsNull ? null : new byte[] { 0x0A, 0x0B, 0x0C };
 
-        Assert.Equal(expected, EntityTableRepository<EFMovie>.PreconditionFailed(v1, v2));
+        Assert.Equal(expected, repository.TestPreconditionFailed(v1, v2));
     }
 }
