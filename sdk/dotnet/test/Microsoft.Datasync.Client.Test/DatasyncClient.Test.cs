@@ -83,7 +83,7 @@ public class DatasyncClient_Tests : BaseTest
         var client = new DatasyncClient(testcase.BaseEndpoint);
         Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
         Assert.NotNull(client.ClientOptions);
-        Assert.NotNull(client.HttpClient);
+        Assert.NotNull(client.ServiceHttpClient);
     }
 
     [Theory, ClassData(typeof(EndpointTestCases))]
@@ -94,7 +94,7 @@ public class DatasyncClient_Tests : BaseTest
         var client = new DatasyncClient(testcase.BaseEndpoint, authProvider);
         Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
         Assert.NotNull(client.ClientOptions);
-        Assert.NotNull(client.HttpClient);
+        Assert.NotNull(client.ServiceHttpClient);
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class DatasyncClient_Tests : BaseTest
         var client = new DatasyncClient(new Uri(testcase.BaseEndpoint));
         Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
         Assert.NotNull(client.ClientOptions);
-        Assert.NotNull(client.HttpClient);
+        Assert.NotNull(client.ServiceHttpClient);
     }
 
     [Theory, ClassData(typeof(EndpointTestCases))]
@@ -131,7 +131,7 @@ public class DatasyncClient_Tests : BaseTest
         var client = new DatasyncClient(new Uri(testcase.BaseEndpoint), authProvider);
         Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
         Assert.NotNull(client.ClientOptions);
-        Assert.NotNull(client.HttpClient);
+        Assert.NotNull(client.ServiceHttpClient);
     }
 
     [Fact]
@@ -160,7 +160,7 @@ public class DatasyncClient_Tests : BaseTest
         var client = new DatasyncClient(testcase.BaseEndpoint, options);
         Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
         Assert.Same(options, client.ClientOptions);
-        Assert.NotNull(client.HttpClient);
+        Assert.NotNull(client.ServiceHttpClient);
     }
 
     [Theory, ClassData(typeof(EndpointTestCases))]
@@ -172,7 +172,7 @@ public class DatasyncClient_Tests : BaseTest
         var client = new DatasyncClient(testcase.BaseEndpoint, authProvider, options);
         Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
         Assert.Same(options, client.ClientOptions);
-        Assert.NotNull(client.HttpClient);
+        Assert.NotNull(client.ServiceHttpClient);
     }
 
     [Fact]
@@ -199,7 +199,7 @@ public class DatasyncClient_Tests : BaseTest
         var client = new DatasyncClient(new Uri(testcase.BaseEndpoint), options);
         Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
         Assert.Same(options, client.ClientOptions);
-        Assert.NotNull(client.HttpClient);
+        Assert.NotNull(client.ServiceHttpClient);
     }
 
     [Theory, ClassData(typeof(EndpointTestCases))]
@@ -211,7 +211,7 @@ public class DatasyncClient_Tests : BaseTest
         var client = new DatasyncClient(new Uri(testcase.BaseEndpoint), authProvider, options);
         Assert.Equal(testcase.NormalizedEndpoint, client.Endpoint.ToString());
         Assert.Same(options, client.ClientOptions);
-        Assert.NotNull(client.HttpClient);
+        Assert.NotNull(client.ServiceHttpClient);
     }
 
     [Fact]

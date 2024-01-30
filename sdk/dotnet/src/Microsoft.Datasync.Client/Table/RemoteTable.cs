@@ -287,7 +287,7 @@ namespace Microsoft.Datasync.Client.Table
         {
             try
             {
-                var response = await ServiceClient.HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                var response = await ServiceClient.ServiceHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
                 return GetJTokenFromResponse(response);
             }
             catch (DatasyncInvalidOperationException ex) when (ex.IsConflictStatusCode())
