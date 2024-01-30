@@ -3,6 +3,7 @@
 
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -17,8 +18,7 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
     /// <typeparam name="TEntity">The type of entity to store</typeparam>
     public class InMemoryRepository<TEntity> : IRepository<TEntity> where TEntity : InMemoryTableData
     {
-        private readonly Dictionary<string, TEntity> _store = new();
-        private readonly object writeLock = new();
+        private readonly ConcurrentDictionary<string, TEntity> _store = new();
 
         /// <summary>
         /// Creates a new <see cref="InMemoryRepository{TEntity}"/>, potentially seeded with
@@ -29,9 +29,10 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         {
             if (seedEntities != null)
             {
-                foreach (var entity in seedEntities)
+                foreach (TEntity entity in seedEntities)
                 {
-                    CreateEntity(entity);
+                    entity.Id ??= Guid.NewGuid().ToString("N");
+                    StoreEntity(entity);
                 }
             }
         }
@@ -48,12 +49,17 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         /// </summary>
         /// <param name="id">The id to retrieve.</param>
         /// <returns>The entity, or null if it doesn't exist.</returns>
-        internal TEntity GetEntity(string id) => _store.ContainsKey(id) ? _store[id] : null;
+        internal TEntity GetEntity(string id) => _store.TryGetValue(id, out TEntity entity) ? entity : null;
 
         /// <summary>
         /// Used in assertions to get the full list of entities from the store.
         /// </summary>
         internal List<TEntity> Entities { get => _store.Values.ToList(); }
+
+        /// <summary>
+        /// Used in testing to clear the store so that results are predicatable.
+        /// </summary>
+        internal void Clear() => _store.Clear();
         #endregion
 
         #region Private Methods
@@ -69,17 +75,37 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         }
 
         /// <summary>
+        /// Checks that the version provided matches the version in the database.
+        /// </summary>
+        /// <param name="expectedVersion">The version that the client provides.</param>
+        /// <param name="currentVersion">The version that is stored in the database.</param>
+        /// <returns>True if we need to throw a <see cref="PreconditionFailedException"/>.</returns>
+        protected virtual bool PreconditionFailed(byte[] expectedVersion, byte[] currentVersion)
+           => expectedVersion != null && currentVersion?.SequenceEqual(expectedVersion) != true;
+
+        /// <summary>
         /// Updates the system properties for the provided entity on write.
         /// </summary>
         /// <param name="entity">The entity to update.</param>
-        private static void UpdateEntity(TEntity entity)
+        private void StoreEntity(TEntity entity)
         {
             entity.UpdatedAt = DateTimeOffset.UtcNow;
             entity.Version = Guid.NewGuid().ToByteArray();
+            _store[entity.Id] = Disconnect(entity);
+        }
+
+        /// <summary>
+        /// Used during testing to throw an exception if one has been set.
+        /// </summary>
+        protected void ThrowExceptionIfSet()
+        {
+            if (ThrowException != null)
+            {
+                throw ThrowException;
+            }
         }
         #endregion
 
-        #region IRepository<TEntity> Interface
         /// <summary>
         /// Returns an unexecuted <see cref="IQueryable{T}"/> that represents the data store
         /// as a whole. This is adjusted by the <see cref="TableController{TEntity}"/> to account
@@ -88,11 +114,7 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         /// <returns>An <see cref="IQueryable{T}"/> for the entities in the data store</returns>
         public IQueryable<TEntity> AsQueryable()
         {
-            if (ThrowException != null)
-            {
-                throw ThrowException;
-            }
-
+            ThrowExceptionIfSet();
             return _store.Values.AsQueryable();
         }
 
@@ -115,12 +137,20 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         /// <exception cref="RepositoryException">if a backend data store error occurred.</exception>
         public Task CreateAsync(TEntity entity, CancellationToken token = default)
         {
-            if (ThrowException != null)
+            ThrowExceptionIfSet();
+            if (entity == null)
             {
-                throw ThrowException;
+                throw new ArgumentNullException(nameof(entity));
             }
-
-            CreateEntity(entity);
+            if (string.IsNullOrEmpty(entity.Id))
+            {
+                entity.Id = Guid.NewGuid().ToString();
+            }
+            if (_store.TryGetValue(entity.Id, out TEntity storedEntity))
+            {
+                throw new ConflictException(Disconnect(storedEntity));
+            }
+            StoreEntity(entity);
             return Task.CompletedTask;
         }
 
@@ -136,12 +166,20 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         /// <exception cref="RepositoryException">if a backend data store error occurred.</exception>
         public Task DeleteAsync(string id, byte[] version = null, CancellationToken token = default)
         {
-            if (ThrowException != null)
+            ThrowExceptionIfSet();
+            if (string.IsNullOrEmpty(id))
             {
-                throw ThrowException;
+                throw new BadRequestException();
             }
-
-            DeleteEntity(id, version);
+            if (!_store.TryGetValue(id, out TEntity entity))
+            {
+                throw new NotFoundException();
+            }
+            if (PreconditionFailed(version, entity.Version))
+            {
+                throw new PreconditionFailedException(Disconnect(entity));
+            }
+            _store.TryRemove(id, out _);
             return Task.CompletedTask;
         }
 
@@ -158,18 +196,16 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         /// <exception cref="RepositoryException">if a backend data store error occurred.</exception>
         public Task<TEntity> ReadAsync(string id, CancellationToken token = default)
         {
-            if (ThrowException != null)
-            {
-                throw ThrowException;
-            }
-
+            ThrowExceptionIfSet();
             if (string.IsNullOrEmpty(id))
             {
                 throw new BadRequestException();
             }
-
-            TEntity entity = _store.ContainsKey(id) ? Disconnect(_store[id]) : null;
-            return Task.FromResult(entity);
+            if (!_store.TryGetValue(id, out TEntity entity))
+            {
+                return Task.FromResult<TEntity>(null);
+            }
+            return Task.FromResult(Disconnect(entity));
         }
 
         /// <summary>
@@ -185,113 +221,25 @@ namespace Microsoft.AspNetCore.Datasync.InMemory
         /// <exception cref="RepositoryException">if a backend data store error occurred.</exception>
         public Task ReplaceAsync(TEntity entity, byte[] version = null, CancellationToken token = default)
         {
-            if (ThrowException != null)
+            ThrowExceptionIfSet();
+            if (entity == null)
             {
-                throw ThrowException;
+                throw new ArgumentNullException(nameof(entity));
             }
-
-            ReplaceEntity(entity, version);
+            if (string.IsNullOrEmpty(entity.Id))
+            {
+                throw new BadRequestException();
+            }
+            if (!_store.TryGetValue(entity.Id, out TEntity storedEntity))
+            {
+                throw new NotFoundException();
+            }
+            if (PreconditionFailed(version, storedEntity.Version))
+            {
+                throw new PreconditionFailedException(Disconnect(storedEntity));
+            }
+            StoreEntity(entity);
             return Task.CompletedTask;
         }
-        #endregion
-
-        #region Synchronous Methods
-        /// <summary>
-        /// Create a new entity within the backend data store.  If the entity does not
-        /// have an ID, one is created. After completion, the system properties will be
-        /// filled with new values and the item will be marked as not deleted.
-        /// </summary>
-        /// <param name="entity">The entity to be created.</param>
-        /// <exception cref="ConflictException">if the Id representing the entity already exists.</exception>
-        internal void CreateEntity(TEntity entity)
-        {
-            if (entity == null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
-
-            if (string.IsNullOrEmpty(entity.Id))
-            {
-                entity.Id = Guid.NewGuid().ToString();
-            }
-
-            lock (writeLock)
-            {
-                if (_store.ContainsKey(entity.Id))
-                {
-                    throw new ConflictException(Disconnect(_store[entity.Id]));
-                }
-                UpdateEntity(entity);
-                _store[entity.Id] = Disconnect(entity);
-            }
-        }
-
-        /// <summary>
-        /// Deletes the specified entity within the backend store. If a <c>version</c> is specified,
-        /// then the version must match the entity to be deleted.
-        /// </summary>
-        /// <param name="id">The globally unique ID of the entity to be deleted.</param>
-        /// <param name="version">The (optional) version of the entity to be deleted.</param>
-        /// <exception cref="NotFoundException">if the entity does not exist.</exception>
-        /// <exception cref="PreconditionFailedException">if the entity version does not match that which is provided.</exception>
-        internal void DeleteEntity(string id, byte[] version = null)
-        {
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new BadRequestException();
-            }
-
-            lock (writeLock)
-            {
-                if (!_store.ContainsKey(id))
-                {
-                    throw new NotFoundException();
-                }
-                TEntity existing = _store[id];
-                if (version != null && existing.Version?.SequenceEqual(version) != true)
-                {
-                    throw new PreconditionFailedException(Disconnect(existing));
-                }
-                _store.Remove(id);
-            }
-        }
-
-        /// <summary>
-        /// Replaces the specified entity within the backend store.  If a <c>version</c> is specified,
-        /// then the version must match the entity to be replaced.
-        /// </summary>
-        /// <param name="entity">The replacement entity.</param>
-        /// <param name="version">The (optional) version of the entity to be deleted.</param>
-        /// <exception cref="BadRequestException">if the entity does not have an ID</exception>
-        /// <exception cref="NotFoundException">if the entity does not exist.</exception>
-        /// <exception cref="PreconditionFailedException">if the entity version does not match that which is provided.</exception>
-        internal void ReplaceEntity(TEntity entity, byte[] version = null)
-        {
-            if (entity == null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
-            if (string.IsNullOrEmpty(entity.Id))
-            {
-                throw new BadRequestException();
-            }
-
-            lock (writeLock)
-            {
-                if (!_store.ContainsKey(entity.Id))
-                {
-                    throw new NotFoundException();
-                }
-
-                TEntity existing = _store[entity.Id];
-                if (version != null && existing.Version?.SequenceEqual(version) != true)
-                {
-                    throw new PreconditionFailedException(Disconnect(existing));
-                }
-                UpdateEntity(entity);
-                _store[entity.Id] = Disconnect(entity);
-            }
-        }
-        #endregion
     }
 }
