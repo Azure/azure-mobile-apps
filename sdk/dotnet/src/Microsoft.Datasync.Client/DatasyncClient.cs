@@ -123,7 +123,7 @@ namespace Microsoft.Datasync.Client
 
             Endpoint = endpoint.NormalizeEndpoint();
             ClientOptions = clientOptions ?? new DatasyncClientOptions();
-            HttpClient = new ServiceHttpClient(Endpoint, authenticationProvider, ClientOptions);
+            ServiceHttpClient = new ServiceHttpClient(Endpoint, authenticationProvider, ClientOptions);
             if (ClientOptions.SerializerSettings != null)
             {
                 Serializer.SerializerSettings = ClientOptions.SerializerSettings;
@@ -147,13 +147,18 @@ namespace Microsoft.Datasync.Client
         /// <summary>
         /// Gets the <see cref="ServiceHttpClient"/> associated with the Azure Mobile App.
         /// </summary>
-        internal ServiceHttpClient HttpClient { get; }
+        internal ServiceHttpClient ServiceHttpClient { get; }
+
+        /// <summary>
+        /// The underlying <see cref="HttpClient"/> that is used to communicate with the service.
+        /// </summary>
+        public HttpClient HttpClient { get => ServiceHttpClient.HttpClient; }
 
         /// <summary>
         /// The id used to identify this installation of the application to
         /// provide telemetry data.
         /// </summary>
-        public string InstallationId { get => HttpClient.InstallationId; }
+        public string InstallationId { get => ServiceHttpClient.InstallationId; }
 
         /// <summary>
         /// The number of pending operations, or null if the offline store has not been defined.
@@ -311,7 +316,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the <see cref="HttpResponseMessage"/> for the response when complete.</returns>
         public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken = default)
-            => HttpClient.HttpClient.SendAsync(request, completionOption, cancellationToken);
+            => ServiceHttpClient.HttpClient.SendAsync(request, completionOption, cancellationToken);
 
         /// <summary>
         /// Sends a HTTP request to the remote service, using the in-built HTTP client.
@@ -320,7 +325,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the <see cref="HttpResponseMessage"/> for the response when complete.</returns>
         public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
-            => HttpClient.HttpClient.SendAsync(request, cancellationToken);
+            => ServiceHttpClient.HttpClient.SendAsync(request, cancellationToken);
         #endregion
 
         /// <summary>
@@ -357,7 +362,7 @@ namespace Microsoft.Datasync.Client
             if (disposing)
             {
                 SyncContext.Dispose();
-                HttpClient.Dispose();
+                ServiceHttpClient.Dispose();
             }
         }
         #endregion
