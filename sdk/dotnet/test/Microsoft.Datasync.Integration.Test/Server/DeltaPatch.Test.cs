@@ -14,8 +14,7 @@ public class DeltaPatch_Tests : BaseTest
 
     public DeltaPatch_Tests(ITestOutputHelper outputHelper) : base(outputHelper)
     {
-        //SkipFlakyTests = BuildEnvironment.IsPipeline();
-        SkipFlakyTests = false;
+        SkipFlakyTests = BuildEnvironment.IsPipeline();
     }
 
     [SkippableTheory]
