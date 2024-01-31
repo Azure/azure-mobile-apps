@@ -10,11 +10,19 @@ namespace Microsoft.Datasync.Integration.Test.Server;
 [Collection("Integration")]
 public class DeltaPatch_Tests : BaseTest
 {
+    private readonly bool SkipFlakyTests;
+
+    public DeltaPatch_Tests(ITestOutputHelper outputHelper) : base(outputHelper)
+    {
+        //SkipFlakyTests = BuildEnvironment.IsPipeline();
+        SkipFlakyTests = false;
+    }
+
     [SkippableTheory]
     [InlineData("movies")]
     public async Task BasicPatchTests(string table)
     {
-        Skip.If(BuildEnvironment.IsPipeline());
+        Skip.If(SkipFlakyTests);
 
         var id = GetRandomId();
         var expected = MovieServer.GetMovieById(id)!;
@@ -201,7 +209,7 @@ public class DeltaPatch_Tests : BaseTest
     [InlineData("If-None-Match", "\"dGVzdA==\"", HttpStatusCode.OK)]
     public async Task ConditionalVersionPatchTests(string headerName, string? headerValue, HttpStatusCode expectedStatusCode)
     {
-        Skip.If(BuildEnvironment.IsPipeline());
+        Skip.If(SkipFlakyTests);
 
         string id = GetRandomId();
         var entity = MovieServer.GetMovieById(id)!;
@@ -250,7 +258,7 @@ public class DeltaPatch_Tests : BaseTest
     [InlineData("If-Unmodified-Since", -1, HttpStatusCode.PreconditionFailed)]
     public async Task ConditionalModifiedPatchTests(string headerName, int offset, HttpStatusCode expectedStatusCode)
     {
-        Skip.If(BuildEnvironment.IsPipeline());
+        Skip.If(SkipFlakyTests);
 
         string id = GetRandomId();
         var entity = MovieServer.GetMovieById(id)!;
@@ -311,7 +319,7 @@ public class DeltaPatch_Tests : BaseTest
     [SkippableFact]
     public async Task SoftDeletePatch_CanUndeleteDeletedItem()
     {
-        Skip.If(BuildEnvironment.IsPipeline());
+        Skip.If(SkipFlakyTests);
 
         var id = GetRandomId();
         await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id);
@@ -339,7 +347,7 @@ public class DeltaPatch_Tests : BaseTest
     [InlineData("soft_logged")]
     public async Task SoftDeletePatch_PatchNotDeletedItem(string table)
     {
-        Skip.If(BuildEnvironment.IsPipeline());
+        Skip.If(SkipFlakyTests);
 
         var id = GetRandomId();
         var expected = MovieServer.GetMovieById(id)!;

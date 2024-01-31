@@ -10,13 +10,18 @@ namespace Microsoft.Datasync.Integration.Test.Server;
 [Collection("Integration")]
 public class Replace_Tests : BaseTest
 {
-    public Replace_Tests(ITestOutputHelper logger) : base(logger) { }
+    private readonly bool SkipFlakyTests;
+
+    public Replace_Tests(ITestOutputHelper logger) : base(logger)
+    {
+        SkipFlakyTests = BuildEnvironment.IsPipeline();
+    }
 
     [SkippableTheory]
     [InlineData("movies")]
     public async Task BasicReplaceTests(string table)
     {
-        Skip.If(BuildEnvironment.IsPipeline());
+        Skip.If(SkipFlakyTests);
 
         string id = GetRandomId();
         var original = MovieServer.GetMovieById(id)!;
@@ -134,7 +139,7 @@ public class Replace_Tests : BaseTest
     [InlineData("If-None-Match", "\"dGVzdA==\"", HttpStatusCode.OK)]
     public async Task ConditionalVersionPatchTests(string headerName, string headerValue, HttpStatusCode expectedStatusCode)
     {
-        Skip.If(BuildEnvironment.IsPipeline());
+        Skip.If(SkipFlakyTests);
         string id = GetRandomId();
         var entity = MovieServer.GetMovieById(id)!;
         Dictionary<string, string> headers = new()
@@ -176,7 +181,7 @@ public class Replace_Tests : BaseTest
     [InlineData("If-Unmodified-Since", -1, HttpStatusCode.PreconditionFailed)]
     public async Task ConditionalPatchTests(string headerName, int offset, HttpStatusCode expectedStatusCode)
     {
-        Skip.If(BuildEnvironment.IsPipeline());
+        Skip.If(SkipFlakyTests);
 
         string id = GetRandomId();
         var entity = MovieServer.GetMovieById(id)!;
