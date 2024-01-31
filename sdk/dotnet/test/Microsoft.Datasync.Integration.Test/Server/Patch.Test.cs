@@ -13,13 +13,18 @@ namespace Microsoft.Datasync.Integration.Test.Server;
 [Collection("Integration")]
 public class Patch_Tests : BaseTest
 {
-    public Patch_Tests(ITestOutputHelper logger) : base(logger) { }
+    private readonly bool SkipFlakyTests;
+
+    public Patch_Tests(ITestOutputHelper logger) : base(logger)
+    {
+        SkipFlakyTests = BuildEnvironment.IsPipeline();
+    }
 
     [SkippableTheory, CombinatorialData]
     public async Task BasicPatchTests([CombinatorialValues("movies", "movies_pagesize")] string table)
     {
-        Skip.If(BuildEnvironment.IsPipeline());
-        
+        Skip.If(SkipFlakyTests);
+
         var id = GetRandomId();
         var expected = MovieServer.GetMovieById(id)!;
         expected.Title = "Test Movie Title";
@@ -46,8 +51,8 @@ public class Patch_Tests : BaseTest
         [CombinatorialValues("movies", "movies_pagesize")] string table,
         [CombinatorialValues("/id", "/updatedAt", "/version")] string propName)
     {
-        Skip.If(BuildEnvironment.IsPipeline());
-        
+        Skip.If(SkipFlakyTests);
+
         Dictionary<string, string> propValues = new()
         {
             { "/id", "test-id" },
@@ -70,7 +75,7 @@ public class Patch_Tests : BaseTest
         [CombinatorialValues("movies", "movies_pagesize")] string table,
         [CombinatorialValues("/id", "/updatedAt", "/version")] string propName)
     {
-        Skip.If(BuildEnvironment.IsPipeline());
+        Skip.If(SkipFlakyTests);
 
         var id = GetRandomId();
         var expected = MovieServer.GetMovieById(id)!;
@@ -98,8 +103,8 @@ public class Patch_Tests : BaseTest
     [InlineData(HttpStatusCode.NotFound, "tables/movies_pagesize/missing-id")]
     public async Task PatchFailureTests(HttpStatusCode expectedStatusCode, string relativeUri)
     {
-        Skip.If(BuildEnvironment.IsPipeline());
-        
+        Skip.If(SkipFlakyTests);
+
         PatchOperation[] patchDoc = new PatchOperation[]
         {
             new PatchOperation("replace", "title", "Home Video"),
@@ -113,8 +118,8 @@ public class Patch_Tests : BaseTest
     [SkippableFact]
     public async Task PatchFailedWithWrongContentType()
     {
-        Skip.If(BuildEnvironment.IsPipeline());
-        
+        Skip.If(SkipFlakyTests);
+
         var id = GetRandomId();
         var expected = MovieServer.GetMovieById(id)!;
         PatchOperation[] patchDoc = new PatchOperation[]
@@ -204,7 +209,7 @@ public class Patch_Tests : BaseTest
     [InlineData("If-None-Match", "\"dGVzdA==\"", HttpStatusCode.OK)]
     public async Task ConditionalVersionPatchTests(string headerName, string headerValue, HttpStatusCode expectedStatusCode)
     {
-        Skip.If(BuildEnvironment.IsPipeline());
+        Skip.If(SkipFlakyTests);
 
         string id = GetRandomId();
         var entity = MovieServer.GetMovieById(id)!;
@@ -251,8 +256,8 @@ public class Patch_Tests : BaseTest
     [InlineData("If-Unmodified-Since", -1, HttpStatusCode.PreconditionFailed)]
     public async Task ConditionalPatchTests(string headerName, int offset, HttpStatusCode expectedStatusCode)
     {
-        Skip.If(BuildEnvironment.IsPipeline());
-        
+        Skip.If(SkipFlakyTests);
+
         string id = GetRandomId();
         var entity = MovieServer.GetMovieById(id)!;
         Dictionary<string, string> headers = new()
@@ -310,7 +315,7 @@ public class Patch_Tests : BaseTest
     [SkippableFact]
     public async Task SoftDeletePatch_CanUndeleteDeletedItem()
     {
-        Skip.If(BuildEnvironment.IsPipeline());
+        Skip.If(SkipFlakyTests);
 
         var id = GetRandomId();
         await MovieServer.SoftDeleteMoviesAsync(x => x.Id == id);
@@ -338,7 +343,7 @@ public class Patch_Tests : BaseTest
     [InlineData("soft_logged")]
     public async Task SoftDeletePatch_PatchNotDeletedItem(string table)
     {
-        Skip.If(BuildEnvironment.IsPipeline());
+        Skip.If(SkipFlakyTests);
 
         var id = GetRandomId();
         var expected = MovieServer.GetMovieById(id)!;
