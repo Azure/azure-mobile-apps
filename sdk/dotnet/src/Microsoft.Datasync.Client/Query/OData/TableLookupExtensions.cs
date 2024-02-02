@@ -5,6 +5,7 @@ using Microsoft.Datasync.Client.Query.Linq.Nodes;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace Microsoft.Datasync.Client.Query.OData
 {
@@ -27,7 +28,8 @@ namespace Microsoft.Datasync.Client.Query.OData
         SignedByte,
         UnsignedInt,
         UnsignedLong,
-        UnsignedShort
+        UnsignedShort,
+        StringArray
     }
 
     internal static class TableLookupExtensions
@@ -59,6 +61,12 @@ namespace Microsoft.Datasync.Client.Query.OData
             if (value == null)
             {
                 return ConstantType.Null;
+            }
+
+            // Special case of string arrays since they are handled for "in" clauses.
+            if (value is IEnumerable<string>)
+            {
+                return ConstantType.StringArray;
             }
 
             long handle = (long)value.GetType().TypeHandle.Value;
@@ -130,6 +138,9 @@ namespace Microsoft.Datasync.Client.Query.OData
                 case ConstantType.UnsignedInt:
                 case ConstantType.UnsignedLong:
                     return $"{value}L";
+                case ConstantType.StringArray:
+                    IEnumerable<string> stringArray = (value as IEnumerable<string>).Select(x => $"'{x}'");
+                    return $"({string.Join(",", stringArray)})";
                 default:
                     return EdmTypeSupport.ToODataString(value) ?? $"'{value.ToString().Replace("'", "''")}'";
             }

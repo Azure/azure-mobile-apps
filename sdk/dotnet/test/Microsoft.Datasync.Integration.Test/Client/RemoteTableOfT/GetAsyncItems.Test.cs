@@ -4,6 +4,7 @@
 using Datasync.Common.Test.TestData;
 using Microsoft.Datasync.Client.Query;
 using Microsoft.Datasync.Client.Table;
+using System.Reflection;
 
 // These are explicit tests in the set.
 #pragma warning disable RCS1033 // Remove redundant boolean literal.
@@ -1163,6 +1164,17 @@ public class GetAsyncItems_Tests
             m => m.Where(x => (x.Title + x.Rating) == "Fight ClubR"),
             1,
             new string[] { "id-009" }
+        );
+    }
+
+    [Fact]
+    public async Task ToAsyncEnumerable_Linq_where_101()
+    {
+        string[] ratings = new string[] { "G", "PG" };
+        await RunLinqTest(
+            m => m.Where(x => ratings.Contains(x.Rating)),
+            50,
+            new[] { "id-010", "id-015", "id-024", "id-026", "id-027" }
         );
     }
 

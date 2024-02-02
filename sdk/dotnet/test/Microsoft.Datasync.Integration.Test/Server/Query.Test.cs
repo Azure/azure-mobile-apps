@@ -3681,6 +3681,18 @@ public class Query_Tests : BaseTest
     }
 
     [Fact]
+    public async Task Query_Test_307()
+    {
+        await BaseQueryTest(
+            "tables/movies?$filter=rating in ('G', 'PG')&$count=true",
+            50,
+            null,
+            50,
+            new[] { "id-010", "id-015", "id-024", "id-026", "id-027" }
+        );
+    }
+
+    [Fact]
     public async Task Query_AuthTest_001()
     {
         await BaseQueryTest(

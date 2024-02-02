@@ -20,11 +20,19 @@ namespace Microsoft.Datasync.Client.Query.Linq
     /// </summary>
     internal sealed class FilterBuildingExpressionVisitor
     {
+        // string.Concat(string, string)
         private static readonly MethodInfo concatMethod = typeof(string).GetRuntimeMethod("Concat", new Type[] { typeof(string), typeof(string) });
+        // string.StartsWith(string, StringComparison)
         private static readonly MethodInfo startsWithMethod = typeof(string).GetRuntimeMethod("StartsWith", new Type[] { typeof(string), typeof(StringComparison) });
+        // string.EndsWith(string, StringComparison)
         private static readonly MethodInfo endsWithMethod = typeof(string).GetRuntimeMethod("EndsWith", new Type[] { typeof(string), typeof(StringComparison) });
+        // string.Equals(string)
         private static readonly MethodInfo equals1Method = typeof(string).GetRuntimeMethod("Equals", new Type[] { typeof(string) });
+        // string.Equals(string, StringComparison)
         private static readonly MethodInfo equals2Method = typeof(string).GetRuntimeMethod("Equals", new Type[] { typeof(string), typeof(StringComparison) });
+        // IEnumerable<string>.Contains(string) - generic extension method
+        private static readonly MethodInfo arrayContainsMethod = typeof(Enumerable).GetRuntimeMethods().Single(m => m.Name == "Contains" && m.GetParameters().Length == 2).MakeGenericMethod(typeof(string));
+        // string.ToString()
         private static readonly MethodInfo toStringMethod = typeof(object).GetTypeInfo().GetDeclaredMethod("ToString");
 
         /// <summary>
@@ -242,6 +250,7 @@ namespace Microsoft.Datasync.Client.Query.Linq
         internal Expression VisitMethodCallExpression(MethodCallExpression node)
         {
             var baseDefinition = node.Method.GetRuntimeBaseDefinition();
+
             //
             // string.StartsWith(string, StringComparison)
             //
@@ -252,6 +261,7 @@ namespace Microsoft.Datasync.Client.Query.Linq
                 VisitStringComparisonExpression(callNode, node);
                 return node;
             }
+
             //
             // string.EndsWith(string, StringComparison)
             //
@@ -262,6 +272,7 @@ namespace Microsoft.Datasync.Client.Query.Linq
                 VisitStringComparisonExpression(callNode, node);
                 return node;
             }
+
             //
             // string.Equals(string)
             //
@@ -274,6 +285,7 @@ namespace Microsoft.Datasync.Client.Query.Linq
                 SetChildren(equalityNode);
                 return node;
             }
+
             //
             // string.Equals(string, StringComparison)
             //
@@ -284,6 +296,20 @@ namespace Microsoft.Datasync.Client.Query.Linq
                 VisitStringComparisonExpression(equalityNode, node);
                 return node;
             }
+
+            //
+            // string[].Contains(string)
+            //
+            if (baseDefinition.Equals(arrayContainsMethod) && node.Arguments.Count == 2 && node.Arguments[0].Type == typeof(string[]))
+            {
+                var callNode = new FunctionCallNode("in");
+                FilterExpression.Push(callNode);
+                Visit(node.Arguments[0]);
+                Visit(node.Arguments[1]);
+                SetChildren(callNode);
+                return node;
+            }
+
             //
             // Anything in the MethodNames table (which has a direct relationship to the OData representation)
             //
@@ -307,7 +333,7 @@ namespace Microsoft.Datasync.Client.Query.Linq
                 Visit(node.Object);
                 return node;
             }
-            //         
+            //
             // Default case
             //
             throw new NotSupportedException($"'{node}' is not supported in a 'Where' clause");

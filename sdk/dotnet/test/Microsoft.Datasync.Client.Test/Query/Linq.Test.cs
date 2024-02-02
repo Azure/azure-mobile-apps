@@ -171,6 +171,16 @@ public class Linq_Tests : ClientBaseTest
         );
     }
 
+    [Fact]
+    public void Linq_Contains()
+    {
+        string[] ratings = new string[] { "A", "B" };
+        ExecuteWhereQuery(
+            m => ratings.Contains(m.StringProperty),
+            "$filter=stringProperty%20in%20%28%27A%27%2C%27B%27%29"
+        );
+    }
+
     private void ExecuteWhereQuery(Expression<Func<KitchenSink, bool>> predicate, string expected)
     {
         var sut = _query.Where(predicate);
