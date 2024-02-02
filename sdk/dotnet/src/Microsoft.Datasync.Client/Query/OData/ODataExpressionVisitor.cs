@@ -89,6 +89,15 @@ namespace Microsoft.Datasync.Client.Query.OData
         /// <returns>The visited node</returns>
         public override QueryNode Visit(FunctionCallNode node)
         {
+            // Special case: string[].Contains(string) is represented as "string in ( string, string, ...)" in OData
+            if (node.Name == "in")
+            {
+                Accept(node, node.Arguments[1]);
+                Expression.Append(" in ");
+                Accept(node, node.Arguments[0]);
+                return node;
+            }
+
             bool appendSeparator = false;
             Expression.Append(node.Name).Append('(');
             foreach (QueryNode arg in node.Arguments)
