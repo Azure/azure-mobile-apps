@@ -105,16 +105,13 @@ namespace Microsoft.Datasync.Client.Serialization
             lock (createPropertiesForTypeLocks[type])
             {
                 var properties = base.CreateProperties(type, memberSerialization);
-
-                // If this type is for a known table, ensure that it has an Id.
-                TypeInfo typeInfo = type.GetTypeInfo();
-                if (tableNameCache.ContainsKey(type) || tableNameCache.Keys.Any(t => t.GetTypeInfo().IsAssignableFrom(typeInfo)))
+                if (IsKnownTable(type))
                 {
                     properties = properties.Where(prop => prop.Writable).ToList();
                     _ = GetIdProperty(type, properties);
 
                     // Set any needed converters and look for system property attributes.
-                    var relevantProperties = FilterJsonPropertyCacheByType(typeInfo);
+                    var relevantProperties = FilterJsonPropertyCacheByType(type.GetTypeInfo());
                     foreach (var property in properties)
                     {
                         MemberInfo memberInfo = relevantProperties.Single(x => x.Value.PropertyName == property.PropertyName && x.Value.DeclaringType == property.DeclaringType).Key;
@@ -124,6 +121,20 @@ namespace Microsoft.Datasync.Client.Serialization
                 }
 
                 return properties;
+            }
+        }
+
+        /// <summary>
+        /// Determines if the provided type has already been cached or if it is a subtype of a type that has been cached.
+        /// </summary>
+        /// <param name="type">The type to check.</param>
+        /// <returns>True if valid.</returns>
+        private bool IsKnownTable(Type type)
+        {
+            TypeInfo typeInfo = type.GetTypeInfo();
+            lock (tableNameCache)
+            {
+                return tableNameCache.ContainsKey(type) || tableNameCache.Keys.Any(t => t.GetTypeInfo().IsAssignableFrom(typeInfo));
             }
         }
 
