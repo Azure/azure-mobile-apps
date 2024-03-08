@@ -103,7 +103,7 @@ namespace Microsoft.AspNetCore.Datasync.EFCore
 
             try
             {
-                if (entity.Id != null && DataSet.Any(x => x.Id == entity.Id))
+                if (entity.Id != null && EntityExists(entity.Id))
                 {
                     throw new ConflictException(await GetEntityAsync(entity.Id, token).ConfigureAwait(false));
                 }
@@ -216,5 +216,15 @@ namespace Microsoft.AspNetCore.Datasync.EFCore
                 throw new RepositoryException(ex.Message, ex);
             }
         }
+
+        /// <summary>
+        /// Determines if an entity with the given ID exists in the data store.
+        /// </summary>
+        /// <remarks>
+        /// We can't use .Any() here because CosmosDB does not support the LINQ operation.
+        /// </remarks>
+        /// <param name="id">The ID to check.</param>
+        /// <returns>true if the entity exists.</returns>
+        protected bool EntityExists(string id) => DataSet.Count(x => x.Id == id) > 0;
     }
 }
