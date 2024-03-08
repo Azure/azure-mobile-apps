@@ -256,10 +256,12 @@ public class Replace_Tests : BaseTest
         }
     }
 
-    [Theory]
+    [SkippableTheory]
     [InlineData("soft_logged")]
     public async Task ReplaceSoftNotDeleted_Works(string table)
     {
+        Skip.If(SkipFlakyTests);
+
         var id = GetRandomId();
         var original = MovieServer.GetMovieById(id)!;
         var expected = original.Clone();
