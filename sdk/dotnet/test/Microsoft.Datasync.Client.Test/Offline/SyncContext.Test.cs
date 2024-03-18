@@ -32,10 +32,10 @@ public class SyncContext_Tests : ClientBaseTest
         client = GetMockClient();
         store = new MockOfflineStore();
 
-        client.SynchronizationProgress += (sender, args) =>
+        client.SynchronizationProgress += (_, args) =>
         {
             // Some tests are in parallel, so we have to be careful not to modify concurrently
-            lock(eventLock) { events.Add(args); }
+            lock (eventLock) { events.Add(args); }
         };
 
         testObject = new IdEntity { Id = Guid.NewGuid().ToString("N"), StringValue = "testValue" };
@@ -126,9 +126,9 @@ public class SyncContext_Tests : ClientBaseTest
     {
         // push started, push finished, plus 2 events (before/after) for each count.
         Assert.Equal((count * 2) + 2, events.Count);
-        Assert.Equal(SynchronizationEventType.PushStarted, events.First().EventType);
+        Assert.Equal(SynchronizationEventType.PushStarted, events[0].EventType);
         Assert.Equal(SynchronizationEventType.PushFinished, events.Last().EventType);
-        Assert.Equal(qlen, events.First().QueueLength);
+        Assert.Equal(qlen, events[0].QueueLength);
     }
 
     private static void AssertItemWillBePushed(SynchronizationEventArgs args, string table, string id)
@@ -639,8 +639,8 @@ public class SyncContext_Tests : ClientBaseTest
 
         // Events were sent properly
         Assert.Equal(22, events.Count); // 2 for each event, plus start and finish.
-        Assert.Equal(SynchronizationEventType.PullStarted, events.First().EventType);
-        Assert.Equal("movies", events.First().TableName);
+        Assert.Equal(SynchronizationEventType.PullStarted, events[0].EventType);
+        Assert.Equal("movies", events[0].TableName);
         Assert.Equal(SynchronizationEventType.PullFinished, events.Last().EventType);
         Assert.Equal("movies", events.Last().TableName);
 
@@ -749,10 +749,7 @@ public class SyncContext_Tests : ClientBaseTest
         // We don't "consume" the operation, so PullItemsAsync() will throw an invalid operation because the table is dirty the second time.
         await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => context.PullItemsAsync("movies", "", new PullOptions()));
 
-        Received.InOrder(async () =>
-        {
-            await pushContext.Received(1).PushItemsAsync(Arg.Is<string[]>(t => t.Length == 1 && t[0] == "movies"), default);
-        });
+        Received.InOrder(async () => await pushContext.Received(1).PushItemsAsync(Arg.Is<string[]>(t => t.Length == 1 && t[0] == "movies"), default));
     }
 
     [Fact]
@@ -774,10 +771,7 @@ public class SyncContext_Tests : ClientBaseTest
         var options = new PullOptions { PushOtherTables = true };
         await Assert.ThrowsAsync<DatasyncInvalidOperationException>(() => context.PullItemsAsync("movies", "", options));
 
-        Received.InOrder(async () =>
-        {
-            await pushContext.Received(1).PushItemsAsync(default, default);
-        });
+        Received.InOrder(async () => await pushContext.Received(1).PushItemsAsync(default, default));
     }
 
     [Fact]
@@ -1294,7 +1288,7 @@ public class SyncContext_Tests : ClientBaseTest
     {
         var context = await GetSyncContext();
         var options = new PushOptions { ParallelOperations = nThreads };
-        int nItems = 10;
+        const int nItems = 10;
 
         // Create a list of ten movies
         List<ClientMovie> movies = new();
@@ -1320,9 +1314,9 @@ public class SyncContext_Tests : ClientBaseTest
         Assert.Equal(nItems, MockHandler.Requests.Count);
         // PushStarted, PushFinished, plus nItems delete operations
         Assert.Equal((nItems * 2) + 2, events.Count);
-        Assert.Equal(SynchronizationEventType.PushStarted, events.First().EventType);
+        Assert.Equal(SynchronizationEventType.PushStarted, events[0].EventType);
         Assert.Equal(SynchronizationEventType.PushFinished, events.Last().EventType);
-        Assert.Equal(nItems, events.First().QueueLength);
+        Assert.Equal(nItems, events[0].QueueLength);
 
         foreach (var movie in movies)
         {

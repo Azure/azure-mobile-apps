@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All Rights Reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Extensions.Logging;
-using NSubstitute;
 using Movies = Datasync.Common.Test.TestData.Movies;
 
 namespace Microsoft.Datasync.Integration.Test.KitchenSink;
@@ -15,7 +13,7 @@ namespace Microsoft.Datasync.Integration.Test.KitchenSink;
 [ExcludeFromCodeCoverage]
 public class KitchenSink_Tests : BaseOperationTest
 {
-    public KitchenSink_Tests(ITestOutputHelper logger) : base(logger)
+    public KitchenSink_Tests(ITestOutputHelper logger) : base(logger, useFile: true)
     {
     }
 
@@ -169,5 +167,42 @@ public class KitchenSink_Tests : BaseOperationTest
         var items = await offlineTable!.Where(x => x.StringValue.Equals(searchTarget)).ToListAsync();
         Assert.Single(items);
         Assert.Equal(searchTarget, items[0].StringValue);
+    }
+
+    [Fact]
+    public async Task KS7_EndToEndSyncTest()
+    {
+        const int insertedItems = 5;
+
+        await InitializeAsync(true);
+
+        Assert.Equal(0, client.PendingOperations);
+
+        // Add a couple of new items, and ensure pending operations are updated.
+        for (int i = 0; i < insertedItems; i++)
+        {
+            var insertion = new KitchenSinkDto { StringValue = $"Item {i}" };
+            await offlineTable!.InsertItemAsync(insertion);
+            Assert.Equal(i + 1, client.PendingOperations);
+        }
+
+        // Also add a movie, in case there is a multi-table issue
+        var movie = GetSampleMovie<ClientMovie>();
+        await offlineMovieTable!.InsertItemAsync(movie);
+        Assert.Equal(insertedItems + 1, client.PendingOperations);
+
+        await offlineTable!.PushItemsAsync();
+        Assert.Equal(1, client.PendingOperations);
+        await offlineTable!.PullItemsAsync();
+        Assert.Equal(1, client.PendingOperations);
+
+        await offlineMovieTable!.PushItemsAsync();
+        Assert.Equal(0, client.PendingOperations);
+        await offlineMovieTable!.PullItemsAsync();
+        Assert.Equal(0, client.PendingOperations);
+
+        Assert.Equal(0, client.PendingOperations);
+        var nItems = await offlineTable!.CountItemsAsync();
+        Assert.Equal(insertedItems, nItems);
     }
 }

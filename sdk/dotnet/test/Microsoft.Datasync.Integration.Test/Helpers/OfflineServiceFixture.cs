@@ -26,6 +26,7 @@ public class OfflineServiceFixture : BaseOperationTest, IDisposable
 
     public new TestServer MovieServer { get => base.MovieServer; }
 
+    [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Cannot override a non-static with a static")]
     public new int MovieCount { get => BaseTest.MovieCount; }
 }
 
