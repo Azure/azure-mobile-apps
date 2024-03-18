@@ -1143,16 +1143,16 @@ public class GetAsyncItems_Tests
         );
     }
 
-    [Fact(Skip = "Needs OData parser updates in SqliteStore to work")]
-    public async Task ToAsyncEnumerable_Linq_where_101()
-    {
-        string[] ratings = new string[] { "G", "PG" };
-        await RunLinqTest(
-            m => m.Where(x => ratings.Contains(x.Rating)),
-            50,
-            new[] { "id-010", "id-015", "id-024", "id-026", "id-027" }
-        );
-    }
+    //[Fact]
+    //public async Task ToAsyncEnumerable_Linq_where_101()
+    //{
+    //    string[] ratings = new string[] { "G", "PG" };
+    //    await RunLinqTest(
+    //        m => m.Where(x => ratings.Contains(x.Rating)),
+    //        50,
+    //        new[] { "id-010", "id-015", "id-024", "id-026", "id-027" }
+    //    );
+    //}
 
     [Fact]
     public async Task ToAsyncEnumerable_Linq_where_120()

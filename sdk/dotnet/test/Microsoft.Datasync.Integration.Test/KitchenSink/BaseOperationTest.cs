@@ -15,7 +15,9 @@ public abstract class BaseOperationTest : BaseTest, IDisposable
     protected readonly OfflineSQLiteStore store;
     protected readonly DatasyncClient client;
     protected IOfflineTable<KitchenSinkDto>? offlineTable;
+    protected IOfflineTable<ClientMovie>? offlineMovieTable;
     protected IRemoteTable<KitchenSinkDto> remoteTable;
+    protected IRemoteTable<ClientMovie>? remoteMovieTable;
     protected ILogger<OfflineSQLiteStore> storeLoggerMock;
 
     protected BaseOperationTest(ITestOutputHelper logger, bool useFile = true)
@@ -35,8 +37,10 @@ public abstract class BaseOperationTest : BaseTest, IDisposable
         storeLoggerMock.Log(Arg.Any<LogLevel>(), Arg.Any<EventId>(), Arg.Any<object>(), Arg.Any<Exception>(), Arg.Any<Func<object, Exception?, string>>());
         store = new OfflineSQLiteStore(connectionString, storeLoggerMock);
         store.DefineTable<KitchenSinkDto>("kitchensink");
+        store.DefineTable<ClientMovie>("movies");
         client = GetMovieClient(store: store);
         remoteTable = client.GetRemoteTable<KitchenSinkDto>("kitchensink");
+        remoteMovieTable = client.GetRemoteTable<ClientMovie>("movies");
     }
 
     protected async Task InitializeAsync(bool pullItems = true)
@@ -44,10 +48,12 @@ public abstract class BaseOperationTest : BaseTest, IDisposable
         await client.InitializeOfflineStoreAsync();
 
         offlineTable = client.GetOfflineTable<KitchenSinkDto>("kitchensink");
+        offlineMovieTable = client.GetOfflineTable<ClientMovie>("movies");
 
         if (pullItems)
         {
             await offlineTable.PullItemsAsync();
+            await offlineMovieTable.PullItemsAsync();
         }
     }
 
