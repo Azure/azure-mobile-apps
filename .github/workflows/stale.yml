@@ -28,9 +28,21 @@ jobs:
         days-before-stale: 30
         days-before-close: 14
         enable-statistics: true
-        any-of-labels: 'Question,blocked'
+        any-of-labels: 'blocked'
         remove-stale-when-updated: true
         stale-issue-message: 'We have noticed this issue has not been updated within 30 days.  If there is no action on this issue in the next 14 days, we will automatically close it.'
         stale-pr-message: 'We have noticed this PR has not been updated within 30 days.  If there is no action on this PR in the next 14 days, we will automatically close it.'
         stale-issue-label: 'stale'
         stale-pr-label: 'stale'
+
+    - uses: actions/stale@f7176fd3007623b69d27091f9b9d4ab7995f0a06 # v5.2.1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        days-before-stale: 5
+        days-before-close: 2
+        enable-statistics: true
+        any-of-labels: 'Resolved'
+        remove-stale-when-updated: true
+        stale-issue-message: 'We have noticed this issue has been resolved for 5 days.  If there is not action on this issue in the next 2 days, we will automatically close it.'
+        stale-issue-label: 'stale'
+  
