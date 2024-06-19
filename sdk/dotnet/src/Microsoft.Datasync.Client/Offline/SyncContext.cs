@@ -586,7 +586,7 @@ namespace Microsoft.Datasync.Client.Offline
             {
                 batch.OtherErrors.Add(new OfflineStoreException("Failed to read errors from the local store.", ex));
             }
-            SendPushFinishedEvent(batchStatus != PushStatus.Complete);
+            SendPushFinishedEvent(batchStatus == PushStatus.Complete);
 
             // If the push did not complete successfully, then throw a PushFailedException.
             if (batchStatus != PushStatus.Complete || batch.HasErrors(errors))

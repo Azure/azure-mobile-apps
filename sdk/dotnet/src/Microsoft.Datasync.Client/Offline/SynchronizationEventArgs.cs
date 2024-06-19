@@ -49,7 +49,8 @@ namespace Microsoft.Datasync.Client.Offline
         public string TableName { get; internal set; }
 
         /// <summary>
-        /// In the case of a result, whether the push was successful or not.
+        /// In the case of a result, whether it was successful or not.
+        /// Events with a result are ItemWasPushed, ItemWasStored, PullFinished and PushFinished 
         /// </summary>
         public bool? IsSuccessful { get; internal set; }
     }
